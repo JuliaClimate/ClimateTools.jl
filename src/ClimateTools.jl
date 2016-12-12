@@ -1,5 +1,8 @@
 module ClimateTools
 
-# package code goes here
+    include("functions.jl")
+    include("indices.jl")
 
-end # module
+    export windnr, leftorright, inpoly, meshgrid, boxcar3, prcp1
+
+end #module
