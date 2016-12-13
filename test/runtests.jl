@@ -2,6 +2,15 @@ using ClimateTools
 using Base.Test
 
 # write your own tests here
+d = Date(2003,1,1):Date(2005,12,31)
+data= vcat(ones(365,1), zeros(366,1), ones(365))
+Results = Array{Int64, 2}(3, 1); Results[1] = 365; Results[2] = 0; Results[3] = 365;
+@test prcp1(data, d) == Results
+
+data= vcat(-ones(365,1), -ones(366),zeros(365,1))
+Results = Array{Int64, 2}(3, 1); Results[1] = 365; Results[2] = 366; Results[3] = 0;
+@test frostdays(data, d) == Results
+
 ## inpoly
 @test leftorright(0.5,0.5, 1,0,1,1)==-1
 @test leftorright(1.5,.5, 1,0,1,1)==1
