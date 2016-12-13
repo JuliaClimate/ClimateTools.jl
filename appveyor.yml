@@ -11,7 +11,7 @@ branches:
     - /release-.*/
 
 notifications:
-  - provider: roy.philippe@ouranos.ca
+  - provider: Philippe Roy
     on_build_success: false
     on_build_failure: false
     on_build_status_changed: false
