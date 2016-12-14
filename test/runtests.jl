@@ -17,10 +17,12 @@ data[:,2,2] = vcat(ones(365,1), zeros(366,1), ones(365))
 Results = Array{Int64, 3}(3, 2, 2); Results[1,1,1] = 365; Results[2,1,1] = 0; Results[3,1,1] = 365; Results[1,2,1] = 365; Results[2,2,1] = 0; Results[3,2,1] = 365; Results[1,1,2] = 365; Results[2,1,2] = 0; Results[3,1,2] = 365; Results[1,2,2] = 365; Results[2,2,2] = 0; Results[3,2,2] = 365;
 @test prcp1(data, d) == Results
 
+
 # Frostdays
 data= vcat(-ones(365,1), -ones(366),zeros(365,1))
 Results = Array{Int64, 2}(3, 1); Results[1] = 365; Results[2] = 366; Results[3] = 0;
 @test frostdays(data, d) == Results
+@test icingdays(data, d) == Results
 
 data = Array{Float64,3}(1096, 2, 2)
 data[:,1,1] = vcat(-ones(365,1), -ones(366,1), zeros(365))
@@ -29,6 +31,7 @@ data[:,1,2] = vcat(-ones(365,1), -ones(366,1), zeros(365))
 data[:,2,2] = vcat(-ones(365,1), -ones(366,1), zeros(365))
 Results = Array{Int64, 3}(3, 2, 2); Results[1,1,1] = 365; Results[2,1,1] = 366; Results[3,1,1] = 0; Results[1,2,1] = 365; Results[2,2,1] = 366; Results[3,2,1] = 0; Results[1,1,2] = 365; Results[2,1,2] = 366; Results[3,1,2] = 0; Results[1,2,2] = 365; Results[2,2,2] = 366; Results[3,2,2] = 0;
 @test frostdays(data, d) == Results
+@test icingdays(data, d) == Results
 
 # Summer Days
 d = Date(2003,1,1):Date(2007,12,31)
@@ -42,6 +45,19 @@ data = Array{Float64, 3}(1826, 2, 2)
 data[:, 1, 1] = collect(1.:1826.); data[:, 1, 2] = collect(1.:1826.);data[:, 2, 1] = collect(1.:1826.);data[:, 2, 2] = collect(1.:1826.);
 Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [341, 366, 365, 365, 365]''; Results[:, 1, 2] = [341, 366, 365, 365, 365]''; Results[:, 2, 1] = [341, 366, 365, 365, 365]''; Results[:, 2, 2] = [341, 366, 365, 365, 365]'';
 @test summerdays(data, d) == Results
+
+# Tropical Nights
+d = Date(2003,1,1):Date(2007,12,31)
+data = collect(1.:1826.)
+@test tropicalnights(data, d) == [346, 366, 365, 365, 365]''
+
+data = hcat(collect(1.:1826.), collect(1.:1826.))
+@test tropicalnights(data, d) == hcat([346, 366, 365, 365, 365],[346, 366, 365, 365, 365])
+
+data = Array{Float64, 3}(1826, 2, 2)
+data[:, 1, 1] = collect(1.:1826.); data[:, 1, 2] = collect(1.:1826.);data[:, 2, 1] = collect(1.:1826.);data[:, 2, 2] = collect(1.:1826.);
+Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [346, 366, 365, 365, 365]''; Results[:, 1, 2] = [346, 366, 365, 365, 365]''; Results[:, 2, 1] = [346, 366, 365, 365, 365]''; Results[:, 2, 2] = [346, 366, 365, 365, 365]'';
+@test tropicalnights(data, d) == Results
 
 ## inpoly
 @test leftorright(0.5,0.5, 1,0,1,1) == -1
