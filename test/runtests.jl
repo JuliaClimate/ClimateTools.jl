@@ -11,10 +11,26 @@ data= vcat(-ones(365,1), -ones(366),zeros(365,1))
 Results = Array{Int64, 2}(3, 1); Results[1] = 365; Results[2] = 366; Results[3] = 0;
 @test frostdays(data, d) == Results
 
+data = Array{Float64,3}(1096, 2, 2)
+data[:,1,1] = vcat(ones(365,1), zeros(366,1), ones(365))
+data[:,2,1] = vcat(ones(365,1), zeros(366,1), ones(365))
+data[:,1,2] = vcat(ones(365,1), zeros(366,1), ones(365))
+data[:,2,2] = vcat(ones(365,1), zeros(366,1), ones(365))
+Results = Array{Int64, 3}(3, 2, 2); Results[1,1,1] = 365; Results[2,1,1] = 0; Results[3,1,1] = 365; Results[1,2,1] = 365; Results[2,2,1] = 0; Results[3,2,1] = 365; Results[1,1,2] = 365; Results[2,1,2] = 0; Results[3,1,2] = 365; Results[1,2,2] = 365; Results[2,2,2] = 0; Results[3,2,2] = 365;
+@test prcp1(data, d) == Results
+
+data = Array{Float64,3}(1096, 2, 2)
+data[:,1,1] = vcat(-ones(365,1), -ones(366,1), zeros(365))
+data[:,2,1] = vcat(-ones(365,1), -ones(366,1), zeros(365))
+data[:,1,2] = vcat(-ones(365,1), -ones(366,1), zeros(365))
+data[:,2,2] = vcat(-ones(365,1), -ones(366,1), zeros(365))
+Results = Array{Int64, 3}(3, 2, 2); Results[1,1,1] = 365; Results[2,1,1] = 366; Results[3,1,1] = 0; Results[1,2,1] = 365; Results[2,2,1] = 366; Results[3,2,1] = 0; Results[1,1,2] = 365; Results[2,1,2] = 366; Results[3,1,2] = 0; Results[1,2,2] = 365; Results[2,2,2] = 366; Results[3,2,2] = 0;
+@test frostdays(data, d) == Results
+
 ## inpoly
-@test leftorright(0.5,0.5, 1,0,1,1)==-1
-@test leftorright(1.5,.5, 1,0,1,1)==1
-@test leftorright(1,0.5, 1,0,1,1)==0
+@test leftorright(0.5,0.5, 1,0,1,1) == -1
+@test leftorright(1.5,.5, 1,0,1,1) == 1
+@test leftorright(1,0.5, 1,0,1,1) == 0
 
 poly = Float64[0 0
                0 1
@@ -59,7 +75,7 @@ poly = Float64[0 0
                0 1
                1 1
                0 0]'
-if VERSION>=v"0.5-"
+if VERSION >= v"0.5-"
     eval(:(@test_broken inpoly(p1, poly) )) # should be true
 end
 @test inpoly(p2, poly)

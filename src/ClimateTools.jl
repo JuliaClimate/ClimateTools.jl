@@ -1,7 +1,7 @@
 __precompile__()
 
 module ClimateTools
-
+using NetCDF
 include("functions.jl")
 include("indices.jl")
 
