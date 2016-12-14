@@ -61,3 +61,48 @@ function frostdays(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Da
   end
   return FD
 end
+
+"
+  summerdays(TX::Array, time::StepRange{Date,Base.Dates.Day})
+
+SD, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25 degree Celsius.
+
+Let TX(i,j) be daily maximum temperature on day i in year j. Count the number of days where:
+
+  TX(i,j) > 25 Celsius."
+
+function summerdays(data::Array{Float64,1}, timeV::StepRange{Date, Base.Dates.Day})
+  numYears = unique(Dates.year(timeV))
+  SD = Array{Int64}(size(numYears, 1), size(data, 2))
+  z = 1
+  for iyear = numYears[1]:numYears[end]
+    fgYear = findin(Dates.year(timeV), iyear)
+    SD[z, :] = sum([!isless(istep, 25) for istep in data[fgYear,:]], 1)
+    z = z + 1
+  end
+  return SD
+end
+
+function summerdays(data::Array{Float64,2}, timeV::StepRange{Date, Base.Dates.Day})
+  numYears = unique(Dates.year(timeV))
+  SD = Array{Int64}(size(numYears, 1), size(data, 2))
+  z = 1
+  for iyear = numYears[1]:numYears[end]
+    fgYear = findin(Dates.year(timeV), iyear)
+    SD[z, :] = sum([!isless(istep, 25) for istep in data[fgYear,:]], 1)
+    z = z + 1
+  end
+  return SD
+end
+
+function summerdays(data::Array{Float64,3}, timeV::StepRange{Date, Base.Dates.Day})
+  numYears = unique(Dates.year(timeV))
+  SD = Array{Int64}(size(numYears, 1), size(data, 2), size(data, 3))
+  z = 1
+  for iyear = numYears[1]:numYears[end]
+    fgYear = findin(Dates.year(timeV), iyear)
+    SD[z, :, :] = sum([!isless(istep, 25) for istep in data[fgYear,:]], 1)
+    z = z + 1
+  end
+  return SD
+end
