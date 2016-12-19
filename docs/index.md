@@ -10,8 +10,8 @@ More text
 
 ```@contents
 Pages = [
-    "tutorials/page1.md",
-    "tutorials/page2.md"    
+    "src/tutorials/page1.md",
+    "src/tutorials/page2.md"
     ]
 Depth = 2
 ```
@@ -19,8 +19,8 @@ Depth = 2
 ## Another Section
 ```@contents
 Pages = [
-    "sec2/page1.md",
-    "sec2/page2.md"    
+    "src/sec2/page1.md",
+    "src/sec2/page2.md"
     ]
 Depth = 2
 ```
