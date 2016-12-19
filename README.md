@@ -7,13 +7,28 @@
 
 This package is a collection of commonly-used tools in Climate Science. This is mainly a work-in-progress package, developed for myself and is available here, for _common-good_ purpose as well as for archive purpose. Nothing fancy here, basics of climate field analysis will be covered, with some forays into some _"state-of-the-art"_ techniques.
 
+This package is now registered on METADATA.jl and can be added with `Pkg.add("ClimateTools")` and used with `using ClimateTools`.
+
+Since the package is evolving "rapidly", you might prefer to checkout the git repo directly.
+
+`git checkout https://github.com/Balinus/ClimateTools.jl.git`
+
 ## Objectives
 
 * Visualization of NetCDF files (e.g. temporal mean of a given NetCDF file), for rapid evaluation of NetCDF files
 * Migration of NetCDF files to Julia matrix
 * Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI)
+* Custom climate indices
 * Post-processing of climate timeseries using Quantile-Quantile mapping methods (cf. Pani et al. 2010)
 
 ## Examples
 
-Coming soon.
+`using ClimateTools`
+
+Rest is coming soon.
+
+## TO-DO
+
+* Add GRIB file support (probably through PyCall and pygrib package-> https://github.com/jswhit/pygrib)
+* Add a "simple" quantile-quantile mapping technique
+* Add a more complex quantile-quantile mapping technique, combining POT and quantile-quantile standard technique

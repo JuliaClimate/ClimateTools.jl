@@ -94,41 +94,41 @@ Let TX(i,j) be daily maximum temperature on day i in year j. Count the number of
 
   TX(i,j) >= 25 Celsius."
 
-  function summerdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-    years    = Dates.year(timeV)
-    numYears = unique(years)
-    FD       = zeros(Int64, (length(numYears), size(data, 2)))
+function summerdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Int64, (length(numYears), size(data, 2)))
 
-    Threads.@threads for i in 1:length(numYears)
-      idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-      Base.mapreducedim!(t -> t >= 25, +, view(FD, i:i, :, :), view(data, idx, :, :))
-    end
-    return FD
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t >= 25, +, view(FD, i:i, :, :), view(data, idx, :, :))
   end
+  return FD
+end
 
-  function summerdays(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
-    years    = Dates.year(timeV)
-    numYears = unique(years)
-    FD       = zeros(Int64, (length(numYears), size(data, 2)))
+function summerdays(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Int64, (length(numYears), size(data, 2)))
 
-    Threads.@threads for i in 1:length(numYears)
-      idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-      Base.mapreducedim!(t -> t >= 25, +, view(FD, i:i, :, :), view(data, idx, :, :))
-    end
-    return FD
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t >= 25, +, view(FD, i:i, :, :), view(data, idx, :, :))
   end
+  return FD
+end
 
-  function summerdays(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
-    years    = Dates.year(timeV)
-    numYears = unique(years)
-    FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
+function summerdays(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
 
-    Threads.@threads for i in 1:length(numYears)
-      idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-      Base.mapreducedim!(t -> t >= 25, +, view(FD, i:i, :, :), view(data, idx, :, :))
-    end
-    return FD
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t >= 25, +, view(FD, i:i, :, :), view(data, idx, :, :))
   end
+  return FD
+end
 
 "
   icingdays(TX::Array, time::StepRange{Date,Base.Dates.Day})
@@ -139,17 +139,17 @@ Let TX(i,j) be daily maximum temperature on day i in year j. Count the number of
 
   TX(i,j) < 0 Celsius."
 
-  function icingdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-    return frostdays(data, timeV)
-  end
+function icingdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
+  return frostdays(data, timeV)
+end
 
-  function icingdays(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
-    return frostdays(data, timeV)
-  end
+function icingdays(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
+  return frostdays(data, timeV)
+end
 
-  function icingdays(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
-    return frostdays(data, timeV)
-  end
+function icingdays(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
+  return frostdays(data, timeV)
+end
 
 "
   tropicalnights(TN::Array, time::StepRange{Date,Base.Dates.Day})
@@ -160,38 +160,128 @@ Let TN(i,j) be daily minimum temperature on day i in year j. Count the number of
 
   TN(i,j) > 20 Celsius."
 
-  function tropicalnights(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-    years    = Dates.year(timeV)
-    numYears = unique(years)
-    FD       = zeros(Int64, (length(numYears), size(data, 2)))
+function tropicalnights(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Int64, (length(numYears), size(data, 2)))
 
-    Threads.@threads for i in 1:length(numYears)
-      idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-      Base.mapreducedim!(t -> t >= 20, +, view(FD, i:i, :, :), view(data, idx, :, :))
-    end
-    return FD
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t >= 20, +, view(FD, i:i, :, :), view(data, idx, :, :))
   end
+  return FD
+end
 
-  function tropicalnights(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
-    years    = Dates.year(timeV)
-    numYears = unique(years)
-    FD       = zeros(Int64, (length(numYears), size(data, 2)))
+function tropicalnights(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Int64, (length(numYears), size(data, 2)))
 
-    Threads.@threads for i in 1:length(numYears)
-      idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-      Base.mapreducedim!(t -> t >= 20, +, view(FD, i:i, :, :), view(data, idx, :, :))
-    end
-    return FD
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t >= 20, +, view(FD, i:i, :, :), view(data, idx, :, :))
   end
+  return FD
+end
 
-  function tropicalnights(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
-    years    = Dates.year(timeV)
-    numYears = unique(years)
-    FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
+function tropicalnights(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
 
-    Threads.@threads for i in 1:length(numYears)
-      idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-      Base.mapreducedim!(t -> t >= 20, +, view(FD, i:i, :, :), view(data, idx, :, :))
-    end
-    return FD
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t >= 20, +, view(FD, i:i, :, :), view(data, idx, :, :))
   end
+  return FD
+end
+
+"
+  customthresover(TN::Array, time::StepRange{Date,Base.Dates.Day}, thres)
+
+customthresover, annual number of days over a specified threshold.
+
+Let TS(i,j) be a daily time serie value on day i in year j. Count the number of days where:
+
+  TS(i,j) > thres."
+
+function customthresover(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Int64, (length(numYears), size(data, 2)))
+
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t > thres, +, view(FD, i:i, :, :), view(data, idx, :, :))
+  end
+  return FD
+end
+
+function customthresover(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day}, thres)
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Int64, (length(numYears), size(data, 2)))
+
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t > thres, +, view(FD, i:i, :, :), view(data, idx, :, :))
+  end
+  return FD
+end
+
+function customthresover(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day}, thres)
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
+
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t > thres, +, view(FD, i:i, :, :), view(data, idx, :, :))
+  end
+  return FD
+end
+
+"
+  customthresunder(TN::Array, time::StepRange{Date,Base.Dates.Day}, thres)
+
+customthresover, annual number of days under a specified threshold.
+
+Let TS(i,j) be a daily time serie value on day i in year j. Count the number of days where:
+
+  TS(i,j) < thres."
+
+function customthresunder(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Int64, (length(numYears), size(data, 2)))
+
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t < thres, +, view(FD, i:i, :, :), view(data, idx, :, :))
+  end
+  return FD
+end
+
+function customthresunder(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day}, thres)
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Int64, (length(numYears), size(data, 2)))
+
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t < thres, +, view(FD, i:i, :, :), view(data, idx, :, :))
+  end
+  return FD
+end
+
+function customthresunder(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day}, thres)
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
+
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t < thres, +, view(FD, i:i, :, :), view(data, idx, :, :))
+  end
+  return FD
+end
