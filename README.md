@@ -29,6 +29,6 @@ Rest is coming soon.
 
 ## TO-DO
 
-* Add GRIB file support (probably through PyCall and pygrib package-> https://github.com/jswhit/pygrib)
 * Add a "simple" quantile-quantile mapping technique
 * Add a more complex quantile-quantile mapping technique, combining POT and quantile-quantile standard technique
+* Add GRIB file support (probably through PyCall and pygrib package-> https://github.com/jswhit/pygrib)
