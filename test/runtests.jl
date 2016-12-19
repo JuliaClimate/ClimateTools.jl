@@ -59,6 +59,31 @@ data[:, 1, 1] = collect(1.:1826.); data[:, 1, 2] = collect(1.:1826.);data[:, 2, 
 Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [346, 366, 365, 365, 365]''; Results[:, 1, 2] = [346, 366, 365, 365, 365]''; Results[:, 2, 1] = [346, 366, 365, 365, 365]''; Results[:, 2, 2] = [346, 366, 365, 365, 365]'';
 @test tropicalnights(data, d) == Results
 
+# Custom thresholds
+d = Date(2003,1,1):Date(2007,12,31)
+data = collect(1.:1826.)
+@test customthresover(data, d, 20) == [345, 366, 365, 365, 365]''
+
+data = hcat(collect(1.:1826.), collect(1.:1826.))
+@test customthresover(data, d, 20) == hcat([345, 366, 365, 365, 365],[345, 366, 365, 365, 365])
+
+data = Array{Float64, 3}(1826, 2, 2)
+data[:, 1, 1] = collect(1.:1826.); data[:, 1, 2] = collect(1.:1826.);data[:, 2, 1] = collect(1.:1826.);data[:, 2, 2] = collect(1.:1826.);
+Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [345, 366, 365, 365, 365]''; Results[:, 1, 2] = [345, 366, 365, 365, 365]''; Results[:, 2, 1] = [345, 366, 365, 365, 365]''; Results[:, 2, 2] = [345, 366, 365, 365, 365]'';
+@test customthresover(data, d, 20) == Results
+
+d = Date(2003,1,1):Date(2007,12,31)
+data = collect(-800.:1025.)
+@test customthresunder(data, d, 200) == [365, 366, 269, 0, 0]''
+
+data = hcat(collect(-800.:1025.), collect(-800.:1025.))
+@test customthresunder(data, d, 200) == hcat([365, 366, 269, 0, 0],[365, 366, 269, 0, 0])
+
+data = Array{Float64, 3}(1826, 2, 2)
+data[:, 1, 1] = collect(-800.:1025.); data[:, 1, 2] = collect(-800.:1025.);data[:, 2, 1] = collect(-800.:1025.);data[:, 2, 2] = collect(-800.:1025.);
+Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [365, 366, 269, 0, 0]''; Results[:, 1, 2] = [365, 366, 269, 0, 0]''; Results[:, 2, 1] = [365, 366, 269, 0, 0]''; Results[:, 2, 2] = [365, 366, 269, 0, 0]'';
+@test customthresunder(data, d, 200) == Results
+
 ## inpoly
 @test leftorright(0.5,0.5, 1,0,1,1) == -1
 @test leftorright(1.5,.5, 1,0,1,1) == 1
