@@ -9,9 +9,15 @@ This package is a collection of commonly-used tools in Climate Science. This is 
 
 This package is now registered on METADATA.jl and can be added with `Pkg.add("ClimateTools")` and used with `using ClimateTools`.
 
+The climate indices are coded to use multiple threads. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.CPU_CORES`.
+
 Since the package is evolving "rapidly", you might prefer to checkout the git repo directly.
 
 `git checkout https://github.com/Balinus/ClimateTools.jl.git`
+
+## Documentation
+
+Minimal documentation can be found [here.](https://balinus.github.io/ClimateTools.jl/ "ClimateTools.jl documentation")
 
 ## Objectives
 
