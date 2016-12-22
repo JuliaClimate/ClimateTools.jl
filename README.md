@@ -19,16 +19,13 @@ Since the package is evolving "rapidly", you might prefer to checkout the git re
 
 Minimal documentation can be found [here.](https://balinus.github.io/ClimateTools.jl/ "ClimateTools.jl documentation")
 
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://balinus.github.io/ClimateTools.jl/stable)
-[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://balinus.github.io/ClimateTools.jl/latest)
-
 ## Objectives
 
 * Visualization of NetCDF files (e.g. temporal mean of a given NetCDF file), for rapid evaluation of NetCDF files
 * Migration of NetCDF files to Julia matrix
 * Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI)
 * Custom climate indices
-* Post-processing of climate timeseries using Quantile-Quantile mapping methods (cf. Pani et al. 2010)
+* Post-processing of climate timeseries using Quantile-Quantile mapping methods (cf. Piani et al. 2010)
 
 ## Examples
 
