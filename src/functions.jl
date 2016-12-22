@@ -52,7 +52,10 @@ Determines if a point is inside a polygon.
 Returns true if point has an odd winding number.  This should label
 points as exterior which are inside outcrops.  See test for a test.
 """
-inpoly(p, poly::Matrix) = isodd(windnr(p,poly))
+function inpoly(p, poly::Matrix)
+  return isodd(windnr(p, poly))
+end
+# inpoly(p, poly::Matrix) = isodd(windnr(p,poly))
 
 """
 This function creates a 2-D mesh-grid in a format consistent with Matlab's function meshgrid()
