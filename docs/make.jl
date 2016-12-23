@@ -5,7 +5,10 @@ using Documenter, ClimateTools
 makedocs(modules = ClimateTools)
 
 deploydocs(
-    repo = "github.com/Balinus/ClimateTools.jl.git"
+    deps   = Deps.pip("mkdocs", "python-markdown-math"),
+    repo = "github.com/Balinus/ClimateTools.jl.git",
+    julia  = "0.5",
+    osname = "linux"
 )
 
 #makedocs(
