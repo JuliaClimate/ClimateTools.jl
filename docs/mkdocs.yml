@@ -1,5 +1,5 @@
 site_name:        ClimateTools.jl
-repo_url:         https://github.com/Balinus/ClimateTools.jl
+repo_url:         https://github.com/Balinus/ClimateTools.jl/
 site_description: Collection of commonly-used tools in Climate Science
 site_author:      Balinus
 
@@ -21,4 +21,4 @@ markdown_extensions:
 docs_dir: 'build'
 
 pages:
-  - Home: index.md
+  - Home: 'index.md'
