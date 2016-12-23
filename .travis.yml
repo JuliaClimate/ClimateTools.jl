@@ -18,7 +18,6 @@ script:
   - julia -e 'Pkg.clone(pwd())'
   - julia -e 'Pkg.test("ClimateTools"; coverage=true)'
 after_success:
-after_success:
   - julia -e 'Pkg.add("Documenter")'  
   - julia -e 'cd(Pkg.dir("ClimateTools")); include(joinpath("docs", "make.jl"))'
   - julia -e 'cd(Pkg.dir("ClimateTools")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
