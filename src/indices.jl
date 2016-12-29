@@ -1,5 +1,5 @@
 """
-  prcp1(data::Array, timevector::StepRange{Date,Base.Dates.Day})
+    prcp1(data::Array, timevector::StepRange{Date,Base.Dates.Day})
 
 Annual number with preciptation over 1 mm. This function returns a boolean vector. *true* if the data is higher or equal to 1 and *false* otherwise.
 """
