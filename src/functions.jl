@@ -42,6 +42,8 @@ function leftorright(px,py,ex1,ey1,ex2,ey2)
 end
 
 """
+    inpoly(p, poly::Matrix)
+    
 Determines if a point is inside a polygon.
 
 - p -- point (x,y) or [x,y]
