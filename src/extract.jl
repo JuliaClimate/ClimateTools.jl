@@ -1,7 +1,7 @@
 """
     netcdf2julia(file::String, var::String, poly::Vector)
 
-Returns an array with the data in *file* of variable *var* inside the polygon *poly*
+Returns a ClimGrid type with the data in *file* of variable *var* inside the polygon *poly*. Metadata is built-in the ClimDrid type
 """
 
 function netcdf2julia(file::String, var::String, poly::Array{Float64})

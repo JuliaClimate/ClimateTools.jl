@@ -7,7 +7,7 @@ using NetCDF
 using Shapefile
 
 # Exported functions
-export windnr, leftorright, inpoly, meshgrid, boxcar3, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, netcdf2julia, sumleapyear, buildtimevec
+export windnr, leftorright, inpoly, meshgrid, boxcar3, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, netcdf2julia, sumleapyear, buildtimevec, inpolyV, shpextract
 
 # Included files
 include("functions.jl")
