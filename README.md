@@ -17,8 +17,6 @@ Since the package is evolving "rapidly", you might prefer to checkout the git re
 
 ## Documentation
 
-Minimal documentation can be found [here.](https://balinus.github.io/ClimateTools.jl/ "ClimateTools.jl documentation")
-
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://balinus.github.io/ClimateTools.jl/stable)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://balinus.github.io/ClimateTools.jl/latest)
 
