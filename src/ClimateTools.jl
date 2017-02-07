@@ -3,7 +3,7 @@ module ClimateTools
 # External modules
 using NetCDF
 using Shapefile
-using AxisArray
+using AxisArrays
 
 # Exported functions
 export windnr, leftorright, inpoly, meshgrid, boxcar3, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, netcdf2julia, sumleapyear, buildtimevec, inpolyV, shpextract
