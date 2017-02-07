@@ -6,7 +6,7 @@ using Shapefile
 using AxisArrays
 
 # Exported functions
-export windnr, leftorright, inpoly, meshgrid, boxcar3, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, netcdf2julia, sumleapyear, buildtimevec, inpolyV, shpextract
+export windnr, leftorright, inpoly, meshgrid, boxcar3, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, nc2julia, sumleapyear, buildtimevec, inpolyV, shpextract
 
 # Included files
 include("functions.jl")
@@ -34,11 +34,8 @@ type ClimGrid
     # to-do -> add some checks, permutedims if need be
     new(lat, lon, data, timeV, model, experiment, run, filename, dataunits, latunits, lonunits)
 
-
   end
-
-
-
 end
-
+# TODO Add show method for ClimGrid
+# TODO Refactor indices to use AxisArrays
 end #module

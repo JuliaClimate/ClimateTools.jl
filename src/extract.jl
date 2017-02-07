@@ -1,10 +1,10 @@
 """
     netcdf2julia(file::String, var::String, poly::Vector)
 
-Returns a ClimGrid type with the data in *file* of variable *var* inside the polygon *poly*. Metadata is built-in the ClimDrid type
+Returns a ClimGrid type with the data in *file* of variable *var* inside the polygon *poly*. Metadata is built-in the ClimGrid type
 """
 
-function netcdf2julia(file::String, var::String, poly::Array{Float64})
+function nc2julia(file::String, var::String, poly::Array{Float64})
 
   # Get attributes for type "ClimGrid"
   ncI = NetCDF.ncinfo(file)
@@ -48,8 +48,11 @@ function netcdf2julia(file::String, var::String, poly::Array{Float64})
 
   # Permute dims --> try to check dimensions and permute dims based on this information
   data = permutedims(data, [3, 1, 2])
+  dataOut = AxisArray(data, :time, :lon, :lat)
 
-  return ClimGrid(lat, lon, data, timeV, model, experiment, run, file, dataunits, latunits, lonunits)
+
+
+  return ClimGrid(lat, lon, dataOut, timeV, model, experiment, run, file, dataunits, latunits, lonunits)
 
 
 end
