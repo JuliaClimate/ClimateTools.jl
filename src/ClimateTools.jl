@@ -1,10 +1,9 @@
-__precompile__()
-
 module ClimateTools
 
 # External modules
 using NetCDF
 using Shapefile
+using AxisArray
 
 # Exported functions
 export windnr, leftorright, inpoly, meshgrid, boxcar3, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, netcdf2julia, sumleapyear, buildtimevec, inpolyV, shpextract
@@ -19,7 +18,7 @@ include("extract.jl")
 type ClimGrid
   lat::Array{Float64}
   lon::Array{Float64}
-  data::Array{Float64}
+  data::AxisArray{Float64}
   timeV::StepRange{Date,Base.Dates.Day}
   model::String
   experiment::String
