@@ -50,7 +50,6 @@ ClimateTools.summerdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dat
 ```@docs
 ClimateTools.nc2julia(file::String, var::String, poly::Array{Float64})
 ```
-This function returns a ClimGrid type, with the date stored in an AxisArray type (with time, longitude and latitude dimensions).
 
 ```julia
 type ClimGrid  

@@ -1,7 +1,9 @@
 """
-    netcdf2julia(file::String, var::String, poly::Vector)
+    nc2julia(file::String, var::String, poly::Vector)
 
-Returns a ClimGrid type with the data in *file* of variable *var* inside the polygon *poly*. Metadata is built-in the ClimGrid type
+Returns a ClimGrid type with the data in *file* of variable *var* inside the polygon *poly*. Metadata is built-in the ClimGrid type.
+
+Inside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude and latitude dimensions.
 """
 
 function nc2julia(file::String, var::String, poly::Array{Float64})
