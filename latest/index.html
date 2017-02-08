@@ -155,71 +155,71 @@
 <p>FD, Number of frost days: Annual count of days when TN (daily minimum temperature) &lt; 0 Celsius.</p>
 <p>Let TN(i,j) be daily minimum temperature on day i in year j. Count the number of days where:</p>
 <p>TN(i,j) &lt; 0 Celsius.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/5330ce08d5e6b2e127c0f1f7a1ee2d1414ef39b9/src/indices.jl#L42-L50' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/cdbbe7d8636e30521fc5fdc1dffc464ca0b7cae9/src/indices.jl#L42-L50' class='documenter-source'>source</a><br></p>
 <p><a id='ClimateTools.icingdays-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}' href='#ClimateTools.icingdays-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}'>#</a>
 <strong><code>ClimateTools.icingdays</code></strong> &mdash; <em>Method</em>.</p>
 <p>icingdays(data::Array, time::StepRange{Date,Base.Dates.Day})</p>
 <p>ID, Number of summer days: Annual count of days when TX (daily maximum temperature) &lt; 0 degree Celsius.</p>
 <p>Let TX(i,j) be daily maximum temperature on day i in year j. Count the number of days where:</p>
 <p>TX(i,j) &lt; 0 Celsius.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/5330ce08d5e6b2e127c0f1f7a1ee2d1414ef39b9/src/indices.jl#L132-L140' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/cdbbe7d8636e30521fc5fdc1dffc464ca0b7cae9/src/indices.jl#L132-L140' class='documenter-source'>source</a><br></p>
 <p><a id='ClimateTools.annualmin-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}' href='#ClimateTools.annualmin-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}'>#</a>
 <strong><code>ClimateTools.annualmin</code></strong> &mdash; <em>Method</em>.</p>
 <p>annualmin(data::Array, time::StepRange{Date,Base.Dates.Day})</p>
 <p>AM, Value of annual minimum of array data.</p>
 <p>Let data(i,j) be daily time serie on day i in year j. Extract the lowest value for year j.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/5330ce08d5e6b2e127c0f1f7a1ee2d1414ef39b9/src/indices.jl#L332-L338' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/cdbbe7d8636e30521fc5fdc1dffc464ca0b7cae9/src/indices.jl#L332-L338' class='documenter-source'>source</a><br></p>
 <p><a id='ClimateTools.annualmax-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}' href='#ClimateTools.annualmax-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}'>#</a>
 <strong><code>ClimateTools.annualmax</code></strong> &mdash; <em>Method</em>.</p>
 <p>annualmax(data::Array, time::StepRange{Date,Base.Dates.Day})</p>
 <p>AM, Value of annual maximum of array data.</p>
 <p>Let data(i,j) be daily time serie on day i in year j. Extract the highest value for year j.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/5330ce08d5e6b2e127c0f1f7a1ee2d1414ef39b9/src/indices.jl#L289-L295' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/cdbbe7d8636e30521fc5fdc1dffc464ca0b7cae9/src/indices.jl#L289-L295' class='documenter-source'>source</a><br></p>
 <p><a id='ClimateTools.tropicalnights-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}' href='#ClimateTools.tropicalnights-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}'>#</a>
 <strong><code>ClimateTools.tropicalnights</code></strong> &mdash; <em>Method</em>.</p>
 <p>tropicalnights(data::Array, time::StepRange{Date,Base.Dates.Day})</p>
 <p>TropicalNights, Number of tropical nights: Annual count of days when TN (daily maximum temperature) &gt; 20 degree Celsius.</p>
 <p>Let TN(i,j) be daily minimum temperature on day i in year j. Count the number of days where:</p>
 <p>TN(i,j) &gt; 20 Celsius.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/5330ce08d5e6b2e127c0f1f7a1ee2d1414ef39b9/src/indices.jl#L153-L161' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/cdbbe7d8636e30521fc5fdc1dffc464ca0b7cae9/src/indices.jl#L153-L161' class='documenter-source'>source</a><br></p>
 <p><a id='ClimateTools.customthresover-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day},Any}' href='#ClimateTools.customthresover-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day},Any}'>#</a>
 <strong><code>ClimateTools.customthresover</code></strong> &mdash; <em>Method</em>.</p>
 <p>customthresover(data::Array, time::StepRange{Date,Base.Dates.Day}, thres)</p>
 <p>customthresover, annual number of days over a specified threshold.</p>
 <p>Let TS(i,j) be a daily time serie value on day i in year j. Count the number of days where:</p>
 <p>TS(i,j) &gt; thres.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/5330ce08d5e6b2e127c0f1f7a1ee2d1414ef39b9/src/indices.jl#L198-L206' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/cdbbe7d8636e30521fc5fdc1dffc464ca0b7cae9/src/indices.jl#L198-L206' class='documenter-source'>source</a><br></p>
 <p><a id='ClimateTools.customthresunder-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day},Any}' href='#ClimateTools.customthresunder-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day},Any}'>#</a>
 <strong><code>ClimateTools.customthresunder</code></strong> &mdash; <em>Method</em>.</p>
 <p>customthresunder(data::Array, time::StepRange{Date,Base.Dates.Day}, thres)</p>
 <p>customthresover, annual number of days under a specified threshold.</p>
 <p>Let TS(i,j) be a daily time serie value on day i in year j. Count the number of days where:</p>
 <p>TS(i,j) &lt; thres.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/5330ce08d5e6b2e127c0f1f7a1ee2d1414ef39b9/src/indices.jl#L243-L251' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/cdbbe7d8636e30521fc5fdc1dffc464ca0b7cae9/src/indices.jl#L243-L251' class='documenter-source'>source</a><br></p>
 <p><a id='ClimateTools.prcp1-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}' href='#ClimateTools.prcp1-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}'>#</a>
 <strong><code>ClimateTools.prcp1</code></strong> &mdash; <em>Method</em>.</p>
 <pre><code>prcp1(data::Array, timevector::StepRange{Date,Base.Dates.Day})
 </code></pre>
 
 <p>Annual number with preciptation over 1 mm. This function returns a boolean vector. <em>true</em> if the data is higher or equal to 1 and <em>false</em> otherwise.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/5330ce08d5e6b2e127c0f1f7a1ee2d1414ef39b9/src/indices.jl#L1-L5' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/cdbbe7d8636e30521fc5fdc1dffc464ca0b7cae9/src/indices.jl#L1-L5' class='documenter-source'>source</a><br></p>
 <p><a id='ClimateTools.summerdays-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}' href='#ClimateTools.summerdays-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}'>#</a>
 <strong><code>ClimateTools.summerdays</code></strong> &mdash; <em>Method</em>.</p>
 <p>summerdays(data::Array, time::StepRange{Date,Base.Dates.Day})</p>
 <p>SD, Number of summer days: Annual count of days when TX (daily maximum temperature) &gt; 25 degree Celsius.</p>
 <p>Let TX(i,j) be daily maximum temperature on day i in year j. Count the number of days where:</p>
 <p>TX(i,j) &gt;= 25 Celsius.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/5330ce08d5e6b2e127c0f1f7a1ee2d1414ef39b9/src/indices.jl#L87-L95' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/cdbbe7d8636e30521fc5fdc1dffc464ca0b7cae9/src/indices.jl#L87-L95' class='documenter-source'>source</a><br></p>
 <p><a id='Functions-Reading-netCDF-files-1'></a></p>
 <h2 id="functions-reading-netcdf-files">Functions - Reading netCDF files</h2>
 <p><a id='ClimateTools.nc2julia-Tuple{String,String,Array{Float64,N}}' href='#ClimateTools.nc2julia-Tuple{String,String,Array{Float64,N}}'>#</a>
 <strong><code>ClimateTools.nc2julia</code></strong> &mdash; <em>Method</em>.</p>
-<pre><code>netcdf2julia(file::String, var::String, poly::Vector)
+<pre><code>nc2julia(file::String, var::String, poly::Vector)
 </code></pre>
 
-<p>Returns a ClimGrid type with the data in <em>file</em> of variable <em>var</em> inside the polygon <em>poly</em>. Metadata is built-in the ClimGrid type</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/5330ce08d5e6b2e127c0f1f7a1ee2d1414ef39b9/src/extract.jl#L1-L5' class='documenter-source'>source</a><br></p>
-<p>This function returns a ClimGrid type, with the date stored in an AxisArray type (with time, longitude and latitude dimensions).</p>
+<p>Returns a ClimGrid type with the data in <em>file</em> of variable <em>var</em> inside the polygon <em>poly</em>. Metadata is built-in the ClimGrid type.</p>
+<p>Inside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude and latitude dimensions.</p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/cdbbe7d8636e30521fc5fdc1dffc464ca0b7cae9/src/extract.jl#L1-L7' class='documenter-source'>source</a><br></p>
 <pre><code class="julia">type ClimGrid  
   data::AxisArray  
   model::String
@@ -245,23 +245,23 @@ end
 <li>poly – polygon vertices <a href="./a closed poly">x1 x2 ... xn x1                           y1 y2 ... yn y1</a></li>
 </ul>
 <p>Returns true if point has an odd winding number.  This should label points as exterior which are inside outcrops.  See test for a test.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/5330ce08d5e6b2e127c0f1f7a1ee2d1414ef39b9/src/functions.jl#L44-L56' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/cdbbe7d8636e30521fc5fdc1dffc464ca0b7cae9/src/functions.jl#L44-L56' class='documenter-source'>source</a><br></p>
 <p><a id='ClimateTools.meshgrid-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}' href='#ClimateTools.meshgrid-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}'>#</a>
 <strong><code>ClimateTools.meshgrid</code></strong> &mdash; <em>Method</em>.</p>
 <p>This function creates a 2-D mesh-grid in a format consistent with Matlab's function meshgrid()</p>
 <p>[X, Y] = meshgrid(XV, YV)</p>
 <p>where XV and YV are vectors.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/5330ce08d5e6b2e127c0f1f7a1ee2d1414ef39b9/src/functions.jl#L62-L68' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/cdbbe7d8636e30521fc5fdc1dffc464ca0b7cae9/src/functions.jl#L62-L68' class='documenter-source'>source</a><br></p>
 <p><a id='ClimateTools.windnr-Tuple{Any,Array{T,2}}' href='#ClimateTools.windnr-Tuple{Any,Array{T,2}}'>#</a>
 <strong><code>ClimateTools.windnr</code></strong> &mdash; <em>Method</em>.</p>
 <p>Determines the winding number of a point and a polygon, i.e. how many times a polygon winds around the point.</p>
 <p>It follows Dan Sunday: http://geomalgorithms.com/a03-_inclusion.html.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/5330ce08d5e6b2e127c0f1f7a1ee2d1414ef39b9/src/functions.jl#L1-L6' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/cdbbe7d8636e30521fc5fdc1dffc464ca0b7cae9/src/functions.jl#L1-L6' class='documenter-source'>source</a><br></p>
 <p><a id='ClimateTools.boxcar3-Tuple{AbstractArray}' href='#ClimateTools.boxcar3-Tuple{AbstractArray}'>#</a>
 <strong><code>ClimateTools.boxcar3</code></strong> &mdash; <em>Method</em>.</p>
 <p>This function creates a boxcar averager with a window length of 3</p>
 <p>function boxcar3(A::AbstractArray)</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/5330ce08d5e6b2e127c0f1f7a1ee2d1414ef39b9/src/functions.jl#L88-L93' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/cdbbe7d8636e30521fc5fdc1dffc464ca0b7cae9/src/functions.jl#L88-L93' class='documenter-source'>source</a><br></p>
 <p><a id='Index-1'></a></p>
 <h2 id="index">Index</h2>
 <ul>
@@ -321,5 +321,5 @@ end
 
 <!--
 MkDocs version : 0.16.1
-Build Date UTC : 2017-02-08 15:39:11
+Build Date UTC : 2017-02-08 20:30:18
 -->
