@@ -16,10 +16,7 @@ include("extract.jl")
 
 # TYPES
 type ClimGrid
-  lat::Array{Float64}
-  lon::Array{Float64}
-  data::AxisArray{Float64}
-  timeV::StepRange{Date,Base.Dates.Day}
+  data::AxisArray
   model::String
   experiment::String
   run::String
@@ -28,11 +25,10 @@ type ClimGrid
   latunits::String
   lonunits::String
 
-
-  function ClimGrid(lat, lon, data, timeV, model, experiment, run, filename, dataunits, latunits,lonunits)
+  function ClimGrid(data, model, experiment, run, filename, dataunits, latunits,lonunits)
 
     # to-do -> add some checks, permutedims if need be
-    new(lat, lon, data, timeV, model, experiment, run, filename, dataunits, latunits, lonunits)
+    new(data, model, experiment, run, filename, dataunits, latunits, lonunits)
 
   end
 end

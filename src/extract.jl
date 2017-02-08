@@ -14,6 +14,7 @@ function nc2julia(file::String, var::String, poly::Array{Float64})
   dataunits = NetCDF.ncgetatt(file, var, "units")
   latunits = NetCDF.ncgetatt(file, "lat", "units")
   lonunits = NetCDF.ncgetatt(file, "lon", "units")
+  caltype = NetCDF.ncgetatt(file, "time", "calendar")
 
   # Construct time vector from info in netCDF file *str*
   timeV = buildtimevec(file)
@@ -48,11 +49,12 @@ function nc2julia(file::String, var::String, poly::Array{Float64})
 
   # Permute dims --> try to check dimensions and permute dims based on this information
   data = permutedims(data, [3, 1, 2])
-  dataOut = AxisArray(data, :time, :lon, :lat)
+  # dataOut = AxisArray(data, :time, :lon, :lat)
+  dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))#, :lon,:lat)
 
 
 
-  return ClimGrid(lat, lon, dataOut, timeV, model, experiment, run, file, dataunits, latunits, lonunits)
+  return ClimGrid(dataOut, model, experiment, run, file, dataunits, latunits, lonunits)
 
 
 end
@@ -82,15 +84,19 @@ function buildtimevec(str::String)
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
     startDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1]))) + Base.Dates.Day(leapDaysPer)
     endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[end]))) + Base.Dates.Day(leapDaysPer2 - 1)
+
+    dateTmp = Date(startDate):Date(endDate)
+    # REMOVE leap year
+    idx = Dates.monthday(dateTmp) .== (2,29)
+    dateTmp = dateTmp[!idx]
   else
     # TO-DO!
     error("TO-DO!")
   end
 
 
-
   # output date vector
-  return Date(startDate):Date(endDate)
+  return dateTmp
 
 
 end
