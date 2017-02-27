@@ -25,7 +25,7 @@ type ClimGrid
   latunits::String
   lonunits::String
 
-  function ClimGrid(data, model, experiment, run, filename, dataunits, latunits,lonunits)
+  function ClimGrid(data, model = "", experiment = "", run = "", filename = "", dataunits = "", latunits = "",lonunits = "")
 
     # to-do -> add some checks, permutedims if need be
     new(data, model, experiment, run, filename, dataunits, latunits, lonunits)
@@ -34,4 +34,5 @@ type ClimGrid
 end
 # TODO Add show method for ClimGrid
 # TODO Refactor indices to use AxisArrays
+# TODO Define a constructor for concatenation of ClimGrid type
 end #module

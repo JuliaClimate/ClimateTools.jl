@@ -49,11 +49,10 @@ function nc2julia(file::String, var::String, poly::Array{Float64})
     dataunits = "C"
   end
 
-  # Permute dims --> try to check dimensions and permute dims based on this information
+  # Permute dims --> make the longest dimension at position #1 (calculations are usually faster)
   data = permutedims(data, [3, 1, 2])
   # dataOut = AxisArray(data, :time, :lon, :lat)
   dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))#, :lon,:lat)
-
 
 
   return ClimGrid(dataOut, model, experiment, run, file, dataunits, latunits, lonunits)
@@ -81,11 +80,11 @@ function buildtimevec(str::String)
   if calType == "noleap"
     nDays = 365
     # get time of netCDF file *str*
-    timeRaw = NetCDF.ncread(str, "time")
+    timeRaw = floor(NetCDF.ncread(str, "time"))
     leapDaysPer = sumleapyear(initDate, timeRaw[1])
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
     startDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1]))) + Base.Dates.Day(leapDaysPer)
-    endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[end]))) + Base.Dates.Day(leapDaysPer2 - 1)
+    endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[end]))) + Base.Dates.Day(leapDaysPer2)
 
     dateTmp = Date(startDate):Date(endDate)
     # REMOVE leap year
