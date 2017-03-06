@@ -3,6 +3,20 @@
 
 Annual number with preciptation over 1 mm. This function returns a boolean vector. *true* if the data is higher or equal to 1 and *false* otherwise.
 """
+
+function prcp1(C::ClimGrid)
+  years    = Dates.year(C.data[Axis{:time}][:])
+  numYears = unique(years)
+  FD       = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t >= 1, +, view(FD, i:i, :, :), view(C.data, idx, :, :))
+  end
+  return FD
+
+end
+
 function prcp1(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year(timeV)
   numYears = unique(years)
