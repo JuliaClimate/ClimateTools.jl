@@ -35,7 +35,18 @@ Pkg.checkout("ClimateTools")
 
 `using ClimateTools`
 
-Rest is coming soon.
+### Reading a NetCDF file
+```julia
+C = nc2julia(filename::String, var::String, polygon::Vector)
+```
+
+`nc2julia` return a `ClimGrid` type.
+
+You can map this `ClimGrid` variable by using `mapit`:
+```julia
+mapit(C::ClimGrid)
+```
+![PrecExample](https://github.com/Balinus/ClimateTools.jl/tree/master/docs/src/Prec_Example.png)
 
 ## TO-DO
 
