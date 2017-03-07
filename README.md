@@ -46,7 +46,8 @@ You can map this `ClimGrid` variable by using `mapit`:
 ```julia
 mapit(C::ClimGrid)
 ```
-![PrecExample](https://github.com/Balinus/ClimateTools.jl/tree/master/docs/src/Prec_Example.png)
+
+![Screenshot](https://github.com/Balinus/ClimateTools.jl/tree/master/docs/src/Prec_Example.png)
 
 ## TO-DO
 
