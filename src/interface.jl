@@ -20,6 +20,8 @@ function getindex(C::ClimGrid,i::Int)
     return C.latunits
   elseif i == 8
     return C.filename
+  elseif i == 9
+    return C.var
   else
     throw(error("You can't index like that!"))
   end

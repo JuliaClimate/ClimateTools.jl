@@ -30,14 +30,10 @@ function nc2julia(file::String, var::String, poly::Array{Float64})
   data = NetCDF.open(file, var)
   if var == "pr"
     data = data[:,:,:] * 86400
+    dataunits = "mm/day"
   elseif var == "tasmax" || var == "tasmin" || var == "tas"
     data = data[:,:,:]
   end
-
-    # data = squeeze(v[:,:,:] * 86400,1)
-  # data = zeros(Float32, size(lon), size(lat), size(timeV))
-  # data = ncread!(file, var, data, )
-
 
   # Convert to Float64 if Float32
   if typeof(data[1]) == Float32
@@ -46,7 +42,7 @@ function nc2julia(file::String, var::String, poly::Array{Float64})
 
   if dataunits == "K"
     data = data - 273.15
-    dataunits = "C"
+    dataunits = "Celsius"
   end
 
   # Permute dims --> make the longest dimension at position #1 (calculations are usually faster)
@@ -54,8 +50,7 @@ function nc2julia(file::String, var::String, poly::Array{Float64})
   # dataOut = AxisArray(data, :time, :lon, :lat)
   dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))#, :lon,:lat)
 
-
-  return ClimGrid(dataOut, model, experiment, run, file, dataunits, latunits, lonunits)
+  return ClimGrid(dataOut, model, experiment, run, file, dataunits, latunits, lonunits, var)
 
 
 end
