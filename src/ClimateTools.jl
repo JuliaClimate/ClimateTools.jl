@@ -20,11 +20,12 @@ using PyPlot
 
 const basemap = PyNULL()
 const np = PyNULL()
-
+const mpl = PyNULL()
 
 function __init__()
-    copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
-    copy!(np, pyimport_conda("numpy", "numpy"))
+  copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))
+  copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
+  copy!(np, pyimport_conda("numpy", "numpy"))
 end
 
 
