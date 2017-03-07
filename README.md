@@ -53,6 +53,10 @@ mapit(C::ClimGrid)
 
 [logo]: https://github.com/Balinus/ClimateTools.jl/tree/master/docs/src/Prec_Example.png "Precipitation example"
 
+<p align="center">
+  <img src="https://github.com/Balinus/ClimateTools.jl/tree/master/docs/src/Prec_Example.png?raw=true" alt="Precipitation example"/>
+</p>
+
 ## TO-DO
 
 * Add a "simple" quantile-quantile mapping technique
