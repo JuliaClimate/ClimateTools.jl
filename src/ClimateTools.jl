@@ -11,6 +11,7 @@ import Base.size
 import Base.endof
 import Base.setindex!
 import Base.similar
+using Conda
 using PyCall
 using PyPlot
 # export PyPlot
