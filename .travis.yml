@@ -24,7 +24,8 @@ script:
 before_install:
 #  - test "x$TRAVIS_OS_NAME" = xosx -o "x$PYTHON" = xConda-python || (sudo apt-get -qq update && sudo apt-get install -y $PYTHON)
   #- (sudo apt-get -qq update && sudo apt-get install -y python python-pip && sudo pip install matplotlib)
-  - julia -e 'Pkg.add("Conda"); using Conda; Conda.add("matplotlib"); Conda.add("basemap")';
+  - julia -e 'ENV["PYTHON"]=""; Pkg.build("PyCall")'
+  - julia -e 'Pkg.add("Conda"); using Conda; Conda.add("matplotlib"); Conda.add("basemap");'
 after_success:
   - julia -e 'Pkg.add("Documenter")'
   - julia -e 'cd(Pkg.dir("ClimateTools")); include(joinpath("docs", "make.jl"))'
