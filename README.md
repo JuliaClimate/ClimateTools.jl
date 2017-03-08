@@ -47,11 +47,7 @@ You can map this `ClimGrid` variable by using `mapit`:
 mapit(C::ClimGrid)
 ```
 
-![alt text](https://github.com/Balinus/ClimateTools.jl/tree/master/docs/src/Prec_Example.png "Precipitation example")
-
-![alt text][logo]
-
-[logo]: https://github.com/Balinus/ClimateTools.jl/tree/master/docs/src/Prec_Example.png "Precipitation example"
+Which should return
 
 <p align="center">
   <img src="https://cloud.githubusercontent.com/assets/3630311/23707742/6dec18ec-03e1-11e7-90cf-0ebfd5633083.png?raw=true" alt="Precipitation example"/>
