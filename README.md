@@ -26,7 +26,7 @@ Pkg.checkout("ClimateTools")
 ## Objectives
 
 * Visualization of NetCDF files (e.g. temporal mean of a given NetCDF file), for rapid evaluation of NetCDF files
-* Migration of NetCDF files to Julia matrix
+* Migration of NetCDF files to a Julia ClimGrid type
 * Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI)
 * Custom climate indices
 * Post-processing of climate timeseries using Quantile-Quantile mapping methods (cf. Piani et al. 2010)
