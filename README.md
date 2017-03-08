@@ -53,6 +53,8 @@ Which should return
   <img src="https://cloud.githubusercontent.com/assets/3630311/23707742/6dec18ec-03e1-11e7-90cf-0ebfd5633083.png?raw=true" alt="Precipitation example"/>
 </p>
 
+Note that if the `ClimGrid` structure has 3 dimensions (time x latitude x longitude) the `mapit` function makes a time-average.
+
 ## TO-DO
 
 * Add a "simple" quantile-quantile mapping technique
