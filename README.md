@@ -42,6 +42,20 @@ C = nc2julia(filename::String, var::String, polygon::Vector)
 
 `nc2julia` return a `ClimGrid` type.
 
+````julia
+immutable ClimGrid
+  data::AxisArray
+  model::String
+  experiment::String
+  run::String
+  filename::String
+  dataunits::String
+  latunits::String
+  lonunits::String
+  var::String
+end
+```
+
 You can map this `ClimGrid` variable by using `mapit`:
 ```julia
 mapit(C::ClimGrid)
