@@ -64,7 +64,7 @@ mapit(C::ClimGrid)
 Which should return
 
 <p align="center">
-  <img src="https://cloud.githubusercontent.com/assets/3630311/23712089/c9b24f62-03ef-11e7-86e9-533ae1cab0c1.png?raw=true" alt="Precipitation example"/>
+  <img src="https://cloud.githubusercontent.com/assets/3630311/23712122/e97bd322-03ef-11e7-93da-749c961c4070.png?raw=true" width="771" height="388" alt="Precipitation example"/>
 </p>
 
 Note that if the `ClimGrid` structure has 3 dimensions (time x latitude x longitude) the `mapit` function makes a time-average.
