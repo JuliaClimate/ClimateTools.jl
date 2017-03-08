@@ -169,7 +169,7 @@ ClimateTools.summerdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dat
 
 <p>Returns a ClimGrid type with the data in <em>file</em> of variable <em>var</em> inside the polygon <em>poly</em>. Metadata is built-in the ClimGrid type.</p>
 <p>Inside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude and latitude dimensions.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/af01502f409b1bb5e9ca008583935aa92455405b/src/extract.jl#L1-L7' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/42013e9d6e021fdeac112de6adcabc7e81d6947b/src/extract.jl#L1-L7' class='documenter-source'>source</a><br></p>
 <pre><code class="julia">type ClimGrid  
   data::AxisArray  
   model::String
@@ -195,23 +195,23 @@ end
 <li>poly – polygon vertices <a href="./a closed poly">x1 x2 ... xn x1                           y1 y2 ... yn y1</a></li>
 </ul>
 <p>Returns true if point has an odd winding number.  This should label points as exterior which are inside outcrops.  See test for a test.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/af01502f409b1bb5e9ca008583935aa92455405b/src/functions.jl#L44-L56' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/42013e9d6e021fdeac112de6adcabc7e81d6947b/src/functions.jl#L44-L56' class='documenter-source'>source</a><br></p>
 <p><a id='ClimateTools.meshgrid-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}' href='#ClimateTools.meshgrid-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}'>#</a>
 <strong><code>ClimateTools.meshgrid</code></strong> &mdash; <em>Method</em>.</p>
 <p>This function creates a 2-D mesh-grid in a format consistent with Matlab's function meshgrid()</p>
 <p>[X, Y] = meshgrid(XV, YV)</p>
 <p>where XV and YV are vectors.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/af01502f409b1bb5e9ca008583935aa92455405b/src/functions.jl#L62-L68' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/42013e9d6e021fdeac112de6adcabc7e81d6947b/src/functions.jl#L62-L68' class='documenter-source'>source</a><br></p>
 <p><a id='ClimateTools.windnr-Tuple{Any,Array{T,2}}' href='#ClimateTools.windnr-Tuple{Any,Array{T,2}}'>#</a>
 <strong><code>ClimateTools.windnr</code></strong> &mdash; <em>Method</em>.</p>
 <p>Determines the winding number of a point and a polygon, i.e. how many times a polygon winds around the point.</p>
 <p>It follows Dan Sunday: http://geomalgorithms.com/a03-_inclusion.html.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/af01502f409b1bb5e9ca008583935aa92455405b/src/functions.jl#L1-L6' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/42013e9d6e021fdeac112de6adcabc7e81d6947b/src/functions.jl#L1-L6' class='documenter-source'>source</a><br></p>
 <p><a id='ClimateTools.boxcar3-Tuple{AbstractArray}' href='#ClimateTools.boxcar3-Tuple{AbstractArray}'>#</a>
 <strong><code>ClimateTools.boxcar3</code></strong> &mdash; <em>Method</em>.</p>
 <p>This function creates a boxcar averager with a window length of 3</p>
 <p>function boxcar3(A::AbstractArray)</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/af01502f409b1bb5e9ca008583935aa92455405b/src/functions.jl#L88-L93' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/tree/42013e9d6e021fdeac112de6adcabc7e81d6947b/src/functions.jl#L88-L93' class='documenter-source'>source</a><br></p>
 <p><a id='Index-1'></a></p>
 <h2 id="index">Index</h2>
 <ul>
@@ -270,5 +270,5 @@ end
 
 <!--
 MkDocs version : 0.16.1
-Build Date UTC : 2017-03-08 01:18:22
+Build Date UTC : 2017-03-08 03:34:13
 -->
