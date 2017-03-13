@@ -11,8 +11,17 @@ function nc2julia(file::String, var::String, poly::Array{Float64})
   # Get attributes for type "ClimGrid"
   ncI = NetCDF.ncinfo(file)
   experiment = NetCDF.ncgetatt(file, "global", "experiment_id")
+  if !isa(experiment, String)
+    experiment = ""
+  end
   run = NetCDF.ncgetatt(file, "global", "parent_experiment_rip")
+  if !isa(run, String)
+    run = ""
+  end
   model = NetCDF.ncgetatt(file, "global", "model_id")
+  if !isa(model, String)
+    model = ""
+  end
   dataunits = NetCDF.ncgetatt(file, var, "units")
   latunits = NetCDF.ncgetatt(file, "lat", "units")
   lonunits = NetCDF.ncgetatt(file, "lon", "units")
@@ -50,7 +59,7 @@ function nc2julia(file::String, var::String, poly::Array{Float64})
   # dataOut = AxisArray(data, :time, :lon, :lat)
   dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))#, :lon,:lat)
 
-  return ClimGrid(dataOut, model, experiment, run, file, dataunits, latunits, lonunits, var)
+  return ClimGrid(dataOut, model = model, experiment = experiment, run = run, filename = file, dataunits = dataunits, latunits = latunits, lonunits = lonunits, var = var, typeof = var)
 
 
 end
@@ -85,16 +94,16 @@ function buildtimevec(str::String)
     # REMOVE leap year
     idx = Dates.monthday(dateTmp) .== (2,29)
     dateTmp = dateTmp[!idx]
-  else
-    # TO-DO!
-    error("TO-DO!")
+  elseif calType == "gregorian"
+    timeRaw = floor(NetCDF.ncread(str, "time"))
+    leapDaysPer = sumleapyear(initDate, timeRaw[1])
+    leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
+    startDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
+    endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[end])))
+    dateTmp = Date(startDate):Date(endDate)
   end
-
-
   # output date vector
   return dateTmp
-
-
 end
 
 """

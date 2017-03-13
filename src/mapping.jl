@@ -1,4 +1,4 @@
-function mapit(C::ClimGrid)
+function mapclimgrid(C::ClimGrid; region::String = "auto")
 
   # get boundaries and lat-lon vectors
 
@@ -16,7 +16,13 @@ function mapit(C::ClimGrid)
     end
   end
   figure(figsize=(12,7), dpi = 120)
-  m = basemap[:Basemap](projection="cyl", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon, resolution = "c")
+  if region == "Canada"
+    m = basemap[:Basemap](width=6500000,height=5000000, rsphere = (6378137.00, 6356752.3142),      resolution = "l", area_thresh = 800., projection = "lcc", lat_1 = 45., lat_2 = 55, lat_0 = 62, lon_0 = -95.)
+  elseif region == "World"
+    m = basemap[:Basemap](projection="cyl", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = 0, urcrnrlon = 360, resolution = "c")
+  elseif region == "auto"
+    m = basemap[:Basemap](projection="cyl", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon, resolution = "c")
+  end
 
   # Plot the value of the ClimGrid data
   # m[:drawlsmask](land_color = "#00441b", ocean_color = "#8be5e5", lakes = true)
@@ -33,9 +39,9 @@ function mapit(C::ClimGrid)
   lon2, lat2 = np[:meshgrid](lon, lat)
   x, y = m(lon2, lat2)
 
-  if C[9] == "pr"
+  if C[10] == "pr"
     cm = "YlGnBu"
-  elseif C[9] == "tasmax" || C[9] == "tasmin" || C[9] == "tas"
+  elseif C[10] == "tasmax" || C[10] == "tasmin" || C[10] == "tas"
     cm = "YlOrBr"
   else
     cm = "viridis"
@@ -50,9 +56,9 @@ function mapit(C::ClimGrid)
 
   cbar = colorbar(cs, orientation = "vertical", shrink = 0.5, label = C[2])
   # cbar[:set_label] = C.dataunits
-  title(string(C[3], "-", C[4], "-", C[5]))
+  title(string(C[3], "-", C[4], "-", C[5], " - ", C.var))
 
-
+  return 1
 end
 
 function drawmap(m, C::ClimGrid; NoLands::Bool = false)

@@ -11,7 +11,8 @@ import Base.size
 import Base.endof
 import Base.setindex!
 import Base.similar
-using Conda
+using ArgCheck
+# using Conda
 using PyCall
 using PyPlot
 # export PyPlot
@@ -30,9 +31,7 @@ end
 
 
 # Exported functions
-export windnr, leftorright, inpoly, meshgrid, boxcar3, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, nc2julia, sumleapyear, buildtimevec, inpolyV, shpextract, mapit, drawmap
-
-
+export windnr, leftorright, inpoly, meshgrid, boxcar3, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, nc2julia, sumleapyear, buildtimevec, inpolyV, shpextract, mapclimgrid
 
 # TYPES
 immutable ClimGrid
@@ -45,11 +44,12 @@ immutable ClimGrid
   latunits::String
   lonunits::String
   var::String
+  typeof::String
 
-  function ClimGrid(data, model = "", experiment = "", run = "", filename = "", dataunits = "", latunits = "",lonunits = "", var = "")
+  function ClimGrid(data; model = "", experiment = "", run = "", filename = "", dataunits = "", latunits = "", lonunits = "", var = "", typeof = "")
 
     # to-do -> add some checks, permutedims if need be
-    new(data, model, experiment, run, filename, dataunits, latunits, lonunits, var)
+    new(data, model, experiment, run, filename, dataunits, latunits, lonunits, var, typeof)
 
   end
 end
@@ -61,7 +61,4 @@ include("extract.jl")
 include("interface.jl")
 include("mapping.jl")
 
-# TODO Add show method for ClimGrid
-# TODO Refactor indices to use AxisArrays
-# TODO Define a constructor for concatenation of ClimGrid type
 end #module

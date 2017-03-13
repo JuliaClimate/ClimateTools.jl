@@ -5,16 +5,23 @@ Annual number with preciptation over 1 mm. This function returns a boolean vecto
 """
 
 function prcp1(C::ClimGrid)
+  @argcheck C[9] == "pr"
   years    = Dates.year(C.data[Axis{:time}][:])
   numYears = unique(years)
-  FD       = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+  dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+  datain   = C.data.data
 
+  # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 1, +, view(FD, i:i, :, :), view(C.data, idx, :, :))
+    Base.mapreducedim!(t -> t >= 1, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
   end
-  return FD
 
+  # Build output AxisArray
+  FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
+
+  # Return climGrid type containing the indice
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, var = "prcp1", typeof = C.typeof)
 end
 
 function prcp1(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
@@ -62,6 +69,27 @@ Let TN(i,j) be daily minimum temperature on day i in year j. Count the number of
 
   TN(i,j) < 0 Celsius.
 """
+
+function frostdays(C::ClimGrid)
+  @argcheck C[9] == "tasmin"
+  years    = Dates.year(C.data[Axis{:time}][:])
+  numYears = unique(years)
+  dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+  datain   = C.data.data
+
+  # Indice calculation
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t < 0, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
+  end
+
+  # Build output AxisArray
+  FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
+
+  # Return climGrid type containing the indice
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, var = "frostdays", typeof = C.typeof)
+end
+
 function frostdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year(timeV)
   numYears = unique(years)
@@ -107,6 +135,27 @@ Let TX(i,j) be daily maximum temperature on day i in year j. Count the number of
 
   TX(i,j) >= 25 Celsius.
 """
+
+function summerdays(C::ClimGrid)
+  @argcheck C[9] == "tasmax"
+  years    = Dates.year(C.data[Axis{:time}][:])
+  numYears = unique(years)
+  dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+  datain   = C.data.data
+
+  # Indice calculation
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t >= 25, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
+  end
+
+  # Build output AxisArray
+  FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
+
+  # Return climGrid type containing the indice
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, var = "summerdays", typeof = C.typeof)
+end
+
 function summerdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year(timeV)
   numYears = unique(years)
@@ -152,6 +201,27 @@ Let TX(i,j) be daily maximum temperature on day i in year j. Count the number of
 
   TX(i,j) < 0 Celsius.
 """
+
+function icingdays(C::ClimGrid)
+  @argcheck C[9] == "tasmax"
+  years    = Dates.year(C.data[Axis{:time}][:])
+  numYears = unique(years)
+  dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+  datain   = C.data.data
+
+  # Indice calculation
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t < 0, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
+  end
+
+  # Build output AxisArray
+  FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
+
+  # Return climGrid type containing the indice
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, var = "icingdays", typeof = C.typeof)
+end
+
 function icingdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
   return frostdays(data, timeV)
 end
@@ -173,6 +243,27 @@ Let TN(i,j) be daily minimum temperature on day i in year j. Count the number of
 
   TN(i,j) > 20 Celsius.
 """
+
+function tropicalnights(C::ClimGrid)
+  @argcheck C[9] == "tasmin"
+  years    = Dates.year(C.data[Axis{:time}][:])
+  numYears = unique(years)
+  dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+  datain   = C.data.data
+
+  # Indice calculation
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t >= 20, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
+  end
+
+  # Build output AxisArray
+  FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
+
+  # Return climGrid type containing the indice
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, var = "tropicalnights", typeof = C.typeof)
+end
+
 function tropicalnights(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year(timeV)
   numYears = unique(years)
@@ -218,6 +309,26 @@ Let TS(i,j) be a daily time serie value on day i in year j. Count the number of 
 
   TS(i,j) > thres.
 """
+
+function customthresover(C::ClimGrid, thres)
+  years    = Dates.year(C.data[Axis{:time}][:])
+  numYears = unique(years)
+  dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+  datain   = C.data.data
+
+  # Indice calculation
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t > thres, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
+  end
+
+  # Build output AxisArray
+  FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
+
+  # Return climGrid type containing the indice
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, var = string("Days over ", thres, " ", C.dataunits), typeof = C.typeof)
+end
+
 function customthresover(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
   years    = Dates.year(timeV)
   numYears = unique(years)
@@ -264,6 +375,25 @@ Let TS(i,j) be a daily time serie value on day i in year j. Count the number of 
   TS(i,j) < thres.
 """
 
+function customthresunder(C::ClimGrid, thres)
+  years    = Dates.year(C.data[Axis{:time}][:])
+  numYears = unique(years)
+  dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+  datain   = C.data.data
+
+  # Indice calculation
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mapreducedim!(t -> t < thres, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
+  end
+
+  # Build output AxisArray
+  FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
+
+  # Return climGrid type containing the indice
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, var = string("Days under ", thres, " ", C.dataunits), typeof = C.typeof)
+end
+
 function customthresunder(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
   years    = Dates.year(timeV)
   numYears = unique(years)
@@ -307,6 +437,26 @@ AM, Value of annual maximum of array data.
 
 Let data(i,j) be daily time serie on day i in year j. Extract the highest value for year j.
 """
+
+function annualmax(C::ClimGrid)
+  years    = Dates.year(C.data[Axis{:time}][:])
+  numYears = unique(years)
+  dataout  = zeros(Float64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+  datain   = C.data.data
+
+  # Indice calculation
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.maximum!(view(dataout, i:i, :, :), view(datain, idx, :,:))
+  end
+
+  # Build output AxisArray
+  FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
+
+  # Return climGrid type containing the indice
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, var = "annualmax", typeof = C.typeof)
+end
+
 function annualmax(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year(timeV)
   numYears = unique(years)
@@ -350,6 +500,25 @@ AM, Value of annual minimum of array data.
 
 Let data(i,j) be daily time serie on day i in year j. Extract the lowest value for year j.
 """
+
+function annualmin(C::ClimGrid)
+  years    = Dates.year(C.data[Axis{:time}][:])
+  numYears = unique(years)
+  dataout  = zeros(Float64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+  datain   = C.data.data
+
+  # Indice calculation
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.minimum!(view(dataout, i:i, :, :), view(datain, idx, :,:))
+  end
+
+  # Build output AxisArray
+  FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
+
+  # Return climGrid type containing the indice
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, var = "annualmax", typeof = C.typeof)
+end
 
 function annualmin(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year(timeV)
