@@ -56,9 +56,9 @@ immutable ClimGrid
 end
 ```
 
-You can map this `ClimGrid` variable by using `mapit`:
+You can map this `ClimGrid` variable by using `mapclimgrid`:
 ```julia
-mapit(C::ClimGrid)
+mapclimgrid(C::ClimGrid, region = "World")
 ```
 
 Which should return
