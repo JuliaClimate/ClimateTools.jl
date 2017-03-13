@@ -56,6 +56,8 @@ immutable ClimGrid
 end
 ```
 
+### Mapping the ClimGrid type
+
 You can map this `ClimGrid` variable by using `mapclimgrid`:
 ```julia
 mapclimgrid(C::ClimGrid, region = "World")
@@ -67,7 +69,20 @@ Which should return
   <img src="https://cloud.githubusercontent.com/assets/3630311/23712122/e97bd322-03ef-11e7-93da-749c961c4070.png?raw=true" width="771" height="388" alt="Precipitation example"/>
 </p>
 
-Note that if the `ClimGrid` data structure has 3 dimensions (time x latitude x longitude) the `mapit` function makes a time-average.
+Note that if the `ClimGrid` data structure has 3 dimensions (time x latitude x longitude) the `mapit` function makes a time-average (i.e. climatological mean)
+
+### Indices
+
+Some indices are available in the packages, such as the annual number of tropical nights, annual maximum and minimum, etc. you can calculate such indices with:
+```julia
+ind = annualmax(C::ClimGrid)
+```
+Which returns another ClimGrid. You can also map this ClimGrid with the `mapclimgrid` function and returns the climatological mean of the annual maximum daily precipitation.
+
+<p align="center">
+  <img src="https://cloud.githubusercontent.com/assets/3630311/23873133/59b85c08-0807-11e7-967b-7cc7d28aada0.png?raw=true" width="771" height="388" alt="Precipitation example"/>
+</p>
+
 
 ## TO-DO
 
