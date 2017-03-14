@@ -199,14 +199,14 @@ timeRaw = floor(NetCDF.ncread(filename, "time"))
 # INTERFACE
 @test typeof(vcat(C, C)) == ClimateTools.ClimGrid
 @test typeof(show(C)) == Dict{Any, Any}
-@test typeof(C[1]) == AxisArrays.AxisArray{Float64,3,Array{Float64,3},Tuple{AxisArrays.Axis{:time,Array{Date,1}},AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}}}}
+@test typeof(C[1].data) == Array{Float64,3} || Array{Float32,3}
 @test C[2] == "Celsius"
 @test C[3] == ""
 @test C[4] == "720 ppm stabilization experiment (SRESA1B)"
 @test C[5] == ""
 @test C[6] == "degrees_east"
 @test C[7] == "degrees_north"
-@test C[8] == "/home/proy/.julia/v0.5/ClimateTools/test/data/sresa1b_ncar_ccsm3-example.nc"
+@test C[8] == joinpath(Pkg.dir("ClimateTools"), "test", "data", "sresa1b_ncar_ccsm3-example.nc")
 @test C[9] == "tas"
 @test annualmax(C)[9] == "annualmax"
 @test C[10] == "tas"
