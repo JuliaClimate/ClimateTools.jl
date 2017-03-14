@@ -2,8 +2,6 @@ using ClimateTools
 using AxisArrays
 using Base.Test
 
-
-
 # Prcp1
 d = Date(2003,1,1):Date(2005,12,31)
 data= vcat(ones(365,1), zeros(366,1), ones(365))
@@ -24,7 +22,6 @@ C = ClimateTools.ClimGrid(axisdata, var = "pr")
 ind = prcp1(C)
 @test ind.data.data == Results
 
-
 # Frostdays
 data= vcat(-ones(365,1), -ones(366),zeros(365,1))
 Results = Array{Int64, 2}(3, 1); Results[1] = 365; Results[2] = 366; Results[3] = 0;
@@ -44,6 +41,9 @@ Results = Array{Int64, 3}(3, 2, 2); Results[1,1,1] = 365; Results[2,1,1] = 366; 
 axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
 C = ClimateTools.ClimGrid(axisdata, var = "tasmin")
 ind = frostdays(C)
+@test ind.data.data == Results
+C = ClimateTools.ClimGrid(axisdata, var = "tasmax")
+ind = icingdays(C)
 @test ind.data.data == Results
 
 # Summer Days
@@ -158,6 +158,57 @@ axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
 C = ClimateTools.ClimGrid(axisdata, var = "tasmin")
 ind = annualmin(C)
 @test ind.data.data == Results
+
+# Mapping test
+d = Date(2003,1,1):Date(2005,12,31)
+data = randn(1096, 200, 81)
+axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(101:300), Axis{:lat}(-20:60))
+C = ClimateTools.ClimGrid(axisdata, var = "pr")
+@test mapclimgrid(C) == 1
+@test mapclimgrid(prcp1(C)) == 1
+@test mapclimgrid(prcp1(C), region = "World") == 1
+@test mapclimgrid(prcp1(C), region = "Canada") == 1
+C = ClimateTools.ClimGrid(axisdata, var = "tasmax")
+@test mapclimgrid(C) == 1
+@test mapclimgrid(prcp1(C)) == 1
+@test mapclimgrid(prcp1(C), region = "World") == 1
+@test mapclimgrid(prcp1(C), region = "Canada") == 1
+# INTERFACE
+@test typeof(vcat(C, C)) == ClimateTools.ClimGrid
+@test typeof(show(C)) == Dict{Any, Any}
+@test typeof(C[1]) == AxisArrays.AxisArray{Float64,3,Array{Float64,3},Tuple{AxisArrays.Axis{:time,StepRange{Date,Base.Dates.Day}},AxisArrays.Axis{:lon,UnitRange{Int64}},AxisArrays.Axis{:lat,UnitRange{Int64}}}}
+
+
+# NetCDF Extraction test
+filename = joinpath(Pkg.dir("ClimateTools"), "test", "data", "sresa1b_ncar_ccsm3-example.nc")
+# nc2julia(filename)
+C = nc2julia(filename, "tas", poly = [0. 0.])
+@test typeof(nc2julia(filename, "tas", poly = [0. 0.])) == ClimateTools.ClimGrid
+@test typeof(buildtimevec(filename)) == Array{Date, 1}
+# Time units
+units = NetCDF.ncgetatt(filename, "time", "units") # get starting date
+m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1) # match a date from string
+daysfrom = m.match # get only the date ()"yyyy-mm-dd" format)
+initDate = Date(daysfrom, "yyyy-mm-dd")
+timeRaw = floor(NetCDF.ncread(filename, "time"))
+@test sumleapyear(initDate::Date, timeRaw) == 485
+
+# INTERFACE
+@test typeof(vcat(C, C)) == ClimateTools.ClimGrid
+@test typeof(show(C)) == Dict{Any, Any}
+@test typeof(C[1]) == AxisArrays.AxisArray{Float64,3,Array{Float64,3},Tuple{AxisArrays.Axis{:time,Array{Date,1}},AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}}}}
+@test C[2] == "Celsius"
+@test C[3] == ""
+@test C[4] == "720 ppm stabilization experiment (SRESA1B)"
+@test C[5] == ""
+@test C[6] == "degrees_east"
+@test C[7] == "degrees_north"
+@test C[8] == "/home/proy/.julia/v0.5/ClimateTools/test/data/sresa1b_ncar_ccsm3-example.nc"
+@test C[9] == "tas"
+@test annualmax(C)[9] == "annualmax"
+@test C[10] == "tas"
+@test annualmax(C)[10] == "tas"
+
 
 # MESHGRID
 YV = [1 2 3]'

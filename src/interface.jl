@@ -1,7 +1,8 @@
 function Base.vcat(A::ClimGrid, B::ClimGrid)
   axisArray = vcat(A.data, B.data)
-  ClimGrid(axisArray, A.model, A.experiment, A.run, A.filename, A.dataunits, A.latunits, A.lonunits)
+  ClimGrid(axisArray, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, var = A.var, typeof = A.typeof)
 end
+# TODO : Verify in Base.vcat(A::ClimGrid, B::ClimGrid) for time consistency (e.g. no same timestamp)
 # TODO : Add methods for addition, subtraction, multiplication of ClimGrid types
 
 function getindex(C::ClimGrid,i::Int)

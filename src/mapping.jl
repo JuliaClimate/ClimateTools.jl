@@ -61,21 +61,21 @@ function mapclimgrid(C::ClimGrid; region::String = "auto")
   return 1
 end
 
-function drawmap(m, C::ClimGrid; NoLands::Bool = false)
-  if (NoLands)
-    m[:drawcoastlines](color="#555555")
-  else
-    m[:fillcontinents](color="#555555")
-  end
-  m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 10);
-  m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 10);
-end
-
-function lonrotate(plon :: Array{Float64,2}, rr)
-  if ((plon[1,1] > 180) & (plon[end,1] < 180))
-    lon = mean(plon ,2)
-    return [rr[lon .<= 180,:] ; rr[lon .> 180,:]]
-  else
-    return rr
-  end
-end
+# function drawmap(m, C::ClimGrid; NoLands::Bool = false)
+#   if (NoLands)
+#     m[:drawcoastlines](color="#555555")
+#   else
+#     m[:fillcontinents](color="#555555")
+#   end
+#   m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 10);
+#   m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 10);
+# end
+#
+# function lonrotate(plon :: Array{Float64,2}, rr)
+#   if ((plon[1,1] > 180) & (plon[end,1] < 180))
+#     lon = mean(plon ,2)
+#     return [rr[lon .<= 180,:] ; rr[lon .> 180,:]]
+#   else
+#     return rr
+#   end
+# end

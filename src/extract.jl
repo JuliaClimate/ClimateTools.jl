@@ -6,7 +6,7 @@ Returns a ClimGrid type with the data in *file* of variable *var* inside the pol
 Inside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude and latitude dimensions.
 """
 
-function nc2julia(file::String, var::String, poly::Array{Float64})
+function nc2julia(file::String, var::String; poly::Array{Float64} = [])
 
   # Get attributes for type "ClimGrid"
   ncI = NetCDF.ncinfo(file)
@@ -109,7 +109,7 @@ end
 """
     sumleapyear(dateV::)
 """
-function sumleapyear(initDate::Date, timeRaw::Real)
+function sumleapyear(initDate::Date, timeRaw)
 
   out = 0::Int64
   endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
