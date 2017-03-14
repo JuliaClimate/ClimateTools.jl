@@ -517,7 +517,7 @@ function annualmin(C::ClimGrid)
   FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, var = "annualmax", typeof = C.typeof)
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, var = "annualmin", typeof = C.typeof)
 end
 
 function annualmin(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})

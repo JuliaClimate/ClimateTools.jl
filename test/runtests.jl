@@ -162,20 +162,20 @@ C = ClimateTools.ClimGrid(axisdata, var = "tasmin")
 ind = annualmin(C)
 @test ind.data.data == Results
 
-# Mapping test
-d = Date(2003,1,1):Date(2005,12,31)
-data = randn(1096, 200, 81)
-axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(101:300), Axis{:lat}(-20:60))
-C = ClimateTools.ClimGrid(axisdata, var = "pr")
-@test mapclimgrid(C) == 1
-@test mapclimgrid(prcp1(C)) == 1
-@test mapclimgrid(prcp1(C), region = "World") == 1
-@test mapclimgrid(prcp1(C), region = "Canada") == 1
-C = ClimateTools.ClimGrid(axisdata, var = "tasmax")
-@test mapclimgrid(C) == 1
-@test mapclimgrid(annualmax(C)) == 1
-@test mapclimgrid(annualmax(C), region = "World") == 1
-@test mapclimgrid(annualmax(C), region = "Canada") == 1
+# # Mapping test
+# d = Date(2003,1,1):Date(2005,12,31)
+# data = randn(1096, 200, 81)
+# axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(101:300), Axis{:lat}(-20:60))
+# C = ClimateTools.ClimGrid(axisdata, var = "pr")
+# @test mapclimgrid(C) == 1
+# @test mapclimgrid(prcp1(C)) == 1
+# @test mapclimgrid(prcp1(C), region = "World") == 1
+# @test mapclimgrid(prcp1(C), region = "Canada") == 1
+# C = ClimateTools.ClimGrid(axisdata, var = "tasmax")
+# @test mapclimgrid(C) == 1
+# @test mapclimgrid(annualmax(C)) == 1
+# @test mapclimgrid(annualmax(C), region = "World") == 1
+# @test mapclimgrid(annualmax(C), region = "Canada") == 1
 
 # NetCDF Extraction test
 filename = joinpath(Pkg.dir("ClimateTools"), "test", "data", "sresa1b_ncar_ccsm3-example.nc")
