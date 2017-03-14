@@ -176,11 +176,6 @@ C = ClimateTools.ClimGrid(axisdata, var = "tasmax")
 @test mapclimgrid(annualmax(C)) == 1
 @test mapclimgrid(annualmax(C), region = "World") == 1
 @test mapclimgrid(annualmax(C), region = "Canada") == 1
-# INTERFACE
-@test typeof(vcat(C, C)) == ClimateTools.ClimGrid
-@test typeof(show(C)) == Dict{Any, Any}
-@test typeof(C[1]) == AxisArrays.AxisArray{Float64,3,Array{Float64,3},Tuple{AxisArrays.Axis{:time,StepRange{Date,Base.Dates.Day}},AxisArrays.Axis{:lon,UnitRange{Int64}},AxisArrays.Axis{:lat,UnitRange{Int64}}}}
-
 
 # NetCDF Extraction test
 filename = joinpath(Pkg.dir("ClimateTools"), "test", "data", "sresa1b_ncar_ccsm3-example.nc")
