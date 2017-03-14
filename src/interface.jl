@@ -32,7 +32,7 @@ function getindex(C::ClimGrid,i::Int)
 end
 
 Base.linearindexing{T<:ClimGrid}(::Type{T}) = Base.LinearFast()
-Base.size(C::ClimGrid) = (8,)
+Base.size(::ClimGrid) = (10,)
 Base.length(C::ClimGrid) = prod(size(C))
 Base.endof(C::ClimGrid) = length(C)
 

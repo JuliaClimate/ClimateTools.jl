@@ -43,7 +43,7 @@ end
 
 """
     inpoly(p, poly::Matrix)
-    
+
 Determines if a point is inside a polygon.
 
 - p -- point (x,y) or [x,y]
@@ -83,25 +83,4 @@ function meshgrid(XV, YV)
 	# Return X and Y
 	return X, Y
 
-end
-
-"""
-This function creates a boxcar averager with a window length of 3
-
-function boxcar3(A::AbstractArray)
-
-"""
-function boxcar3(A::AbstractArray)
-    out = similar(A)
-    R = CartesianRange(size(A))
-    I1, Iend = first(R), last(R)
-    for I in R
-        n, s = 0, zero(eltype(out))
-        for J in CartesianRange(max(I1, I-I1), min(Iend, I+I1))
-            s += A[J]
-            n += 1
-        end
-        out[I] = s/n
-    end
-    out
 end

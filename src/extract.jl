@@ -1,5 +1,5 @@
 """
-    nc2julia(file::String, var::String, poly::Vector)
+    nc2julia(file::String, var::String; poly::Array{Float64})
 
 Returns a ClimGrid type with the data in *file* of variable *var* inside the polygon *poly*. Metadata is built-in the ClimGrid type.
 
@@ -7,6 +7,7 @@ Inside the ClimgGrid type, the data is stored into an AxisArray data type, with 
 """
 
 function nc2julia(file::String, var::String; poly::Array{Float64} = [])
+  # TODO Finish polygon feature
 
   # Get attributes for type "ClimGrid"
   ncI = NetCDF.ncinfo(file)
@@ -14,9 +15,9 @@ function nc2julia(file::String, var::String; poly::Array{Float64} = [])
   if !isa(experiment, String)
     experiment = ""
   end
-  run = NetCDF.ncgetatt(file, "global", "parent_experiment_rip")
-  if !isa(run, String)
-    run = ""
+  runsim = NetCDF.ncgetatt(file, "global", "parent_experiment_rip")
+  if !isa(runsim, String)
+    runsim = ""
   end
   model = NetCDF.ncgetatt(file, "global", "model_id")
   if !isa(model, String)
@@ -33,10 +34,17 @@ function nc2julia(file::String, var::String; poly::Array{Float64} = [])
   # Get index of grid points inside the polygon *poly*
   lat = NetCDF.ncread(file, "lat")
   lon = NetCDF.ncread(file, "lon")
-  # polyV = inpolyV(str, poly) #to-do!!
+  if !isempty(poly)
+    # TODO extract index inside polygon
+    # polyV = inpolyV(lat, lon, poly)
+  end
+
 
   # Get Data
   data = NetCDF.open(file, var)
+  if !isempty(poly)
+    # TODO subset of whole data
+  end
   if var == "pr"
     data = data[:,:,:] * 86400
     dataunits = "mm/day"
@@ -59,7 +67,7 @@ function nc2julia(file::String, var::String; poly::Array{Float64} = [])
   # dataOut = AxisArray(data, :time, :lon, :lat)
   dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))#, :lon,:lat)
 
-  return ClimGrid(dataOut, model = model, experiment = experiment, run = run, filename = file, dataunits = dataunits, latunits = latunits, lonunits = lonunits, var = var, typeof = var)
+  return ClimGrid(dataOut, model = model, experiment = experiment, run = runsim, filename = file, dataunits = dataunits, latunits = latunits, lonunits = lonunits, var = var, typeof = var)
 
 
 end
@@ -127,13 +135,19 @@ function sumleapyear(initDate::Date, timeRaw)
 end
 
 """
-    inpolyV(str::String, poly::Array{Float64})
+    inpolyV(lat, lon, poly::Array{Float64})
 
 """
 
-function inpolyV(str::String, shp::String)
+function inpolyV(lat, lon, shp::String)
+  # TODO finish this feature
   # Build polygon from shapefile *shp*
   poly = shpextract(shp)
+  if !isempty(lat)
+    # dummy call for linting
+  elseif !isempty(lon)
+    # dummy call for linting
+  end
 
 end
 
