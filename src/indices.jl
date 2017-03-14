@@ -27,11 +27,11 @@ end
 function prcp1(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year(timeV)
   numYears = unique(years)
-  FD       = zeros(Int64, (length(numYears), size(data, 2)))
+  FD       = zeros(Int64, (length(numYears)))
 
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 1, +, view(FD, i:i), view(data, idx, :, :))
+    Base.mapreducedim!(t -> t >= 1, +, view(FD, i:i), view(data, idx))
   end
   return FD
 end
@@ -93,11 +93,11 @@ end
 function frostdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year(timeV)
   numYears = unique(years)
-  FD       = zeros(Int64, (length(numYears), size(data, 2)))
+  FD       = zeros(Int64, (length(numYears)))
 
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t < 0, +, view(FD, i:i), view(data, idx, :, :))
+    Base.mapreducedim!(t -> t < 0, +, view(FD, i:i), view(data, idx))
   end
   return FD
 end
@@ -159,11 +159,11 @@ end
 function summerdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year(timeV)
   numYears = unique(years)
-  FD       = zeros(Int64, (length(numYears), size(data, 2)))
+  FD       = zeros(Int64, (length(numYears)))
 
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 25, +, view(FD, i:i), view(data, idx, :, :))
+    Base.mapreducedim!(t -> t >= 25, +, view(FD, i:i), view(data, idx))
   end
   return FD
 end
@@ -267,11 +267,11 @@ end
 function tropicalnights(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year(timeV)
   numYears = unique(years)
-  FD       = zeros(Int64, (length(numYears), size(data, 2)))
+  FD       = zeros(Int64, (length(numYears)))
 
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 20, +, view(FD, i:i), view(data, idx, :, :))
+    Base.mapreducedim!(t -> t >= 20, +, view(FD, i:i), view(data, idx))
   end
   return FD
 end
@@ -332,11 +332,11 @@ end
 function customthresover(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
   years    = Dates.year(timeV)
   numYears = unique(years)
-  FD       = zeros(Int64, (length(numYears), size(data, 2)))
+  FD       = zeros(Int64, (length(numYears)))
 
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t > thres, +, view(FD, i:i), view(data, idx, :, :))
+    Base.mapreducedim!(t -> t > thres, +, view(FD, i:i), view(data, idx))
   end
   return FD
 end
@@ -397,11 +397,11 @@ end
 function customthresunder(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
   years    = Dates.year(timeV)
   numYears = unique(years)
-  FD       = zeros(Int64, (length(numYears), size(data, 2)))
+  FD       = zeros(Int64, (length(numYears)))
 
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t < thres, +, view(FD, i:i), view(data, idx, :, :))
+    Base.mapreducedim!(t -> t < thres, +, view(FD, i:i), view(data, idx))
   end
   return FD
 end
@@ -460,11 +460,11 @@ end
 function annualmax(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year(timeV)
   numYears = unique(years)
-  FD       = zeros(Float64, (length(numYears), size(data, 2)))
+  FD       = zeros(Float64, (length(numYears)))
 
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.maximum!(view(FD,i:i), view(data,idx))
+    Base.maximum!(view(FD, i:i), view(data, idx))
   end
   return FD
 end
@@ -523,11 +523,11 @@ end
 function annualmin(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year(timeV)
   numYears = unique(years)
-  FD       = zeros(Float64, (length(numYears), size(data, 2)))
+  FD       = zeros(Float64, (length(numYears)))
 
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.minimum!(view(FD,i:i), view(data,idx))
+    Base.minimum!(view(FD, i:i), view(data, idx))
   end
   return FD
 end

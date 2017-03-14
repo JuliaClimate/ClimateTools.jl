@@ -7,6 +7,11 @@ using Base.Test
 
 # Prcp1
 d = Date(2003,1,1):Date(2005,12,31)
+
+data = vcat(ones(Float64, 365), zeros(Float64, 366), ones(Float64, 365))
+Results = Array{Int64, 1}(3); Results[1] = 365; Results[2] = 0; Results[3] = 365;
+@test prcp1(data, d) == Results
+
 data= vcat(ones(365,1), zeros(366,1), ones(365))
 Results = Array{Int64, 2}(3, 1); Results[1] = 365; Results[2] = 0; Results[3] = 365;
 @test prcp1(data, d) == Results
@@ -207,6 +212,8 @@ timeRaw = floor(NetCDF.ncread(filename, "time"))
 @test C[10] == "tas"
 @test annualmax(C)[10] == "tas"
 @test size(C) == (10, )
+@test size(C, 1) == 10
+@test length(C) == 10
 
 # MESHGRID
 YV = [1 2 3]'
