@@ -119,7 +119,7 @@ end
 """
 function sumleapyear(initDate::Date, timeRaw)
 
-  out = 0::Int64
+  out = 0::Int
   endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
   years = unique(Dates.year(initDate:endDate))
   # Sum over time vector
