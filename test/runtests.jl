@@ -170,9 +170,9 @@ C = ClimateTools.ClimGrid(axisdata, var = "pr")
 @test mapclimgrid(prcp1(C), region = "Canada") == 1
 C = ClimateTools.ClimGrid(axisdata, var = "tasmax")
 @test mapclimgrid(C) == 1
-@test mapclimgrid(prcp1(C)) == 1
-@test mapclimgrid(prcp1(C), region = "World") == 1
-@test mapclimgrid(prcp1(C), region = "Canada") == 1
+@test mapclimgrid(annualmax(C)) == 1
+@test mapclimgrid(annualmax(C), region = "World") == 1
+@test mapclimgrid(annualmax(C), region = "Canada") == 1
 # INTERFACE
 @test typeof(vcat(C, C)) == ClimateTools.ClimGrid
 @test typeof(show(C)) == Dict{Any, Any}
