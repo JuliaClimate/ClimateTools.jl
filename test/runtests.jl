@@ -193,7 +193,7 @@ timeRaw = floor(NetCDF.ncread(filename, "time"))
 
 # INTERFACE
 @test typeof(vcat(C, C)) == ClimateTools.ClimGrid
-@test typeof(show(C)) == Dict{Any, Any}
+# @test typeof(show(C)) == Dict{Any, Any}
 @test typeof(C[1].data) == Array{Float64,3} || Array{Float32,3}
 @test C[2] == "Celsius"
 @test C[3] == ""
