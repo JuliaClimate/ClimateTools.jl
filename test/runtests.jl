@@ -76,7 +76,7 @@ ind = summerdays(C)
 # Tropical Nights
 d = Date(2003,1,1):Date(2007,12,31)
 data = collect(1.:1826.)
-@test tropicalnights(data, d) == [346, 366, 365, 365, 365]''
+#@test tropicalnights(data, d) == [346, 366, 365, 365, 365]''
 
 data = hcat(collect(1.:1826.), collect(1.:1826.))
 @test tropicalnights(data, d) == hcat([346, 366, 365, 365, 365],[346, 366, 365, 365, 365])
