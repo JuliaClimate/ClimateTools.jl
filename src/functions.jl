@@ -53,6 +53,8 @@ Determines if a point is inside a polygon.
 
 Returns true if point has an odd winding number.  This should label
 points as exterior which are inside outcrops.  See test for a test.
+
+Author: Github "Mauro3" / "Mauro"
 """
 function inpoly(p, poly::Matrix)
   return isodd(windnr(p, poly))
