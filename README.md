@@ -5,6 +5,11 @@
 | [![Project Status: WIP - Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](http://www.repostatus.org/badges/latest/wip.svg)](http://www.repostatus.org/#wip) [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md) | [![Coverage Status](https://coveralls.io/repos/github/Balinus/ClimateTools.jl/badge.svg?branch=master)](https://coveralls.io/github/Balinus/ClimateTools.jl?branch=master) [![codecov.io](http://codecov.io/github/Balinus/ClimateTools.jl/coverage.svg?branch=master)](http://codecov.io/github/Balinus/ClimateTools.jl?branch=master) | [![Build Status](https://travis-ci.org/Balinus/ClimateTools.jl.svg?branch=master)](https://travis-ci.org/Balinus/ClimateTools.jl) [![Build status](https://ci.appveyor.com/api/projects/status/90lpp8k6430766vx?svg=true)](https://ci.appveyor.com/project/Balinus/climatetools-jl) |
 
 
+## Documentation
+
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://balinus.github.io/ClimateTools.jl/stable)
+[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://balinus.github.io/ClimateTools.jl/latest)
+
 This package is a collection of commonly-used tools in Climate Science. This is mainly a work-in-progress package, developed for myself and is available here, for _common-good_ purpose as well as for archive purpose. Nothing fancy here, basics of climate field analysis will be covered, with some (planned) forays into some _"state-of-the-art"_ techniques.
 
 This package is now registered on METADATA.jl and can be added with `Pkg.add("ClimateTools")` and used with `using ClimateTools`.
@@ -17,11 +22,6 @@ Since the package is evolving "rapidly", you might prefer to checkout the git re
 Pkg.add("ClimateTools")
 Pkg.checkout("ClimateTools")
 ```
-
-## Documentation
-
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://balinus.github.io/ClimateTools.jl/stable)
-[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://balinus.github.io/ClimateTools.jl/latest)
 
 ## Objectives
 
@@ -42,7 +42,7 @@ C = nc2julia(filename::String, var::String, polygon::Vector)
 
 `nc2julia` return a `ClimGrid` type.
 
-````julia
+```julia
 immutable ClimGrid
   data::AxisArray
   model::String
@@ -69,7 +69,7 @@ Which should return
   <img src="https://cloud.githubusercontent.com/assets/3630311/23712122/e97bd322-03ef-11e7-93da-749c961c4070.png?raw=true" width="771" height="388" alt="Precipitation example"/>
 </p>
 
-Note that if the `ClimGrid` data structure has 3 dimensions (time x latitude x longitude) the `mapit` function makes a time-average (i.e. climatological mean)
+Note that if the `ClimGrid` data structure has 3 dimensions (time x latitude x longitude) the `mapclimgrid` function makes a time-average (i.e. climatological mean). Right now, 3 options are available for region: `World`, `Canada` and the default `auto` which use the maximum and minimum of the lat-long coordinates inside the `ClimGrid` structure. Other regions will be added in the future, as well as the option to send a custom region defined by a lat-lon box.
 
 ### Indices
 
@@ -77,7 +77,7 @@ Some indices are available in the packages, such as the annual number of tropica
 ```julia
 ind = annualmax(C::ClimGrid)
 ```
-Which returns another ClimGrid. You can also map this ClimGrid with the `mapclimgrid` function and returns the climatological mean of the annual maximum daily precipitation.
+Which returns another ClimGrid. You can also map this ClimGrid with the `mapclimgrid` function and returns the climatological mean of the annual maximum (e.g. daily precipitation in the example below). A list of indices can be found in the documentation.
 
 <p align="center">
   <img src="https://cloud.githubusercontent.com/assets/3630311/23873133/59b85c08-0807-11e7-967b-7cc7d28aada0.png?raw=true" width="771" height="388" alt="Precipitation example"/>
