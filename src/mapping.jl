@@ -9,6 +9,11 @@ function mapclimgrid(C::ClimGrid; region::String = "auto")
   lat = C[1][Axis{:lat}][:]
   lon = C[1][Axis{:lon}][:]
 
+  # if the data is from a GCM, we sometimes needs to extend the lat-lon and data to avoid "white space"
+  if rlon > 355 && llon < 5
+    rlon = 360
+  end
+
 
   if (sum( (C.data[Axis{:lon}][:] .> 355) & (C.data[Axis{:lon}][:] .< 5)) > 0)
     if (sum( (C.data[Axis{:lon}][:] .< 185) & (C.data[Axis{:lon}][:] .> 175) ) == 0)
@@ -66,7 +71,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto")
   # cbar[:set_label] = C.dataunits
   title(string(C[3], "-", C[4], "-", C[5], " - ", C.var))
 
-  return 1
+  return true
 end
 
 # function drawmap(m, C::ClimGrid; NoLands::Bool = false)
