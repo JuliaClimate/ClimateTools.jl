@@ -493,6 +493,18 @@ function annualmax(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Da
   return FD
 end
 
+function annualmax(data::Array{Float64, 3}, timeV::Array{Date,1})
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Float64, (length(numYears), size(data, 2), size(data, 3)))
+
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.maximum!(view(FD,i:i,:,:), view(data,idx,:,:))
+  end
+  return FD
+end
+
 """
   annualmin(data::Array, time::StepRange{Date,Base.Dates.Day})
 
