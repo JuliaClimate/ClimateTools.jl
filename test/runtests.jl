@@ -173,18 +173,21 @@ data = randn(1096, 200, 81)
 axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(101:300), Axis{:lat}(-20:60))
 C = ClimateTools.ClimGrid(axisdata, var = "pr")
 @test mapclimgrid(C)
-# @test mapclimgrid(prcp1(C)) == 1
-# @test mapclimgrid(prcp1(C), region = "World") == 1
-# @test mapclimgrid(prcp1(C), region = "Canada") == 1
-# C = ClimateTools.ClimGrid(axisdata, var = "tasmax")
-# @test mapclimgrid(C) == 1
-# @test mapclimgrid(annualmax(C)) == 1
-# @test mapclimgrid(annualmax(C), region = "World") == 1
-# @test mapclimgrid(annualmax(C), region = "Canada") == 1
+@test mapclimgrid(prcp1(C))
+@test mapclimgrid(prcp1(C), region = "World")
+@test mapclimgrid(prcp1(C), region = "Canada")
+@test mapclimgrid(prcp1(C), region = "Europe")
+@test mapclimgrid(prcp1(C), region = "NorthAmerica")
+C = ClimateTools.ClimGrid(axisdata, var = "tasmax")
+@test mapclimgrid(C)
+@test mapclimgrid(annualmax(C))
+@test mapclimgrid(annualmax(C), region = "World")
+@test mapclimgrid(annualmax(C), region = "Canada")
+@test mapclimgrid(annualmin(C), region = "Europe")
+@test mapclimgrid(annualmin(C), region = "NorthAmerica")
 
 # NetCDF Extraction test
-filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
-# nc2julia(filename)
+filename = joinpath(Pkg.dir("ClimateTools"), "test", "data", "sresa1b_ncar_ccsm3-example.nc")
 C = nc2julia(filename, "tas", poly = [0. 0.])
 @test typeof(nc2julia(filename, "tas", poly = [0. 0.])) == ClimateTools.ClimGrid
 @test typeof(buildtimevec(filename)) == Array{Date, 1}
@@ -206,14 +209,14 @@ timeRaw = floor(NetCDF.ncread(filename, "time"))
 @test C[5] == ""
 @test C[6] == "degrees_east"
 @test C[7] == "degrees_north"
-@test C[8] == joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
+@test C[8] == joinpath(Pkg.dir("ClimateTools"), "test", "data", "sresa1b_ncar_ccsm3-example.nc")
 @test C[9] == "tas"
 @test annualmax(C)[9] == "annualmax"
 @test C[10] == "tas"
 @test annualmax(C)[10] == "tas"
-@test size(C) == (10, )
-@test size(C, 1) == 10
-@test length(C) == 10
+@test size(C) == (11, )
+@test size(C, 1) == 11
+@test length(C) == 11
 
 # MESHGRID
 YV = [1 2 3]'

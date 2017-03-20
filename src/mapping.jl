@@ -11,7 +11,8 @@ function mapclimgrid(C::ClimGrid; region::String = "auto")
 
   # if the data is from a GCM, we sometimes needs to extend the lat-lon and data to avoid "white space"
   if rlon > 355 && llon < 5
-    rlon = 360
+    rlon = 360; llon = 0;
+    push!(lon, lon[1])
   end
 
 
@@ -28,7 +29,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto")
     m = basemap[:Basemap](projection="cyl", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = 0, urcrnrlon = 360, resolution = "c")
 
   elseif region == "Europe"
-    m = basemap[:Basemap](width=6800000, height = 4500000, rsphere = (6378137.00, 6356752.3142), resolution = "l", area_thresh = 800., projection = "lcc", lat_1 = 30., lat_2 = 45, lat_0 = 50, lon_0 = 10.)
+    m = basemap[:Basemap](width=6800000, height = 4500000, rsphere = (6378137.00, 6356752.3142), resolution = "l", area_thresh = 800., projection = "lcc", lat_1 = 30., lat_2 = 45, lat_0 = 52, lon_0 = 10.)
 
   elseif region == "NorthAmerica"
     m = basemap[:Basemap](llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, rsphere = (6378137.00, 6356752.3142), resolution = "l", area_thresh = 1000., projection = "lcc",  lat_1 = 50., lon_0 = -107.)
@@ -61,15 +62,26 @@ function mapclimgrid(C::ClimGrid; region::String = "auto")
   end
 
   if length(size(C[1])) > 2
-
-    cs = m[:contourf](x, y, squeeze(mean(convert(Array, C[1]),1),1)', cmap=get_cmap(cm))
+    data = squeeze(mean(convert(Array, C[1]),1),1)'
+    if rlon > 355 && llon < 5
+      data2 = Array{Float64}(size(data, 1), size(data, 2) + 1)
+      data2[:, 1:end-1] = data
+      data2[:, end] = data[:, 1]
+      # push!(data, data[:, 1])
+    else
+      data2 = squeeze(mean(convert(Array, C[1]),1),1)'
+    end
+    cs = m[:contourf](x, y, data2, cmap=get_cmap(cm))
   else
     cs = m[:contourf](x, y, convert(Array,C[1][:,:])', cmap=get_cmap(cm))
   end
 
+  # Colorbar
   cbar = colorbar(cs, orientation = "vertical", shrink = 0.5, label = C[2])
-  # cbar[:set_label] = C.dataunits
-  title(string(C[3], "-", C[4], "-", C[5], " - ", C.var))
+
+  # begYear = string(Base.Dates.year(C[1][Axis{:time}][1]))
+  # endYear = string(Base.Dates.year(C[1][Axis{:time}][end]))
+  title(string(C[3], " - ", C[4], " - ", C[5], " - ", C.var))
 
   return true
 end
