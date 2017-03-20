@@ -2,6 +2,7 @@ module ClimateTools
 
 # External modules
 using NetCDF
+using TimeAxisArrays
 using Shapefile
 using AxisArrays
 import Base.vcat
@@ -35,7 +36,7 @@ export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icin
 
 # TYPES
 immutable ClimGrid
-  data::AxisArray
+  data::TimeAxisArray
   model::String
   experiment::String
   run::String

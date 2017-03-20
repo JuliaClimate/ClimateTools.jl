@@ -65,7 +65,7 @@ function nc2julia(file::String, var::String; poly::Array{Float64} = [])
   # Permute dims --> make the longest dimension at position #1 (calculations are usually faster)
   data = permutedims(data, [3, 1, 2])
   # dataOut = AxisArray(data, :time, :lon, :lat)
-  dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))#, :lon,:lat)
+  dataOut = TimeAxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))#, :lon,:lat)
 
   return ClimGrid(dataOut, model = model, experiment = experiment, run = runsim, filename = file, dataunits = dataunits, latunits = latunits, lonunits = lonunits, var = var, typeofvar = var, typeofcal = caltype)
 
