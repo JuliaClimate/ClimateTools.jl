@@ -67,7 +67,7 @@ function nc2julia(file::String, var::String; poly::Array{Float64} = [])
   # dataOut = AxisArray(data, :time, :lon, :lat)
   dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))#, :lon,:lat)
 
-  return ClimGrid(dataOut, model = model, experiment = experiment, run = runsim, filename = file, dataunits = dataunits, latunits = latunits, lonunits = lonunits, var = var, typeof = var)
+  return ClimGrid(dataOut, model = model, experiment = experiment, run = runsim, filename = file, dataunits = dataunits, latunits = latunits, lonunits = lonunits, var = var, typeofvar = var, typeofcal = caltype)
 
 
 end
@@ -89,7 +89,7 @@ function buildtimevec(str::String)
 
   # Calendar type
   calType = NetCDF.ncgetatt(str, "time", "calendar")
-  if calType == "noleap"
+  if calType == "noleap" || calType == "365_day"
     nDays = 365
     # get time of netCDF file *str*
     timeRaw = floor(NetCDF.ncread(str, "time"))
@@ -139,34 +139,34 @@ end
 
 """
 
-function inpolyV(lat, lon, shp::String)
-  # TODO finish this feature
-  # Build polygon from shapefile *shp*
-  poly = shpextract(shp)
-  if !isempty(lat)
-    # dummy call for linting
-  elseif !isempty(lon)
-    # dummy call for linting
-  end
-
-end
-
-"""
-    shpextract(shp::String)
-"""
-
-function shpextract(shp::String)
-  shp = Shapefile.read(shp, Shapefile.Handle)
-  P = Array(Float64, 2, length(shp.shapes[2].points) + 1)
-  # CREATE VECTOR
-  for i = 1:length(shp.shapes[2].points)
-    P[1, i] = shp.shapes[2].points[i].x
-    P[2, i] = shp.shapes[2].points[i].y
-    if i == length(shp.shapes[2].points)
-      P[1, i + 1] = shp.shapes[2].points[1].x
-      P[2, i + 1] = shp.shapes[2].points[1].y
-    end
-  end
-
-
-end
+# function inpolyV(lat, lon, shp::String)
+#   # TODO finish this feature
+#   # Build polygon from shapefile *shp*
+#   poly = shpextract(shp)
+#   if !isempty(lat)
+#     # dummy call for linting
+#   elseif !isempty(lon)
+#     # dummy call for linting
+#   end
+#
+# end
+#
+# """
+#     shpextract(shp::String)
+# """
+#
+# function shpextract(shp::String)
+#   shp = Shapefile.read(shp, Shapefile.Handle)
+#   P = Array(Float64, 2, length(shp.shapes[2].points) + 1)
+#   # CREATE VECTOR
+#   for i = 1:length(shp.shapes[2].points)
+#     P[1, i] = shp.shapes[2].points[i].x
+#     P[2, i] = shp.shapes[2].points[i].y
+#     if i == length(shp.shapes[2].points)
+#       P[1, i + 1] = shp.shapes[2].points[1].x
+#       P[2, i + 1] = shp.shapes[2].points[1].y
+#     end
+#   end
+#
+#
+# end

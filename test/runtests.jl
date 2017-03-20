@@ -31,6 +31,12 @@ ind = prcp1(C)
 @test ind.data.data == Results
 
 # Frostdays
+data= vcat(-ones(365), -ones(366),zeros(365))
+Results = Array{Int64, 1}(3); Results[1] = 365; Results[2] = 366; Results[3] = 0;
+@test frostdays(data, d) == Results
+@test icingdays(data, d) == Results
+
+
 data= vcat(-ones(365,1), -ones(366),zeros(365,1))
 Results = Array{Int64, 2}(3, 1); Results[1] = 365; Results[2] = 366; Results[3] = 0;
 @test frostdays(data, d) == Results
@@ -213,10 +219,14 @@ timeRaw = floor(NetCDF.ncread(filename, "time"))
 @test C[9] == "tas"
 @test annualmax(C)[9] == "annualmax"
 @test C[10] == "tas"
+@test C[11] == "noleap"
 @test annualmax(C)[10] == "tas"
 @test size(C) == (11, )
 @test size(C, 1) == 11
 @test length(C) == 11
+@test endof(C) == 11
+@test C[end] == "noleap"
+@test ndims(C) == 1
 
 # MESHGRID
 YV = [1 2 3]'

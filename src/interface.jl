@@ -1,6 +1,6 @@
 function Base.vcat(A::ClimGrid, B::ClimGrid)
   axisArray = vcat(A.data, B.data)
-  ClimGrid(axisArray, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, var = A.var, typeof = A.typeof)
+  ClimGrid(axisArray, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, var = A.var, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
 end
 # TODO : Verify in Base.vcat(A::ClimGrid, B::ClimGrid) for time consistency (e.g. no same timestamp)
 # TODO : Add methods for addition, subtraction, multiplication of ClimGrid types
@@ -25,7 +25,9 @@ function getindex(C::ClimGrid,i::Int)
   elseif i == 9
     return C.var
   elseif i == 10
-    return C.typeof
+    return C.typeofvar
+  elseif i == 11
+    return C.typeofcal
   else
     throw(error("You can't index like that!"))
   end
@@ -33,7 +35,7 @@ end
 
 Base.linearindexing{T<:ClimGrid}(::Type{T}) = Base.LinearFast()
 Base.length(C::ClimGrid) = length(fieldnames(C))
-Base.size(::ClimGrid) = (10,)
+Base.size(C::ClimGrid) = (length(C),)
 Base.size(C::ClimGrid,n::Int) = n==1 ? length(C) : error("Only dimension 1 has a well-defined size.")
 Base.endof(C::ClimGrid) = length(C)
 Base.ndims(::ClimGrid) = 1

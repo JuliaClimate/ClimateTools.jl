@@ -31,7 +31,7 @@ end
 
 
 # Exported functions
-export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, nc2julia, sumleapyear, buildtimevec, inpolyV, shpextract, mapclimgrid
+export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, nc2julia, sumleapyear, buildtimevec, mapclimgrid
 
 # TYPES
 immutable ClimGrid
@@ -43,13 +43,14 @@ immutable ClimGrid
   dataunits::String
   latunits::String
   lonunits::String
-  var::String
-  typeof::String
+  var::String # Type of variable (i.e. can be the same as "var", but it is changed when calculating indices)
+  typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
+  typeofcal::String # Calendar type
 
-  function ClimGrid(data; model = "", experiment = "", run = "", filename = "", dataunits = "", latunits = "", lonunits = "", var = "", typeof = "")
+  function ClimGrid(data; model = "", experiment = "", run = "", filename = "", dataunits = "", latunits = "", lonunits = "", var = "", typeofvar = "", typeofcal = "")
 
     # to-do -> add some checks, permutedims if need be
-    new(data, model, experiment, run, filename, dataunits, latunits, lonunits, var, typeof)
+    new(data, model, experiment, run, filename, dataunits, latunits, lonunits, var, typeofvar, typeofcal)
 
   end
 end
