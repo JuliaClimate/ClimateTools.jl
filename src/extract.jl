@@ -63,9 +63,20 @@ function nc2julia(file::String, var::String; poly::Array{Float64} = [])
   end
 
   # Permute dims --> make the longest dimension at position #1 (calculations are usually faster)
-  data = permutedims(data, [3, 1, 2])
-  # dataOut = AxisArray(data, :time, :lon, :lat)
-  dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))#, :lon,:lat)
+  if ndims(data) == 3
+    data = permutedims(data, [3, 1, 2])
+    # Convert data to AxisArray
+    dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))
+  elseif ndims(data) ==4 # this imply a 3D field (height component)
+    data = permutedims(data, [4, 1, 2, 3])
+    plev = NetCDF.ncread(file, "plev")
+    # Convert data to AxisArray
+    dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat), Axis{:plev}(plev))
+  else
+    throw(error("nc2julia takes only 3D and 4D variables for the moment"))
+  end
+
+
 
   return ClimGrid(dataOut, model = model, experiment = experiment, run = runsim, filename = file, dataunits = dataunits, latunits = latunits, lonunits = lonunits, var = var, typeofvar = var, typeofcal = caltype)
 

@@ -200,6 +200,9 @@ C = nc2julia(filename, "pr", poly = [0. 0.])
 @test mapclimgrid(prcp1(C), region = "Europe");PyPlot.close()
 @test mapclimgrid(prcp1(C), region = "NorthAmerica");PyPlot.close()
 
+# ua wind
+C = nc2julia(filename, "ua", poly = [0. 0.])
+@test mapclimgrid(C, level = 3);PyPlot.close()
 
 # NetCDF Extraction test
 filename = joinpath(Pkg.dir("ClimateTools"), "test", "data", "sresa1b_ncar_ccsm3-example.nc")

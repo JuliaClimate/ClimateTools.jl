@@ -1,4 +1,4 @@
-function mapclimgrid(C::ClimGrid; region::String = "auto")
+function mapclimgrid(C::ClimGrid; region::String = "auto", level = 1)
 
   # get boundaries and lat-lon vectors
 
@@ -61,8 +61,8 @@ function mapclimgrid(C::ClimGrid; region::String = "auto")
     cm = "viridis"
   end
 
-  if length(size(C[1])) > 2
-    data = squeeze(mean(convert(Array, C[1]),1),1)'
+  if ndims(C[1]) == 3
+    data = squeeze(mean(convert(Array, C[1]),1),1)' #time mean
     if rlon > 355 && llon < 5
       data2 = Array{Float64}(size(data, 1), size(data, 2) + 1)
       data2[:, 1:end-1] = data
@@ -72,8 +72,22 @@ function mapclimgrid(C::ClimGrid; region::String = "auto")
       data2 = squeeze(mean(convert(Array, C[1]),1),1)'
     end
     cs = m[:contourf](x, y, data2, cmap=get_cmap(cm))
-  else
+
+  elseif ndims(C[1]) == 2
     cs = m[:contourf](x, y, convert(Array,C[1][:,:])', cmap=get_cmap(cm))
+
+  elseif ndims(C[1]) == 4 # takes an unspecified level - 1st level TODO add an optional argument
+    datatmp = squeeze(mean(convert(Array, C[1]),1),1) # time mean
+    data = datatmp[:,:, level]';
+    if rlon > 355 && llon < 5
+      data2 = Array{Float64}(size(data, 1), size(data, 2) + 1)
+      data2[:, 1:end-1, :] = data
+      data2[:, end, :] = data[:, 1, :]
+      # push!(data, data[:, 1])
+    else
+      data2 = squeeze(mean(convert(Array, C[1]),1),1)' #time mean
+    end
+    cs = m[:contourf](x, y, data2, cmap=get_cmap(cm))
   end
 
   # Colorbar
