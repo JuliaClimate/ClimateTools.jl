@@ -145,14 +145,24 @@ data = hcat(collect(-800.:1025.), collect(-800.:1025.))
 
 data = Array{Float64, 3}(1826, 2, 2)
 data[:, 1, 1] = collect(-800.:1025.); data[:, 1, 2] = collect(-800.:1025.);data[:, 2, 1] = collect(-800.:1025.);data[:, 2, 2] = collect(-800.:1025.);
-Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [-436., -70., 295., 660., 1025.]''; Results[:, 1, 2] = [-436., -70., 295., 660., 1025.]''; Results[:, 2, 1] = [-436., -70., 295., 660., 1025.]''; Results[:, 2, 2] = [-436., -70., 295., 660., 1025.]'';
+Results = Array{Float64, 3}(5, 2, 2); Results[:, 1, 1] = [-436., -70., 295., 660., 1025.]''; Results[:, 1, 2] = [-436., -70., 295., 660., 1025.]''; Results[:, 2, 1] = [-436., -70., 295., 660., 1025.]''; Results[:, 2, 2] = [-436., -70., 295., 660., 1025.]'';
 @test annualmax(data, d) == Results
+
+
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
 C = ClimateTools.ClimGrid(axisdata, var = "tasmin")
 ind = annualmax(C)
 @test ind.data.data == Results
+
+datetmp = Date(2003,01,01):Date(2008,1,1)
+idx = Dates.monthday(datetmp) .== (2,29)
+datetmp = datetmp[!idx] #creates an Array of dates
+data = Array{Float64, 3}(1826, 2, 2)
+data[:, 1, 1] = collect(-800.:1025.); data[:, 1, 2] = collect(-800.:1025.);data[:, 2, 1] = collect(-800.:1025.);data[:, 2, 2] = collect(-800.:1025.);
+Results = Array{Float64, 3}(6, 2, 2); Results[:, 1, 1] = [-436., -71., 294., 659., 1024., 1025.]''; Results[:, 1, 2] = [-436., -71., 294., 659., 1024., 1025]''; Results[:, 2, 1] = [-436., -71., 294., 659., 1024., 1025.]''; Results[:, 2, 2] = [-436., -71., 294., 659., 1024., 1025.]'';
+@test annualmax(data, datetmp) == Results
 
 # ANNUAL MINIMUM
 d = Date(2003,1,1):Date(2007,12,31)
