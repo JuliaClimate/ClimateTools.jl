@@ -12,7 +12,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto")
   # if the data is from a GCM, we sometimes needs to extend the lat-lon and data to avoid "white space"
   if rlon > 355 && llon < 5
     rlon = 360; llon = 0;
-    push!(lon, lon[1])
+    push!(lon, 359.99)
   end
 
 
@@ -23,16 +23,16 @@ function mapclimgrid(C::ClimGrid; region::String = "auto")
   end
   figure(figsize=(12,7), dpi = 120)
   if region == "Canada"
-    m = basemap[:Basemap](width=6500000,height=5000000, rsphere = (6378137.00, 6356752.3142),      resolution = "l", area_thresh = 800., projection = "lcc", lat_1 = 45., lat_2 = 55, lat_0 = 62, lon_0 = -95.)
+    m = basemap[:Basemap](width=6500000,height=5000000, rsphere = (6378137.00, 6356752.3142),      resolution = "c", projection = "lcc", lat_1 = 45., lat_2 = 55, lat_0 = 62, lon_0 = -95.)
 
   elseif region == "World"
     m = basemap[:Basemap](projection="cyl", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = 0, urcrnrlon = 360, resolution = "c")
 
   elseif region == "Europe"
-    m = basemap[:Basemap](width=6800000, height = 4500000, rsphere = (6378137.00, 6356752.3142), resolution = "l", area_thresh = 800., projection = "lcc", lat_1 = 30., lat_2 = 45, lat_0 = 52, lon_0 = 10.)
+    m = basemap[:Basemap](width=6800000, height = 4500000, rsphere = (6378137.00, 6356752.3142), resolution = "c", projection = "lcc", lat_1 = 30., lat_2 = 45, lat_0 = 52, lon_0 = 10.)
 
   elseif region == "NorthAmerica"
-    m = basemap[:Basemap](llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, rsphere = (6378137.00, 6356752.3142), resolution = "l", area_thresh = 1000., projection = "lcc",  lat_1 = 50., lon_0 = -107.)
+    m = basemap[:Basemap](llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, rsphere = (6378137.00, 6356752.3142), resolution = "c", projection = "lcc",  lat_1 = 50., lon_0 = -107.)
 
   elseif region == "auto"
     m = basemap[:Basemap](projection="cyl", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon, resolution = "c")
