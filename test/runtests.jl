@@ -184,7 +184,7 @@ ind = annualmin(C)
 @test ind.data.data == Results
 
 # Mapping test
-filename = joinpath(Pkg.dir("ClimateTools"), "test", "data", "sresa1b_ncar_ccsm3-example.nc")
+filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = nc2julia(filename, "tas", poly = [0. 0.])
 @test mapclimgrid(C);PyPlot.close()
 @test mapclimgrid(C, region = "World");PyPlot.close()
@@ -205,7 +205,7 @@ C = nc2julia(filename, "ua", poly = [0. 0.])
 @test mapclimgrid(C, level = 3);PyPlot.close()
 
 # NetCDF Extraction test
-filename = joinpath(Pkg.dir("ClimateTools"), "test", "data", "sresa1b_ncar_ccsm3-example.nc")
+filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = nc2julia(filename, "tas", poly = [0. 0.])
 @test typeof(nc2julia(filename, "tas", poly = [0. 0.])) == ClimateTools.ClimGrid
 @test typeof(buildtimevec(filename)) == Array{Date, 1}
@@ -227,7 +227,7 @@ timeRaw = floor(NetCDF.ncread(filename, "time"))
 @test C[5] == ""
 @test C[6] == "degrees_east"
 @test C[7] == "degrees_north"
-@test C[8] == joinpath(Pkg.dir("ClimateTools"), "test", "data", "sresa1b_ncar_ccsm3-example.nc")
+@test C[8] == joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 @test C[9] == "tas"
 @test annualmax(C)[9] == "annualmax"
 @test C[10] == "tas"
