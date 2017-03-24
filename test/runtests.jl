@@ -1,6 +1,6 @@
 using ClimateTools
 using AxisArrays
-using Lint
+# using Lint
 using Base.Test
 
 # @test isempty(lintpkg("ClimateTools"))
