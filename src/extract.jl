@@ -1,12 +1,12 @@
 """
-    nc2julia(file::String, var::String; poly::Array{Float64})
+    nc2julia(file::String, var::String; poly::Array)
 
 Returns a ClimGrid type with the data in *file* of variable *var* inside the polygon *poly*. Metadata is built-in the ClimGrid type.
 
 Inside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude and latitude dimensions.
 """
 
-function nc2julia(file::String, var::String; poly::Array{Float64} = [])
+function nc2julia(file::String, var::String; poly::Array = [])
   # TODO Finish polygon feature
 
   # Get attributes for type "ClimGrid"
