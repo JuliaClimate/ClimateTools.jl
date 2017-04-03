@@ -115,8 +115,6 @@ function buildtimevec(str::String)
     dateTmp = dateTmp[!idx]
   elseif calType == "gregorian"
     timeRaw = floor(NetCDF.ncread(str, "time"))
-    leapDaysPer = sumleapyear(initDate, timeRaw[1])
-    leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
     startDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
     endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[end])))
     dateTmp = Date(startDate):Date(endDate)
