@@ -62,6 +62,13 @@ immutable ClimGrid
 end
 ```
 
+### Merging ClimGrid type
+Sometimes, the timeseries are split among multiple files. To obtain the complete timeseries, you can `merge` 2 `ClimGrid`. The method is based on the merging of 2 `AxisArrays` and is overloaded for the `ClimGrid` type.
+
+```julia
+C = merge(C1::ClimGrid, C2::ClimGrid)
+```
+
 ### Mapping the ClimGrid type
 
 You can map this `ClimGrid` variable by using `mapclimgrid`:
