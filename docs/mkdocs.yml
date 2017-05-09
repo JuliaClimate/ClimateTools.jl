@@ -22,3 +22,6 @@ docs_dir: 'build'
 
 pages:
   - Home: 'index.md'
+  - Getting started: 'gettingstarted.md'
+  - Climate indices: 'indices.md'
+  - Examples: 'examples.md'
