@@ -4,10 +4,9 @@ os:
   - linux
   - osx
 julia:
-  - release
-  - nightly
   - 0.5
   - 0.6
+  - nightly
 matrix:
   #- PYTHON=python  # python 2.7
   #- PYTHON=python3 # python 3.5
