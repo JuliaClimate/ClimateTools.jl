@@ -157,7 +157,8 @@ ind = annualmax(C)
 @test ind.data.data == Results
 
 datetmp = Date(2003,01,01):Date(2008,1,1)
-idx = Dates.monthday(datetmp) .== (2,29)
+# idx = Dates.monthday(datetmp) .== (2,29)
+idx = (Dates.month(datetmp) .== 2) & (Dates.day(datetmp) .== 29)
 datetmp = datetmp[!idx] #creates an Array of dates
 data = Array{Float64, 3}(1826, 2, 2)
 data[:, 1, 1] = collect(-800.:1025.); data[:, 1, 2] = collect(-800.:1025.);data[:, 2, 1] = collect(-800.:1025.);data[:, 2, 2] = collect(-800.:1025.);
