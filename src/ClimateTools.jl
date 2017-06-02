@@ -50,7 +50,7 @@ immutable ClimGrid
   function ClimGrid(data; model = "", experiment = "", run = "", filename = "", dataunits = "", latunits = "", lonunits = "", var = "", typeofvar = "", typeofcal = "")
 
     # to-do -> add some checks, permutedims if need be
-    new(data, model, experiment, run, filename, dataunits, latunits, lonunits, var, typeofvar, typeofcal)
+    new(data, model, experiment, run, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal)
 
   end
 end

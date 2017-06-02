@@ -23,7 +23,7 @@ function getindex(C::ClimGrid,i::Int)
   elseif i == 8
     return C.filename
   elseif i == 9
-    return C.var
+    return C.variable
   elseif i == 10
     return C.typeofvar
   elseif i == 11

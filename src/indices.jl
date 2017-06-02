@@ -21,7 +21,7 @@ function prcp1(C::ClimGrid)
   FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, var = "prcp1", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = "prcp1", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
 
 function prcp1(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
@@ -87,7 +87,7 @@ function frostdays(C::ClimGrid)
   FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, var = "frostdays", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = "frostdays", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
 
 function frostdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
@@ -153,7 +153,7 @@ function summerdays(C::ClimGrid)
   FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, var = "summerdays", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = "summerdays", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
 
 function summerdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
@@ -219,7 +219,7 @@ function icingdays(C::ClimGrid)
   FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, var = "icingdays", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = "icingdays", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
 
 function icingdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
@@ -261,7 +261,7 @@ function tropicalnights(C::ClimGrid)
   FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, var = "tropicalnights", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = "tropicalnights", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
 
 function tropicalnights(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
@@ -326,7 +326,7 @@ function customthresover(C::ClimGrid, thres)
   FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, var = string("Days over ", thres, " ", C.dataunits), typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = string("Days over ", thres, " ", C.dataunits), typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
 
 function customthresover(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
@@ -391,7 +391,7 @@ function customthresunder(C::ClimGrid, thres)
   FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, var = string("Days under ", thres, " ", C.dataunits), typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = string("Days under ", thres, " ", C.dataunits), typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
 
 function customthresunder(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
@@ -454,7 +454,7 @@ function annualmax(C::ClimGrid)
   FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, var = "annualmax", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, variable = "annualmax", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
 
 function annualmax(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
@@ -529,7 +529,7 @@ function annualmin(C::ClimGrid)
   FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, var = "annualmin", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, variable = "annualmin", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
 
 function annualmin(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
