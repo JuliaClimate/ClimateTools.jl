@@ -26,7 +26,7 @@ Results = Array{Int64, 3}(3, 2, 2); Results[1,1,1] = 365; Results[2,1,1] = 0; Re
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
-C = ClimateTools.ClimGrid(axisdata, var = "pr")
+C = ClimateTools.ClimGrid(axisdata, variable = "pr")
 ind = prcp1(C)
 @test ind.data.data == Results
 
@@ -53,10 +53,10 @@ Results = Array{Int64, 3}(3, 2, 2); Results[1,1,1] = 365; Results[2,1,1] = 366; 
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
-C = ClimateTools.ClimGrid(axisdata, var = "tasmin")
+C = ClimateTools.ClimGrid(axisdata, variable = "tasmin")
 ind = frostdays(C)
 @test ind.data.data == Results
-C = ClimateTools.ClimGrid(axisdata, var = "tasmax")
+C = ClimateTools.ClimGrid(axisdata, variable = "tasmax")
 ind = icingdays(C)
 @test ind.data.data == Results
 
@@ -75,7 +75,7 @@ Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [341, 366, 365, 365, 365]
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
-C = ClimateTools.ClimGrid(axisdata, var = "tasmax")
+C = ClimateTools.ClimGrid(axisdata, variable = "tasmax")
 ind = summerdays(C)
 @test ind.data.data == Results
 
@@ -94,7 +94,7 @@ Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [346, 366, 365, 365, 365]
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
-C = ClimateTools.ClimGrid(axisdata, var = "tasmin")
+C = ClimateTools.ClimGrid(axisdata, variable = "tasmin")
 ind = tropicalnights(C)
 @test ind.data.data == Results
 
@@ -113,7 +113,7 @@ Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [345, 366, 365, 365, 365]
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
-C = ClimateTools.ClimGrid(axisdata, var = "tasmin")
+C = ClimateTools.ClimGrid(axisdata, variable = "tasmin")
 ind = customthresover(C, 20)
 @test ind.data.data == Results
 
@@ -131,7 +131,7 @@ Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [365, 366, 269, 0, 0]''; 
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
-C = ClimateTools.ClimGrid(axisdata, var = "tasmin")
+C = ClimateTools.ClimGrid(axisdata, variable = "tasmin")
 ind = customthresunder(C, 200)
 @test ind.data.data == Results
 
@@ -152,12 +152,13 @@ Results = Array{Float64, 3}(5, 2, 2); Results[:, 1, 1] = [-436., -70., 295., 660
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
-C = ClimateTools.ClimGrid(axisdata, var = "tasmin")
+C = ClimateTools.ClimGrid(axisdata, variable = "tasmin")
 ind = annualmax(C)
 @test ind.data.data == Results
 
 datetmp = Date(2003,01,01):Date(2008,1,1)
-idx = Dates.monthday(datetmp) .== (2,29)
+# idx = Dates.monthday(datetmp) .== (2,29)
+idx = (Dates.month(datetmp) .== 2) & (Dates.day(datetmp) .== 29)
 datetmp = datetmp[!idx] #creates an Array of dates
 data = Array{Float64, 3}(1826, 2, 2)
 data[:, 1, 1] = collect(-800.:1025.); data[:, 1, 2] = collect(-800.:1025.);data[:, 2, 1] = collect(-800.:1025.);data[:, 2, 2] = collect(-800.:1025.);
@@ -179,7 +180,7 @@ Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [-800., -435., -69., 296.
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
-C = ClimateTools.ClimGrid(axisdata, var = "tasmin")
+C = ClimateTools.ClimGrid(axisdata, variable = "tasmin")
 ind = annualmin(C)
 @test ind.data.data == Results
 
@@ -218,7 +219,12 @@ timeRaw = floor(NetCDF.ncread(filename, "time"))
 @test sumleapyear(initDate::Date, timeRaw) == 485
 
 # INTERFACE
-@test typeof(vcat(C, C)) == ClimateTools.ClimGrid
+B = vcat(C, C)
+@test typeof(B) == ClimateTools.ClimGrid
+@test size(B.data) == (2, 256, 128) # vcat does not look at dimensions
+B = merge(C, C)
+@test typeof(B) == ClimateTools.ClimGrid
+@test size(B.data) == (1, 256, 128) # C being similar, they should not add up
 # @test typeof(show(C)) == Dict{Any, Any}
 @test typeof(C[1].data) == Array{Float64,3} || Array{Float32,3}
 @test C[2] == "Celsius"

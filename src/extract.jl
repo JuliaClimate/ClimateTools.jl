@@ -6,7 +6,7 @@ Returns a ClimGrid type with the data in *file* of variable *var* inside the pol
 Inside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude and latitude dimensions.
 """
 
-function nc2julia(file::String, var::String; poly::Array = [])
+function nc2julia(file::String, variable::String; poly = [])
   # TODO Finish polygon feature
 
   # Get attributes for type "ClimGrid"
@@ -23,7 +23,7 @@ function nc2julia(file::String, var::String; poly::Array = [])
   if !isa(model, String)
     model = ""
   end
-  dataunits = NetCDF.ncgetatt(file, var, "units")
+  dataunits = NetCDF.ncgetatt(file, variable, "units")
   latunits = NetCDF.ncgetatt(file, "lat", "units")
   lonunits = NetCDF.ncgetatt(file, "lon", "units")
   caltype = NetCDF.ncgetatt(file, "time", "calendar")
@@ -41,14 +41,14 @@ function nc2julia(file::String, var::String; poly::Array = [])
 
 
   # Get Data
-  data = NetCDF.open(file, var)
+  data = NetCDF.open(file, variable)
   if !isempty(poly)
     # TODO subset of whole data
   end
-  if var == "pr"
+  if variable == "pr"
     data = data[:,:,:] * 86400
     dataunits = "mm/day"
-  elseif var == "tasmax" || var == "tasmin" || var == "tas"
+  elseif variable == "tasmax" || variable == "tasmin" || variable == "tas"
     data = data[:,:,:]
   end
 
@@ -67,7 +67,7 @@ function nc2julia(file::String, var::String; poly::Array = [])
     data = permutedims(data, [3, 1, 2])
     # Convert data to AxisArray
     dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))
-  elseif ndims(data) ==4 # this imply a 3D field (height component)
+  elseif ndims(data) == 4 # this imply a 3D field (height component)
     data = permutedims(data, [4, 1, 2, 3])
     plev = NetCDF.ncread(file, "plev")
     # Convert data to AxisArray
@@ -78,7 +78,7 @@ function nc2julia(file::String, var::String; poly::Array = [])
 
 
 
-  return ClimGrid(dataOut, model = model, experiment = experiment, run = runsim, filename = file, dataunits = dataunits, latunits = latunits, lonunits = lonunits, var = var, typeofvar = var, typeofcal = caltype)
+  return ClimGrid(dataOut, model = model, experiment = experiment, run = runsim, filename = file, dataunits = dataunits, latunits = latunits, lonunits = lonunits, variable = variable, typeofvar = variable, typeofcal = caltype)
 
 
 end
@@ -111,10 +111,16 @@ function buildtimevec(str::String)
 
     dateTmp = Date(startDate):Date(endDate)
     # REMOVE leap year
-    idx = Dates.monthday(dateTmp) .== (2,29)
-    dateTmp = dateTmp[!idx]
+    idx = (Dates.month(dateTmp) .== 2) &  (Dates.day(dateTmp) .== 29)
+    if length(idx) !== 1
+      dateTmp = dateTmp[!idx]
+    else
+      dateTmp = Array{Date}(dateTmp)
+    end
   elseif calType == "gregorian"
     timeRaw = floor(NetCDF.ncread(str, "time"))
+    leapDaysPer = sumleapyear(initDate, timeRaw[1])
+    leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
     startDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
     endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[end])))
     dateTmp = Date(startDate):Date(endDate)
@@ -130,7 +136,7 @@ function sumleapyear(initDate::Date, timeRaw)
 
   out = 0::Int
   endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
-  years = unique(Dates.year(initDate:endDate))
+  years = unique(Dates.year.(initDate:endDate))
   # Sum over time vector
   for idx = 1:length(years)
     if Dates.isleapyear(years[idx])

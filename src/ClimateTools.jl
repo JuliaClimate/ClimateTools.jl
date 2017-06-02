@@ -43,14 +43,14 @@ immutable ClimGrid
   dataunits::String
   latunits::String
   lonunits::String
-  var::String # Type of variable (i.e. can be the same as "var", but it is changed when calculating indices)
+  variable::String # Type of variable (i.e. can be the same as "var", but it is changed when calculating indices)
   typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
   typeofcal::String # Calendar type
 
-  function ClimGrid(data; model = "", experiment = "", run = "", filename = "", dataunits = "", latunits = "", lonunits = "", var = "", typeofvar = "", typeofcal = "")
+  function ClimGrid(data; model = "", experiment = "", run = "", filename = "", dataunits = "", latunits = "", lonunits = "", variable = "", typeofvar = "", typeofcal = "")
 
     # to-do -> add some checks, permutedims if need be
-    new(data, model, experiment, run, filename, dataunits, latunits, lonunits, var, typeofvar, typeofcal)
+    new(data, model, experiment, run, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal)
 
   end
 end
