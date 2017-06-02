@@ -1,11 +1,12 @@
 function Base.vcat(A::ClimGrid, B::ClimGrid)
-  axisArray = vcat(A.data, B.data)
+  axisArraytmp = vcat(A.data, B.data)
+  axisArray = AxisArray(axisArraytmp)
   ClimGrid(axisArray, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
 end
 
 function Base.merge(A::ClimGrid, B::ClimGrid)
   axisArray = merge(A.data, B.data)
-  ClimGrid(axisArray, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, var = A.var, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
+  ClimGrid(axisArray, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
 end
 
 # TODO : Verify in Base.vcat(A::ClimGrid, B::ClimGrid) for time consistency (e.g. no same timestamp)

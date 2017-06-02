@@ -48,7 +48,7 @@ function nc2julia(file::String, variable::String; poly = [])
   if variable == "pr"
     data = data[:,:,:] * 86400
     dataunits = "mm/day"
-  elseif variable == "tasmax" || var == "tasmin" || var == "tas"
+  elseif variable == "tasmax" || variable == "tasmin" || variable == "tas"
     data = data[:,:,:]
   end
 
@@ -78,7 +78,7 @@ function nc2julia(file::String, variable::String; poly = [])
 
 
 
-  return ClimGrid(dataOut, model = model, experiment = experiment, run = runsim, filename = file, dataunits = dataunits, latunits = latunits, lonunits = lonunits, var = variable, typeofvar = var, typeofcal = caltype)
+  return ClimGrid(dataOut, model = model, experiment = experiment, run = runsim, filename = file, dataunits = dataunits, latunits = latunits, lonunits = lonunits, variable = variable, typeofvar = variable, typeofcal = caltype)
 
 
 end
@@ -114,6 +114,8 @@ function buildtimevec(str::String)
     idx = (Dates.month(dateTmp) .== 2) &  (Dates.day(dateTmp) .== 29)
     if length(idx) !== 1
       dateTmp = dateTmp[!idx]
+    else
+      dateTmp = Array{Date}(dateTmp)
     end
   elseif calType == "gregorian"
     timeRaw = floor(NetCDF.ncread(str, "time"))
@@ -134,7 +136,7 @@ function sumleapyear(initDate::Date, timeRaw)
 
   out = 0::Int
   endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
-  years = unique(Dates.year(initDate:endDate))
+  years = unique(Dates.year.(initDate:endDate))
   # Sum over time vector
   for idx = 1:length(years)
     if Dates.isleapyear(years[idx])

@@ -6,7 +6,7 @@ Annual number with preciptation over 1 mm. This function returns a boolean vecto
 
 function prcp1(C::ClimGrid)
   @argcheck C[9] == "pr"
-  years    = Dates.year(C.data[Axis{:time}][:])
+  years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
   datain   = C.data.data
@@ -25,7 +25,7 @@ function prcp1(C::ClimGrid)
 end
 
 function prcp1(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears)))
 
@@ -37,7 +37,7 @@ function prcp1(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
 end
 
 function prcp1(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears), size(data, 2)))
 
@@ -49,7 +49,7 @@ function prcp1(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
 end
 
 function prcp1(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
 
@@ -72,7 +72,7 @@ Let TN(i,j) be daily minimum temperature on day i in year j. Count the number of
 
 function frostdays(C::ClimGrid)
   @argcheck C[9] == "tasmin"
-  years    = Dates.year(C.data[Axis{:time}][:])
+  years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
   datain   = C.data.data
@@ -91,7 +91,7 @@ function frostdays(C::ClimGrid)
 end
 
 function frostdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears)))
 
@@ -103,7 +103,7 @@ function frostdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Da
 end
 
 function frostdays(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears), size(data, 2)))
 
@@ -115,7 +115,7 @@ function frostdays(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Da
 end
 
 function frostdays(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
 
@@ -138,7 +138,7 @@ Let TX(i,j) be daily maximum temperature on day i in year j. Count the number of
 
 function summerdays(C::ClimGrid)
   @argcheck C[9] == "tasmax"
-  years    = Dates.year(C.data[Axis{:time}][:])
+  years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
   datain   = C.data.data
@@ -157,7 +157,7 @@ function summerdays(C::ClimGrid)
 end
 
 function summerdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears)))
 
@@ -169,7 +169,7 @@ function summerdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.D
 end
 
 function summerdays(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears), size(data, 2)))
 
@@ -181,7 +181,7 @@ function summerdays(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.D
 end
 
 function summerdays(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
 
@@ -204,7 +204,7 @@ Let TX(i,j) be daily maximum temperature on day i in year j. Count the number of
 
 function icingdays(C::ClimGrid)
   @argcheck C[9] == "tasmax"
-  years    = Dates.year(C.data[Axis{:time}][:])
+  years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
   datain   = C.data.data
@@ -246,7 +246,7 @@ Let TN(i,j) be daily minimum temperature on day i in year j. Count the number of
 
 function tropicalnights(C::ClimGrid)
   @argcheck C[9] == "tasmin"
-  years    = Dates.year(C.data[Axis{:time}][:])
+  years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
   datain   = C.data.data
@@ -265,7 +265,7 @@ function tropicalnights(C::ClimGrid)
 end
 
 function tropicalnights(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears)))
 
@@ -277,7 +277,7 @@ function tropicalnights(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dat
 end
 
 function tropicalnights(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears), size(data, 2)))
 
@@ -289,7 +289,7 @@ function tropicalnights(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dat
 end
 
 function tropicalnights(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
 
@@ -311,7 +311,7 @@ Let TS(i,j) be a daily time serie value on day i in year j. Count the number of 
 """
 
 function customthresover(C::ClimGrid, thres)
-  years    = Dates.year(C.data[Axis{:time}][:])
+  years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
   datain   = C.data.data
@@ -330,7 +330,7 @@ function customthresover(C::ClimGrid, thres)
 end
 
 function customthresover(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears)))
 
@@ -342,7 +342,7 @@ function customthresover(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Da
 end
 
 function customthresover(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day}, thres)
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears), size(data, 2)))
 
@@ -354,7 +354,7 @@ function customthresover(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Da
 end
 
 function customthresover(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day}, thres)
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
 
@@ -376,7 +376,7 @@ Let TS(i,j) be a daily time serie value on day i in year j. Count the number of 
 """
 
 function customthresunder(C::ClimGrid, thres)
-  years    = Dates.year(C.data[Axis{:time}][:])
+  years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
   datain   = C.data.data
@@ -395,7 +395,7 @@ function customthresunder(C::ClimGrid, thres)
 end
 
 function customthresunder(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears)))
 
@@ -407,7 +407,7 @@ function customthresunder(data::Array{Float64, 1}, timeV::StepRange{Date, Base.D
 end
 
 function customthresunder(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day}, thres)
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears), size(data, 2)))
 
@@ -419,7 +419,7 @@ function customthresunder(data::Array{Float64, 2}, timeV::StepRange{Date, Base.D
 end
 
 function customthresunder(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day}, thres)
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
 
@@ -439,7 +439,7 @@ Let data(i,j) be daily time serie on day i in year j. Extract the highest value 
 """
 
 function annualmax(C::ClimGrid)
-  years    = Dates.year(C.data[Axis{:time}][:])
+  years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = zeros(Float64, (length(numYears), size(C.data, 2), size(C.data, 3)))
   datain   = C.data.data
@@ -458,7 +458,7 @@ function annualmax(C::ClimGrid)
 end
 
 function annualmax(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Float64, (length(numYears)))
 
@@ -470,7 +470,7 @@ function annualmax(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Da
 end
 
 function annualmax(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Float64, (length(numYears), size(data, 2)))
 
@@ -482,7 +482,7 @@ function annualmax(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Da
 end
 
 function annualmax(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Float64, (length(numYears), size(data, 2), size(data, 3)))
 
@@ -494,7 +494,7 @@ function annualmax(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Da
 end
 
 function annualmax(data::Array{Float64, 3}, timeV::Array{Date,1})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Float64, (length(numYears), size(data, 2), size(data, 3)))
 
@@ -514,7 +514,7 @@ Let data(i,j) be daily time serie on day i in year j. Extract the lowest value f
 """
 
 function annualmin(C::ClimGrid)
-  years    = Dates.year(C.data[Axis{:time}][:])
+  years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = zeros(Float64, (length(numYears), size(C.data, 2), size(C.data, 3)))
   datain   = C.data.data
@@ -533,7 +533,7 @@ function annualmin(C::ClimGrid)
 end
 
 function annualmin(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Float64, (length(numYears)))
 
@@ -545,7 +545,7 @@ function annualmin(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Da
 end
 
 function annualmin(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Float64, (length(numYears), size(data, 2)))
 
@@ -557,7 +557,7 @@ function annualmin(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Da
 end
 
 function annualmin(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Float64, (length(numYears), size(data, 2), size(data, 3)))
 
@@ -577,7 +577,7 @@ Let data(i,j) be daily time serie on day i in year j. Extract the mean value for
 """
 
 function annualmean(C::ClimGrid)
-  years    = Dates.year(C.data[Axis{:time}][:])
+  years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = zeros(Float64, (length(numYears), size(C.data, 2), size(C.data, 3)))
   datain   = C.data.data
@@ -596,7 +596,7 @@ function annualmean(C::ClimGrid)
 end
 
 function annualmean(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Float64, (length(numYears)))
 
@@ -608,7 +608,7 @@ function annualmean(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.D
 end
 
 function annualmean(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Float64, (length(numYears), size(data, 2)))
 
@@ -620,7 +620,7 @@ function annualmean(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.D
 end
 
 function annualmean(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Float64, (length(numYears), size(data, 2), size(data, 3)))
 
@@ -640,7 +640,7 @@ Let data(i,j) be daily time serie on day i in year j. Sums daily values for year
 """
 
 function annualsum(C::ClimGrid)
-  years    = Dates.year(C.data[Axis{:time}][:])
+  years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = zeros(Float64, (length(numYears), size(C.data, 2), size(C.data, 3)))
   datain   = C.data.data
@@ -659,7 +659,7 @@ function annualsum(C::ClimGrid)
 end
 
 function annualsum(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Float64, (length(numYears)))
 
@@ -671,7 +671,7 @@ function annualsum(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Da
 end
 
 function annualsum(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Float64, (length(numYears), size(data, 2)))
 
@@ -683,7 +683,7 @@ function annualsum(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Da
 end
 
 function annualsum(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
-  years    = Dates.year(timeV)
+  years    = Dates.year.(timeV)
   numYears = unique(years)
   FD       = zeros(Float64, (length(numYears), size(data, 2), size(data, 3)))
 

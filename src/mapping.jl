@@ -17,8 +17,8 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", level = 1)
   end
 
 
-  if (sum( (C.data[Axis{:lon}][:] .> 355) & (C.data[Axis{:lon}][:] .< 5)) > 0)
-    if (sum( (C.data[Axis{:lon}][:] .< 185) & (C.data[Axis{:lon}][:] .> 175) ) == 0)
+  if (sum( (C.data[Axis{:lon}][:] .> 355) .& (C.data[Axis{:lon}][:] .< 5)) > 0)
+    if (sum( (C.data[Axis{:lon}][:] .< 185) .& (C.data[Axis{:lon}][:] .> 175) ) == 0)
       (llon, rlon) = (rlon, llon)
     end
   end
@@ -96,7 +96,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", level = 1)
 
   # begYear = string(Base.Dates.year(C[1][Axis{:time}][1]))
   # endYear = string(Base.Dates.year(C[1][Axis{:time}][end]))
-  title(string(C[3], " - ", C[4], " - ", C[5], " - ", C.var))
+  title(string(C[3], " - ", C[4], " - ", C[5], " - ", C.variable))
 
   return true
 end
