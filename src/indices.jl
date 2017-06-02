@@ -567,3 +567,129 @@ function annualmin(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Da
   end
   return FD
 end
+
+"""
+  annualmean(data::Array, time::StepRange{Date,Base.Dates.Day})
+
+AM, Value of annual mean of array data.
+
+Let data(i,j) be daily time serie on day i in year j. Extract the mean value for year j.
+"""
+
+function annualmean(C::ClimGrid)
+  years    = Dates.year(C.data[Axis{:time}][:])
+  numYears = unique(years)
+  dataout  = zeros(Float64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+  datain   = C.data.data
+
+  # Indice calculation
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mean!(view(dataout, i:i, :, :), view(datain, idx, :,:))
+  end
+
+  # Build output AxisArray
+  FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
+
+  # Return climGrid type containing the indice
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, var = "annualmean", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+end
+
+function annualmean(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Float64, (length(numYears)))
+
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mean!(view(FD, i:i), view(data, idx))
+  end
+  return FD
+end
+
+function annualmean(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Float64, (length(numYears), size(data, 2)))
+
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mean!(view(FD,i:i,:), view(data,idx,:))
+  end
+  return FD
+end
+
+function annualmean(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Float64, (length(numYears), size(data, 2), size(data, 3)))
+
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.mean!(view(FD,i:i,:,:), view(data,idx,:,:))
+  end
+  return FD
+end
+
+"""
+  annualsum(data::Array, time::StepRange{Date,Base.Dates.Day})
+
+AM, Value of annual mean of array data.
+
+Let data(i,j) be daily time serie on day i in year j. Sums daily values for year j.
+"""
+
+function annualsum(C::ClimGrid)
+  years    = Dates.year(C.data[Axis{:time}][:])
+  numYears = unique(years)
+  dataout  = zeros(Float64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+  datain   = C.data.data
+
+  # Indice calculation
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.sum!(view(dataout, i:i, :, :), view(datain, idx, :,:))
+  end
+
+  # Build output AxisArray
+  FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
+
+  # Return climGrid type containing the indice
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, var = "annualsum", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+end
+
+function annualsum(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Float64, (length(numYears)))
+
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.sum!(view(FD, i:i), view(data, idx))
+  end
+  return FD
+end
+
+function annualsum(data::Array{Float64, 2}, timeV::StepRange{Date, Base.Dates.Day})
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Float64, (length(numYears), size(data, 2)))
+
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.sum!(view(FD,i:i,:), view(data,idx,:))
+  end
+  return FD
+end
+
+function annualsum(data::Array{Float64, 3}, timeV::StepRange{Date, Base.Dates.Day})
+  years    = Dates.year(timeV)
+  numYears = unique(years)
+  FD       = zeros(Float64, (length(numYears), size(data, 2), size(data, 3)))
+
+  Threads.@threads for i in 1:length(numYears)
+    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+    Base.sum!(view(FD,i:i,:,:), view(data,idx,:,:))
+  end
+  return FD
+end

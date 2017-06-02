@@ -1,7 +1,8 @@
 function mapclimgrid(C::ClimGrid; region::String = "auto", level = 1)
 
-  # get boundaries and lat-lon vectors
+  # TODO Add options for custom time period as input and custom region
 
+  # get boundaries and lat-lon vectors
   llon = minimum(C.data[Axis{:lon}][:])
   rlon = maximum(C.data[Axis{:lon}][:])
   slat = minimum(C.data[Axis{:lat}][:])
