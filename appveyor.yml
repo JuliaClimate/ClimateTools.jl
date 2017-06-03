@@ -15,6 +15,10 @@ environment:
   - JULIA_URL: "https://julialang-s3.julialang.org/bin/winnt/x86/0.5/julia-0.5-latest-win32.exe"
     PYTHONDIR: "use_conda"
     PYTHON: "use_conda"
+    
+  - JULIA_URL: "https://julialang-s3.julialang.org/bin/winnt/x64/0.5/julia-0.5-latest-win64.exe"
+    PYTHONDIR: "use_conda"
+    PYTHON: "use_conda"
 
   # - JULIA_URL: "https://julialang-s3.julialang.org/bin/winnt/x64/0.5/julia-0.5-latest-win64.exe"
   #   PYTHONDIR: "C:\\Python27-x64"
@@ -27,10 +31,15 @@ environment:
   # - JULIA_URL: "https://julialang-s3.julialang.org/bin/winnt/x64/0.5/julia-0.5-latest-win64.exe"
   #   PYTHONDIR: "C:\\Python34-x64"
   #   PYTHON: "C:\\Python34-x64\\python.exe"
-
-  - JULIA_URL: "https://julialang-s3.julialang.org/bin/winnt/x64/0.5/julia-0.5-latest-win64.exe"
+  
+  - JULIA_URL: "https://julialang-s3.julialang.org/bin/winnt/x64/0.6/julia-0.6-latest-win32.exe"
     PYTHONDIR: "use_conda"
     PYTHON: "use_conda"
+    
+  - JULIA_URL: "https://julialang-s3.julialang.org/bin/winnt/x64/0.6/julia-0.6-latest-win64.exe"
+    PYTHONDIR: "use_conda"
+    PYTHON: "use_conda"
+
   # - JULIA_URL: "https://julialangnightlies-s3.julialang.org/bin/winnt/x86/julia-latest-win32.exe"
   # - JULIA_URL: "https://julialangnightlies-s3.julialang.org/bin/winnt/x64/julia-latest-win64.exe"
 
