@@ -183,22 +183,16 @@ end
 #
 # end
 #
-# """
-#     shpextract(shp::String)
-# """
-#
-# function shpextract(shp::String)
-#   shp = Shapefile.read(shp, Shapefile.Handle)
-#   P = Array(Float64, 2, length(shp.shapes[2].points) + 1)
-#   # CREATE VECTOR
-#   for i = 1:length(shp.shapes[2].points)
-#     P[1, i] = shp.shapes[2].points[i].x
-#     P[2, i] = shp.shapes[2].points[i].y
-#     if i == length(shp.shapes[2].points)
-#       P[1, i + 1] = shp.shapes[2].points[1].x
-#       P[2, i + 1] = shp.shapes[2].points[1].y
-#     end
-#   end
-#
-#
-# end
+
+function shp2poly(shp::Shapefile.Handle{Shapefile.Polygon{Float64}})
+  P = Array{Float64}(2, length(shp.shapes[2].points) + 1)
+  for i = 1:length(shp.shapes[2].points)
+    P[1, i] = shp.shapes[2].points[i].x
+    P[2, i] = shp.shapes[2].points[i].y
+    if i == length(shp.shapes[2].points)
+      P[1, i + 1] = shp.shapes[2].points[1].x
+      P[2, i + 1] = shp.shapes[2].points[1].y
+    end
+  end
+  return P
+end
