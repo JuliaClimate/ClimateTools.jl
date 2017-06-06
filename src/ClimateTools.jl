@@ -34,7 +34,7 @@ end
 export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, annualmean, annualsum, nc2julia, sumleapyear, buildtimevec, mapclimgrid
 
 # TYPES
-immutable ClimGrid
+struct ClimGrid
   data::AxisArray
   model::String
   experiment::String
