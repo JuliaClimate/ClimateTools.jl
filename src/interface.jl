@@ -40,7 +40,7 @@ function getindex(C::ClimGrid,i::Int)
   end
 end
 
-Base.linearindexing{T<:ClimGrid}(::Type{T}) = Base.LinearFast()
+Base.IndexStyle{T<:ClimGrid}(::Type{T}) = Base.IndexLinear()
 Base.length(C::ClimGrid) = length(fieldnames(C))
 Base.size(C::ClimGrid) = (length(C),)
 Base.size(C::ClimGrid,n::Int) = n==1 ? length(C) : error("Only dimension 1 has a well-defined size.")
