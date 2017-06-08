@@ -17,13 +17,11 @@ This package is registered on METADATA.jl and can be added with `Pkg.add("Climat
 
 The climate indices are coded to use multiple threads. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.CPU_CORES`.
 
-_Note: using nested parralel loops will not give the expected results (not thread safe). For example, if you already have multiple threaded loops in your code and you plan to call `ClimateTools.jl` indices, this won't give the expected results. Use this package with caution in that case. In a future version, the multiple threads will be an optional parameter, giving the user the option to integrate the package with their framework._
-
 Since the package is evolving "rapidly", you might prefer to checkout the git repo directly, although the master might not be working (I usually don't push broken version though).
 
 ```julia
-Pkg.add("ClimateTools")
-Pkg.checkout("ClimateTools")
+Pkg.add("ClimateTools") # Tagged release
+Pkg.checkout("ClimateTools") # For latest master branch
 ```
 
 ## Contributors
