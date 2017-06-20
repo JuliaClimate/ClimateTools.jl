@@ -4,7 +4,11 @@
 |:------------------:|:---------------------:|:-----------------:|
 | [![Project Status: WIP - Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](http://www.repostatus.org/badges/latest/wip.svg)](http://www.repostatus.org/#wip) [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md) | [![Coverage Status](https://coveralls.io/repos/github/Balinus/ClimateTools.jl/badge.svg?branch=master)](https://coveralls.io/github/Balinus/ClimateTools.jl?branch=master) [![codecov.io](http://codecov.io/github/Balinus/ClimateTools.jl/coverage.svg?branch=master)](http://codecov.io/github/Balinus/ClimateTools.jl?branch=master) | [![Build Status](https://travis-ci.org/Balinus/ClimateTools.jl.svg?branch=master)](https://travis-ci.org/Balinus/ClimateTools.jl) [![Build status](https://ci.appveyor.com/api/projects/status/90lpp8k6430766vx?svg=true)](https://ci.appveyor.com/project/Balinus/climatetools-jl) |
 
-N.B. master branch should be compatible with Julia 0.6.
+N.B. version 0.1.2 is compatible with Julia 0.5 and version 0.2.0 is for Julia 0.6. To use a specific version of the package, you can use in Julia the following command:
+
+```julia
+Pkg.pin("ClimateTools",v"0.1.2") # if using Julia 0.5
+```
 
 ## Documentation
 
@@ -48,7 +52,7 @@ C = nc2julia(filename::String, var::String; poly::Array)
 `nc2julia` return a `ClimGrid` type.
 
 ```julia
-immutable ClimGrid
+struct ClimGrid
   data::AxisArray
   model::String
   experiment::String
@@ -99,9 +103,15 @@ Which returns another `ClimGrid`. You can also map this `ClimGrid` with the `map
   <img src="https://cloud.githubusercontent.com/assets/3630311/23873133/59b85c08-0807-11e7-967b-7cc7d28aada0.png?raw=true" width="771" height="388" alt="Precipitation example"/>
 </p>
 
+Climate Indices functions also accept other type of argument. For example, `annualmax` can be called with the following type:
+
+```julia
+ind = annualmax(data::Array{Float64, 3}, dates::StepRange{Date, Base.Dates.Day})
+```
 
 ## TO-DO
 
 * Add a "simple" quantile-quantile mapping technique
+* Interpolation methods (e.g. from netCDF native grid onto another grid)
 * Add a more complex quantile-quantile mapping technique, combining POT and quantile-quantile standard technique
 * Add GRIB file support (probably through [GMT.jl](https://github.com/joa-quim/GMT.jl))
