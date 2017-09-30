@@ -15,13 +15,13 @@ Pkg.pin("ClimateTools",v"0.1.2") # if using Julia 0.5
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://balinus.github.io/ClimateTools.jl/stable)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://balinus.github.io/ClimateTools.jl/latest)
 
-This package is a collection of commonly-used tools in Climate Science. This is mainly a work-in-progress package, developed for myself and is available here, for _common-good_ purpose as well as for archive purpose. Basics of climate field analysis will be covered, with some (planned) forays into some _state-of-the-art_ techniques.
+This package is a collection of commonly-used tools in Climate Science. This is a work-in-progress package. Basics of climate field analysis will be covered, with some forays into exploratory techniques.
 
 This package is registered on METADATA.jl and can be added with `Pkg.add("ClimateTools")` and used with `using ClimateTools`.
 
-The climate indices are coded to use multiple threads. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.CPU_CORES`.
+The climate indices are coded to use **multiple threads**. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.CPU_CORES`.
 
-Since the package is evolving "rapidly", you might prefer to checkout the git repo directly, although the master might not be working (I usually don't push broken version though).
+Since the package is evolving quickly, you might prefer to checkout the git repo directly, although the master might not be working (I usually don't push broken version though).
 
 ```julia
 Pkg.add("ClimateTools") # Tagged release
@@ -111,7 +111,7 @@ ind = annualmax(data::Array{Float64, 3}, dates::StepRange{Date, Base.Dates.Day})
 
 ## TO-DO
 
-* Add a "simple" quantile-quantile mapping technique
+* Add a standard quantile-quantile mapping technique
 * Interpolation methods (e.g. from netCDF native grid onto another grid)
-* Add a more complex quantile-quantile mapping technique, combining POT and quantile-quantile standard technique
+* Add a more complex quantile-quantile mapping technique, combining extreme value theory and quantile-quantile standard technique
 * Add GRIB file support (probably through [GMT.jl](https://github.com/joa-quim/GMT.jl))
