@@ -9,6 +9,12 @@ function Base.merge(A::ClimGrid, B::ClimGrid)
   ClimGrid(axisArray, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
 end
 
+# function Base.:+(A::ClimGrid, B::ClimGrid)
+#   axisArraytmp = A.data + B.data
+#   axisArray = AxisArray(axisArraytmp)
+#   ClimGrid(axisArray, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
+# end
+
 # TODO : Verify in Base.vcat(A::ClimGrid, B::ClimGrid) for time consistency (e.g. no same timestamp)
 # TODO : Add methods for addition, subtraction, multiplication of ClimGrid types
 
@@ -61,7 +67,7 @@ Base.ndims(::ClimGrid) = 1
 # _summary(io, C::ClimGrid) = println(io, "$N-dimensional AxisArray{$T,$N,...} with axes:")
 
 Base.show(io::IO, ::MIME"text/plain", C::ClimGrid) =
-           print(io, "ClimGrid struct with data:\n   ", C[1], "\n", "Model: ", C[3], "\n", "Experiment: ", C[4], "\n", "Run: ", C[5], "\n", "Variable: ", C[9], "\n", "Filename: ", C[8])
+           print(io, "ClimGrid struct with data:\n   ", summary(C[1]), "\n", "model: ", C[3], "\n", "experiment: ", C[4], "\n", "run: ", C[5], "\n", "variable: ", C[9], "\n", "Filename: ", C[8])
 
 # function Base.show(C::ClimGrid)
 #   out = Dict()

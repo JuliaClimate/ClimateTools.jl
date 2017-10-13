@@ -11,27 +11,29 @@ import Base.size
 import Base.endof
 import Base.setindex!
 import Base.similar
+# import Base: +
 using ArgCheck
-# using Conda
 using PyCall
 using PyPlot
-# export PyPlot
-# @pyimport mpl_toolkits.basemap as basemap
-# @pyimport numpy as np
+
 
 const basemap = PyNULL()
 const np = PyNULL()
 const mpl = PyNULL()
+#const folium = PyNULL()
 
 function __init__()
   copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))
   copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
   copy!(np, pyimport_conda("numpy", "numpy"))
+ # copy!(folium, pyimport_conda("folium", "folium", "conda-forge"))
+  # joinpath(dirname(@__FILE__), '/Rpackages/')
+  # R"install.packages('maps', lib = 'joinpath(dirname(@__FILE__), '/Rpackages/')', repo = 'http://cran.uk.r-project.org')"
 end
 
 
 # Exported functions
-export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, annualmean, annualsum, nc2julia, sumleapyear, buildtimevec, mapclimgrid
+export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, annualmean, annualsum, nc2julia, sumleapyear, buildtimevec, mapclimgrid, mapclimgridR
 
 # TYPES
 struct ClimGrid
@@ -47,7 +49,7 @@ struct ClimGrid
   typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
   typeofcal::String # Calendar type
 
-  function ClimGrid(data; model = "", experiment = "", run = "", filename = "", dataunits = "", latunits = "", lonunits = "", variable = "", typeofvar = "", typeofcal = "")
+  function ClimGrid(data; model = "N/A", experiment = "N/A", run = "N/A", filename = "N/A", dataunits = "N/A", latunits = "N/A", lonunits = "N/A", variable = "N/A", typeofvar = "N/A", typeofcal = "N/A")
 
     # to-do -> add some checks, permutedims if need be
     new(data, model, experiment, run, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal)

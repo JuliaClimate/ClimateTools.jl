@@ -13,15 +13,15 @@ function nc2julia(file::String, variable::String; poly = [])
   ncI = NetCDF.ncinfo(file)
   experiment = NetCDF.ncgetatt(file, "global", "experiment_id")
   if !isa(experiment, String)
-    experiment = ""
+    experiment = "N/A"
   end
   runsim = NetCDF.ncgetatt(file, "global", "parent_experiment_rip")
   if !isa(runsim, String)
-    runsim = ""
+    runsim = "N/A"
   end
   model = NetCDF.ncgetatt(file, "global", "model_id")
   if !isa(model, String)
-    model = ""
+    model = "N/A"
   end
   dataunits = NetCDF.ncgetatt(file, variable, "units")
   latunits = NetCDF.ncgetatt(file, "lat", "units")
@@ -53,9 +53,9 @@ function nc2julia(file::String, variable::String; poly = [])
   end
 
   # Convert to Float64 if Float32
-  if typeof(data[1]) == Float32
-    data = convert(Array{Float64}, data)
-  end
+  # if typeof(data[1]) == Float32
+  #   data = convert(Array{Float64}, data)
+  # end
 
   if dataunits == "K"
     data = data - 273.15
@@ -103,7 +103,7 @@ function buildtimevec(str::String)
   if calType == "noleap" || calType == "365_day"
     nDays = 365
     # get time of netCDF file *str*
-    timeRaw = floor(NetCDF.ncread(str, "time"))
+    timeRaw = floor.(NetCDF.ncread(str, "time"))
     leapDaysPer = sumleapyear(initDate, timeRaw[1])
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
     startDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1]))) + Base.Dates.Day(leapDaysPer)
@@ -111,14 +111,14 @@ function buildtimevec(str::String)
 
     dateTmp = Date(startDate):Date(endDate)
     # REMOVE leap year
-    idx = (Dates.month(dateTmp) .== 2) &  (Dates.day(dateTmp) .== 29)
+    idx = (Dates.month.(dateTmp) .== 2) .&  (Dates.day.(dateTmp) .== 29)
     if length(idx) !== 1
       dateTmp = dateTmp[!idx]
     else
       dateTmp = Array{Date}(dateTmp)
     end
   elseif calType == "gregorian"
-    timeRaw = floor(NetCDF.ncread(str, "time"))
+    timeRaw = floor.(NetCDF.ncread(str, "time"))
     leapDaysPer = sumleapyear(initDate, timeRaw[1])
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
     startDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))

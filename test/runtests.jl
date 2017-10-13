@@ -158,8 +158,8 @@ ind = annualmax(C)
 
 datetmp = Date(2003,01,01):Date(2008,1,1)
 # idx = Dates.monthday(datetmp) .== (2,29)
-idx = (Dates.month(datetmp) .== 2) & (Dates.day(datetmp) .== 29)
-datetmp = datetmp[!idx] #creates an Array of dates
+idx = (Dates.month.(datetmp) .== 2) .& (Dates.day.(datetmp) .== 29)
+datetmp = datetmp[.!idx] #creates an Array of dates
 data = Array{Float64, 3}(1826, 2, 2)
 data[:, 1, 1] = collect(-800.:1025.); data[:, 1, 2] = collect(-800.:1025.);data[:, 2, 1] = collect(-800.:1025.);data[:, 2, 2] = collect(-800.:1025.);
 Results = Array{Float64, 3}(6, 2, 2); Results[:, 1, 1] = [-436., -71., 294., 659., 1024., 1025.]''; Results[:, 1, 2] = [-436., -71., 294., 659., 1024., 1025]''; Results[:, 2, 1] = [-436., -71., 294., 659., 1024., 1025.]''; Results[:, 2, 2] = [-436., -71., 294., 659., 1024., 1025.]'';
@@ -187,23 +187,24 @@ ind = annualmin(C)
 # Mapping test
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = nc2julia(filename, "tas", poly = [0. 0.])
-@test mapclimgrid(C);PyPlot.close()
-@test mapclimgrid(C, region = "World");PyPlot.close()
-@test mapclimgrid(C, region = "Canada");PyPlot.close()
-@test mapclimgrid(C, region = "NorthAmerica");PyPlot.close()
-@test mapclimgrid(annualmax(C), region = "Europe");PyPlot.close()
+status, figh = mapclimgrid(C);@test status == true;PyPlot.close()
+status, figh = mapclimgrid(C, region = "World");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, region = "Canada");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, region = "Quebec");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, region = "NorthAmerica");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(annualmax(C), region = "Europe");@test status == true; PyPlot.close()
 
 # dummy tasmax
 C = nc2julia(filename, "pr", poly = [0. 0.])
-@test mapclimgrid(C);PyPlot.close()
-@test mapclimgrid(prcp1(C), region = "World");PyPlot.close()
-@test mapclimgrid(prcp1(C), region = "Canada");PyPlot.close()
-@test mapclimgrid(prcp1(C), region = "Europe");PyPlot.close()
-@test mapclimgrid(prcp1(C), region = "NorthAmerica");PyPlot.close()
+status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
+status, figh = mapclimgrid(prcp1(C), region = "World");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(prcp1(C), region = "Canada");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(prcp1(C), region = "Europe");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(prcp1(C), region = "NorthAmerica");@test status == true; PyPlot.close()
 
 # ua wind
 C = nc2julia(filename, "ua", poly = [0. 0.])
-@test mapclimgrid(C, level = 3);PyPlot.close()
+status, figh = mapclimgrid(C, level = 3);@test status == true; PyPlot.close()
 
 # NetCDF Extraction test
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
@@ -215,7 +216,7 @@ units = NetCDF.ncgetatt(filename, "time", "units") # get starting date
 m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1) # match a date from string
 daysfrom = m.match # get only the date ()"yyyy-mm-dd" format)
 initDate = Date(daysfrom, "yyyy-mm-dd")
-timeRaw = floor(NetCDF.ncread(filename, "time"))
+timeRaw = floor.(NetCDF.ncread(filename, "time"))
 @test sumleapyear(initDate::Date, timeRaw) == 485
 
 # INTERFACE
@@ -228,9 +229,9 @@ B = merge(C, C)
 # @test typeof(show(C)) == Dict{Any, Any}
 @test typeof(C[1].data) == Array{Float64,3} || Array{Float32,3}
 @test C[2] == "Celsius"
-@test C[3] == ""
+@test C[3] == "N/A"
 @test C[4] == "720 ppm stabilization experiment (SRESA1B)"
-@test C[5] == ""
+@test C[5] == "N/A"
 @test C[6] == "degrees_east"
 @test C[7] == "degrees_north"
 @test C[8] == joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
