@@ -14,7 +14,7 @@ import Base.similar
 # import Base: +
 using ArgCheck
 using PyCall
-using PyPlot
+#using PyPlot
 
 
 const basemap = PyNULL()
