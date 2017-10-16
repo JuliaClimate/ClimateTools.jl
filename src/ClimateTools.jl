@@ -26,7 +26,7 @@ function __init__()
   #copy!(plt, pyimport_conda("matplotlib", "pyplot"))
   copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
   copy!(np, pyimport_conda("numpy", "numpy"))
- # copy!(folium, pyimport_conda("folium", "folium", "conda-forge"))
+  #copy!(folium, pyimport_conda("folium", "folium", "conda-forge"))
   # joinpath(dirname(@__FILE__), '/Rpackages/')
   # R"install.packages('maps', lib = 'joinpath(dirname(@__FILE__), '/Rpackages/')', repo = 'http://cran.uk.r-project.org')"
 end
