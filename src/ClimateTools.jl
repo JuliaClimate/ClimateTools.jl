@@ -14,17 +14,15 @@ import Base.similar
 # import Base: +
 using ArgCheck
 using PyCall
-#using PyPlot
-
+using PyPlot
 
 const basemap = PyNULL()
 const np = PyNULL()
 const mpl = PyNULL()
-const plt = PyNULL()
 #const folium = PyNULL()
 
 function __init__()
-  #copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))
+  copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))
   #copy!(plt, pyimport_conda("matplotlib", "pyplot"))
   copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
   copy!(np, pyimport_conda("numpy", "numpy"))
