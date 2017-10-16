@@ -21,9 +21,9 @@ script:
   - julia -e 'Pkg.clone(pwd())'
   - julia -e 'Pkg.test("ClimateTools"; coverage=true)'
 before_install:
-#  - test "x$TRAVIS_OS_NAME" = xosx -o "x$PYTHON" = xConda-python || (sudo apt-get -qq update && sudo apt-get install -y $PYTHON)
-  #- (sudo apt-get -qq update && sudo apt-get install -y python python-pip && sudo pip install matplotlib)
-  - julia -e 'Pkg.add("PyCall"); Pkg.add("PyPlot"); ENV["PYTHON"]=""; Pkg.build("PyCall"); Pkg.build("PyPlot")'
+  - test "x$TRAVIS_OS_NAME" = xosx -o "x$PYTHON" = xConda-python || (sudo apt-get -qq update && sudo apt-get install -y $PYTHON)
+  - (sudo apt-get -qq update && sudo apt-get install -y python python-pip && sudo pip install matplotlib)
+  - julia -e 'Pkg.add("PyCall"); ENV["PYTHON"]=""; Pkg.build("PyCall"); Pkg.add("PyPlot"); ENV["PYTHON"]=""; Pkg.build("PyPlot")'
   - julia -e 'Pkg.add("Conda"); using Conda; Conda.update(); Conda.add("matplotlib"); Conda.add("basemap");'
 after_success:
   - julia -e 'Pkg.add("Documenter")'
