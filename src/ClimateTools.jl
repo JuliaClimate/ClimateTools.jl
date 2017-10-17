@@ -15,7 +15,7 @@ import Base.similar
 using ArgCheck
 using PyCall
 using PyPlot
-# using Interpolations
+using Interpolations
 
 const basemap = PyNULL()
 const np = PyNULL()
@@ -36,7 +36,7 @@ end
 
 
 # Exported functions
-export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, annualmean, annualsum, nc2julia, sumleapyear, buildtimevec, mapclimgrid, interp_climgrid
+export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, annualmean, annualsum, nc2julia, sumleapyear, buildtimevec, mapclimgrid, interp_climgrid, ClimGrid
 
 # TYPES
 struct ClimGrid

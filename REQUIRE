@@ -5,3 +5,4 @@ AxisArrays 0.1.3
 PyCall 1.11.1
 PyPlot 2.3.2
 ArgCheck 0.1.0
+Interpolations 0.7.0
