@@ -113,7 +113,7 @@ function buildtimevec(str::String)
     # REMOVE leap year
     idx = (Dates.month.(dateTmp) .== 2) .&  (Dates.day.(dateTmp) .== 29)
     if length(idx) !== 1
-      dateTmp = dateTmp[!idx]
+      dateTmp = dateTmp[.!idx]
     else
       dateTmp = Array{Date}(dateTmp)
     end

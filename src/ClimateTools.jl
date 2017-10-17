@@ -15,10 +15,12 @@ import Base.similar
 using ArgCheck
 using PyCall
 using PyPlot
+# using Interpolations
 
 const basemap = PyNULL()
 const np = PyNULL()
 const mpl = PyNULL()
+# const scipy = PyNULL()
 #const folium = PyNULL()
 
 function __init__()
@@ -26,6 +28,7 @@ function __init__()
   #copy!(plt, pyimport_conda("matplotlib", "pyplot"))
   copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
   copy!(np, pyimport_conda("numpy", "numpy"))
+  # copy!(scipy, pyimp/ort_conda("scipy.interpolate", "scipy"))
   #copy!(folium, pyimport_conda("folium", "folium", "conda-forge"))
   # joinpath(dirname(@__FILE__), '/Rpackages/')
   # R"install.packages('maps', lib = 'joinpath(dirname(@__FILE__), '/Rpackages/')', repo = 'http://cran.uk.r-project.org')"
@@ -33,7 +36,7 @@ end
 
 
 # Exported functions
-export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, annualmean, annualsum, nc2julia, sumleapyear, buildtimevec, mapclimgrid, mapclimgridR
+export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, annualmean, annualsum, nc2julia, sumleapyear, buildtimevec, mapclimgrid, interp_climgrid
 
 # TYPES
 struct ClimGrid
