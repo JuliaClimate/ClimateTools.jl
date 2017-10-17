@@ -101,53 +101,61 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
     # Get lat-lon information from ClimGrid B
     londest = B[1][Axis{:lon}][:]
     latdest = B[1][Axis{:lat}][:]
-    # Create destination coords
-    knotsdest = ([x for x in londest], [y for y in latdest])
-    X, Y = meshgrid(londest, latdest)
-    knots = ([x for x in X[:, 1]], [y for y in Y[:, 1]])
+
+    if B.lonunits == "degrees_east" && sum(sign(londest) .== -1) == length(londest) #indicate all negative longitude -> remap to 0-360 degrees
+        londest = londest + 360
+        # recreate B ClimGrid and change lonunits to "degrees_west"
+        timedest = B[1][Axis{:time}][:]
+        axisdata = AxisArray(OUT, Axis{:time}(timeorig), Axis{:lon}(londest), Axis{:lat}(latdest))
+        B = ClimateTools.ClimGrid(axisdata, model = B.model, experiment = B.experiment, run = B.run, filename = B.filename, dataunits = B.dataunits, latunits = B.latunits, lonunits = "degrees_west", variable = B.variable, typeofvar = B.variable, typeofcal = B.typeofcal)
+    end
 
 
-    # Get lat-lon information from ClimGrid B
+    # Get lat-lon information from ClimGrid A
     lonorig = A[1][Axis{:lon}][:]
     latorig = A[1][Axis{:lat}][:]
-    # Create knots for original grid
-    knotsorig = ([x for x in lonorig], [y for y in latorig])
-    x = lonorig[1]:.1:lonorig[end]
-    y = latorig[1]:-.1:latorig[end]
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
     dataorig = A[1].data
     timeorig = A[1][Axis{:time}][:] # the function will need to loop over time
 
+    # temp
+    timeorig = timeorig[1:365]
+
+    # Create lat-lon range consistent with length of data
+    latorigrange = linspace(latorig[1], latorig[end], length(latorig))
+    lonorigrange = linspace(lonorig[1], lonorig[end], length(lonorig))
+
     # ---------------------
     # Allocate output Array
     OUT = zeros(Float64, (length(timeorig), size(B.data, 2), size(B.data, 3)))
 
-    Ti = scipy[:griddata]([lonorig, latorig], dataorig[1, :, :], [X, Y], method = "cubic")
+    # Ti = scipy[:griddata]([lonorig, latorig], dataorig[1, :, :], [X, Y], method = "cubic")
 
     # ------------------------
     # Interpolation
     for t = 1:length(timeorig)
-        spline = Spline2D(lonorig, latorig, dataorig[t, :, :])
-        OUT[t, :, :] = evalgrid(spline, X[1, 500:550], Y[460:-1:400, 1])
+        # spline = Spline2D(lonorig, latorig, dataorig[t, :, :])
+        # OUT[t, :, :] = evalgrid(spline, X[1, 500:550], Y[460:-1:400, 1])
 
-        itp = interpolate(dataorig[t, :, :], BSpline(Quadratic(Natural())), OnCell())
-        sitp = scale(itp, lonorigrange, latorig[end:-1:1])
+        itp = interpolate(dataorig[t, :, :], BSpline(Linear()), OnCell())
+        sitp = scale(itp, lonorigrange, latorigrange)
 
+        for ilon = 1:length(londest)
+            for ilat = 1:length(latdest)
+                OUT[t, ilon, ilat] = sitp[londest[ilon], latdest[ilat]]
+            end
+        end
 
-        # itp = interpolate(knotsorig, dataorig[t, :, :], BSpline(Cubic(Line())))
-        # itp = interpolate(dataorig[t, :, :], BSpline(Cubic(Line())), OnGrid())
-        # sitp = scale(itp, knotsdest[1], knotsdest[2])
-        # OUT[t, :, :] = itp[knotsdest[1], knotsdest[2]]
     end
 
     # -----------------------
     # Construct AxisArrays and ClimGrid struct from array OUT
-    dataOut = AxisArray(OUT[:, :, end:-1:1], Axis{:time}(timeorig), Axis{:lon}(londest2), Axis{:lat}(latdest2))
+    dataOut = AxisArray(OUT, Axis{:time}(timeorig), Axis{:lon}(londest), Axis{:lat}(latdest))
 
 
-    C = ClimGrid(dataOut, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = B.latunits, lonunits = B.lonunits, variable = A.variable, typeofvar = A.variable, typeofcal = A.typeofcal)
+    C = ClimateTools.ClimGrid(dataOut, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = B.latunits, lonunits = B.lonunits, variable = A.variable, typeofvar = A.variable, typeofcal = A.typeofcal)
 
 
 
