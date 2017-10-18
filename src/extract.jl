@@ -59,7 +59,7 @@ function nc2julia(file::String, variable::String; poly = [])
   #   # Make sure lat and lon are also Float64
   #   lon = convert(Array{Float64, 1}, lon)
   #   lat = convert(Array{Float64, 1}, lat)
-  end
+  # end
 
   if dataunits == "K"
     data = data - 273.15
