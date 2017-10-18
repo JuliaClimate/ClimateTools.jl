@@ -52,10 +52,14 @@ function nc2julia(file::String, variable::String; poly = [])
     data = data[:,:,:]
   end
 
-  # Convert to Float64 if Float32
+  # # Convert to Float64 if Float32
   # if typeof(data[1]) == Float32
-  #   data = convert(Array{Float64}, data)
-  # end
+    #   data2 = Float64.(data)
+  #   data = convert.(Array{Float64, 3}, data)
+  #   # Make sure lat and lon are also Float64
+  #   lon = convert(Array{Float64, 1}, lon)
+  #   lat = convert(Array{Float64, 1}, lat)
+  end
 
   if dataunits == "K"
     data = data - 273.15
@@ -75,8 +79,6 @@ function nc2julia(file::String, variable::String; poly = [])
   else
     throw(error("nc2julia takes only 3D and 4D variables for the moment"))
   end
-
-
 
   return ClimGrid(dataOut, model = model, experiment = experiment, run = runsim, filename = file, dataunits = dataunits, latunits = latunits, lonunits = lonunits, variable = variable, typeofvar = variable, typeofcal = caltype)
 
@@ -117,7 +119,7 @@ function buildtimevec(str::String)
     else
       dateTmp = Array{Date}(dateTmp)
     end
-  elseif calType == "gregorian"
+elseif calType == "gregorian" || calType == "standard"
     timeRaw = floor.(NetCDF.ncread(str, "time"))
     leapDaysPer = sumleapyear(initDate, timeRaw[1])
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
@@ -126,6 +128,7 @@ function buildtimevec(str::String)
     dateTmp = Date(startDate):Date(endDate)
   end
   # output date vector
+  dateTmp = convert(Array{Date, 1}, dateTmp)
   return dateTmp
 end
 
