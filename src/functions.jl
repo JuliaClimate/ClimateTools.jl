@@ -99,29 +99,26 @@ where A, B and C are ClimGrid
 function interp_climgrid(A::ClimGrid, B::ClimGrid)
     # ---------------------------------------
     # Get lat-lon information from ClimGrid B
-    londest = B[1][Axis{:lon}][:]
-    latdest = B[1][Axis{:lat}][:]
+    londest = B[1][Axis{:lon}][:]::Float
+    latdest = B[1][Axis{:lat}][:]::Float
 
     if B.lonunits == "degrees_east" && sum(sign(londest) .== -1) == length(londest) #indicate all negative longitude -> remap to 0-360 degrees
-        londest = londest + 360
+        londest = londest + 360.
         # recreate B ClimGrid and change lonunits to "degrees_west"
         timedest = B[1][Axis{:time}][:]
-        axisdata = AxisArray(OUT, Axis{:time}(timeorig), Axis{:lon}(londest), Axis{:lat}(latdest))
+        axisdata = AxisArray(B[1].data, Axis{:time}(timedest), Axis{:lon}(londest), Axis{:lat}(latdest))
         B = ClimateTools.ClimGrid(axisdata, model = B.model, experiment = B.experiment, run = B.run, filename = B.filename, dataunits = B.dataunits, latunits = B.latunits, lonunits = "degrees_west", variable = B.variable, typeofvar = B.variable, typeofcal = B.typeofcal)
     end
 
 
     # Get lat-lon information from ClimGrid A
-    lonorig = A[1][Axis{:lon}][:]
-    latorig = A[1][Axis{:lat}][:]
+    lonorig = A[1][Axis{:lon}][:]::Float64
+    latorig = A[1][Axis{:lat}][:]::Float64
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
     dataorig = A[1].data
     timeorig = A[1][Axis{:time}][:] # the function will need to loop over time
-
-    # temp
-    timeorig = timeorig[1:365]
 
     # Create lat-lon range consistent with length of data
     latorigrange = linspace(latorig[1], latorig[end], length(latorig))
