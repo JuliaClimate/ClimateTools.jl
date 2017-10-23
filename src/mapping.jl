@@ -54,9 +54,11 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", level = 1)
   x, y = m(lon2, lat2)
 
   if C[10] == "pr"
-    cm = "YlGnBu"
+    # cm = "YlGnBu"
+    cm = cmocean[:cm][:deep]
   elseif C[10] == "tasmax" || C[10] == "tasmin" || C[10] == "tas"
-    cm = "YlOrBr"
+    # cm = "YlOrBr"
+    cm = cmocean[:cm][:solar]
   else
     cm = "viridis"
   end

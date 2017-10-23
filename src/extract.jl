@@ -6,7 +6,7 @@ Returns a ClimGrid type with the data in *file* of variable *var* inside the pol
 Inside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude and latitude dimensions.
 """
 
-function nc2julia(file::String, variable::String; poly::Array{Float64,2} = Array{Float64}([]))
+function nc2julia(file::String, variable::String; poly = Array{Float64}([]))
   # TODO Finish polygon feature
 
   # Get attributes for type "ClimGrid"
@@ -40,29 +40,34 @@ function nc2julia(file::String, variable::String; poly::Array{Float64,2} = Array
       lon += 360
   end
 
-
-  if !isempty(poly)
-    # TODO extract index inside polygon
-    msk = inpolyvec(lon, lat, poly)
-  end
-
-  # Get rectangular limits of the polygon
-  idlon, idlat = findn(msk)
-  minXgrid = minimum(idlon)
-  maxXgrid = maximum(idlon)
-  minYgrid = minimum(idlat)
-  maxYgrid = maximum(idlat)
-
   # Get Data
   data = NetCDF.open(file, variable)
   if !isempty(poly)
-    data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :]
+    # TODO extract index inside polygon
+    msk = inpolyvec(lon, lat, poly)
+    idlon, idlat = findn(msk)
+    minXgrid = minimum(idlon)
+    maxXgrid = maximum(idlon)
+    minYgrid = minimum(idlat)
+    maxYgrid = maximum(idlat)
+    if ndims(data) == 3
+        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :]
+    elseif ndims(data) == 4
+        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, :]
+    end
     # Apply mask (for irregular polygon) # TODO apply mask for irregular polygon
     # data = applymask(data, msk[minXgrid:maxXgrid, minYgrid:maxYgrid])
     lon = lon[minXgrid:maxXgrid]
     lat = lat[minYgrid:maxYgrid]
-
+elseif isempty(poly)
+    if ndims(data) == 3
+        data = data[:, :, :]
+    elseif ndims(data) == 4
+        data = data[:, :, :, :]
+    end
   end
+
+
   # Extract variable over a given region
   if variable == "pr"
     data = data * 86400

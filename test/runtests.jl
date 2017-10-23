@@ -186,7 +186,7 @@ ind = annualmin(C)
 
 # Mapping test
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
-C = nc2julia(filename, "tas", poly = [0. 0.])
+C = nc2julia(filename, "tas")
 status, figh = mapclimgrid(C);@test status == true;PyPlot.close()
 status, figh = mapclimgrid(C, region = "World");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "Canada");@test status == true; PyPlot.close()
@@ -195,7 +195,7 @@ status, figh = mapclimgrid(C, region = "NorthAmerica");@test status == true; PyP
 status, figh = mapclimgrid(annualmax(C), region = "Europe");@test status == true; PyPlot.close()
 
 # dummy tasmax
-C = nc2julia(filename, "pr", poly = [0. 0.])
+C = nc2julia(filename, "pr")
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
 status, figh = mapclimgrid(prcp1(C), region = "World");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(prcp1(C), region = "Canada");@test status == true; PyPlot.close()
@@ -203,13 +203,13 @@ status, figh = mapclimgrid(prcp1(C), region = "Europe");@test status == true; Py
 status, figh = mapclimgrid(prcp1(C), region = "NorthAmerica");@test status == true; PyPlot.close()
 
 # ua wind
-C = nc2julia(filename, "ua", poly = [0. 0.])
+C = nc2julia(filename, "ua")
 status, figh = mapclimgrid(C, level = 3);@test status == true; PyPlot.close()
 
 # NetCDF Extraction test
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
-C = nc2julia(filename, "tas", poly = [0. 0.])
-@test typeof(nc2julia(filename, "tas", poly = [0. 0.])) == ClimateTools.ClimGrid
+C = nc2julia(filename, "tas")
+@test typeof(nc2julia(filename, "tas")) == ClimateTools.ClimGrid
 @test typeof(buildtimevec(filename)) == Array{Date, 1}
 # Time units
 units = NetCDF.ncgetatt(filename, "time", "units") # get starting date
