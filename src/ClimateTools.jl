@@ -4,7 +4,6 @@ module ClimateTools
 using NetCDF
 using Shapefile
 using AxisArrays
-using Geodesy
 import Base.vcat
 import Base.getindex
 import Base.show

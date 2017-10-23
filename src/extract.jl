@@ -39,6 +39,8 @@ function nc2julia(file::String, variable::String; poly = [])
     msk = inpolyvec(lon, lat, poly)
   end
 
+  # Get rectangular limits of the polygon
+
 
   # Get Data
   data = NetCDF.open(file, variable)
@@ -67,31 +69,16 @@ function nc2julia(file::String, variable::String; poly = [])
     dataunits = "Celsius"
   end
 
-  # Build coords
-  coords = Vector{LatLon}(length(lon) * length(lat))
-
-  z = 1
-  for ilon in lon
-      for ilat in lat
-          coords[z] = LatLon(lat = ilat, lon = ilon)
-          z += 1
-      end
-  end
-
-
   # Permute dims --> make the longest dimension at position #1 (calculations are usually faster)
   if ndims(data) == 3
     data = permutedims(data, [3, 1, 2])
-    data = reshape(data, size(data, 1), :) # --> reshape to a 2D grid
     # Convert data to AxisArray
-    # dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))
-    dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:coords}(coords))
+    dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))
   elseif ndims(data) == 4 # this imply a 3D field (height component)
     data = permutedims(data, [4, 1, 2, 3])
-    data = reshape(data, size(data, 1), :)
     plev = NetCDF.ncread(file, "plev")
     # Convert data to AxisArray
-    dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:coords}(coords), Axis{:plev}(plev))
+    dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat), Axis{:plev}(plev))
   else
     throw(error("nc2julia takes only 3D and 4D variables for the moment"))
   end
