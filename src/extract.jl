@@ -6,7 +6,7 @@ Returns a ClimGrid type with the data in *file* of variable *var* inside the pol
 Inside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude and latitude dimensions.
 """
 
-function nc2julia(file::String, variable::String; poly = [])
+function nc2julia(file::String, variable::String; poly::Array{Float64,2} = Array{Float64}([]))
   # TODO Finish polygon feature
 
   # Get attributes for type "ClimGrid"
@@ -34,25 +34,39 @@ function nc2julia(file::String, variable::String; poly = [])
   # Get index of grid points inside the polygon *poly*
   lat = NetCDF.ncread(file, "lat")
   lon = NetCDF.ncread(file, "lon")
+
+  # Convert to positive values if lonunits are marked as "degrees_east" and they are all negative values
+  if lonunits == "degrees_east" && sum(lon .< 0) == length(lon)
+      lon += 360
+  end
+
+
   if !isempty(poly)
     # TODO extract index inside polygon
     msk = inpolyvec(lon, lat, poly)
   end
 
   # Get rectangular limits of the polygon
-
+  idlon, idlat = findn(msk)
+  minXgrid = minimum(idlon)
+  maxXgrid = maximum(idlon)
+  minYgrid = minimum(idlat)
+  maxYgrid = maximum(idlat)
 
   # Get Data
   data = NetCDF.open(file, variable)
   if !isempty(poly)
-    data = data[msk', :]
+    data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :]
+    # Apply mask (for irregular polygon)
+    # data = data[find(msk[minXgrid:maxXgrid,:]), find(msk[minYgrid:maxYgrid,:]), :]
+    lon = lon[minXgrid:maxXgrid]
+    lat = lat[minYgrid:maxYgrid]
+
   end
   # Extract variable over a given region
   if variable == "pr"
-    data = data[:,:,:] * 86400
+    data = data * 86400
     dataunits = "mm/day"
-  elseif variable == "tasmax" || variable == "tasmin" || variable == "tas"
-    data = data[:,:,:]
   end
 
   # # Convert to Float64 if Float32

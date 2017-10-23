@@ -109,7 +109,7 @@ function inpolyvec(lon, lat, poly::Array{Float64,2})
     OUT = Array{Bool}(size(lon, 1), size(lat, 1))
 
     for i = 1:size(lat, 1) # loop over pair of points to test
-        for j = 1:size(lon, 2)
+        for j = 1:size(lon, 1)
             OUT[j, i] = inpoly([lon[j], lat[i]], poly)
         end
     end
