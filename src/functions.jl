@@ -130,8 +130,8 @@ where A, B and C are ClimGrid
 function interp_climgrid(A::ClimGrid, B::ClimGrid)
     # ---------------------------------------
     # Get lat-lon information from ClimGrid B
-    londest = B[1][Axis{:lon}][:]::Float
-    latdest = B[1][Axis{:lat}][:]::Float
+    londest = B[1][Axis{:lon}][:]
+    latdest = B[1][Axis{:lat}][:]
 
     if B.lonunits == "degrees_east" && sum(sign(londest) .== -1) == length(londest) #indicate all negative longitude -> remap to 0-360 degrees
         londest = londest + 360.
@@ -143,8 +143,8 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
 
 
     # Get lat-lon information from ClimGrid A
-    lonorig = A[1][Axis{:lon}][:]::Float64
-    latorig = A[1][Axis{:lat}][:]::Float64
+    lonorig = A[1][Axis{:lon}][:]
+    latorig = A[1][Axis{:lat}][:]
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
@@ -185,8 +185,18 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
 
     C = ClimateTools.ClimGrid(dataOut, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = B.latunits, lonunits = B.lonunits, variable = A.variable, typeofvar = A.variable, typeofcal = A.typeofcal)
 
+end
 
+function applymask(A, mask)
 
+    for t = 1:size(A, 3)
+        tmp = A[:, :, t]
+        tmp .*= mask
+        A[:, :, t] = tmp
+
+    end
+
+    return A
 
 
 end

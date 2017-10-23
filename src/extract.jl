@@ -57,8 +57,8 @@ function nc2julia(file::String, variable::String; poly::Array{Float64,2} = Array
   data = NetCDF.open(file, variable)
   if !isempty(poly)
     data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :]
-    # Apply mask (for irregular polygon)
-    # data = data[find(msk[minXgrid:maxXgrid,:]), find(msk[minYgrid:maxYgrid,:]), :]
+    # Apply mask (for irregular polygon) # TODO apply mask for irregular polygon
+    # data = applymask(data, msk[minXgrid:maxXgrid, minYgrid:maxYgrid])
     lon = lon[minXgrid:maxXgrid]
     lat = lat[minYgrid:maxYgrid]
 
