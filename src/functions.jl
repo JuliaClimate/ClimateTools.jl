@@ -88,6 +88,37 @@ function meshgrid(XV, YV)
 end
 
 """
+Used to test a vector of points. Columns should be consistent with polygon.
+inpolyvec(pts::Array{Float64,2}, poly::Array{Float64,2})
+
+"""
+
+function inpolyvec(pts::Array{Float64,2}, poly::Array{Float64,2})
+
+    OUT = Array{Bool}(size(pts, 1))
+
+    for i = 1:size(pts, 1) # loop over pair of points to test
+        OUT[i] = inpoly([pts[i, 1], pts[i, 2]], poly)
+    end
+    return OUT
+
+end
+
+function inpolyvec(lon, lat, poly::Array{Float64,2})
+
+    OUT = Array{Bool}(size(lon, 1), size(lat, 1))
+
+    for i = 1:size(lat, 1) # loop over pair of points to test
+        for j = 1:size(lon, 2)
+            OUT[j, i] = inpoly([lon[j], lat[i]], poly)
+        end
+    end
+    return OUT
+
+end
+
+
+"""
 This function interpolate ClimGrid A onto lat-lon grid of ClimGrid B
 
 C = interpolate(A, B)

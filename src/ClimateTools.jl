@@ -4,6 +4,7 @@ module ClimateTools
 using NetCDF
 using Shapefile
 using AxisArrays
+using Geodesy
 import Base.vcat
 import Base.getindex
 import Base.show
@@ -36,7 +37,7 @@ end
 
 
 # Exported functions
-export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, annualmean, annualsum, nc2julia, sumleapyear, buildtimevec, mapclimgrid, interp_climgrid, ClimGrid
+export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, annualmean, annualsum, nc2julia, sumleapyear, buildtimevec, mapclimgrid, interp_climgrid, ClimGrid, shp2poly, inpolyvec
 
 # TYPES
 struct ClimGrid
