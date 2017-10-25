@@ -1,4 +1,4 @@
-function mapclimgrid(C::ClimGrid; region::String = "auto", level = 1)
+function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [],level = 1)
 
   # TODO Add options for custom time period as input and custom region
 
@@ -57,8 +57,8 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", level = 1)
     # cm = "YlGnBu"
     cm = cmocean[:cm][:deep]
   elseif C[10] == "tasmax" || C[10] == "tasmin" || C[10] == "tas"
-    # cm = "YlOrBr"
-    cm = cmocean[:cm][:solar]
+    cm = "YlOrBr"
+    # cm = cmocean[:cm][:solar]
   else
     cm = "viridis"
   end
@@ -67,17 +67,30 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", level = 1)
   # Plot the data
   if ndims(C[1]) == 3
     data = squeeze(mean(convert(Array, C[1]),1),1)' #time mean
+
     if rlon > 355 && llon < 5
       data2 = Array{Float64}(size(data, 1), size(data, 2) + 1)
       data2[:, 1:end-1] = data
       data2[:, end] = data[:, 1]
-    else
-      data2 = squeeze(mean(convert(Array, C[1]),1),1)'
+  else
+      data2 = data
     end
-    cs = m[:contourf](x, y, data2, cmap=get_cmap(cm))
+    # plot data
+    if isempty(poly)
+        cs = m[:contourf](x, y, data2, cmap = get_cmap(cm))
+    else
+        msk = inpolyvec(lon, lat, poly)'
+        cs = m[:contourf](x .* msk, y .* msk, data2 .* msk, cmap = get_cmap(cm))
+    end
+
 
   elseif ndims(C[1]) == 2
-    cs = m[:contourf](x, y, convert(Array,C[1][:,:])', cmap = get_cmap(cm))
+      if isempty(poly)
+          cs = m[:contourf](x, y, convert(Array,C[1][:,:])', cmap = get_cmap(cm))
+      else
+          msk = inpolyvec(lon, lat, poly)'
+          cs = m[:contourf](x .* msk, y .* msk, convert(Array,C[1][:,:])' .* msk, cmap = get_cmap(cm))
+      end
 
 elseif ndims(C[1]) == 4 # 3D field
     datatmp = squeeze(mean(convert(Array, C[1]),1),1) # time mean
@@ -90,11 +103,16 @@ elseif ndims(C[1]) == 4 # 3D field
     else
       data2 = squeeze(mean(convert(Array, C[1]),1),1)' #time mean
     end
-    cs = m[:contourf](x, y, data2, cmap=get_cmap(cm))
+    if isempty(poly)
+        cs = m[:contourf](x, y, data2, cmap=get_cmap(cm))
+    else
+        msk = inpolyvec(lon, lat, poly)'
+        cs = m[:contourf](x .* msk, y .* msk, data2 .* msk, cmap=get_cmap(cm))
+    end
   end
 
   # Colorbar
-  cbar = colorbar(cs, orientation = "vertical", shrink = 0.5, label = C[2])
+  cbar = colorbar(cs, orientation = "vertical", shrink = 0.7, label = C[2])
 
   # begYear = string(Base.Dates.year(C[1][Axis{:time}][1]))
   # endYear = string(Base.Dates.year(C[1][Axis{:time}][end]))
@@ -117,11 +135,11 @@ end
 #   m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 10);
 # end
 #
-# function lonrotate(plon :: Array{Float64,2}, rr)
-#   if ((plon[1,1] > 180) & (plon[end,1] < 180))
-#     lon = mean(plon ,2)
-#     return [rr[lon .<= 180,:] ; rr[lon .> 180,:]]
-#   else
-#     return rr
-#   end
-# end
+function lonrotate(plon :: Array{Float64,1}, rr)
+  if ((plon[1] > 180) & (plon[end] < 180))
+    lon = mean(plon ,2)
+    return [rr[lon .<= 180,:] ; rr[lon .> 180,:]]
+  else
+    return rr
+  end
+end

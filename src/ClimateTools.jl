@@ -30,7 +30,7 @@ function __init__()
   copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
   copy!(np, pyimport_conda("numpy", "numpy"))
   copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
-  # copy!(scipy, pyimp/ort_conda("scipy.interpolate", "scipy"))
+  # copy!(scipy, pyimport_conda("scipy.interpolate", "scipy"))
   #copy!(folium, pyimport_conda("folium", "folium", "conda-forge"))
   # joinpath(dirname(@__FILE__), '/Rpackages/')
   # R"install.packages('maps', lib = 'joinpath(dirname(@__FILE__), '/Rpackages/')', repo = 'http://cran.uk.r-project.org')"

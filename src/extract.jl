@@ -43,9 +43,9 @@ function nc2julia(file::String, variable::String; poly = Array{Float64}([]))
   # Get Data
   data = NetCDF.open(file, variable)
   if !isempty(poly)
-    # TODO extract index inside polygon
+    # TODO More consistent use of mask (the nc2julia function should return only the points inside the polygon. Other values should be set to NaN)
     msk = inpolyvec(lon, lat, poly)
-    idlon, idlat = findn(msk)
+    idlon, idlat = findn(.!isnan(msk))
     minXgrid = minimum(idlon)
     maxXgrid = maximum(idlon)
     minYgrid = minimum(idlat)
@@ -56,7 +56,11 @@ function nc2julia(file::String, variable::String; poly = Array{Float64}([]))
         data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, :]
     end
     # Apply mask (for irregular polygon) # TODO apply mask for irregular polygon
-    # data = applymask(data, msk[minXgrid:maxXgrid, minYgrid:maxYgrid])
+    #new mask
+    msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
+    data = applymask(data, msk)
+
+    # Get lon-lat for such region
     lon = lon[minXgrid:maxXgrid]
     lat = lat[minYgrid:maxYgrid]
 elseif isempty(poly)
@@ -74,14 +78,14 @@ elseif isempty(poly)
     dataunits = "mm/day"
   end
 
-  # # Convert to Float64 if Float32
-  # if typeof(data[1]) == Float32
-    #   data2 = Float64.(data)
-  #   data = convert.(Array{Float64, 3}, data)
-  #   # Make sure lat and lon are also Float64
-  #   lon = convert(Array{Float64, 1}, lon)
-  #   lat = convert(Array{Float64, 1}, lat)
-  # end
+  # Convert to Float64 if Float32
+  if typeof(data[1]) == Float32
+      data .+= Float64(1.0)
+      lon .+= Float64(1.0)
+      lat .+= Float64(1.0)
+  end
+
+
 
   if dataunits == "K"
     data = data - 273.15

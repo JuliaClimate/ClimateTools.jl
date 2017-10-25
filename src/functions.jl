@@ -5,8 +5,8 @@ times a polygon winds around the point.
 It follows Dan Sunday: http://geomalgorithms.com/a03-_inclusion.html.
 """
 function windnr(p, poly::Matrix)
-    @assert length(p)==2
-    @assert poly[:,1]==poly[:,end]
+    @assert length(p) == 2
+    @assert poly[:, 1] == poly[:, end]
     # Loop over edges
     px = p[1]
     py = p[2]
@@ -95,10 +95,13 @@ inpolyvec(pts::Array{Float64,2}, poly::Array{Float64,2})
 
 function inpolyvec(pts::Array{Float64,2}, poly::Array{Float64,2})
 
-    OUT = Array{Bool}(size(pts, 1))
+    OUT = fill(NaN, size(pts, 1))
 
     for i = 1:size(pts, 1) # loop over pair of points to test
-        OUT[i] = inpoly([pts[i, 1], pts[i, 2]], poly)
+        if inpoly([pts[i, 1], pts[i, 2]], poly)
+            OUT[i] = 1.0
+        end
+
     end
     return OUT
 
@@ -106,11 +109,13 @@ end
 
 function inpolyvec(lon, lat, poly::Array{Float64,2})
 
-    OUT = Array{Bool}(size(lon, 1), size(lat, 1))
+    OUT = fill(NaN, size(lon, 1), size(lat, 1))
 
     for i = 1:size(lat, 1) # loop over pair of points to test
         for j = 1:size(lon, 1)
-            OUT[j, i] = inpoly([lon[j], lat[i]], poly)
+            if inpoly([lon[j], lat[i]], poly)
+                OUT[j, i] = 1.0
+            end
         end
     end
     return OUT
@@ -187,16 +192,52 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
 
 end
 
-function applymask(A, mask)
+function applymask(A::Array{Float64,4}, mask)
+    for t = 1:size(A, 4)
+        for lev = 1:size(A, 3)
+            tmp = A[:, :, lev, t]
+            tmp .*= mask
+            A[:, :, lev, t] = tmp
+        end
+    end
+    return A
+end
 
+function applymask(A::Array{Float64,3}, mask)
     for t = 1:size(A, 3)
         tmp = A[:, :, t]
         tmp .*= mask
         A[:, :, t] = tmp
-
     end
-
     return A
+end
 
+function applymask(A::Array{Float64,2}, mask)
+    A .*= mask
+    return A
+end
 
+function applymask(A::Array{Float32,4}, mask)
+    for t = 1:size(A, 4)
+        for lev = 1:size(A, 3)
+            tmp = A[:, :, lev, t]
+            tmp .*= mask
+            A[:, :, lev, t] = tmp
+        end
+    end
+    return A
+end
+
+function applymask(A::Array{Float32,3}, mask)
+    for t = 1:size(A, 3)
+        tmp = A[:, :, t]
+        tmp .*= mask
+        A[:, :, t] = tmp
+    end
+    return A
+end
+
+function applymask(A::Array{Float32,2}, mask)    
+    A .*= mask
+    return A
 end
