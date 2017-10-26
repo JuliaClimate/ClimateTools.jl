@@ -109,12 +109,43 @@ end
 
 function inpolyvec(lon, lat, poly::Array{Float64,2})
 
-    OUT = fill(NaN, size(lon, 1), size(lat, 1))
+    OUT = fill(NaN, size(lon, 1), size(lat, 1)) # grid mask
 
-    for i = 1:size(lat, 1) # loop over pair of points to test
-        for j = 1:size(lon, 1)
-            if inpoly([lon[j], lat[i]], poly)
-                OUT[j, i] = 1.0
+    # Find number of polygons (separated by NaN values)
+    polyidx = findn(isnan.(poly[1, :])) #poly start index
+    npoly = length(polyidx) # number of polygons
+
+    for p = 1:npoly # loop over each polygon
+        # Build poly n
+        if p != npoly
+            polyn = poly[:, polyidx[p] + 1:polyidx[p + 1] - 1]
+        elseif p == npoly
+            polyn = poly[:, polyidx[p] + 1:end]
+        end
+        # Convert to 0-360 longitude
+        if sum(polyn[1, :] .< 0) == length(polyn[1, :])
+            polyn[1,:] += 360
+        end
+
+        # get_limits of polyn
+        minlon = minimum(polyn[1, :])
+        maxlon = maximum(polyn[1, :])
+        minlat = minimum(polyn[2, :])
+        maxlat = maximum(polyn[2, :])
+
+        lonidx = findn((lon .<= maxlon) .& (lon .>= minlon))
+        latidx = findn((lat .<= maxlat) .& (lat .>= minlat))
+
+
+        for j in lonidx # = 1:size(lon, 1)
+            for i in latidx # = 1:size(lat, 1) # loop over pair of points to test
+
+                # if inpoly([lon[j], lat[i]], polyn)
+                #     OUT[j, i] = 1.0
+                # end
+                if OUT[j, i] != 1.0 && inpoly([lon[j], lat[i]], polyn)
+                    OUT[j, i] = 1.0
+                end
             end
         end
     end
@@ -237,7 +268,7 @@ function applymask(A::Array{Float32,3}, mask)
     return A
 end
 
-function applymask(A::Array{Float32,2}, mask)    
+function applymask(A::Array{Float32,2}, mask)
     A .*= mask
     return A
 end

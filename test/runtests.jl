@@ -184,6 +184,21 @@ C = ClimateTools.ClimGrid(axisdata, variable = "tasmin")
 ind = annualmin(C)
 @test ind.data.data == Results
 
+# Shapefile test
+filename = joinpath(dirname(@__FILE__), "data", "SudQC_GCM.shp")
+filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
+polyshp = read(filename,Shapefile.Handle)
+x, y = shapefile_coords(polyshp.shapes[1])
+P = [x y]
+P = P'
+lat = NetCDF.ncread(filenc, "lat")
+lon = NetCDF.ncread(filenc, "lon")
+msk = inpolyvec(lon, lat, P)
+@test length(x) == 6
+@test length(y) == 6
+@test isnan(x[1])
+@test isnan(y[1])
+
 # Mapping test
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = nc2julia(filename, "tas")

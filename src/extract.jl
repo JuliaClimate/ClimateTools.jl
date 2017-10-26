@@ -80,9 +80,9 @@ elseif isempty(poly)
 
   # Convert to Float64 if Float32
   if typeof(data[1]) == Float32
-      data .+= Float64(1.0)
-      lon .+= Float64(1.0)
-      lat .+= Float64(1.0)
+      data .*= Float64(1.0)
+      lon .*= Float64(1.0)
+      lat .*= Float64(1.0)
   end
 
 
@@ -195,68 +195,29 @@ function sumleapyear(dates::StepRange{Date,Base.Dates.Day})
 
 end
 
+"""
+This function return the polygons contained in shp.shapes[i] (return type of Shapefile.jl package). It returns the x and y coordinates.
+
+    shapefile_coords(poly::Shapefile.Polygon)
 
 """
-This function return the polygon contained in shp (return type of Shapefile.jl package). It returns an Array{Float64,2}.
-
-    shp2poly(shp::Shapefile.Handle{Shapefile.Polygon{Float64}})
-
-    N.B. right now, it only works on the 1st polygon contained in shapefile shp. If your shapefile contains more than 1 polygon, it is suggested to use the function poly2array() through a for loop and build a vector of polygons.
-
-"""
-function shp2poly(shp::Shapefile.Handle{Shapefile.Polygon{Float64}})
-
-    # Test if Shapefile Polygon is wrapping completely (closed Polygon)
-
-    cond = shp.shapes[1].points[1].x == shp.shapes[1].points[end].x && shp.shapes[1].points[1].y == shp.shapes[1].points[end].y
-
-    if cond
-        P = Array{Float64}(2, length(shp.shapes[1].points))
-    else # i.e. will need to wrap the return polygon P
-        P = Array{Float64}(2, length(shp.shapes[1].points) + 1)
+function shapefile_coords(poly::Shapefile.Polygon)
+    start_indices = poly.parts+1
+    end_indices = vcat(poly.parts[2:end], length(poly.points))
+    x, y = zeros(0), zeros(0)
+    for (si,ei) in zip(start_indices, end_indices)
+        push!(x, NaN)
+        push!(y, NaN)
+        for pt in poly.points[si:ei]
+            push!(x, pt.x)
+            push!(y, pt.y)
+        end
     end
-
-  for i = 1:length(shp.shapes[1].points)
-    P[1, i] = shp.shapes[1].points[i].x
-    P[2, i] = shp.shapes[1].points[i].y
-    if i == length(shp.shapes[1].points) && !cond
-      P[1, i + 1] = shp.shapes[1].points[1].x
-      P[2, i + 1] = shp.shapes[1].points[1].y
-    end
-  end
-  return P
+    x, y
 end
 
-"""
-This function return the polygon contained in shp (return type of Shapefile.jl package). It returns an Array{Float64,2}.
 
-    shp2poly(shp::Shapefile.Polygon{Float64})
-
-"""
-function shp2poly(shp::Shapefile.Polygon{Float64})
-
-    # Test if Shapefile Polygon is wrapping completely (closed Polygon)
-
-    cond = shp.points[1].x == shp.points[end].x && shp.points[1].y == shp.points[end].y
-
-    if cond
-        P = Array{Float64}(2, length(shp.points))
-    else # i.e. will need to wrap the return polygon P
-        P = Array{Float64}(2, length(shp.points) + 1)
-    end
-
-  for i = 1:length(shp.points)
-    P[1, i] = shp.points[i].x
-    P[2, i] = shp.points[i].y
-    if i == length(shp.points) && !cond
-      P[1, i + 1] = shp.points[1].x
-      P[2, i + 1] = shp.points[1].y
-    end
-  end
-  return P
-end
-
-# function inpolygon{T<:Number}(x:: T, y:: T, vx:: Vector{T}, vy:: Vector{T})
+# function inpolygon2{T<:Number}(x:: T, y:: T, vx:: Vector{T}, vy:: Vector{T})
 #     @assert length(vx) == length(vy)
 #     c = false
 #     j = length(vx)

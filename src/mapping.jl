@@ -1,6 +1,12 @@
-function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [],level = 1)
+function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1, mask = [])
 
   # TODO Add options for custom time period as input and custom region
+
+  # Some tests
+  if !isempty(mask)
+      @assert (size(C[1], 2), size(C[1], 3)) == (size(mask, 1), size(mask, 2))
+      mask = mask'
+  end
 
   # get boundaries and lat-lon vectors
   llon = minimum(C.data[Axis{:lon}][:])
@@ -68,7 +74,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [],level = 1)
   if ndims(C[1]) == 3
     data = squeeze(mean(convert(Array, C[1]),1),1)' #time mean
 
-    if rlon > 355 && llon < 5
+    if rlon > 355 && llon < 5 # to avoid white space along the longitude 0 (this is purely cosmetic for maps and should not be used for calculation!)
       data2 = Array{Float64}(size(data, 1), size(data, 2) + 1)
       data2[:, 1:end-1] = data
       data2[:, end] = data[:, 1]
@@ -76,11 +82,15 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [],level = 1)
       data2 = data
     end
     # plot data
-    if isempty(poly)
-        cs = m[:contourf](x, y, data2, cmap = get_cmap(cm))
-    else
+
+    if !isempty(mask) # if mask is already provided
+        cs = m[:contourf](x .* mask, y .* mask, data2 .* mask, cmap = get_cmap(cm))
+    elseif !isempty(poly) # if mask needs to be calculated from polygon
         msk = inpolyvec(lon, lat, poly)'
         cs = m[:contourf](x .* msk, y .* msk, data2 .* msk, cmap = get_cmap(cm))
+    else
+        cs = m[:contourf](x, y, data2, cmap = get_cmap(cm))
+
     end
 
 
@@ -114,12 +124,16 @@ elseif ndims(C[1]) == 4 # 3D field
   # Colorbar
   cbar = colorbar(cs, orientation = "vertical", shrink = 0.7, label = C[2])
 
-  # begYear = string(Base.Dates.year(C[1][Axis{:time}][1]))
-  # endYear = string(Base.Dates.year(C[1][Axis{:time}][end]))
-  title(string(C[3], " - ", C[4], " - ", C[5], " - ", C.variable))
+  if typeof((C[1][Axis{:time}][1])) == Date
+      begYear = string(Base.Dates.year(C[1][Axis{:time}][1]))
+      endYear = string(Base.Dates.year(C[1][Axis{:time}][end]))
+  elseif typeof((C[1][Axis{:time}][1])) == Base.Dates.Year
+      begYear = string(C[1][Axis{:time}][1])[1:4]
+      endYear = string(C[1][Axis{:time}][end])[1:4]
+  end
+  title(string(C[3], " - ", C[4], " - ", C[5], " - ", C.variable, " - ", begYear, " - ", endYear))
   figh[:tight_layout]
-  # figh[:show]
-  # figh[:set_clim] = (-20, 20)
+
   return true, figh, ax, cbar
 end
 
