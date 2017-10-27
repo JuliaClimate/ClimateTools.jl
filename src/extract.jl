@@ -7,7 +7,6 @@ Inside the ClimgGrid type, the data is stored into an AxisArray data type, with 
 """
 
 function nc2julia(file::String, variable::String; poly = Array{Float64}([]))
-  # TODO Finish polygon feature
 
   # Get attributes for type "ClimGrid"
   ncI = NetCDF.ncinfo(file)
@@ -45,7 +44,7 @@ function nc2julia(file::String, variable::String; poly = Array{Float64}([]))
   if !isempty(poly)
     # TODO More consistent use of mask (the nc2julia function should return only the points inside the polygon. Other values should be set to NaN)
     msk = inpolyvec(lon, lat, poly)
-    idlon, idlat = findn(.!isnan(msk))
+    idlon, idlat = findn(.!isnan.(msk))
     minXgrid = minimum(idlon)
     maxXgrid = maximum(idlon)
     minYgrid = minimum(idlat)
@@ -78,12 +77,12 @@ elseif isempty(poly)
     dataunits = "mm/day"
   end
 
-  # Convert to Float64 if Float32
-  if typeof(data[1]) == Float32
-      data .*= Float64(1.0)
-      lon .*= Float64(1.0)
-      lat .*= Float64(1.0)
-  end
+  # # Convert to Float64 if Float32
+  # if typeof(data[1]) == Float32
+  #     data = Float64.(data)
+  #     lon = Float64.(lon)
+  #     lat = Float64.(lat)
+  # end
 
 
 

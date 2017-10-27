@@ -37,12 +37,11 @@ function __init__()
 end
 
 
-# Exported functions
-export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, annualmean, annualsum, nc2julia, sumleapyear, buildtimevec, mapclimgrid, interp_climgrid, ClimGrid, inpolyvec, applymask, shapefile_coords
-
 # TYPES
-struct ClimGrid
-  data::AxisArray
+
+struct ClimGrid{A <: AxisArray}
+# struct ClimGrid
+  data::A
   model::String
   experiment::String
   run::String
@@ -54,13 +53,21 @@ struct ClimGrid
   typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
   typeofcal::String # Calendar type
 
-  function ClimGrid(data; model = "N/A", experiment = "N/A", run = "N/A", filename = "N/A", dataunits = "N/A", latunits = "N/A", lonunits = "N/A", variable = "N/A", typeofvar = "N/A", typeofcal = "N/A")
-
-    # to-do -> add some checks, permutedims if need be
-    new(data, model, experiment, run, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal)
-
-  end
 end
+
+function ClimGrid(data; model = "N/A", experiment = "N/A", run = "N/A", filename = "N/A", dataunits = "N/A", latunits = "N/A", lonunits = "N/A", variable = "N/A", typeofvar = "N/A", typeofcal = "N/A")
+
+    ClimGrid(data, model, experiment, run, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal)
+
+  # TODO -> add some checks, permutedims if need be
+  # new(data, model, experiment, run, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal)
+
+end
+
+# data = randn(3,2,2)
+# d = 1:3
+# axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
+# ClimGrid(axisdata)
 
 # Included files
 include("functions.jl")
@@ -68,5 +75,8 @@ include("indices.jl")
 include("extract.jl")
 include("interface.jl")
 include("mapping.jl")
+
+# Exported functions
+export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, annualmean, annualsum, nc2julia, sumleapyear, buildtimevec, mapclimgrid, interp_climgrid, ClimGrid, inpolyvec, applymask, shapefile_coords
 
 end #module

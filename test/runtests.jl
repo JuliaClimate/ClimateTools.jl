@@ -224,8 +224,10 @@ status, figh = mapclimgrid(C, level = 3);@test status == true; PyPlot.close()
 # NetCDF Extraction test
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = nc2julia(filename, "tas")
-@test typeof(nc2julia(filename, "tas")) == ClimateTools.ClimGrid
+@test typeof(nc2julia(filename, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float64,3,Array{Float64,3},Tuple{AxisArrays.Axis{:time,Array{Date,1}},AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}}}}}
+
 @test typeof(buildtimevec(filename)) == Array{Date, 1}
+
 # Time units
 units = NetCDF.ncgetatt(filename, "time", "units") # get starting date
 m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1) # match a date from string
@@ -236,11 +238,9 @@ timeRaw = floor.(NetCDF.ncread(filename, "time"))
 
 # INTERFACE
 B = vcat(C, C)
-@test typeof(B) == ClimateTools.ClimGrid
 @test size(B.data) == (2, 256, 128) # vcat does not look at dimensions
 B = merge(C, C)
-@test typeof(B) == ClimateTools.ClimGrid
-@test size(B.data) == (1, 256, 128) # C being similar, they should not add up
+@test size(B.data) == (1, 256, 128) # C being similar, they should not add up, as opposed to vcat
 # @test typeof(show(C)) == Dict{Any, Any}
 @test typeof(C[1].data) == Array{Float64,3} || Array{Float32,3}
 @test C[2] == "Celsius"

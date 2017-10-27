@@ -93,7 +93,7 @@ inpolyvec(pts::Array{Float64,2}, poly::Array{Float64,2})
 
 """
 
-function inpolyvec(pts::Array{Float64,2}, poly::Array{Float64,2})
+function inpolyvec(pts::AbstractArray{N,2} where N, poly::AbstractArray{N,2} where N)
 
     OUT = fill(NaN, size(pts, 1))
 
@@ -107,7 +107,7 @@ function inpolyvec(pts::Array{Float64,2}, poly::Array{Float64,2})
 
 end
 
-function inpolyvec(lon, lat, poly::Array{Float64,2})
+function inpolyvec(lon, lat, poly::AbstractArray{N,2} where N)
 
     OUT = fill(NaN, size(lon, 1), size(lat, 1)) # grid mask
 
@@ -162,7 +162,7 @@ C = interpolate(A, B)
 where A, B and C are ClimGrid
 
 """
-
+# TODO Add test to interp_climgrid
 function interp_climgrid(A::ClimGrid, B::ClimGrid)
     # ---------------------------------------
     # Get lat-lon information from ClimGrid B
@@ -223,7 +223,9 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
 
 end
 
-function applymask(A::Array{Float64,4}, mask)
+
+# TODO Add test to interp_climgrid
+function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 4} where N)
     for t = 1:size(A, 4)
         for lev = 1:size(A, 3)
             tmp = A[:, :, lev, t]
@@ -234,7 +236,7 @@ function applymask(A::Array{Float64,4}, mask)
     return A
 end
 
-function applymask(A::Array{Float64,3}, mask)
+function applymask(A::AbstractArray{N,3} where N, mask::AbstractArray{N, 3} where N)
     for t = 1:size(A, 3)
         tmp = A[:, :, t]
         tmp .*= mask
@@ -243,32 +245,7 @@ function applymask(A::Array{Float64,3}, mask)
     return A
 end
 
-function applymask(A::Array{Float64,2}, mask)
-    A .*= mask
-    return A
-end
-
-function applymask(A::Array{Float32,4}, mask)
-    for t = 1:size(A, 4)
-        for lev = 1:size(A, 3)
-            tmp = A[:, :, lev, t]
-            tmp .*= mask
-            A[:, :, lev, t] = tmp
-        end
-    end
-    return A
-end
-
-function applymask(A::Array{Float32,3}, mask)
-    for t = 1:size(A, 3)
-        tmp = A[:, :, t]
-        tmp .*= mask
-        A[:, :, t] = tmp
-    end
-    return A
-end
-
-function applymask(A::Array{Float32,2}, mask)
+function applymask(A::AbstractArray{N,2} where N, mask::AbstractArray{N, 2} where N)
     A .*= mask
     return A
 end
