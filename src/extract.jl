@@ -51,53 +51,47 @@ function nc2julia(file::String, variable::String; poly = Array{Float64}([]))
     maxYgrid = maximum(idlat)
     if ndims(data) == 3
         data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :]
+        # Permute dims
+        data = permutedims(data, [3, 1, 2])
     elseif ndims(data) == 4
         data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, :]
+        # Permute dims
+        data = permutedims(data, [4, 1, 2, 3])
     end
-    # Apply mask (for irregular polygon) # TODO apply mask for irregular polygon
-    #new mask
+
+    #new mask (e.g. representing the region of the polygon)
     msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
     data = applymask(data, msk)
 
     # Get lon-lat for such region
     lon = lon[minXgrid:maxXgrid]
     lat = lat[minYgrid:maxYgrid]
-elseif isempty(poly)
+
+elseif isempty(poly) # no polygon clipping
     if ndims(data) == 3
         data = data[:, :, :]
+        # Permute dims
+        data = permutedims(data, [3, 1, 2])
+
     elseif ndims(data) == 4
         data = data[:, :, :, :]
+        # Permute dims
+        data = permutedims(data, [4, 1, 2, 3])
     end
   end
-
-
-  # Extract variable over a given region
-  if variable == "pr"
-    data = data * 86400
-    dataunits = "mm/day"
-  end
-
-  # # Convert to Float64 if Float32
-  # if typeof(data[1]) == Float32
-  #     data = Float64.(data)
-  #     lon = Float64.(lon)
-  #     lat = Float64.(lat)
-  # end
-
-
 
   if dataunits == "K"
     data = data - 273.15
     dataunits = "Celsius"
   end
 
-  # Permute dims --> make the longest dimension at position #1 (calculations are usually faster)
+  # Create AxisArray from variable "data"
   if ndims(data) == 3
-    data = permutedims(data, [3, 1, 2])
+
     # Convert data to AxisArray
     dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))
   elseif ndims(data) == 4 # this imply a 3D field (height component)
-    data = permutedims(data, [4, 1, 2, 3])
+
     plev = NetCDF.ncread(file, "plev")
     # Convert data to AxisArray
     dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat), Axis{:plev}(plev))

@@ -214,27 +214,32 @@ Return an AbstractArray{N, n}.
 
 """
 # TODO Add test to applymask
-function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 4} where N)
-    for t = 1:size(A, 4)
-        for lev = 1:size(A, 3)
-            tmp = A[:, :, lev, t]
+function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} where N)
+    for t = 1:size(A, 1) # time axis
+        for lev = 1:size(A, 4) #level axis
+            tmp = A[t, :, :, lev]
             tmp .*= mask
-            A[:, :, lev, t] = tmp
+            A[t, :, :, lev] = tmp
         end
     end
     return A
 end
 
-function applymask(A::AbstractArray{N,3} where N, mask::AbstractArray{N, 3} where N)
-    for t = 1:size(A, 3)
-        tmp = A[:, :, t]
+function applymask(A::AbstractArray{N,3} where N, mask::AbstractArray{N, 2} where N)
+    for t = 1:size(A, 1) # time axis
+        tmp = A[t, :, :]
         tmp .*= mask
-        A[:, :, t] = tmp
+        A[t, :, :] = tmp
     end
     return A
 end
 
 function applymask(A::AbstractArray{N,2} where N, mask::AbstractArray{N, 2} where N)
+    A .*= mask
+    return A
+end
+
+function applymask(A::AbstractArray{N,1} where N, mask::AbstractArray{N, 1} where N)
     A .*= mask
     return A
 end

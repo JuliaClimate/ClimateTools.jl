@@ -187,6 +187,7 @@ ind = annualmin(C)
 # Shapefile test
 filename = joinpath(dirname(@__FILE__), "data", "SudQC_GCM.shp")
 filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
+
 polyshp = read(filename,Shapefile.Handle)
 x, y = shapefile_coords(polyshp.shapes[1])
 P = [x y]
@@ -194,6 +195,10 @@ P = P'
 lat = NetCDF.ncread(filenc, "lat")
 lon = NetCDF.ncread(filenc, "lon")
 msk = inpolyvec(lon, lat, P)
+C = nc2julia(filenc, "tas", poly = P)
+status, figh = mapclimgrid(C); @test status == true; PyPlot.close()
+C = nc2julia(filenc, "tas")
+status, figh = mapclimgrid(C, mask = msk); @test status == true; PyPlot.close()
 @test length(x) == 6
 @test length(y) == 6
 @test isnan(x[1])
@@ -209,7 +214,7 @@ status, figh = mapclimgrid(C, region = "Quebec");@test status == true; PyPlot.cl
 status, figh = mapclimgrid(C, region = "NorthAmerica");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(annualmax(C), region = "Europe");@test status == true; PyPlot.close()
 
-# dummy tasmax
+# precip
 C = nc2julia(filename, "pr")
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
 status, figh = mapclimgrid(prcp1(C), region = "World");@test status == true; PyPlot.close()
@@ -221,7 +226,7 @@ status, figh = mapclimgrid(prcp1(C), region = "NorthAmerica");@test status == tr
 C = nc2julia(filename, "ua")
 status, figh = mapclimgrid(C, level = 3);@test status == true; PyPlot.close()
 
-# NetCDF Extraction test
+# test that nc2julia return a ClimGrid type
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = nc2julia(filename, "tas")
 @test typeof(nc2julia(filename, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float64,3,Array{Float64,3},Tuple{AxisArrays.Axis{:time,Array{Date,1}},AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}}}}}
@@ -420,3 +425,56 @@ poly = Float64[0 0
 @test inpoly([0.5,0.4], poly)
 @test inpoly([0.5,0.2], poly)
 @test !inpoly([0.7,0.5], poly)
+
+# Test Interpolation
+filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
+C = nc2julia(filename, "tas")
+# Get lat lon vector
+lat = C[1][Axis{:lat}][:]
+lon = C[1][Axis{:lon}][:]
+# Shift longitude by 1
+lon += 1
+axisdata = AxisArray(C[1].data, Axis{:time}(C[1][Axis{:time}][:]), Axis{:lon}(lon), Axis{:lat}(lat))
+C2 = ClimGrid(axisdata, variable = "tas")
+@test interp_climgrid(C, C2)[1].data[1, 1, 1] == -57.31921250711309
+
+# Test applymask
+# 1-D data
+data = randn(3)
+mask = [NaN; 1.;1.]
+@test isnan(applymask(data, mask)[1])
+@test applymask(data, mask)[2] == data[2]
+@test applymask(data, mask)[3] == data[3]
+
+# 2-D data
+data = randn(3, 2)
+mask = [[NaN; 1; 1] [1.; NaN;1.]]
+@test isnan(applymask(data, mask)[1, 1]) && isnan(applymask(data, mask)[2, 2])
+@test applymask(data, mask)[2, 1] == data[2, 1]
+@test applymask(data, mask)[1, 2] == data[1, 2]
+@test applymask(data, mask)[3, 1] == data[3, 1]
+@test applymask(data, mask)[3, 2] == data[3, 2]
+
+# 3-D data
+data = randn(3, 3, 2)
+mask = [[NaN; 1; 1] [1.; NaN;1.]]
+@test isnan(applymask(data, mask)[1, 1, 1]) && isnan(applymask(data, mask)[1, 2, 2]) && isnan(applymask(data, mask)[2, 1, 1]) && isnan(applymask(data, mask)[2, 2, 2]) && isnan(applymask(data, mask)[3, 1, 1]) && isnan(applymask(data, mask)[3, 2, 2])
+
+for i = 1:size(data, 1)
+    @test applymask(data, mask)[i, 2, 1] == data[i, 2, 1]
+    @test applymask(data, mask)[i, 1, 2] == data[i, 1, 2]
+    @test applymask(data, mask)[i, 3, 1] == data[i, 3, 1]
+    @test applymask(data, mask)[i, 3, 2] == data[i, 3, 2]
+end
+
+# 4-D data
+data = randn(3, 3, 2, 1)
+mask = [[NaN; 1; 1] [1.; NaN;1.]]
+@test isnan(applymask(data, mask)[1, 1, 1, 1]) && isnan(applymask(data, mask)[1, 2, 2, 1]) && isnan(applymask(data, mask)[2, 1, 1, 1]) && isnan(applymask(data, mask)[2, 2, 2, 1]) && isnan(applymask(data, mask)[3, 1, 1, 1]) && isnan(applymask(data, mask)[3, 2, 2, 1])
+
+for i = 1:size(data, 1)
+    @test applymask(data, mask)[i, 2, 1, 1] == data[i, 2, 1, 1]
+    @test applymask(data, mask)[i, 1, 2, 1] == data[i, 1, 2, 1]
+    @test applymask(data, mask)[i, 3, 1, 1] == data[i, 3, 1, 1]
+    @test applymask(data, mask)[i, 3, 2, 1] == data[i, 3, 2, 1]
+end

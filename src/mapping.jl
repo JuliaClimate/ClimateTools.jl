@@ -17,7 +17,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
   lon = C[1][Axis{:lon}][:]
 
   # if the data is from a GCM, we sometimes needs to extend the lat-lon and data to avoid "white space"
-  if rlon > 355 && llon < 5
+  if rlon > 355 && llon < 5 && rlon < 359.99
     rlon = 360; llon = 0;
     push!(lon, 359.99)
   end
@@ -52,8 +52,8 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
   m[:drawcoastlines]()
   m[:drawstates]()
   m[:drawcountries]()
-  m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 10);
-  m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 10);
+  m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8);
+  m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8);
 
 
   lon2, lat2 = np[:meshgrid](lon, lat)
@@ -78,6 +78,14 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
       data2 = Array{Float64}(size(data, 1), size(data, 2) + 1)
       data2[:, 1:end-1] = data
       data2[:, end] = data[:, 1]
+
+      if !isempty(mask)
+          mask2 = Array{Float64}(size(mask, 1), size(mask, 2) + 1)
+          mask2[:, 1:end-1] = mask
+          mask2[:, end] = mask[:, 1]
+          mask = mask2
+      end
+
   else
       data2 = data
     end
@@ -132,7 +140,6 @@ elseif ndims(C[1]) == 4 # 3D field
       endYear = string(C[1][Axis{:time}][end])[1:4]
   end
   title(string(C[3], " - ", C[4], " - ", C[5], " - ", C.variable, " - ", begYear, " - ", endYear))
-  figh[:tight_layout]
 
   return true, figh, ax, cbar
 end
