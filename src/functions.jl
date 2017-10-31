@@ -93,20 +93,6 @@ inpolyvec(pts::Array{Float64,2}, poly::Array{Float64,2})
 
 """
 
-function inpolyvec(pts::AbstractArray{N,2} where N, poly::AbstractArray{N,2} where N)
-
-    OUT = fill(NaN, size(pts, 1))
-
-    for i = 1:size(pts, 1) # loop over pair of points to test
-        if inpoly([pts[i, 1], pts[i, 2]], poly)
-            OUT[i] = 1.0
-        end
-
-    end
-    return OUT
-
-end
-
 function inpolyvec(lon, lat, poly::AbstractArray{N,2} where N)
 
     OUT = fill(NaN, size(lon, 1), size(lat, 1)) # grid mask
@@ -157,12 +143,13 @@ end
 """
 This function interpolate ClimGrid A onto lat-lon grid of ClimGrid B
 
-C = interpolate(A, B)
+C = interp_climgrid(A::ClimGrid, B::ClimGrid)
 
 where A, B and C are ClimGrid
 
 """
 # TODO Add test to interp_climgrid
+# TODO Add method where interp_climgrid(A::ClimGrid, B::lat/lon_grid)
 function interp_climgrid(A::ClimGrid, B::ClimGrid)
     # ---------------------------------------
     # Get lat-lon information from ClimGrid B
@@ -176,7 +163,6 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
         axisdata = AxisArray(B[1].data, Axis{:time}(timedest), Axis{:lon}(londest), Axis{:lat}(latdest))
         B = ClimateTools.ClimGrid(axisdata, model = B.model, experiment = B.experiment, run = B.run, filename = B.filename, dataunits = B.dataunits, latunits = B.latunits, lonunits = "degrees_west", variable = B.variable, typeofvar = B.variable, typeofcal = B.typeofcal)
     end
-
 
     # Get lat-lon information from ClimGrid A
     lonorig = A[1][Axis{:lon}][:]
@@ -194,8 +180,6 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
     # ---------------------
     # Allocate output Array
     OUT = zeros(Float64, (length(timeorig), size(B.data, 2), size(B.data, 3)))
-
-    # Ti = scipy[:griddata]([lonorig, latorig], dataorig[1, :, :], [X, Y], method = "cubic")
 
     # ------------------------
     # Interpolation
@@ -218,13 +202,18 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
     # Construct AxisArrays and ClimGrid struct from array OUT
     dataOut = AxisArray(OUT, Axis{:time}(timeorig), Axis{:lon}(londest), Axis{:lat}(latdest))
 
-
     C = ClimateTools.ClimGrid(dataOut, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = B.latunits, lonunits = B.lonunits, variable = A.variable, typeofvar = A.variable, typeofcal = A.typeofcal)
-
 end
 
+"""
+This function applies a mask on the array A
 
-# TODO Add test to interp_climgrid
+applymask(A::AbstractArray{N, n}, mask::AbstractArray{N, n})
+
+Return an AbstractArray{N, n}.
+
+"""
+# TODO Add test to applymask
 function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 4} where N)
     for t = 1:size(A, 4)
         for lev = 1:size(A, 3)

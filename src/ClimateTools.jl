@@ -4,6 +4,10 @@ module ClimateTools
 using NetCDF
 using Shapefile
 using AxisArrays
+using ArgCheck
+using PyCall
+using PyPlot
+using Interpolations
 import Base.vcat
 import Base.getindex
 import Base.show
@@ -12,10 +16,7 @@ import Base.endof
 import Base.setindex!
 import Base.similar
 # import Base: +
-using ArgCheck
-using PyCall
-using PyPlot
-using Interpolations
+
 
 const basemap = PyNULL()
 const np = PyNULL()
