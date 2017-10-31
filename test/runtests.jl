@@ -3,6 +3,7 @@ using AxisArrays
 # using Lint
 using Base.Test
 
+# TODO tests for annualmean and annualsum
 # @test isempty(lintpkg("ClimateTools"))
 
 # Prcp1
@@ -28,6 +29,56 @@ Results = Array{Int64, 3}(3, 2, 2); Results[1,1,1] = 365; Results[2,1,1] = 0; Re
 axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
 C = ClimateTools.ClimGrid(axisdata, variable = "pr")
 ind = prcp1(C)
+@test ind.data.data == Results
+
+# annualsum
+d = Date(2003,1,1):Date(2005,12,31)
+
+data = vcat(ones(Float64, 365), zeros(Float64, 366), ones(Float64, 365))
+Results = Array{Int64, 1}(3); Results[1] = 365.; Results[2] = 0.; Results[3] = 365.;
+@test annualsum(data, d) == Results
+
+data= vcat(ones(365,1), zeros(366,1), ones(365))
+Results = Array{Int64, 2}(3, 1); Results[1] = 365.; Results[2] = 0.; Results[3] = 365.;
+@test annualsum(data, d) == Results
+
+data = Array{Float64,3}(1096, 2, 2)
+data[:,1,1] = vcat(ones(365,1), zeros(366,1), ones(365))
+data[:,2,1] = vcat(ones(365,1), zeros(366,1), ones(365))
+data[:,1,2] = vcat(ones(365,1), zeros(366,1), ones(365))
+data[:,2,2] = vcat(ones(365,1), zeros(366,1), ones(365))
+Results = Array{Int64, 3}(3, 2, 2); Results[1,1,1] = 365.; Results[2,1,1] = 0.; Results[3,1,1] = 365.; Results[1,2,1] = 365.; Results[2,2,1] = 0; Results[3,2,1] = 365.; Results[1,1,2] = 365.; Results[2,1,2] = 0.; Results[3,1,2] = 365.; Results[1,2,2] = 365.; Results[2,2,2] = 0.; Results[3,2,2] = 365.;
+@test annualsum(data, d) == Results
+
+# ClimGrid based tests
+axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
+C = ClimateTools.ClimGrid(axisdata, variable = "pr")
+ind = annualsum(C)
+@test ind.data.data == Results
+
+# annualmean
+d = Date(2003,1,1):Date(2005,12,31)
+
+data = vcat(ones(Float64, 365), zeros(Float64, 366), ones(Float64, 365))
+Results = Array{Int64, 1}(3); Results[1] = 1.; Results[2] = 0.; Results[3] = 1.;
+@test annualmean(data, d) == Results
+
+data= vcat(ones(365,1), zeros(366,1), ones(365))
+Results = Array{Int64, 2}(3, 1); Results[1] = 1.; Results[2] = 0.; Results[3] = 1.;
+@test annualmean(data, d) == Results
+
+data = Array{Float64,3}(1096, 2, 2)
+data[:,1,1] = vcat(ones(365,1), zeros(366,1), ones(365))
+data[:,2,1] = vcat(ones(365,1), zeros(366,1), ones(365))
+data[:,1,2] = vcat(ones(365,1), zeros(366,1), ones(365))
+data[:,2,2] = vcat(ones(365,1), zeros(366,1), ones(365))
+Results = Array{Int64, 3}(3, 2, 2); Results[1,1,1] = 1.; Results[2,1,1] = 0.; Results[3,1,1] = 1.; Results[1,2,1] = 1.; Results[2,2,1] = 0; Results[3,2,1] = 1.; Results[1,1,2] = 1.; Results[2,1,2] = 0.; Results[3,1,2] = 1.; Results[1,2,2] = 1.; Results[2,2,2] = 0.; Results[3,2,2] = 1.;
+@test annualmean(data, d) == Results
+
+# ClimGrid based tests
+axisdata = AxisArray(data, Axis{:time}(d), Axis{:lon}(1:2), Axis{:lat}(1:2))
+C = ClimateTools.ClimGrid(axisdata, variable = "pr")
+ind = annualmean(C)
 @test ind.data.data == Results
 
 # Frostdays
