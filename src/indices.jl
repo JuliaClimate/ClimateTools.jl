@@ -592,7 +592,7 @@ function annualmean(C::ClimGrid)
   FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, var = "annualmean", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, variable = "annualmean", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
 
 function annualmean(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day})
@@ -655,7 +655,7 @@ function annualsum(C::ClimGrid)
   FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, var = "annualsum", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, variable = "annualsum", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
 
 function annualsum(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day})
