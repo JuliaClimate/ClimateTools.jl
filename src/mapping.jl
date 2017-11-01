@@ -156,11 +156,11 @@ end
 #   m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 10);
 # end
 #
-function lonrotate(plon :: Array{Float64,1}, rr)
-  if ((plon[1] > 180) & (plon[end] < 180))
-    lon = mean(plon ,2)
-    return [rr[lon .<= 180,:] ; rr[lon .> 180,:]]
-  else
-    return rr
-  end
-end
+# function lonrotate(plon :: Array{Float64,1}, rr)
+#   if ((plon[1] > 180) & (plon[end] < 180))
+#     lon = mean(plon ,2)
+#     return [rr[lon .<= 180,:] ; rr[lon .> 180,:]]
+#   else
+#     return rr
+#   end
+# end
