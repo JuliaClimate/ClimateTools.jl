@@ -175,7 +175,7 @@ function sumleapyear(dates::StepRange{Date,Base.Dates.Day})
 
   out = 0::Int
   endDate = dates[end]#initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
-  years = unique.(Dates.year(dates))
+  years = unique(Dates.year.(dates))
   # Sum over time vector
   for idx = 1:length(years)
     if Dates.isleapyear(years[idx])
