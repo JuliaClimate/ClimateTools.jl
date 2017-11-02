@@ -118,15 +118,25 @@ elseif ndims(C[1]) == 4 # 3D field
       data2[:, 1:end-1, :] = data
       data2[:, end, :] = data[:, 1, :]
       # push!(data, data[:, 1])
+      if !isempty(mask)
+          mask2 = Array{Float64}(size(mask, 1), size(mask, 2) + 1)
+          mask2[:, 1:end-1] = mask
+          mask2[:, end] = mask[:, 1]
+          mask = mask2
+      end
     else
       data2 = squeeze(mean(convert(Array, C[1]),1),1)' #time mean
     end
-    if isempty(poly)
-        cs = m[:contourf](x, y, data2, cmap=get_cmap(cm))
-    else
+    
+    if !isempty(poly)
         msk = inpolyvec(lon, lat, poly)'
         cs = m[:contourf](x .* msk, y .* msk, data2 .* msk, cmap=get_cmap(cm))
+    elseif !isempty(mask)
+        cs = m[:contourf](x .* mask, y .* mask, data2 .* mask, cmap = get_cmap(cm))
+    else
+        cs = m[:contourf](x, y, data2, cmap=get_cmap(cm))
     end
+
   end
 
   # Colorbar
