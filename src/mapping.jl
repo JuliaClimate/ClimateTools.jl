@@ -71,6 +71,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
 
   # -----------------------
   # Plot the data
+  # 3D fields
   if ndims(C[1]) == 3
     data = squeeze(mean(convert(Array, C[1]),1),1)' #time mean
 
@@ -86,7 +87,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
           mask = mask2
       end
 
-  else
+    else
       data2 = data
     end
     # plot data
@@ -101,7 +102,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
 
     end
 
-
+  # 2D fields
   elseif ndims(C[1]) == 2
       if isempty(poly)
           cs = m[:contourf](x, y, convert(Array,C[1][:,:])', cmap = get_cmap(cm))
@@ -110,7 +111,8 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
           cs = m[:contourf](x .* msk, y .* msk, convert(Array,C[1][:,:])' .* msk, cmap = get_cmap(cm))
       end
 
-elseif ndims(C[1]) == 4 # 3D field
+  # 4D fields
+  elseif ndims(C[1]) == 4 # 3D field
     datatmp = squeeze(mean(convert(Array, C[1]),1),1) # time mean
     data = datatmp[:,:, level]';
     if rlon > 355 && llon < 5
@@ -127,7 +129,7 @@ elseif ndims(C[1]) == 4 # 3D field
     else
       data2 = squeeze(mean(convert(Array, C[1]),1),1)' #time mean
     end
-    
+
     if !isempty(poly)
         msk = inpolyvec(lon, lat, poly)'
         cs = m[:contourf](x .* msk, y .* msk, data2 .* msk, cmap=get_cmap(cm))
