@@ -97,6 +97,9 @@ function inpolyvec(lon, lat, poly::AbstractArray{N,2} where N)
 
     OUT = fill(NaN, size(lon, 1), size(lat, 1)) # grid mask
 
+    # Convert longitude to 0-360 degrees_east
+    lon[lon .< 0] += 360
+
     # Find number of polygons (separated by NaN values)
     polyidx = findn(isnan.(poly[1, :])) #poly start index
     npoly = length(polyidx) # number of polygons
