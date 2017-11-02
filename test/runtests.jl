@@ -275,7 +275,10 @@ status, figh = mapclimgrid(prcp1(C), region = "NorthAmerica");@test status == tr
 
 # ua wind
 C = nc2julia(filename, "ua")
-status, figh = mapclimgrid(C, level = 3);@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, level = 3);@test status == true; PyPlot.close() # given level
+status, figh = mapclimgrid(C);@test status == true; PyPlot.close() # feeding a 4D field
+status, figh = mapclimgrid(C, poly = P);@test status == true; PyPlot.close() # feeding a 4D field with a polygon
+status, figh = mapclimgrid(C, mask = msk);@test status == true; PyPlot.close() # feeding a 4D field with a mask
 
 # test that nc2julia return a ClimGrid type
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
