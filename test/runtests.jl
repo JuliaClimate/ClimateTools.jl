@@ -529,3 +529,7 @@ for i = 1:size(data, 1)
     @test applymask(data, mask)[i, 3, 1, 1] == data[i, 3, 1, 1]
     @test applymask(data, mask)[i, 3, 2, 1] == data[i, 3, 2, 1]
 end
+
+# Test sumleapyear with StepRange{Date,Base.Dates.Day} type
+d = Date(2003,1,1):Date(2008,12,31)
+@test sumleapyear(d) == 2
