@@ -548,3 +548,8 @@ end
 # Test sumleapyear with StepRange{Date,Base.Dates.Day} type
 d = Date(2003,1,1):Date(2008,12,31)
 @test sumleapyear(d) == 2
+
+# Test timeresolution and pr_timefactor
+filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
+@test timeresolution(filename) == "N/A"
+@test pr_timefactor(timeresolution(filename)) == 1.
