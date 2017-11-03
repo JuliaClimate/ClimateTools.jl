@@ -103,6 +103,12 @@ A typical step in climate analysis is to interpolate a given grid onto another g
 C = interp_climgrid(A::ClimGrid, B::ClimGrid)
 ```
 
+It is also possible to interpolate a `ClimGrid` onto specified longitude and latitude vectors.
+
+```julia
+C = interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N, 1})
+```
+
 ### Merging ClimGrid type
 
 Sometimes, the timeseries are split among multiple files (mostly climate models outputs). To obtain the complete timeseries, you can `merge` 2 `ClimGrid`. The method is based on the merging of 2 `AxisArrays` and is overloaded for the `ClimGrid` type.

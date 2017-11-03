@@ -151,7 +151,6 @@ C = interp_climgrid(A::ClimGrid, B::ClimGrid)
 where A, B and C are ClimGrid
 
 """
-# TODO Add test to interp_climgrid
 # TODO Add method where interp_climgrid(A::ClimGrid, B::lat/lon_grid)
 function interp_climgrid(A::ClimGrid, B::ClimGrid)
     # ---------------------------------------
@@ -187,8 +186,6 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
     # ------------------------
     # Interpolation
     for t = 1:length(timeorig)
-        # spline = Spline2D(lonorig, latorig, dataorig[t, :, :])
-        # OUT[t, :, :] = evalgrid(spline, X[1, 500:550], Y[460:-1:400, 1])
 
         itp = interpolate(dataorig[t, :, :], BSpline(Linear()), OnCell())
         sitp = scale(itp, lonorigrange, latorigrange)
@@ -206,6 +203,50 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
     dataOut = AxisArray(OUT, Axis{:time}(timeorig), Axis{:lon}(londest), Axis{:lat}(latdest))
 
     C = ClimateTools.ClimGrid(dataOut, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = B.latunits, lonunits = B.lonunits, variable = A.variable, typeofvar = A.variable, typeofcal = A.typeofcal)
+end
+
+function interp_climgrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)
+
+    # Convert longitude to 0-360 degrees
+    londest[londest .< 0.] += 360.
+
+    # Get lat-lon information from ClimGrid A
+    lonorig = A[1][Axis{:lon}][:]
+    latorig = A[1][Axis{:lat}][:]
+
+    # -----------------------------------------
+    # Get initial data and time from ClimGrid A
+    dataorig = A[1].data
+    timeorig = A[1][Axis{:time}][:] # the function will need to loop over time
+
+    # Create lat-lon range consistent with length of data
+    latorigrange = linspace(latorig[1], latorig[end], length(latorig))
+    lonorigrange = linspace(lonorig[1], lonorig[end], length(lonorig))
+
+    # ---------------------
+    # Allocate output Array
+    OUT = zeros(Float64, (length(timeorig), length(londest), length(latdest)))
+
+    # ------------------------
+    # Interpolation
+    for t = 1:length(timeorig)
+
+        itp = interpolate(dataorig[t, :, :], BSpline(Linear()), OnCell())
+        sitp = scale(itp, lonorigrange, latorigrange)
+
+        for ilon = 1:length(londest)
+            for ilat = 1:length(latdest)
+                OUT[t, ilon, ilat] = sitp[londest[ilon], latdest[ilat]]
+            end
+        end
+
+    end
+
+    # -----------------------
+    # Construct AxisArrays and ClimGrid struct from array OUT
+    dataOut = AxisArray(OUT, Axis{:time}(timeorig), Axis{:lon}(londest), Axis{:lat}(latdest))
+
+    C = ClimateTools.ClimGrid(dataOut, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = "degrees_north", lonunits = "degrees_east", variable = A.variable, typeofvar = A.variable, typeofcal = A.typeofcal)
 end
 
 """

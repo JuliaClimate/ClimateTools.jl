@@ -80,6 +80,7 @@ elseif isempty(poly) # no polygon clipping
     end
   end
 
+  # Convert units of optional argument data_units is provided
   if data_units == "Celsius" && (variable == "tas" || variable == "tasmax" || variable == "tasmin") && dataunits == "K"
     data = data - 273.15
     dataunits = "Celsius"
@@ -237,7 +238,7 @@ function timeresolution(str::String)
     if length(timevec) > 1
         timediff = diff(timevec)[1]
         if timediff == 1. || timediff == 1
-            return "daily"
+            return "24h"
         elseif timediff == 0.5
             return "12h"
         elseif timediff == 0.25
@@ -259,7 +260,7 @@ This function return the time factor that should be applied to ptrecipitation to
 
 function pr_timefactor(rez::String)
 
-    if rez == "daily"
+    if rez == "24h"
         return 86400.
     elseif rez == "12h"
         return 43200.
