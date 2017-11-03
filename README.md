@@ -39,10 +39,10 @@ Pkg.checkout("ClimateTools") # For latest master branch
 The entry point of `ClimateTools` is to load data with the `nc2julia` function. Optional polygon clipping feature is available. By providing such polygon, the `nc2julia` function  returns a `ClimGrid` with grid points contained in the polygon.
 
 ```julia
-C = nc2julia(filename::String, var::String; poly::Array)
+C = nc2julia(filename::String, var::String; poly::Array, data_units::String)
 ```
 
-`nc2julia` return a `ClimGrid` type.
+`nc2julia` return a `ClimGrid` type. For some variable, the optional keyword argument `data_units` can be provided. For example, precipitation in climate models are usually provided as `kg/m^2/s`. By specifying `data_units = mm`, the `nc2julia` function returns accumulation at the data time resolution. Similarly, the user can provide `Celsius` as `data_units` and `nc2julia` will return `Celsius` instead of `Kelvin`.
 
 ```julia
 struct ClimGrid
