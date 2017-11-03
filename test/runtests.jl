@@ -503,6 +503,7 @@ lon += 1
 axisdata = AxisArray(C[1].data, Axis{:time}(C[1][Axis{:time}][:]), Axis{:lon}(lon), Axis{:lat}(lat))
 C2 = ClimGrid(axisdata, variable = "tas")
 @test interp_climgrid(C, C2)[1].data[1, 1, 1] == 215.83078002929688
+@test interp_climgrid(C, lon, lat)[1].data[1, 1, 1] == 215.83078002929688
 
 # Test applymask
 # 1-D data
