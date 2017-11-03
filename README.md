@@ -22,10 +22,6 @@ Pkg.add("ClimateTools") # Tagged release
 Pkg.checkout("ClimateTools") # For latest master branch
 ```
 
-## Contributors
-
-If you'd like to have other climate indices coded, please, submit them through a Pull Request! I'd be more than happy to include them. Alternatively, provide the equation in Issues.
-
 ## Objectives
 
 * Visualization of NetCDF files (e.g. temporal mean of a given NetCDF file), for rapid evaluation of NetCDF files
@@ -40,7 +36,7 @@ If you'd like to have other climate indices coded, please, submit them through a
 
 ### Reading a NetCDF file
 
-The entry point of `ClimateTools` is to load data with the `nc2julia` function.
+The entry point of `ClimateTools` is to load data with the `nc2julia` function. Optional polygon clipping feature is available. By providing such polygon, the `nc2julia` function  returns a `ClimGrid` with grid points contained in the polygon.
 
 ```julia
 C = nc2julia(filename::String, var::String; poly::Array)
@@ -50,23 +46,16 @@ C = nc2julia(filename::String, var::String; poly::Array)
 
 ```julia
 struct ClimGrid
-  data::AxisArray
-  model::String
-  experiment::String
-  run::String
-  filename::String
-  dataunits::String
-  latunits::String
-  lonunits::String
-  var::String
+  data::AxisArray # Data
+  model::String # Climate model name
+  experiment::String # Historical, RCP 4.5, RCP 8.5, etc.
+  run::String # Which member
+  filename::String # local filename path
+  dataunits::String # Celsius, kelvin, etc..
+  latunits::String # degrees_north, degrees_south
+  lonunits::String # degrees_east
+  var::String # "pr", "tasmax", etc...
 end
-```
-
-### Merging ClimGrid type
-Sometimes, the timeseries are split among multiple files (mostly climate models outputs). To obtain the complete timeseries, you can `merge` 2 `ClimGrid`. The method is based on the merging of 2 `AxisArrays` and is overloaded for the `ClimGrid` type.
-
-```julia
-C = merge(C1::ClimGrid, C2::ClimGrid)
 ```
 
 ### Mapping the ClimGrid type
@@ -88,13 +77,13 @@ In a future release, the user will have the option to specify his own time perio
 
 ### Indices
 
-Some indices are available in the packages, such as the annual number of tropical nights, annual maximum and minimum, etc. you can calculate such indices with:
+More than 20 climate indices are available in the package, such as the annual number of tropical nights, annual maximum and minimum, etc. You can calculate such indices simply with:
 
 ```julia
 ind = annualmax(C::ClimGrid)
 ```
 
-Which returns another `ClimGrid`. You can also map this `ClimGrid` with the `mapclimgrid` function and returns the climatological mean of the annual maximum (e.g. daily precipitation in the example below). A list of indices can be found in the documentation.
+Which returns another `ClimGrid`. You can also map this `ClimGrid` with the `mapclimgrid` function and returns the climatological mean of the annual maximum (e.g. daily precipitation in the example below). A list of indices can be found in the documentation and in the `functions.jl` source code.
 
 <p align="center">
   <img src="https://cloud.githubusercontent.com/assets/3630311/23873133/59b85c08-0807-11e7-967b-7cc7d28aada0.png?raw=true" width="771" height="388" alt="Precipitation example"/>
@@ -113,6 +102,18 @@ A typical step in climate analysis is to interpolate a given grid onto another g
 ```julia
 C = interp_climgrid(A::ClimGrid, B::ClimGrid)
 ```
+
+### Merging ClimGrid type
+
+Sometimes, the timeseries are split among multiple files (mostly climate models outputs). To obtain the complete timeseries, you can `merge` 2 `ClimGrid`. The method is based on the merging of 2 `AxisArrays` and is overloaded for the `ClimGrid` type.
+
+```julia
+C = merge(C1::ClimGrid, C2::ClimGrid)
+```
+
+## Contributors
+
+If you'd like to have other climate indices coded, please, submit them through a Pull Request! I'd be more than happy to include them. Alternatively, provide the equation in Issues.
 
 ## TO-DO
 
