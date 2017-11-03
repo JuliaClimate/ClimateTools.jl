@@ -260,15 +260,15 @@ This function return the time factor that should be applied to ptrecipitation to
 function pr_timefactor(rez::String)
 
     if rez == "daily"
-        return 86400
+        return 86400.
     elseif rez == "12h"
-        return 43200
+        return 43200.
     elseif rez == "6h"
-        return 21600
+        return 21600.
     elseif rez == "3h"
-        return 10800
+        return 10800.
     elseif rez == "N/A"
-        return 1
+        return 1.
     end
 
 end
