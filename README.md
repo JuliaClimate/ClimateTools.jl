@@ -46,15 +46,15 @@ C = nc2julia(filename::String, var::String; poly::Array, data_units::String)
 
 ```julia
 struct ClimGrid
-  data::AxisArray # Data
-  model::String # Climate model name
+  data::AxisArray    # Data
+  model::String      # Climate model name
   experiment::String # Historical, RCP 4.5, RCP 8.5, etc.
-  run::String # Which member
-  filename::String # local filename path
-  dataunits::String # Celsius, kelvin, etc..
-  latunits::String # degrees_north, degrees_south
-  lonunits::String # degrees_east
-  var::String # "pr", "tasmax", etc...
+  run::String        # Which member
+  filename::String   # local filename path
+  dataunits::String  # Celsius, kelvin, etc..
+  latunits::String   # degrees_north, degrees_south
+  lonunits::String   # degrees_east
+  var::String        # "pr", "tasmax", etc...
 end
 ```
 
