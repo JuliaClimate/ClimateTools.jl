@@ -6,7 +6,7 @@ Returns a ClimGrid type with the data in *file* of variable *var* inside the pol
 Inside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude and latitude dimensions.
 """
 
-function nc2julia(file::String, variable::String; poly = Array{Float64}([]))
+function nc2julia(file::String, variable::String; poly = Array{Float64}([]), data_units::String = "")
 
   # Get attributes for type "ClimGrid"
   ncI = NetCDF.ncinfo(file)
@@ -80,18 +80,30 @@ elseif isempty(poly) # no polygon clipping
     end
   end
 
-  if dataunits == "K"
+  # Convert units of optional argument data_units is provided
+  if data_units == "Celsius" && (variable == "tas" || variable == "tasmax" || variable == "tasmin") && dataunits == "K"
     data = data - 273.15
     dataunits = "Celsius"
   end
 
+  if data_units == "mm" && variable == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")
+
+    rez = timeresolution(file)
+    factor = pr_timefactor(rez)
+    data = data * factor
+    if rez != "N/A"
+        dataunits = string("mm/",rez)
+    else
+        dataunits = "mm"
+    end
+  end
+
   # Create AxisArray from variable "data"
   if ndims(data) == 3
-
     # Convert data to AxisArray
     dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat))
   elseif ndims(data) == 4 # this imply a 3D field (height component)
-
+    # Get level vector
     plev = NetCDF.ncread(file, "plev")
     # Convert data to AxisArray
     dataOut = AxisArray(data, Axis{:time}(timeV), Axis{:lon}(lon), Axis{:lat}(lat), Axis{:plev}(plev))
@@ -152,7 +164,11 @@ elseif calType == "gregorian" || calType == "standard"
 end
 
 """
-    sumleapyear(dateV::)
+Number of leap years in date vector
+
+    sumleapyear(dates::StepRange{Date,Base.Dates.Day})
+
+    sumleapyear(initDate::Date, timeRaw)
 """
 function sumleapyear(initDate::Date, timeRaw)
 
@@ -175,7 +191,7 @@ function sumleapyear(dates::StepRange{Date,Base.Dates.Day})
 
   out = 0::Int
   endDate = dates[end]#initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
-  years = unique(Dates.year(dates))
+  years = unique(Dates.year.(dates))
   # Sum over time vector
   for idx = 1:length(years)
     if Dates.isleapyear(years[idx])
@@ -189,7 +205,7 @@ function sumleapyear(dates::StepRange{Date,Base.Dates.Day})
 end
 
 """
-This function return the polygons contained in shp.shapes[i] (return type of Shapefile.jl package). It returns the x and y coordinates.
+This function return the polygons contained in shp.shapes[i] (return type of Shapefile.jl package). It returns the x and y coordinates vectors.
 
     shapefile_coords(poly::Shapefile.Polygon)
 
@@ -209,55 +225,51 @@ function shapefile_coords(poly::Shapefile.Polygon)
     x, y
 end
 
+"""
+This function return the time resolution of the netCDF file "str"
 
-# function inpolygon2{T<:Number}(x:: T, y:: T, vx:: Vector{T}, vy:: Vector{T})
-#     @assert length(vx) == length(vy)
-#     c = false
-#     j = length(vx)
-#     @inbounds for i=1:length(vx)
-#         if (((vy[i] <= y && y < vy[j]) ||
-#             (vy[j] <= y && y < vy[i])) &&
-#             (x < (vx[j] - vx[i]) * (y - vy[i]) / (vy[j] - vy[i]) + vx[i]))
-#             c = !c
-#         end
-#         j = i
-#     end
-#     return c
-# end
+    function timeresolution(str:String)
 
-# function fillpoly!{T}(M::Matrix{T}, px::Vector{Int}, py::Vector{Int}, value::T)
-#     @assert length(px) == length(py)
-#     left, right = minimum(px), maximum(px)
-#     top, bottom = minimum(py), maximum(py)
-#     @inbounds for x=left:right
-#         ys = Set{Int64}()
-#         j = length(px)
-#         for i=1:length(px)
-#             if (px[i] <= x && x <= px[j]) || (px[j] <= x && x <= px[i])
-#                 # special case: adding the whole cut to ys
-#                 if px[i] == px[j]
-#                     push!(ys, py[i])
-#                     push!(ys, py[j])
-#                 else
-#                     y = py[i] + (x - px[i]) / (px[j] - px[i]) * (py[j] - py[i])
-#                     push!(ys, int(y))
-#                 end
-#             end
-#             j = i
-#         end
-#         ys = sort([y for y in ys])
-#         # if there's an odd number of intersection points, add one imeginary point
-#         if length(ys) % 2 == 1
-#             push!(ys, ys[end])
-#         end
-#         for i=1:2:length(ys)
-#             M[ys[i]:ys[i+1], x] = value
-#         end
-#     end
-#     return M
-# end
-#
-# function poly2mask(px::Vector{Int}, py::Vector{Int}, m::Int, n::Int)
-#     mask = zeros(Bool, m, n)
-#     fillpoly!(mask, px, py, true)
-# end
+"""
+
+function timeresolution(str::String)
+
+    timevec = (NetCDF.ncread(str, "time"))
+    if length(timevec) > 1
+        timediff = diff(timevec)[1]
+        if timediff == 1. || timediff == 1
+            return "24h"
+        elseif timediff == 0.5
+            return "12h"
+        elseif timediff == 0.25
+            return "6h"
+        elseif timediff == 0.125
+            return "3h"
+        end
+    else
+        return "N/A"
+    end
+end
+
+"""
+This function return the time factor that should be applied to ptrecipitation to get accumulation for resolution "rez"
+
+    function pr_timefactor(rez:String)
+
+"""
+
+function pr_timefactor(rez::String)
+
+    if rez == "24h"
+        return 86400.
+    elseif rez == "12h"
+        return 43200.
+    elseif rez == "6h"
+        return 21600.
+    elseif rez == "3h"
+        return 10800.
+    elseif rez == "N/A"
+        return 1.
+    end
+
+end

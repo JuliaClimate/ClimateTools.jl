@@ -255,6 +255,16 @@ status, figh = mapclimgrid(C, mask = msk); @test status == true; PyPlot.close()
 @test isnan(x[1])
 @test isnan(y[1])
 
+filename = joinpath(dirname(@__FILE__), "data", "zoneAgricoleQc15km.shp")
+polyshp = read(filename,Shapefile.Handle)
+x, y = shapefile_coords(polyshp.shapes[2])
+P = [x y]
+P = P'
+cities_lat = collect(45.5016889:0.1:46.8138783)
+cities_lon = collect(-73.56725599999999:0.1:-71.2079809) + 360
+@test sum(.!isnan.(inpolyvec(cities_lon, cities_lat, P))) == 336
+@test sum(.!isnan.(inpolyvec(cities_lon - 360, cities_lat, P))) == 336
+
 # Mapping test
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = nc2julia(filename, "tas")
@@ -275,12 +285,17 @@ status, figh = mapclimgrid(prcp1(C), region = "NorthAmerica");@test status == tr
 
 # ua wind
 C = nc2julia(filename, "ua")
-status, figh = mapclimgrid(C, level = 3);@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, level = 3);@test status == true; PyPlot.close() # given level
+status, figh = mapclimgrid(C);@test status == true; PyPlot.close() # feeding a 4D field
+status, figh = mapclimgrid(C, poly = P);@test status == true; PyPlot.close() # feeding a 4D field with a polygon
+status, figh = mapclimgrid(C, mask = msk);@test status == true; PyPlot.close() # feeding a 4D field with a mask
 
 # test that nc2julia return a ClimGrid type
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = nc2julia(filename, "tas")
-@test typeof(nc2julia(filename, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float64,3,Array{Float64,3},Tuple{AxisArrays.Axis{:time,Array{Date,1}},AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}}}}}
+@test nc2julia(filename, "tas", data_units = "Celsius")[2] == "Celsius"
+@test nc2julia(filename, "pr", data_units = "mm")[2] == "mm"
+@test typeof(nc2julia(filename, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:time,Array{Date,1}},AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}}}}}
 
 @test typeof(buildtimevec(filename)) == Array{Date, 1}
 
@@ -298,8 +313,8 @@ B = vcat(C, C)
 B = merge(C, C)
 @test size(B.data) == (1, 256, 128) # C being similar, they should not add up, as opposed to vcat
 # @test typeof(show(C)) == Dict{Any, Any}
-@test typeof(C[1].data) == Array{Float64,3} || Array{Float32,3}
-@test C[2] == "Celsius"
+@test typeof(C[1].data) == Array{Float64,3} || typeof(C[1].data) == Array{Float32,3}
+@test C[2] == "K"
 @test C[3] == "N/A"
 @test C[4] == "720 ppm stabilization experiment (SRESA1B)"
 @test C[5] == "N/A"
@@ -488,7 +503,8 @@ lon = C[1][Axis{:lon}][:]
 lon += 1
 axisdata = AxisArray(C[1].data, Axis{:time}(C[1][Axis{:time}][:]), Axis{:lon}(lon), Axis{:lat}(lat))
 C2 = ClimGrid(axisdata, variable = "tas")
-@test interp_climgrid(C, C2)[1].data[1, 1, 1] == -57.31921250711309
+@test interp_climgrid(C, C2)[1].data[1, 1, 1] == 215.83078002929688
+@test interp_climgrid(C, lon, lat)[1].data[1, 1, 1] == 215.83078002929688
 
 # Test applymask
 # 1-D data
@@ -530,3 +546,12 @@ for i = 1:size(data, 1)
     @test applymask(data, mask)[i, 3, 1, 1] == data[i, 3, 1, 1]
     @test applymask(data, mask)[i, 3, 2, 1] == data[i, 3, 2, 1]
 end
+
+# Test sumleapyear with StepRange{Date,Base.Dates.Day} type
+d = Date(2003,1,1):Date(2008,12,31)
+@test sumleapyear(d) == 2
+
+# Test timeresolution and pr_timefactor
+filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
+@test timeresolution(filename) == "N/A"
+@test pr_timefactor(timeresolution(filename)) == 1.
