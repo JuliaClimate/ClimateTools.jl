@@ -555,3 +555,7 @@ d = Date(2003,1,1):Date(2008,12,31)
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 @test timeresolution(filename) == "N/A"
 @test pr_timefactor(timeresolution(filename)) == 1.
+@test pr_timefactor("24h") == 86400.
+@test pr_timefactor("12h") == 43200.
+@test pr_timefactor("6h") == 21600.
+@test pr_timefactor("3h") == 10800.
