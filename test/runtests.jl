@@ -310,6 +310,7 @@ B = merge(C, C)
 @test annualmax(C)[9] == "annualmax"
 @test C[10] == "tas"
 @test C[11] == "noleap"
+@test_throws ErrorException C[12]
 @test annualmax(C)[10] == "tas"
 @test size(C) == (11, )
 @test size(C, 1) == 11
