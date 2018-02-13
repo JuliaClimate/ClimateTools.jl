@@ -78,6 +78,11 @@ include("interface.jl")
 include("mapping.jl")
 
 # Exported functions
-export windnr, leftorright, inpoly, meshgrid, prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder, annualmax, annualmin, annualmean, annualsum, nc2julia, sumleapyear, buildtimevec, mapclimgrid, interp_climgrid, ClimGrid, inpolyvec, applymask, shapefile_coords, timeresolution, pr_timefactor
+export windnr, leftorright, inpoly, meshgrid, prcp1
+export frostdays, summerdays, icingdays, tropicalnights
+export customthresover, customthresunder, annualmax, annualmin
+export annualmean, annualsum, nc2julia, sumleapyear, buildtimevec
+export mapclimgrid, interp_climgrid, ClimGrid, inpolyvec, applymask
+export shapefile_coords, timeresolution, pr_timefactor, spatialsubset
 
 end #module
