@@ -1,8 +1,21 @@
+"""
+    vcat(A::ClimGrid, B::ClimGrid)
+
+Combines two ClimGrid. Based on the AxisArrays method. Better way to do it would be to use the merge method.
+"""
+
 function Base.vcat(A::ClimGrid, B::ClimGrid)
   axisArraytmp = vcat(A.data, B.data)
+  # TODO add axis information in the creation of the AxisArray
   axisArray = AxisArray(axisArraytmp)
   ClimGrid(axisArray, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
 end
+
+"""
+    merge(A::ClimGrid, B::ClimGrid)
+
+Combines two ClimGrid. Based on the AxisArrays method.
+"""
 
 function Base.merge(A::ClimGrid, B::ClimGrid)
   axisArray = merge(A.data, B.data)

@@ -1,12 +1,14 @@
 """
-    nc2julia(file::String, var::String; poly::Array)
+    nc2julia(file::String, variable::String; poly = Array{Float64}([]), data_units::String = "")
 
 Returns a ClimGrid type with the data in *file* of variable *var* inside the polygon *poly*. Metadata is built-in the ClimGrid type.
 
 Inside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude and latitude dimensions.
+
+Options for data_units are for precipitation : "mm", which converts the usual "kg m-2 s-1" unit found in netCDF files. For temperature : "Celsius", which converts the usual "Kelvin" unit.
 """
 
-function nc2julia(file::String, variable::String; poly = Array{Float64}([]), data_units::String = "")
+function nc2julia(file::String, variable::String; poly = Array{N, 2}([]) where N, data_units::String = "")
 
   # Get attributes for type "ClimGrid"
   ncI = NetCDF.ncinfo(file)
@@ -111,6 +113,8 @@ elseif isempty(poly) # no polygon clipping
     throw(error("nc2julia takes only 3D and 4D variables for the moment"))
   end
 
+  NetCDF.ncclose(file)
+
   return ClimGrid(dataOut, model = model, experiment = experiment, run = runsim, filename = file, dataunits = dataunits, latunits = latunits, lonunits = lonunits, variable = variable, typeofvar = variable, typeofcal = caltype)
 
 
@@ -137,31 +141,57 @@ function buildtimevec(str::String)
     nDays = 365
     # get time of netCDF file *str*
     timeRaw = floor.(NetCDF.ncread(str, "time"))
-    leapDaysPer = sumleapyear(initDate, timeRaw[1])
+    leapDaysPer = sumleapyear(initDate, timeRaw[1] - 1)
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
-    startDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1]))) + Base.Dates.Day(leapDaysPer)
-    endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[end]))) + Base.Dates.Day(leapDaysPer2)
+    startDate = initDate + Base.Dates.Day(convert(Int64, round(timeRaw[1]))) + Base.Dates.Day(leapDaysPer)
+    endDate = initDate + Base.Dates.Day(convert(Int64, round(timeRaw[end]))) + Base.Dates.Day(leapDaysPer2)
 
     dateTmp = Date(startDate):Date(endDate)
-    # REMOVE leap year
+
+    # REMOVE leap year (i.e. climate models use a no leap calendar)
     idx = (Dates.month.(dateTmp) .== 2) .&  (Dates.day.(dateTmp) .== 29)
     if length(idx) !== 1
       dateTmp = dateTmp[.!idx]
     else
       dateTmp = Array{Date}(dateTmp)
     end
-elseif calType == "gregorian" || calType == "standard"
+
+elseif calType == "gregorian" || calType == "standard" || calType == "proleptic_gregorian"
     timeRaw = floor.(NetCDF.ncread(str, "time"))
     leapDaysPer = sumleapyear(initDate, timeRaw[1])
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
     startDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
     endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[end])))
     dateTmp = Date(startDate):Date(endDate)
+
+elseif calType == "360_day"
+
+    timeRaw = floor.(NetCDF.ncread(str, "time"))
+    leapDaysPer = sumleapyear(initDate, timeRaw[1] - 1)
+    leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
+
+    startDate = initDate + Base.Dates.Day(convert(Int64, round(timeRaw[1]))) + Base.Dates.Day(leapDaysPer)
+    endDate = initDate + Base.Dates.Day(convert(Int64, round(timeRaw[end]))) + Base.Dates.Day(leapDaysPer2)
+
+    dateTmp = Date(startDate):Date(endDate)
+
+
   end
   # output date vector
   dateTmp = convert(Array{Date, 1}, dateTmp)
   return dateTmp
 end
+
+# function buildtimevec2(str::String)
+#
+#   # Time vectors
+#   timevector = NetCDF.ncread(str, "time_vectors")
+#   if size(timevector, 1) < size(timevector, 2)
+#       timevector = timevector'
+#   end
+#
+#   return Base.Date.(timevector)
+# end
 
 """
 Number of leap years in date vector
@@ -180,7 +210,7 @@ function sumleapyear(initDate::Date, timeRaw)
     if Dates.isleapyear(years[idx])
       out += 1
     end
-    # out[idx] = Dates.isleapyear(test[idx])
+
   end
 
   return out
@@ -228,7 +258,7 @@ end
 """
 This function return the time resolution of the netCDF file "str"
 
-    function timeresolution(str:String)
+    function timeresolution(str::String)
 
 """
 
@@ -254,7 +284,7 @@ end
 """
 This function return the time factor that should be applied to ptrecipitation to get accumulation for resolution "rez"
 
-    function pr_timefactor(rez:String)
+    function pr_timefactor(rez::String)
 
 """
 
@@ -271,5 +301,57 @@ function pr_timefactor(rez::String)
     elseif rez == "N/A"
         return 1.
     end
+
+end
+
+
+"""
+Returns the spatial subset of ClimGrid C. The spatial subset is defined by a polygon poly
+
+    function spatialsubset(C::ClimGrid, poly::Array{N, 2})
+
+"""
+
+function spatialsubset(C::ClimGrid, poly::Array{N, 2} where N)
+
+    # Some checks for polygon poly
+
+    if size(poly, 1) != 2 && size(poly, 2) == 2
+        # transpose
+        poly = poly'
+    end
+
+    lat = C[1][Axis{:lat}][:]
+    lon = C[1][Axis{:lon}][:]
+
+    msk = inpolyvec(lon, lat, poly)
+    idlon, idlat = findn(.!isnan.(msk))
+    minXgrid = minimum(idlon)
+    maxXgrid = maximum(idlon)
+    minYgrid = minimum(idlat)
+    maxYgrid = maximum(idlat)
+
+    # Get DATA
+    data = C[1].data
+
+    if ndims(data) == 3
+        data = data[:, minXgrid:maxXgrid, minYgrid:maxYgrid]
+    elseif ndims(data) == 4
+        data = data[:, minXgrid:maxXgrid, minYgrid:maxYgrid, :]
+    end
+
+    #new mask (e.g. representing the region of the polygon)
+    msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
+    data = applymask(data, msk)
+
+    # Get lon-lat for such region
+    lon = lon[minXgrid:maxXgrid]
+    lat = lat[minYgrid:maxYgrid]
+
+    dataOut = AxisArray(data, Axis{:time}(C[1][Axis{:time}][:]), Axis{:lon}(lon), Axis{:lat}(lat))
+
+    return ClimGrid(dataOut, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, variable = C.variable, typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+
+
 
 end
