@@ -42,7 +42,7 @@ The entry point of `ClimateTools` is to load data with the `nc2julia` function. 
 C = nc2julia(filename::String, var::String; poly::Array, data_units::String)
 ```
 
-`nc2julia` return a `ClimGrid` type. For some variable, the optional keyword argument `data_units` can be provided. For example, precipitation in climate models are usually provided as `kg/m^2/s`. By specifying `data_units = mm`, the `nc2julia` function returns accumulation at the data time resolution. Similarly, the user can provide `Celsius` as `data_units` and `nc2julia` will return `Celsius` instead of `Kelvin`.
+`nc2julia` return a `ClimGrid` type. Using the optional `poly` argument, the user can provide a polygon and the returned `ClimGrid` will only contains the grid points inside the provided polygon. For some variable, the optional keyword argument `data_units` can be provided. For example, precipitation in climate models are usually provided as `kg/m^2/s`. By specifying `data_units = mm`, the `nc2julia` function returns accumulation at the data time resolution. Similarly, the user can provide `Celsius` as `data_units` and `nc2julia` will return `Celsius` instead of `Kelvin`.
 
 ```julia
 struct ClimGrid
@@ -58,9 +58,15 @@ struct ClimGrid
 end
 ```
 
+Furthermore, there is also the `spatialsubset` function which acts on `ClimGrid` type and further subset the data through a spatial subset using a provided polygon.
+
+```julia
+spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
+```
+
 ### Mapping the ClimGrid type
 
-You can map this `ClimGrid` variable by using `mapclimgrid`:
+Mapping climate information can be done by using `mapclimgrid`:
 ```julia
 mapclimgrid(C::ClimGrid; region = "World")
 ```
@@ -111,7 +117,7 @@ C = interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N,
 
 ### Merging ClimGrid type
 
-Sometimes, the timeseries are split among multiple files (mostly climate models outputs). To obtain the complete timeseries, you can `merge` 2 `ClimGrid`. The method is based on the merging of 2 `AxisArrays` and is overloaded for the `ClimGrid` type.
+Sometimes, the timeseries are split among multiple files (e.g. climate models outputs). To obtain the complete timeseries, you can `merge` 2 `ClimGrid`. The method is based on the merging of 2 `AxisArrays` and is overloaded for the `ClimGrid` type.
 
 ```julia
 C = merge(C1::ClimGrid, C2::ClimGrid)
@@ -128,7 +134,7 @@ If you'd like to have other climate indices coded, please, submit them through a
 * Add a more complex quantile-quantile mapping technique, combining extreme value theory and quantile-quantile standard technique
 * Add GRIB file support (probably through [GMT.jl](https://github.com/joa-quim/GMT.jl))
 
-N.B. version 0.1.2 is compatible with Julia 0.5 and version 0.2.0 is for Julia 0.6. To use a specific version of the package, you can use in Julia the following command:
+N.B. version 0.1.2 is compatible with Julia 0.5 and version >0.2.0 is for Julia 0.6. To use a specific version of the package, you can use in Julia the following command:
 
 ```julia
 Pkg.pin("ClimateTools",v"0.1.2") # if using Julia 0.5
