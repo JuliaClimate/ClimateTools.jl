@@ -131,6 +131,7 @@ If you'd like to have other climate indices coded, please, submit them through a
 
 * Add a standard quantile-quantile mapping technique
 * Dashboard tool. This will return the main characteristics of a ClimGrid: maps of minimum, maximum and mean climatological values, seasonal cycle, timeseries of annual maximum, minimum and mean values, etc...
+* Create a WeatherStation type.
 * Add a more complex quantile-quantile mapping technique, combining extreme value theory and quantile-quantile standard technique
 * Add GRIB file support (probably through [GMT.jl](https://github.com/joa-quim/GMT.jl))
 
