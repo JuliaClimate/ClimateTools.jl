@@ -1,7 +1,7 @@
 """
-    prcp1(data::AbstractArray, timevector::StepRange{Date,Base.Dates.Day})
+    prcp1(C::ClimGrid)
 
-Annual number with preciptation over 1 mm. This function returns a boolean vector. *true* if the data is higher or equal to 1 and *false* otherwise.
+Annual number with preciptation >= 1 mm. This function returns a ClimGrid.
 """
 
 function prcp1(C::ClimGrid)
@@ -23,6 +23,12 @@ function prcp1(C::ClimGrid)
   # Return climGrid type containing the indice
   return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = "prcp1", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
+
+"""
+    prcp1(data::AbstractArray, timevector::StepRange{Date,Base.Dates.Day})
+
+Annual number with preciptation >= 1 mm. This function returns a boolean vector. *true* if the data is higher or equal to 1 and *false* otherwise.
+"""
 
 function prcp1(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year.(timeV)
@@ -61,13 +67,13 @@ function prcp1(data::AbstractArray{N, 3} where N, timeV::StepRange{Date, Base.Da
 end
 
 """
-  frostdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+    frostdays(C::ClimGrid)
 
 FD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0 Celsius.
 
-Let TN(i,j) be daily minimum temperature on day i in year j. Count the number of days where:
+Let TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:
 
-  TN(i,j) < 0 Celsius.
+  TN[i,j] < 0 Celsius.
 """
 
 function frostdays(C::ClimGrid)
@@ -89,6 +95,16 @@ function frostdays(C::ClimGrid)
   # Return climGrid type containing the indice
   return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = "frostdays", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
+
+"""
+    frostdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+
+FD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0 Celsius.
+
+Let TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:
+
+  TN[i,j] < 0 Celsius.
+"""
 
 function frostdays(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year.(timeV)
@@ -127,13 +143,13 @@ function frostdays(data::AbstractArray{N, 3} where N, timeV::StepRange{Date, Bas
 end
 
 """
-  summerdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+    summerdays(C::ClimGrid)
 
 SD, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25 degree Celsius.
 
-Let TX(i,j) be daily maximum temperature on day i in year j. Count the number of days where:
+Let TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:
 
-  TX(i,j) >= 25 Celsius.
+  TX[i,j] > 25 Celsius.
 """
 
 function summerdays(C::ClimGrid)
@@ -146,7 +162,7 @@ function summerdays(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 25, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
+    Base.mapreducedim!(t -> t > 25, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
   end
 
   # Build output AxisArray
@@ -156,6 +172,17 @@ function summerdays(C::ClimGrid)
   return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = "summerdays", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
 
+
+"""
+    summerdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+
+SD, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25 degree Celsius.
+
+Let TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:
+
+  TX[i,j] > 25 Celsius.
+"""
+
 function summerdays(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year.(timeV)
   numYears = unique(years)
@@ -163,7 +190,7 @@ function summerdays(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Ba
 
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 25, +, view(FD, i:i), view(data, idx))
+    Base.mapreducedim!(t -> t > 25, +, view(FD, i:i), view(data, idx))
   end
   return FD
 end
@@ -175,7 +202,7 @@ function summerdays(data::AbstractArray{N, 2} where N, timeV::StepRange{Date, Ba
 
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 25, +, view(FD, i:i, :), view(data, idx, :, :))
+    Base.mapreducedim!(t -> t > 25, +, view(FD, i:i, :), view(data, idx, :, :))
   end
   return FD
 end
@@ -187,19 +214,19 @@ function summerdays(data::AbstractArray{N, 3} where N, timeV::StepRange{Date, Ba
 
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 25, +, view(FD, i:i, :, :), view(data, idx, :, :))
+    Base.mapreducedim!(t -> t > 25, +, view(FD, i:i, :, :), view(data, idx, :, :))
   end
   return FD
 end
 
 """
-  icingdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+    icingdays(C::ClimGrid)
 
 ID, Number of summer days: Annual count of days when TX (daily maximum temperature) < 0 degree Celsius.
 
-Let TX(i,j) be daily maximum temperature on day i in year j. Count the number of days where:
+Let TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:
 
-  TX(i,j) < 0 Celsius.
+  TX[i,j] < 0 Celsius.
 """
 
 function icingdays(C::ClimGrid)
@@ -222,6 +249,17 @@ function icingdays(C::ClimGrid)
   return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = "icingdays", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
 
+
+"""
+    icingdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+
+ID, Number of summer days: Annual count of days when TX (daily maximum temperature) < 0 degree Celsius.
+
+Let TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:
+
+  TX[i,j] < 0 Celsius.
+"""
+
 function icingdays(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day})
   return frostdays(data, timeV)
 end
@@ -235,13 +273,13 @@ function icingdays(data::AbstractArray{N, 3} where N, timeV::StepRange{Date, Bas
 end
 
 """
-  tropicalnights(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+    tropicalnights(C::ClimGrid)
 
 TropicalNights, Number of tropical nights: Annual count of days when TN (daily maximum temperature) > 20 degree Celsius.
 
-Let TN(i,j) be daily minimum temperature on day i in year j. Count the number of days where:
+Let TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:
 
-  TN(i,j) > 20 Celsius.
+  TN[i,j] > 20 Celsius.
 """
 
 function tropicalnights(C::ClimGrid)
@@ -254,7 +292,7 @@ function tropicalnights(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 20, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
+    Base.mapreducedim!(t -> t > 20, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
   end
 
   # Build output AxisArray
@@ -264,6 +302,16 @@ function tropicalnights(C::ClimGrid)
   return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = "tropicalnights", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
 
+"""
+    tropicalnights(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+
+TropicalNights, Number of tropical nights: Annual count of days when TN (daily maximum temperature) > 20 degree Celsius.
+
+Let TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:
+
+  TN[i,j] > 20 Celsius.
+"""
+
 function tropicalnights(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year.(timeV)
   numYears = unique(years)
@@ -271,7 +319,7 @@ function tropicalnights(data::AbstractArray{N, 1} where N, timeV::StepRange{Date
 
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 20, +, view(FD, i:i), view(data, idx))
+    Base.mapreducedim!(t -> t > 20, +, view(FD, i:i), view(data, idx))
   end
   return FD
 end
@@ -283,7 +331,7 @@ function tropicalnights(data::AbstractArray{N, 2} where N, timeV::StepRange{Date
 
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 20, +, view(FD, i:i, :), view(data, idx, :, :))
+    Base.mapreducedim!(t -> t > 20, +, view(FD, i:i, :), view(data, idx, :, :))
   end
   return FD
 end
@@ -295,19 +343,19 @@ function tropicalnights(data::AbstractArray{N, 3} where N, timeV::StepRange{Date
 
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 20, +, view(FD, i:i, :, :), view(data, idx, :, :))
+    Base.mapreducedim!(t -> t > 20, +, view(FD, i:i, :, :), view(data, idx, :, :))
   end
   return FD
 end
 
 """
-  customthresover(data::AbstractArray, time::StepRange{Date,Base.Dates.Day}, thres)
+    customthresover(C::ClimGrid)
 
 customthresover, annual number of days over a specified threshold.
 
-Let TS(i,j) be a daily time serie value on day i in year j. Count the number of days where:
+Let TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:
 
-  TS(i,j) > thres.
+  TS[i,j] > thres.
 """
 
 function customthresover(C::ClimGrid, thres)
@@ -328,6 +376,16 @@ function customthresover(C::ClimGrid, thres)
   # Return climGrid type containing the indice
   return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = string("Days over ", thres, " ", C.dataunits), typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
+
+"""
+    customthresover(data::AbstractArray, time::StepRange{Date,Base.Dates.Day}, thres)
+
+customthresover, annual number of days over a specified threshold.
+
+Let TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:
+
+  TS[i,j] > thres.
+"""
 
 function customthresover(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day}, thres)
   years    = Dates.year.(timeV)
@@ -366,13 +424,13 @@ function customthresover(data::AbstractArray{N, 3} where N, timeV::StepRange{Dat
 end
 
 """
-  customthresunder(data::AbstractArray, time::StepRange{Date,Base.Dates.Day}, thres)
+    customthresunder(C::ClimGrid)
 
 customthresover, annual number of days under a specified threshold.
 
-Let TS(i,j) be a daily time serie value on day i in year j. Count the number of days where:
+Let TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:
 
-  TS(i,j) < thres.
+  TS[i,j] < thres.
 """
 
 function customthresunder(C::ClimGrid, thres)
@@ -393,6 +451,17 @@ function customthresunder(C::ClimGrid, thres)
   # Return climGrid type containing the indice
   return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = string("Days under ", thres, " ", C.dataunits), typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
+
+
+"""
+    customthresunder(data::AbstractArray, time::StepRange{Date,Base.Dates.Day}, thres)
+
+customthresover, annual number of days under a specified threshold.
+
+Let TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:
+
+    TS[i,j] < thres.
+"""
 
 function customthresunder(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day}, thres)
   years    = Dates.year.(timeV)
@@ -431,11 +500,11 @@ function customthresunder(data::AbstractArray{N, 3} where N, timeV::StepRange{Da
 end
 
 """
-  annualmax(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+    annualmax(C::ClimGrid)
 
-AM, Value of annual maximum of array data.
+Annual maximum of array data.
 
-Let data(i,j) be daily time serie on day i in year j. Extract the highest value for year j.
+Let data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.
 """
 
 function annualmax(C::ClimGrid)
@@ -456,6 +525,14 @@ function annualmax(C::ClimGrid)
   # Return climGrid type containing the indice
   return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, variable = "annualmax", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
+
+"""
+    annualmax(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+
+Annual maximum of array data.
+
+Let data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.
+"""
 
 function annualmax(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year.(timeV)
@@ -506,11 +583,11 @@ function annualmax(data::AbstractArray{N, 3} where N, timeV::Array{Date,1})
 end
 
 """
-  annualmin(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+    annualmin(C::ClimGrid)
 
-AM, Value of annual minimum of array data.
+Annual minimum of array data.
 
-Let data(i,j) be daily time serie on day i in year j. Extract the lowest value for year j.
+Let data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.
 """
 
 function annualmin(C::ClimGrid)
@@ -531,6 +608,14 @@ function annualmin(C::ClimGrid)
   # Return climGrid type containing the indice
   return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, variable = "annualmin", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
+
+"""
+    annualmin(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+
+Annual minimum of array data.
+
+Let data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.
+"""
 
 function annualmin(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year.(timeV)
@@ -569,13 +654,12 @@ function annualmin(data::AbstractArray{N, 3} where N, timeV::StepRange{Date, Bas
 end
 
 """
-  annualmean(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+    annualmean(C::ClimGrid)
 
-AM, Value of annual mean of array data.
+Annual mean of array data.
 
-Let data(i,j) be daily time serie on day i in year j. Extract the mean value for year j.
+Let data[i,j] be daily time serie on day i in year j. Calculate the mean value for year j.
 """
-
 function annualmean(C::ClimGrid)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
@@ -594,6 +678,14 @@ function annualmean(C::ClimGrid)
   # Return climGrid type containing the indice
   return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, variable = "annualmean", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
+
+"""
+    annualmean(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+
+Annual mean of array data.
+
+Let data[i,j] be daily time serie on day i in year j. Calculate the mean value for year j.
+"""
 
 function annualmean(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year.(timeV)
@@ -632,13 +724,12 @@ function annualmean(data::AbstractArray{N, 3} where N, timeV::StepRange{Date, Ba
 end
 
 """
-  annualsum(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+    annualsum(C::ClimGrid)
 
-AM, Value of annual mean of array data.
+Annual sum of array data.
 
-Let data(i,j) be daily time serie on day i in year j. Sums daily values for year j.
+Let data[i,j] be daily time serie on day i in year j. Sums daily values for year j.
 """
-
 function annualsum(C::ClimGrid)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
@@ -657,6 +748,14 @@ function annualsum(C::ClimGrid)
   # Return climGrid type containing the indice
   return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, variable = "annualsum", typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 end
+
+"""
+    annualsum(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
+
+Value of annual sum of array data.
+
+Let data[i,j] be daily time serie on day i in year j. Sums daily values for year j.
+"""
 
 function annualsum(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day})
   years    = Dates.year.(timeV)

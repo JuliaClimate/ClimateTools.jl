@@ -114,14 +114,14 @@ ind = icingdays(C)
 # Summer Days
 d = Date(2003,1,1):Date(2007,12,31)
 data = collect(1.:1826.)
-@test summerdays(data, d) == [341, 366, 365, 365, 365]
+@test summerdays(data, d) == [340, 366, 365, 365, 365]
 
 data = hcat(collect(1.:1826.), collect(1.:1826.))
-@test summerdays(data, d) == hcat([341, 366, 365, 365, 365],[341, 366, 365, 365, 365])
+@test summerdays(data, d) == hcat([340, 366, 365, 365, 365],[340, 366, 365, 365, 365])
 
 data = Array{Float64, 3}(1826, 2, 2)
 data[:, 1, 1] = collect(1.:1826.); data[:, 1, 2] = collect(1.:1826.);data[:, 2, 1] = collect(1.:1826.);data[:, 2, 2] = collect(1.:1826.);
-Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [341, 366, 365, 365, 365]''; Results[:, 1, 2] = [341, 366, 365, 365, 365]''; Results[:, 2, 1] = [341, 366, 365, 365, 365]''; Results[:, 2, 2] = [341, 366, 365, 365, 365]'';
+Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [340, 366, 365, 365, 365]''; Results[:, 1, 2] = [340, 366, 365, 365, 365]''; Results[:, 2, 1] = [340, 366, 365, 365, 365]''; Results[:, 2, 2] = [340, 366, 365, 365, 365]'';
 @test summerdays(data, d) == Results
 
 # ClimGrid based tests
@@ -133,14 +133,14 @@ ind = summerdays(C)
 # Tropical Nights
 d = Date(2003,1,1):Date(2007,12,31)
 data = collect(1.:1826.)
-@test tropicalnights(data, d) == [346, 366, 365, 365, 365]
+@test tropicalnights(data, d) == [345, 366, 365, 365, 365]
 
 data = hcat(collect(1.:1826.), collect(1.:1826.))
-@test tropicalnights(data, d) == hcat([346, 366, 365, 365, 365],[346, 366, 365, 365, 365])
+@test tropicalnights(data, d) == hcat([345, 366, 365, 365, 365],[345, 366, 365, 365, 365])
 
 data = Array{Float64, 3}(1826, 2, 2)
 data[:, 1, 1] = collect(1.:1826.); data[:, 1, 2] = collect(1.:1826.);data[:, 2, 1] = collect(1.:1826.);data[:, 2, 2] = collect(1.:1826.);
-Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [346, 366, 365, 365, 365]''; Results[:, 1, 2] = [346, 366, 365, 365, 365]''; Results[:, 2, 1] = [346, 366, 365, 365, 365]''; Results[:, 2, 2] = [346, 366, 365, 365, 365]'';
+Results = Array{Int64, 3}(5, 2, 2); Results[:, 1, 1] = [345, 366, 365, 365, 365]''; Results[:, 1, 2] = [345, 366, 365, 365, 365]''; Results[:, 2, 1] = [345, 366, 365, 365, 365]''; Results[:, 2, 2] = [345, 366, 365, 365, 365]'';
 @test tropicalnights(data, d) == Results
 
 # ClimGrid based tests
