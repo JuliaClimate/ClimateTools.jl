@@ -58,10 +58,10 @@ struct ClimGrid
 end
 ```
 
-Furthermore, there is also the `spatialsubset` function which acts on `ClimGrid` type and further subset the data through a spatial subset using a provided polygon.
+Furthermore, there is also the `spatialsubset` function which acts on `ClimGrid` type and further subset the data through a spatial subset using a user polygon. The function returns a `ClimGrid`.
 
 ```julia
-spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
+C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
 ```
 
 ### Mapping the ClimGrid type
