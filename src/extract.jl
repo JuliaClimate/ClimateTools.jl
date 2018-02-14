@@ -8,10 +8,10 @@ Inside the ClimgGrid type, the data is stored into an AxisArray data type, with 
 Options for data_units are for precipitation : "mm", which converts the usual "kg m-2 s-1" unit found in netCDF files. For temperature : "Celsius", which converts the usual "Kelvin" unit.
 """
 
-function nc2julia(file::String, variable::String; poly = Array{N, 2}([]) where N, data_units::String = "")
+function nc2julia(file::String, variable::String; poly = ([]), data_units::String = "")
 
   # Get attributes for type "ClimGrid"
-  ncI = NetCDF.ncinfo(file)
+  ncI = NetCDF.ncinfo(file);
   experiment = NetCDF.ncgetatt(file, "global", "experiment_id")
   if !isa(experiment, String)
     experiment = "N/A"
@@ -130,6 +130,7 @@ Construct the time vector from the netCDF file str
 function buildtimevec(str::String)
 
   # Time units
+  ncI = NetCDF.ncinfo(str); # seems to be necessary. Otherwise can an inconsistent error when trying to load attributes
   units = NetCDF.ncgetatt(str, "time", "units") # get starting date
   m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1) # match a date from string
   daysfrom = m.match # get only the date ()"yyyy-mm-dd" format)
