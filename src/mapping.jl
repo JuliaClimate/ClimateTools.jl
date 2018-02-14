@@ -113,12 +113,12 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
 
   # 4D fields
   elseif ndims(C[1]) == 4 # 3D field
-    datatmp = squeeze(mean(convert(Array, C[1]),1),1) # time mean
-    data = datatmp[:,:, level]';
+    data = squeeze(mean(convert(Array, C[1][:, :, :, level]),1),1)' # time mean over "level"
+    # data = datatmp[:,:, level]';
     if rlon > 355 && llon < 5
       data2 = Array{Float64}(size(data, 1), size(data, 2) + 1)
-      data2[:, 1:end-1, :] = data
-      data2[:, end, :] = data[:, 1, :]
+      data2[:, 1:end-1] = data
+      data2[:, end] = data[:, 1]
       # push!(data, data[:, 1])
       if !isempty(mask)
           mask2 = Array{Float64}(size(mask, 1), size(mask, 2) + 1)
@@ -127,7 +127,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
           mask = mask2
       end
     else
-      data2 = squeeze(mean(convert(Array, C[1]),1),1)' #time mean
+      data2 = squeeze(mean(convert(Array, C[1][:, level, :, :]),1),1)' #time mean over "level"
     end
 
     if !isempty(poly)
@@ -136,7 +136,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
     elseif !isempty(mask)
         cs = m[:contourf](x .* mask, y .* mask, data2 .* mask, cmap = get_cmap(cm))
     else
-        cs = m[:contourf](x, y, data2, cmap=get_cmap(cm))
+        cs = m[:contourf](x, y, data2, cmap = get_cmap(cm))
     end
 
   end
@@ -144,14 +144,22 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
   # Colorbar
   cbar = colorbar(cs, orientation = "vertical", shrink = 0.7, label = C[2])
 
-  if typeof((C[1][Axis{:time}][1])) == Date
-      begYear = string(Base.Dates.year(C[1][Axis{:time}][1]))
-      endYear = string(Base.Dates.year(C[1][Axis{:time}][end]))
-  elseif typeof((C[1][Axis{:time}][1])) == Base.Dates.Year
-      begYear = string(C[1][Axis{:time}][1])[1:4]
-      endYear = string(C[1][Axis{:time}][end])[1:4]
+  if ndims(C[1]) > 2
+
+      if typeof((C[1][Axis{:time}][1])) == Date
+          begYear = string(Base.Dates.year(C[1][Axis{:time}][1]))
+          endYear = string(Base.Dates.year(C[1][Axis{:time}][end]))
+      elseif typeof((C[1][Axis{:time}][1])) == Base.Dates.Year
+          begYear = string(C[1][Axis{:time}][1])[1:4]
+          endYear = string(C[1][Axis{:time}][end])[1:4]
+      elseif typeof((C[1][Axis{:time}][1])) == Int
+          begYear = string(C[1][Axis{:time}][1])[1:4]
+          endYear = string(C[1][Axis{:time}][end])[1:4]
+      end
+      title(string(C[3], " - ", C[4], " - ", C[5], " - ", C.variable, " - ", begYear, " - ", endYear))
+  else
+      title(string(C[3], " - ", C[4], " - ", C[5], " - ", C.variable))
   end
-  title(string(C[3], " - ", C[4], " - ", C[5], " - ", C.variable, " - ", begYear, " - ", endYear))
 
   return true, figh, ax, cbar
 end
