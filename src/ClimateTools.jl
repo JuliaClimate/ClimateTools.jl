@@ -15,7 +15,10 @@ import Base.size
 import Base.endof
 import Base.setindex!
 import Base.similar
-# import Base: +
+import Base: +
+import Base: -
+import Base: *
+import Base: /
 
 
 const basemap = PyNULL()
@@ -58,10 +61,7 @@ end
 
 function ClimGrid(data; model = "N/A", experiment = "N/A", run = "N/A", filename = "N/A", dataunits = "N/A", latunits = "N/A", lonunits = "N/A", variable = "N/A", typeofvar = "N/A", typeofcal = "N/A")
 
-    ClimGrid(data, model, experiment, run, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal)
-
-  # TODO -> add some checks, permutedims if need be
-  # new(data, model, experiment, run, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal)
+    ClimGrid(data, model, experiment, run, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal)  
 
 end
 

@@ -22,14 +22,45 @@ function Base.merge(A::ClimGrid, B::ClimGrid)
   ClimGrid(axisArray, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
 end
 
-# function Base.:+(A::ClimGrid, B::ClimGrid)
-#   axisArraytmp = A.data + B.data
-#   axisArray = AxisArray(axisArraytmp)
-#   ClimGrid(axisArray, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
+function Base.:+(A::ClimGrid, B::ClimGrid)
+  axisArraytmp = A.data + B.data
+
+  axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+
+  ClimGrid(axisArray, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
+end
+
+function Base.:-(A::ClimGrid, B::ClimGrid)
+  axisArraytmp = A.data - B.data
+
+  axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+
+  ClimGrid(axisArray, model = A.model, experiment = string(A.experiment, " minus ", B.experiment), run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
+end
+
+function Base.:*(A::ClimGrid, k)
+  axisArraytmp = A.data * k
+
+  axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+
+  ClimGrid(axisArray, model = A.model, experiment = string(A.experiment, " multiplied by ", k), run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
+end
+
+# function Base.:*(A::ClimGrid, B::ClimGrid)
+#   axisArraytmp = A.data * B.data
+#
+#   axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+#
+#   ClimGrid(axisArray, model = A.model, experiment = string(A.experiment, " multiplied by another ClimGrid"), run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
 # end
 
-# TODO : Verify in Base.vcat(A::ClimGrid, B::ClimGrid) for time consistency (e.g. no same timestamp)
-# TODO : Add methods for addition, subtraction, multiplication of ClimGrid types
+function Base.:/(A::ClimGrid, k)
+  axisArraytmp = A.data / k
+
+  axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+
+  ClimGrid(axisArray, model = A.model, experiment = string(A.experiment, " divided by ", k), run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
+end
 
 function getindex(C::ClimGrid,i::Int)
   if i == 1
@@ -66,34 +97,7 @@ Base.size(C::ClimGrid,n::Int) = n==1 ? length(C) : error("Only dimension 1 has a
 Base.endof(C::ClimGrid) = length(C)
 Base.ndims(::ClimGrid) = 1
 
-# function summaryio(io::IO, C::ClimGrid)
-#   print(io, "ClimGrid array")
-#     # _summary(io, C)
-#     show(C)
-#     # for (name, val) in zip(axisnames(A), axisvalues(A))
-#     #     print(io, "    :$name, ")
-#     #     show(IOContext(io, :limit=>true), val)
-#     #     println(io)
-#     # end
-#     print(io, summary(C.data))
-# end
-# _summary(io, C::ClimGrid) = println(io, "$N-dimensional AxisArray{$T,$N,...} with axes:")
+
 
 Base.show(io::IO, ::MIME"text/plain", C::ClimGrid) =
-           print(io, "ClimGrid struct with data:\n   ", summary(C[1]), "\n", "model: ", C[3], "\n", "experiment: ", C[4], "\n", "run: ", C[5], "\n", "variable: ", C[9], "\n", "Filename: ", C[8])
-
-# function Base.show(C::ClimGrid)
-#   out = Dict()
-#   out["Data"] = string("Data array of size ", size(C[1].data))
-#   out["Model"] = C[3]
-#   out["Experiment"] = C[4]
-#   out["Run"] = C[5]
-#   out["Data Units"] = C[2]
-#   out["Latitude Units"] = C[7]
-#   out["Longitude Units"] = C[6]
-#   out["filename"] = C[8]
-#   out["var"] = C[9]
-#   out["typeof raw variable"] = C[10]
-#
-#   return out
-# end
+           print(io, "ClimGrid struct with data:\n   ", summary(C[1]), "\n", "Model: ", C[3], "\n", "Experiment: ", C[4], "\n", "Run: ", C[5], "\n", "Variable: ", C[9], "\n", "Data units: ", C[2], "\n", "Filename: ", C[8])

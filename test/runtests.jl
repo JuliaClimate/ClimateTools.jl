@@ -312,6 +312,20 @@ B = vcat(C, C)
 @test size(B.data) == (2, 256, 128) # vcat does not look at dimensions
 B = merge(C, C)
 @test size(B.data) == (1, 256, 128) # C being similar, they should not add up, as opposed to vcat
+# Operators +, -, *, /
+B = C + C
+@test B[1].data[1, 1, 1] == 431.787f0
+B = C - C
+@test B[1].data[1, 1, 1] == 0.0
+B = C / 2
+@test B[1].data[1, 1, 1] == 107.94675f0
+B = C / 2.2
+@test B[1].data[1, 1, 1] == 98.13340620561078
+B = C * 2
+@test B[1].data[1, 1, 1] == 431.787f0
+B = C * 2.2
+@test B[1].data[1, 1, 1] == 474.9656860351563
+
 # @test typeof(show(C)) == Dict{Any, Any}
 @test typeof(C[1].data) == Array{Float64,3} || typeof(C[1].data) == Array{Float32,3}
 @test C[2] == "K"
