@@ -37,6 +37,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
 
   elseif region == "World"
       m = basemap[:Basemap](projection="cyl", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = 0, urcrnrlon = 360, resolution = "c")
+      # m = basemap[:Basemap](projection="eck4", lon_0 = 0., resolution = "l")
 
   elseif region == "Europe"
       m = basemap[:Basemap](width=6800000, height = 4500000, rsphere = (6378137.00, 6356752.3142), resolution = "c", projection = "lcc", lat_1 = 30., lat_2 = 45, lat_0 = 52, lon_0 = 10.)
@@ -49,14 +50,15 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
   end
 
   # Draw the map properties
-  m[:drawcoastlines]()
-  m[:drawstates]()
-  m[:drawcountries]()
-  m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8);
-  m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8);
+  m[:drawcoastlines](linewidth = 0.6)
+  # m[:drawstates](linewidth = 0.2)
+  m[:drawcountries](linewidth = 0.6)
+  m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5);
+  m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6);
 
 
-  lon2, lat2 = np[:meshgrid](lon, lat)
+  # lon2, lat2 = np[:meshgrid](lon, lat)
+  lon2, lat2 = meshgrid(lon, lat)
   x, y = m(lon2, lat2)
 
   if C[10] == "pr"
