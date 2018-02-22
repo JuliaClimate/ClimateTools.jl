@@ -367,10 +367,25 @@ C = nc2julia(filenc, "tas")
 Csub = spatialsubset(C, P)
 @test size(Csub[1]) == (1, 23, 12)
 @test Csub[1][1, 1, 1] == 294.6609f0
+Csub = spatialsubset(C, P')
+@test size(Csub[1]) == (1, 23, 12)
+@test Csub[1][1, 1, 1] == 294.6609f0
 C = nc2julia(filenc, "ua")
 Csub = spatialsubset(C, P)
 @test size(Csub[1]) == (1, 23, 12, 17)
 @test Csub[1][1, 1, 1, 1] == 1.0f20
+
+# Time resolution
+timevec = [1, 2, 3]
+@test timeresolution(timevec) == "24h"
+timevec = [1.0, 1.5, 2.0]
+@test timeresolution(timevec) == "12h"
+timevec = [1.25, 1.5, 1.75]
+@test timeresolution(timevec) == "6h"
+timevec = [1.125, 1.25, 1.375]
+@test timeresolution(timevec) == "3h"
+timevec = NetCDF.ncread(filenc, "time")
+@test timeresolution(timevec) == "N/A"
 
 # MESHGRID
 YV = [1 2 3]'
@@ -591,8 +606,8 @@ d = Date(2003,1,1):Date(2008,12,31)
 
 # Test timeresolution and pr_timefactor
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
-@test timeresolution(filename) == "N/A"
-@test pr_timefactor(timeresolution(filename)) == 1.
+timevec = NetCDF.ncread(filename, "time")
+@test pr_timefactor(timeresolution(timevec)) == 1.
 @test pr_timefactor("24h") == 86400.
 @test pr_timefactor("12h") == 43200.
 @test pr_timefactor("6h") == 21600.

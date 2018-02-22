@@ -90,7 +90,7 @@ elseif isempty(poly) # no polygon clipping
 
   if data_units == "mm" && variable == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")
 
-    rez = timeresolution(file)
+    rez = timeresolution(NetCDF.ncread(file, "time"))
     factor = pr_timefactor(rez)
     data = data * factor
     if rez != "N/A"
@@ -257,15 +257,16 @@ function shapefile_coords(poly::Shapefile.Polygon)
 end
 
 """
-This function return the time resolution of the netCDF file "str"
+    timeresolution(timevec::Array{N,1} where N)
 
-    function timeresolution(str::String)
+This function return the time resolution of the vector timevec, as obtained by the following call form the NetCDF.jl package
 
+    timevec = NetCDF.ncread("netcdf_file.nc", "time")
 """
 
-function timeresolution(str::String)
+function timeresolution(timevec::Array{N,1} where N)
 
-    timevec = (NetCDF.ncread(str, "time"))
+    # timevec = (NetCDF.ncread(str, "time"))
     if length(timevec) > 1
         timediff = diff(timevec)[1]
         if timediff == 1. || timediff == 1
