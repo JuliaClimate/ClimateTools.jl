@@ -356,6 +356,22 @@ B = C * 2.2
 @test C[end] == "noleap"
 @test ndims(C) == 1
 
+# Spatial subset
+filename = joinpath(dirname(@__FILE__), "data", "SudQC_GCM.shp")
+filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
+polyshp = read(filename,Shapefile.Handle)
+x, y = shapefile_coords(polyshp.shapes[1])
+P = [x y]
+P = P'
+C = nc2julia(filenc, "tas")
+Csub = spatialsubset(C, P)
+@test size(Csub[1]) == (1, 23, 12)
+@test Csub[1][1, 1, 1] == 294.6609f0
+C = nc2julia(filenc, "ua")
+Csub = spatialsubset(C, P)
+@test size(Csub[1]) == (1, 23, 12, 17)
+@test Csub[1][1, 1, 1, 1] == 1.0f20
+
 # MESHGRID
 YV = [1 2 3]'
 XV = [1 2 3]'
