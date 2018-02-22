@@ -104,14 +104,15 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
 
     end
 
-  # 2D fields
-  elseif ndims(C[1]) == 2
-      if isempty(poly)
-          cs = m[:contourf](x, y, convert(Array,C[1][:,:])', cmap = get_cmap(cm))
-      else
-          msk = inpolyvec(lon, lat, poly)'
-          cs = m[:contourf](x .* msk, y .* msk, convert(Array,C[1][:,:])' .* msk, cmap = get_cmap(cm))
-      end
+    # REMOVED AS CLIMGRID DATA WILL NEVER BE 2D
+  # # 2D fields
+  # elseif ndims(C[1]) == 2
+  #     if isempty(poly)
+  #         cs = m[:contourf](x, y, convert(Array,C[1][:,:])', cmap = get_cmap(cm))
+  #     else
+  #         msk = inpolyvec(lon, lat, poly)'
+  #         cs = m[:contourf](x .* msk, y .* msk, convert(Array,C[1][:,:])' .* msk, cmap = get_cmap(cm))
+  #     end
 
   # 4D fields
   elseif ndims(C[1]) == 4 # 3D field
@@ -129,7 +130,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
           mask = mask2
       end
     else
-      data2 = squeeze(mean(convert(Array, C[1][:, level, :, :]),1),1)' #time mean over "level"
+      data2 = squeeze(mean(convert(Array, C[1][:, :, :, level]),1),1)' #time mean over "level"
     end
 
     if !isempty(poly)
