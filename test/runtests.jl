@@ -374,6 +374,10 @@ C = nc2julia(filenc, "ua")
 Csub = spatialsubset(C, P)
 @test size(Csub[1]) == (1, 23, 12, 17)
 @test Csub[1][1, 1, 1, 1] == 1.0f20
+C = nc2julia(filenc, "tas")
+Csub = temporalsubset(C, Date(2000, 05, 15), Date(2000, 05, 15))
+@test Csub[1][1, 1, 1] == 215.8935f0
+@test Csub[1][Axis{:time}][1] == Date(2000, 05, 15)
 
 # Time resolution
 timevec = [1, 2, 3]

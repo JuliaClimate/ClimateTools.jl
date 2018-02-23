@@ -64,6 +64,12 @@ Furthermore, there is also the `spatialsubset` function which acts on `ClimGrid`
 C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
 ```
 
+Temporal subset of the data is also possible with the `temporalsubset` function:
+
+```julia
+C = temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
+```
+
 ### Mapping the ClimGrid type
 
 Mapping climate information can be done by using `mapclimgrid`:

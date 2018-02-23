@@ -61,7 +61,7 @@ end
 
 function ClimGrid(data; model = "N/A", experiment = "N/A", run = "N/A", filename = "N/A", dataunits = "N/A", latunits = "N/A", lonunits = "N/A", variable = "N/A", typeofvar = "N/A", typeofcal = "N/A")
 
-    ClimGrid(data, model, experiment, run, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal)  
+    ClimGrid(data, model, experiment, run, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal)
 
 end
 
@@ -84,5 +84,6 @@ export customthresover, customthresunder, annualmax, annualmin
 export annualmean, annualsum, nc2julia, sumleapyear, buildtimevec
 export mapclimgrid, interp_climgrid, ClimGrid, inpolyvec, applymask
 export shapefile_coords, timeresolution, pr_timefactor, spatialsubset
+export temporalsubset
 
 end #module

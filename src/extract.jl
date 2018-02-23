@@ -308,9 +308,9 @@ end
 
 
 """
-Returns the spatial subset of ClimGrid C. The spatial subset is defined by a polygon poly
-
     function spatialsubset(C::ClimGrid, poly::Array{N, 2})
+
+Returns the spatial subset of ClimGrid C. The spatial subset is defined by a polygon poly
 
 """
 
@@ -354,6 +354,25 @@ function spatialsubset(C::ClimGrid, poly::Array{N, 2} where N)
 
     return ClimGrid(dataOut, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, variable = C.variable, typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 
+end
 
+"""
+    function temporalsubset(C::ClimGrid, start::Date, end::Date)
+
+Returns the temporal subset of ClimGrid C. The temporal subset is defined by a start and end date.
+
+"""
+
+function temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
+
+    # some checkups
+    @argcheck startdate <= enddate
+    @argcheck startdate >= C[1][Axis{:time}][1]
+    @argcheck enddate <= C[1][Axis{:time}][end]
+
+    # Temporal subset
+    dataOut = C[1][Axis{:time}(startdate .. enddate)]
+
+    return ClimGrid(dataOut, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, variable = C.variable, typeofvar = C.typeofvar, typeofcal = C.typeofcal)
 
 end
