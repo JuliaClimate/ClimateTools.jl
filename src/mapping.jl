@@ -166,3 +166,39 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
 
   return true, figh, ax, cbar
 end
+
+
+# # World borders
+# function worldborders_polygon()
+#     shpworldfile = joinpath(Pkg.dir("ClimateTools"), "test/data", "TM_WORLD_BORDERS_SIMPL-0.3.shp")
+#
+#     worldshp = open(shpworldfile) do fd
+#         read(fd,Shapefile.Handle)
+#     end
+#     x, y = Array{Float64, 1}(), Array{Float64, 1}()
+#
+#     for shp in worldshp.shapes
+#         lon, lat = shapefile_coords(shp)
+#         append!(x, lon)
+#         append!(y, lat)
+#
+#         # push!(P, [lon lat]')
+#     end
+#
+#     # Find neg values of longitude
+#
+#     # for n = 1:length(lon)
+#     #     if lon[n] >= 180
+#     #         lon[n] = lon[n] - 360
+#     #     end
+#     # end
+#
+#
+#     # for ilon = 1:length(x)
+#     #     if x[ilon] <= 0
+#     #         x[ilon] = x[ilon] + 360
+#     #     end
+#     # end
+#
+#     return P = [x y]'
+# end
