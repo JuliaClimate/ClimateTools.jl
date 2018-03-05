@@ -69,7 +69,7 @@ function nc2julia(file::String, variable::String; poly = ([]), data_units::Strin
     lon = lon[minXgrid:maxXgrid]
     lat = lat[minYgrid:maxYgrid]
 
-elseif isempty(poly) # no polygon clipping
+  elseif isempty(poly) # no polygon clipping
     if ndims(data) == 3
         data = data[:, :, :]
         # Permute dims
@@ -81,6 +81,10 @@ elseif isempty(poly) # no polygon clipping
         data = permutedims(data, [4, 1, 2, 3])
     end
   end
+
+  # Replace fillvalues with NaN
+  fillval = NetCDF.ncgetatt(file, variable, "_FillValue")
+  data[data .== fillval] = NaN
 
   # Convert units of optional argument data_units is provided
   if data_units == "Celsius" && (variable == "tas" || variable == "tasmax" || variable == "tasmin") && dataunits == "K"
