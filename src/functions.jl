@@ -1,4 +1,6 @@
 """
+    windnr(p, poly::Matrix)
+
 Determines the winding number of a point and a polygon, i.e. how many
 times a polygon winds around the point.
 
@@ -29,8 +31,10 @@ function windnr(p, poly::Matrix)
     end
     return wn
 end
+
 up(ey1,ey2)   = ey1 < ey2
 down(ey1,ey2) = ey1 > ey2
+
 function leftorright(px,py,ex1,ey1,ex2,ey2)
     # returns:
     # -1 if on left of line
@@ -62,11 +66,9 @@ end
 # inpoly(p, poly::Matrix) = isodd(windnr(p,poly))
 
 """
-This function creates a 2-D mesh-grid in a format consistent with Matlab's function meshgrid()
+    [X, Y] = meshgrid(XV, YV)
 
-[X, Y] = meshgrid(XV, YV)
-
-where XV and YV are vectors.
+This function creates a 2-D mesh-grid in a format consistent with Matlab's function meshgrid(). XV and YV are vectors.
 """
 function meshgrid(XV, YV)
 
@@ -88,8 +90,10 @@ function meshgrid(XV, YV)
 end
 
 """
+    inpolyvec(lon, lat, poly::AbstractArray{N,2} where N)
+
 Used to test a vector of points. Columns should be consistent with polygon.
-inpolyvec(pts::Array{Float64,2}, poly::Array{Float64,2})
+
 
 """
 
@@ -144,10 +148,9 @@ end
 
 
 """
-This function interpolate ClimGrid A onto lat-lon grid of ClimGrid B
+    C = interp_climgrid(A::ClimGrid, B::ClimGrid)
 
-C = interp_climgrid(A::ClimGrid, B::ClimGrid)
-
+This function interpolate ClimGrid A onto lat-lon grid of ClimGrid B,
 where A, B and C are ClimGrid
 
 """
@@ -205,6 +208,13 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
     C = ClimateTools.ClimGrid(dataOut, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = B.latunits, lonunits = B.lonunits, variable = A.variable, typeofvar = A.variable, typeofcal = A.typeofcal)
 end
 
+"""
+    C = interp_climgrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)
+
+This function interpolate ClimGrid A onto lat-lon grid defined by londest and latdest vector.
+
+"""
+
 function interp_climgrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)
 
     # Convert longitude to 0-360 degrees
@@ -250,14 +260,12 @@ function interp_climgrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latd
 end
 
 """
-This function applies a mask on the array A
+    applymask(A::AbstractArray{N, n}, mask::AbstractArray{N, n})
 
-applymask(A::AbstractArray{N, n}, mask::AbstractArray{N, n})
-
-Return an AbstractArray{N, n}.
+This function applies a mask on the array A. Return an AbstractArray{N, n}.
 
 """
-# TODO Add test to applymask
+
 function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} where N)
     for t = 1:size(A, 1) # time axis
         for lev = 1:size(A, 4) #level axis
