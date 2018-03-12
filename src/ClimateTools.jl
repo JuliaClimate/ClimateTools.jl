@@ -76,6 +76,7 @@ include("indices.jl")
 include("extract.jl")
 include("interface.jl")
 include("mapping.jl")
+include("biascorrect.jl")
 
 # Exported functions
 export windnr, leftorright, inpoly, meshgrid, prcp1
