@@ -161,7 +161,7 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
     londest = B[1][Axis{:lon}][:]
     latdest = B[1][Axis{:lat}][:]
 
-    if B.lonunits == "degrees_east" && sum(sign(londest) .== -1) == length(londest) #indicate all negative longitude -> remap to 0-360 degrees
+    if B.lonunits == "degrees_east" && sum(sign.(londest) .== -1) == length(londest) #indicate all negative longitude -> remap to 0-360 degrees
         londest = londest + 360.
         # recreate B ClimGrid and change lonunits to "degrees_west"
         timedest = B[1][Axis{:time}][:]
