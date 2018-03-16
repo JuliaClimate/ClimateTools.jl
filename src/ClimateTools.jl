@@ -41,7 +41,6 @@ function __init__()
   # R"install.packages('maps', lib = 'joinpath(dirname(@__FILE__), '/Rpackages/')', repo = 'http://cran.uk.r-project.org')"
 end
 
-
 # TYPES
 
 struct ClimGrid{A <: AxisArray}
