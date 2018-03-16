@@ -8,6 +8,7 @@ using ArgCheck
 using PyCall
 using PyPlot
 using Interpolations
+using ProgressMeter
 import Base.vcat
 import Base.getindex
 import Base.show
@@ -85,6 +86,6 @@ export customthresover, customthresunder, annualmax, annualmin
 export annualmean, annualsum, nc2julia, sumleapyear, buildtimevec
 export mapclimgrid, interp_climgrid, ClimGrid, inpolyvec, applymask
 export shapefile_coords, timeresolution, pr_timefactor, spatialsubset
-export temporalsubset
+export temporalsubset, qqmap
 
 end #module
