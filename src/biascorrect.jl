@@ -5,15 +5,20 @@ Quantile-Quantile mapping bias correction. For each julian day of the year (+/- 
 
 """
 
-function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method="Additive", detrend=true, window=15, rankn=50, thresnan=0.1, keep_original=false)
+function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false)
 
-    # Prepare output array
-    dataout = fill(NaN, size(fut[1]))::Array{N, T} where N where T
+
 
     #Get date vectors
     datevec_obs = obs[1][Axis{:time}][:]
     datevec_ref = ref[1][Axis{:time}][:]
     datevec_fut = fut[1][Axis{:time}][:]
+
+    obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2 = corrjuliandays(obs[1][:, 1, 1].data, ref[1][:, 1, 1].data, fut[1][:, 1, 1].data, datevec_obs, datevec_ref, datevec_fut)
+
+    # Prepare output array
+    dataout = fill(NaN, (size(futvec2, 1), size(fut[1], 2), size(fut[1],3)))::Array{N, T} where N where T
+    # dataout = fill(NaN, size(futvec2))::Array{N, T} where N where T
 
     p = Progress(size(obs[1], 3), 5)
 
@@ -30,7 +35,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method="Additive", d
         next!(p)
     end
 
-    dataout2 = AxisArray(dataout, Axis{:time}(fut[1][Axis{:time}][:]), Axis{:lon}(fut[1][Axis{:lon}][:]), Axis{:lat}(fut[1][Axis{:lat}][:]))
+    dataout2 = AxisArray(dataout, Axis{:time}(datevec_fut2), Axis{:lon}(fut[1][Axis{:lon}][:]), Axis{:lat}(fut[1][Axis{:lat}][:]))
 
     return ClimGrid(dataout2, model = fut.model, experiment = fut.experiment, run = fut.run, filename = fut.filename, dataunits = fut.dataunits, latunits = fut.latunits, lonunits = fut.lonunits, variable = fut.variable, typeofvar = fut.typeofvar, typeofcal = fut.typeofcal)
 
@@ -44,16 +49,16 @@ Quantile-Quantile mapping bias correction for single vector. For each julian day
 
 """
 
-function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec::Array{N, 1} where N, datevec_obs::Array{Date,1}, datevec_ref::Array{Date,1}, datevec_fut::Array{Date,1}; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false)
+function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec::Array{N, 1} where N, datevec_obs, datevec_ref, datevec_fut; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false)
 
     # range over which quantiles are estimated
     P = linspace(0.01, 0.99, rankn)
 
     # Get correct julian days (e.g. we can't have a mismatch of calendars between observed and models ref/fut)
-    obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul = corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
+    obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2 = corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
 
     # Prepare output array
-    dataout = fill(NaN, size(futvec))::Array{N, 1} where N
+    dataout = fill(NaN, size(futvec2))::Array{N, 1} where N
 
     # LOOP OVER ALL DAYS OF THE YEAR
     # Threads.@threads for ijulian = 1:365
@@ -143,7 +148,7 @@ function corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, dateve
             fut_jul[k:k+305] -= 1
         end
 
-        # datevec_obs2 = datevec_obs[.!obs29thfeb]
+        datevec_obs2 = datevec_obs[.!obs29thfeb]
         obsvec2 = obsvec[.!obs29thfeb]
         obs_jul = obs_jul[.!obs29thfeb]
 
@@ -174,15 +179,15 @@ function corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, dateve
             fut_jul[k:k+306] -= 1
         end
 
-        # datevec_obs2 = datevec_obs[.!obs29thfeb]
+        datevec_obs2 = datevec_obs[.!obs29thfeb]
         obsvec2 = obsvec[.!obs29thfeb]
         obs_jul = obs_jul[.!obs29thfeb]
 
-        # datevec_ref2 = datevec_ref[.!ref29thfeb]
+        datevec_ref2 = datevec_ref[.!ref29thfeb]
         refvec2 = refvec[.!ref29thfeb]
         ref_jul = ref_jul[.!ref29thfeb]
 
-        # datevec_fut2 = datevec_fut[.!fut29thfeb]
+        datevec_fut2 = datevec_fut[.!fut29thfeb]
         futvec2 = futvec[.!fut29thfeb]
         fut_jul = fut_jul[.!fut29thfeb]
 
@@ -207,15 +212,15 @@ function corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, dateve
             fut_jul[k:k+306] -= 1
         end
 
-        # datevec_obs2 = datevec_obs[.!obs29thfeb]
+        datevec_obs2 = datevec_obs[.!obs29thfeb]
         obsvec2 = obsvec[.!obs29thfeb]
         # obs_jul = obs_jul[.!obs29thfeb]
 
-        # datevec_ref2 = datevec_ref[.!ref29thfeb]
+        datevec_ref2 = datevec_ref[.!ref29thfeb]
         refvec2 = refvec[.!ref29thfeb]
         ref_jul = ref_jul[.!ref29thfeb]
 
-        # datevec_fut2 = datevec_fut[.!fut29thfeb]
+        datevec_fut2 = datevec_fut[.!fut29thfeb]
         futvec2 = futvec[.!fut29thfeb]
         fut_jul = fut_jul[.!fut29thfeb]
 
@@ -240,7 +245,7 @@ function corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, dateve
 
     end
 
-    return obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul
+    return obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2
 
 end
 
