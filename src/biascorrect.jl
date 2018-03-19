@@ -1,12 +1,13 @@
 """
-qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method="Additive", detrend=true, window=15, rankn=50, thresnan=0.1, keep_original=false)
+    qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method="Additive", detrend=true, window=15, rankn=50, thresnan=0.1, keep_original=false)
 
-Quantile-Quantile mapping bias correction. For each julian day of the year (+/- **window** size), a transfer function is estimated through an empirical quantile-quantile mapping (add REF).
+Quantile-Quantile mapping bias correction. For each julian day of the year (+/- **window** size), a transfer function is estimated through an empirical quantile-quantile mapping.
+
+The quantile-quantile transfer function between **ref** and **obs** is etimated on a julian day (and grid-point) basis with a moving window around the julian day. Hence, for a given julian day, the transfer function is then applied to the **fut** dataset for a given julian day.
 
 """
 
 function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false)
-
 
 
     #Get date vectors
@@ -58,11 +59,11 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
     obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2 = corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
 
     # Prepare output array
-    dataout = fill(NaN, size(futvec2))::Array{N, 1} where N
+    dataout = similar(futvec2, (size(futvec2)))    
 
     # LOOP OVER ALL DAYS OF THE YEAR
-    # Threads.@threads for ijulian = 1:365
-    for ijulian = 1:365
+    Threads.@threads for ijulian = 1:365
+    # for ijulian = 1:365
 
         # idx for values we want to correct
         idxfut = (fut_jul .== ijulian)
@@ -103,6 +104,7 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
                 # # Replace values with original ones (i.e. too may NaN values for robust quantile estimation)
                 dataout[idxfut] = futval
             else
+                dataout[idxfut] = NaN
                 # DO NOTHING (e.g. if there is no reference, we want NaNs and not original values)
             end
         end
@@ -153,7 +155,9 @@ function corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, dateve
         obs_jul = obs_jul[.!obs29thfeb]
 
         refvec2 = refvec
+        datevec_ref2 = datevec_ref
         futvec2 = futvec
+        datevec_fut2 = datevec_fut
 
 
         # modify obs_jul to "-=1" for k:k+306 for leap years
