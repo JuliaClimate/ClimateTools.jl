@@ -265,25 +265,13 @@ end
 function find_julianday_idx(julnb, ijulian, window)
 
     if ijulian <= window
-        idx = (julnb .>= 1) .& (julnb .<= (ijulian + window)) .| (julnb .>= (365 - (window - ijulian))) .& (julnb .<= 365)
-
-        # idxref = (ref_jul .>= 1) .& (ref_jul .<= (ijulian + window)) .| (ref_jul .>= (365 - (window - ijulian))) .& (ref_jul .<= 365)
-        #
-        # # idxfut = (fut_jul .>= 1) .& (fut_jul .<= (ijulian + window)) .| (fut_jul .>= (366 - (window - ijulian))) .& (fut_jul .<= 366)
-
+        idx = @. (julnb >= 1) & (julnb <= (ijulian + window)) | (julnb >= (365 - (window - ijulian))) & (julnb <= 365)
 
     elseif ijulian > 365 - window
-        idx = (julnb .>= 1) .& (julnb .<= ((window-(365-ijulian)))) .| (julnb .>= (ijulian-window)) .& (julnb .<= 365)
-
-        # idxref = (ref_jul .>= 1) .& (ref_jul .<= ((window-(365-ijulian)))) .| (ref_jul .>= (ijulian-window)) .& (ref_jul .<= 365)
-        #
-        # # idxfut = (fut_jul .>= 1) .& (fut_jul .<= ((window-(366-ijulian)))) .| (fut_jul .>= (ijulian-window)) .& (fut_jul .<= 366)
+        idx = @. (julnb >= 1) & (julnb <= ((window-(365-ijulian)))) | (julnb >= (ijulian-window)) & (julnb <= 365)
 
     else
-        idx = (julnb .<= (ijulian + window)) .& (julnb .>= (ijulian - window))
-        # idxref = (ref_jul .<= (ijulian + window)) .& (ref_jul .>= (ijulian - window))
-        # # idxfut = (fut_jul .<= (ijulian + window)) .& (fut_jul .>= (ijulian - window))
-
+        idx = @. (julnb <= (ijulian + window)) & (julnb >= (ijulian - window))
     end
 
     return idx
