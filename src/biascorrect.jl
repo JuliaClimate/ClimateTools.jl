@@ -44,9 +44,9 @@ end
 
 
 """
-qqmap(obs::Array{N, 1} where N, ref::Array{N, 1} where N, fut::Array{N, 1} where N; method="Additive", detrend=true, window=15, rankn=50, thresnan=0.1, keep_original=false)
+    qqmap(obs::Array{N, 1} where N, ref::Array{N, 1} where N, fut::Array{N, 1} where N; method="Additive", detrend=true, window=15, rankn=50, thresnan=0.1, keep_original=false)
 
-Quantile-Quantile mapping bias correction for single vector. For each julian day of the year (+/- **window** size), a transfer function is estimated through an empirical quantile-quantile mapping (REF)
+Quantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.
 
 """
 
@@ -59,7 +59,7 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
     obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2 = corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
 
     # Prepare output array
-    dataout = similar(futvec2, (size(futvec2)))    
+    dataout = similar(futvec2, (size(futvec2)))
 
     # LOOP OVER ALL DAYS OF THE YEAR
     Threads.@threads for ijulian = 1:365
