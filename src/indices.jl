@@ -4,6 +4,8 @@
 Annual number with preciptation >= 1 mm. This function returns a ClimGrid.
 """
 
+# TODO add check for units. important for threshold indices
+
 function prcp1(C::ClimGrid)
   @argcheck C[9] == "pr"
   years    = Dates.year.(C.data[Axis{:time}][:])
