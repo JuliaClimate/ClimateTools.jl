@@ -1,4 +1,4 @@
-function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1, mask = [])
+function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1, mask = [], caxis=[])
 
   # TODO Add options for custom time period as input and custom region
 
@@ -8,42 +8,50 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
       mask = mask'
   end
 
+  # Get x-y dimension names
+  latsymbol = Symbol(C.dimension_dict["lat"])
+  lonsymbol = Symbol(C.dimension_dict["lon"])
+
   # get boundaries and lat-lon vectors
-  llon = minimum(C.data[Axis{:lon}][:])
-  rlon = maximum(C.data[Axis{:lon}][:])
-  slat = minimum(C.data[Axis{:lat}][:])
-  nlat = maximum(C.data[Axis{:lat}][:])
-  lat = C[1][Axis{:lat}][:]
-  lon = C[1][Axis{:lon}][:]
+  llon = minimum(C.longrid)
+  rlon = maximum(C.longrid)
+  slat = minimum(C.latgrid)
+  nlat = maximum(C.latgrid)
+  # llon = minimum(C.data[Axis{lonsymbol}][:])
+  # rlon = maximum(C.data[Axis{lonsymbol}][:])
+  # slat = minimum(C.data[Axis{latsymbol}][:])
+  # nlat = maximum(C.data[Axis{latsymbol}][:])
+  # lat = C[1][Axis{:lat}][:]
+  # lon = C[1][Axis{:lon}][:]
 
   # if the data is from a GCM, we sometimes needs to extend the lat-lon and data to avoid "white space"
-  if rlon > 355 && llon < 5 && rlon < 359.99
-    rlon = 360; llon = 0;
-    push!(lon, 359.99)
-  end
+  # if rlon > 355 && llon < 5 && rlon < 359.99
+  #   rlon = 360; llon = 0;
+  #   push!(lon, 359.99)
+  # end
 
-  if (sum( (C.data[Axis{:lon}][:] .> 355) .& (C.data[Axis{:lon}][:] .< 5)) > 0)
-    if (sum( (C.data[Axis{:lon}][:] .< 185) .& (C.data[Axis{:lon}][:] .> 175) ) == 0)
-      (llon, rlon) = (rlon, llon)
-    end
-  end
+  # if (sum( (C.data[Axis{:lon}][:] .> 355) .& (C.data[Axis{:lon}][:] .< 5)) > 0)
+  #   if (sum( (C.data[Axis{:lon}][:] .< 185) .& (C.data[Axis{:lon}][:] .> 175) ) == 0)
+  #     (llon, rlon) = (rlon, llon)
+  #   end
+  # end
   # figh = figure(figsize=(12,7), dpi = 120)
-  figh, ax = subplots(figsize=(6, 4))
+  figh, ax = subplots(figsize=(4.875, 3.25))
   if region == "Canada"
-      m = basemap[:Basemap](width=6500000,height=5000000, rsphere = (6378137.00, 6356752.3142),      resolution = "c", projection = "lcc", lat_1 = 45., lat_2 = 55, lat_0 = 62, lon_0 = -95.)
+      m = basemap[:Basemap](width=6500000,height=5000000, rsphere = (6378137.00, 6356752.3142), resolution = "l", projection = "lcc", lat_1 = 45., lat_2 = 55, lat_0 = 62, lon_0 = -95.)
 
   elseif region == "Quebec"
-      m = basemap[:Basemap](llcrnrlon = -80.5, llcrnrlat = 41., urcrnrlon = -50.566, urcrnrlat = 62.352, rsphere = (6378137.00, 6356752.3142), resolution = "c", projection = "lcc",  lat_1 = 50., lon_0 = -70.)
+      m = basemap[:Basemap](llcrnrlon = -80.5, llcrnrlat = 41., urcrnrlon = -50.566, urcrnrlat = 62.352, rsphere = (6378137.00, 6356752.3142), resolution = "l", projection = "lcc",  lat_1 = 50., lon_0 = -70.)
 
   elseif region == "World"
-      m = basemap[:Basemap](projection="cyl", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = 0, urcrnrlon = 360, resolution = "c")
+      m = basemap[:Basemap](projection="cyl", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180, resolution = "c")
       # m = basemap[:Basemap](projection="eck4", lon_0 = 0., resolution = "l")
 
   elseif region == "Europe"
-      m = basemap[:Basemap](width=6800000, height = 4500000, rsphere = (6378137.00, 6356752.3142), resolution = "c", projection = "lcc", lat_1 = 30., lat_2 = 45, lat_0 = 52, lon_0 = 10.)
+      m = basemap[:Basemap](width=6800000, height = 4500000, rsphere = (6378137.00, 6356752.3142), resolution = "l", projection = "lcc", lat_1 = 30., lat_2 = 45, lat_0 = 52, lon_0 = 10.)
 
   elseif region == "NorthAmerica"
-      m = basemap[:Basemap](llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, rsphere = (6378137.00, 6356752.3142), resolution = "c", projection = "lcc",  lat_1 = 50., lon_0 = -107.)
+      m = basemap[:Basemap](llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, rsphere = (6378137.00, 6356752.3142), resolution = "l", projection = "lcc",  lat_1 = 50., lon_0 = -107.)
 
   elseif region == "auto"
       m = basemap[:Basemap](projection="cyl", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon, resolution = "c")
@@ -53,29 +61,33 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
   m[:drawcoastlines](linewidth = 0.6)
   # m[:drawstates](linewidth = 0.2)
   m[:drawcountries](linewidth = 0.6)
-  m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5);
-  m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6);
+  m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5)
+  m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6)
 
 
   # lon2, lat2 = np[:meshgrid](lon, lat)
-  lon2, lat2 = meshgrid(lon, lat)
-  x, y = m(lon2, lat2)
+  # lon2, lat2 = meshgrid(lon, lat)
+  x, y = m(C.longrid, C.latgrid)
 
-  if C[10] == "pr"
-    # cm = "YlGnBu"
-    cm = cmocean[:cm][:deep]
-  elseif C[10] == "tasmax" || C[10] == "tasmin" || C[10] == "tas"
-    cm = "YlOrBr"
-    # cm = cmocean[:cm][:solar]
+  # TODO replace C[10] comparison with C.varattribs["standard_name"]
+
+  if C[10] == "pr" || C[10]=="huss"
+      # cm = "YlGnBu"
+      cm = cmocean[:cm][:deep]
+  elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin"
+      cm = "YlOrBr"
+      # cm = cmocean[:cm][:solar]
+  elseif C[10]=="psl"
+      cm = cmocean[:cm][:deep_r]
   else
-    cm = "viridis"
+      cm = "viridis"
   end
 
   # -----------------------
   # Plot the data
   # 3D fields
   if ndims(C[1]) == 3
-    data = squeeze(mean(convert(Array, C[1]),1),1)' #time mean
+    data = squeeze(mean(C[1], 1), 1) #time mean
 
     if rlon > 355 && llon < 5 # to avoid white space along the longitude 0 (this is purely cosmetic for maps and should not be used for calculation!)
       data2 = Array{Float64}(size(data, 1), size(data, 2) + 1)
@@ -93,14 +105,24 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
       data2 = data
     end
     # plot data
+    if !isempty(caxis)
+        vmin = caxis[1]
+        vmax = caxis[2]
+    else
+        vmin=minimum(data2[.!isnan.(data2)])
+        vmax=maximum(data2[.!isnan.(data2)])
+    end
 
     if !isempty(mask) # if mask is already provided
-        cs = m[:contourf](x .* mask, y .* mask, data2 .* mask, cmap = get_cmap(cm))
+        data2 = data2 .* mask
+        cs = m[:contourf](x, y, data2, cmap = get_cmap(cm), vmin=vmin, vmax=vmax)
     elseif !isempty(poly) # if mask needs to be calculated from polygon
-        msk = inpolyvec(lon, lat, poly)'
-        cs = m[:contourf](x .* msk, y .* msk, data2 .* msk, cmap = get_cmap(cm))
+        msk = inpolygrid(C.longrid, C.latgrid, poly)
+        data2 = data2 .* msk
+        cs = m[:contourf](x, y, data2, cmap = get_cmap(cm), vmin=vmin, vmax=vmax)
     else
-        cs = m[:contourf](x, y, data2, cmap = get_cmap(cm))
+        cs = m[:contourf](x, y, data2, cmap = get_cmap(cm), vmin=vmin, vmax=vmax)
+        # cs = m[:pcolormesh](x, y, data2, cmap = get_cmap(cm))
 
     end
 
@@ -116,7 +138,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
 
   # 4D fields
   elseif ndims(C[1]) == 4 # 3D field
-    data = squeeze(mean(convert(Array, C[1][:, :, :, level]),1),1)' # time mean over "level"
+    data = squeeze(mean(C[1][:, :, :, level], 1), 1) # time mean over "level"
     # data = datatmp[:,:, level]';
     if rlon > 355 && llon < 5
       data2 = Array{Float64}(size(data, 1), size(data, 2) + 1)
@@ -130,11 +152,11 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
           mask = mask2
       end
     else
-      data2 = squeeze(mean(convert(Array, C[1][:, :, :, level]),1),1)' #time mean over "level"
+      data2 = squeeze(mean(convert(Array, C[1][:, :, :, level]), 1), 1) #time mean over "level"
     end
 
     if !isempty(poly)
-        msk = inpolyvec(lon, lat, poly)'
+        msk = inpolyvec(lon, lat, poly)
         cs = m[:contourf](x .* msk, y .* msk, data2 .* msk, cmap=get_cmap(cm))
     elseif !isempty(mask)
         cs = m[:contourf](x .* mask, y .* mask, data2 .* mask, cmap = get_cmap(cm))
@@ -163,6 +185,8 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
   else
       title(string(C[3], " - ", C[4], " - ", C[5], " - ", C.variable))
   end
+
+
 
   return true, figh, ax, cbar
 end

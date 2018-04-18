@@ -2,6 +2,7 @@ module ClimateTools
 
 # External modules
 using NetCDF
+using NCDatasets
 using Shapefile
 using AxisArrays
 using ArgCheck
@@ -42,26 +43,42 @@ function __init__()
 end
 
 # TYPES
-
+# TODO Less stringent grid type in AxisArrays. Conform more closely to CF conventions. Add information on grid type.
 struct ClimGrid{A <: AxisArray}
 # struct ClimGrid
   data::A
+  longrid::AbstractArray{N,2} where N
+  latgrid::AbstractArray{N,2} where N
+  msk::Array{N, 2} where N
+  grid_mapping::Dict#{String, Any} # bindings for native grid
+  dimension_dict::Dict
   model::String
+  frequency::String
   experiment::String
   run::String
+  project::String
+  institute::String
   filename::String
   dataunits::String
-  latunits::String
-  lonunits::String
+  latunits::String # of the coordinate variable
+  lonunits::String # of the coordinate variable
   variable::String # Type of variable (i.e. can be the same as "var", but it is changed when calculating indices)
   typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
   typeofcal::String # Calendar type
+  varattribs::Dict # Variable attributes
+  globalattribs::Dict # Global attributes
 
 end
 
-function ClimGrid(data; model = "N/A", experiment = "N/A", run = "N/A", filename = "N/A", dataunits = "N/A", latunits = "N/A", lonunits = "N/A", variable = "N/A", typeofvar = "N/A", typeofcal = "N/A")
+function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), model="NA", frequency="NA", experiment="NA", run="NA", project="NA", institute="NA", filename="NA", dataunits="NA", latunits="NA", lonunits="NA", variable="NA", typeofvar="NA", typeofcal="NA", varattribs=Dict(), globalattribs=Dict())
 
-    ClimGrid(data, model, experiment, run, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal)
+    ClimGrid(data, longrid, latgrid, msk, grid_mapping, dimension_dict, model, frequency, experiment, run, project, institute, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal, varattribs, globalattribs)
+
+end
+
+function ClimGrid(data, C::ClimateTools.ClimGrid)
+
+    ClimGrid(data, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
 end
 
@@ -79,12 +96,14 @@ include("mapping.jl")
 include("biascorrect.jl")
 
 # Exported functions
-export windnr, leftorright, inpoly, meshgrid, prcp1
+export windnr, leftorright, inpoly, inpolygrid, meshgrid, prcp1
 export frostdays, summerdays, icingdays, tropicalnights
 export customthresover, customthresunder, annualmax, annualmin
 export annualmean, annualsum, nc2julia, sumleapyear, buildtimevec
 export mapclimgrid, interp_climgrid, ClimGrid, inpolyvec, applymask
 export shapefile_coords, timeresolution, pr_timefactor, spatialsubset
-export temporalsubset, qqmap
+export temporalsubset, qqmap, ndgrid, permute_west_east
+export project_id, model_id, institute_id, experiment_id, frequency_var, runsim_id, getdim_lat, getdim_lon, isdefined
+export @isdefined
 
 end #module

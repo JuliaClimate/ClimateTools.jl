@@ -86,6 +86,8 @@ function getindex(C::ClimGrid,i::Int)
         return C.typeofvar
     elseif i == 11
         return C.typeofcal
+    elseif i == 12
+        return C.globalattribs
     else
         throw(error("You can't index like that!"))
     end
@@ -99,6 +101,15 @@ Base.endof(C::ClimGrid) = length(C)
 Base.ndims(::ClimGrid) = 1
 
 
-
-Base.show(io::IO, ::MIME"text/plain", C::ClimGrid) =
-           print(io, "ClimGrid struct with data:\n   ", summary(C[1]), "\n", "Model: ", C[3], "\n", "Experiment: ", C[4], "\n", "Run: ", C[5], "\n", "Variable: ", C[9], "\n", "Data units: ", C[2], "\n", "Filename: ", C[8])
+Base.show(io::IO, ::MIME"text/plain", C::ClimGrid) = print(io, "ClimGrid struct with data:\n   ", summary(C[1]), "\n",
+"Project: ", C.project, "\n",
+"Institute: ", C.institute, "\n",
+"Model: ", C[3], "\n",
+"Experiment: ", C[4], "\n",
+"Run: ", C[5], "\n",
+"Variable: ", C[9], "\n",
+# "Variable CF standard name: ", C.varattribs["standard_name"], "\n",
+"Data units: ", C[2], "\n",
+"Frequency: ", C.frequency, "\n",
+"Global attributes: ", summary(C[12]), "\n",
+"Filename: ", C[8])
