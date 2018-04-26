@@ -9,7 +9,7 @@ function Base.vcat(A::ClimGrid, B::ClimGrid)
     axisArraytmp = vcat(A.data, B.data)
     # TODO add axis information in the creation of the AxisArray
     axisArray = AxisArray(axisArraytmp)
-    ClimGrid(axisArray, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
+    ClimGrid(axisArray, A)#model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
 end
 
 """
@@ -20,7 +20,7 @@ Combines two ClimGrid. Based on the AxisArrays method.
 
 function Base.merge(A::ClimGrid, B::ClimGrid)
     axisArray = merge(A.data, B.data)
-    ClimGrid(axisArray, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
+    ClimGrid(axisArray, A)#model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
 end
 
 function Base.:+(A::ClimGrid, B::ClimGrid)
@@ -34,9 +34,13 @@ end
 function Base.:-(A::ClimGrid, B::ClimGrid)
     axisArraytmp = A.data - B.data
 
-    axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+    latsymbol = Symbol(A.dimension_dict["lat"])
+    lonsymbol = Symbol(A.dimension_dict["lon"])
 
-    ClimGrid(axisArray, model = A.model, experiment = string(A.experiment, " minus ", B.experiment), run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
+    axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{lonsymbol}][:]), Axis{:lat}(A[1][Axis{latsymbol}][:]))
+
+    ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " minus ", B.experiment), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
+    #model = A.model, experiment = string(A.experiment, " minus ", B.experiment), run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
 end
 
 function Base.:*(A::ClimGrid, k)

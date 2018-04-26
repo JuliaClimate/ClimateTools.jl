@@ -66,9 +66,9 @@ end
 # inpoly(p, poly::Matrix) = isodd(windnr(p,poly))
 
 """
-    X, Y = meshgrid(XV, YV)
+    X, Y = ndgrid(XV, YV)
 
-This function creates a 2-D mesh-grid in a format consistent with Matlab's function meshgrid(). XV and YV are vectors.
+This function creates a 2-D mesh-grid in a format consistent with Matlab's function ndgrid(). XV and YV are vectors.
 """
 # function meshgrid(XV, YV)
 #
@@ -112,6 +112,12 @@ function ndgrid{T}(vs::AbstractVector{T}...)
     end
     out
 end
+
+"""
+    X, Y = meshgrid(XV, YV)
+
+This function creates a 2-D mesh-grid in a format consistent with Matlab's function meshgrid(). XV and YV are vectors.
+"""
 
 meshgrid(v::AbstractVector) = meshgrid(v, v)
 
@@ -249,33 +255,112 @@ This function interpolate ClimGrid A onto lat-lon grid of ClimGrid B,
 where A, B and C are ClimGrid
 
 """
-# TODO Add method where interp_climgrid(A::ClimGrid, B::lat/lon_grid)
+
+# function interp_climgrid(A::ClimGrid, B::ClimGrid)
+#
+#     latsymbol = Symbol(B.dimension_dict["lat"])
+#     lonsymbol = Symbol(B.dimension_dict["lon"])
+#
+#     grid_mapping_dest = B.grid_mapping["grid_mapping_name"]
+#     grid_mapping_src = A.grid_mapping["grid_mapping_name"]
+#
+#     # DEFINE SRC AND DEST GRID BASED ON GRID MAPPING
+#     if grid_mapping_dest == "Regular_longitude_latitude" # lat-lon native
+#         londest = B.longrid#B[1][Axis{lonsymbol}][:]
+#         latdest = B.latgrid#[1][Axis{latsymbol}][:]
+#
+#     end
+#
+#     if grid_mapping_src == "rotated_latitude_longitude"
+#
+#     end
+#
+#
+#
+#     # ---------------------------------------
+#     # Get lat-lon information from ClimGrid B
+#     londest = B.longrid
+#     latdest = B.latgrid
+#     # londest = B[1][Axis{lonsymbol}][:]
+#     # latdest = B[1][Axis{latsymbol}][:]
+#
+#     # Get lat-lon information from ClimGrid A
+#     lonorig = A.longrid
+#     latorig = A.latgrid
+#     # lonorig = A[1][Axis{:lon}][:]
+#     # latorig = A[1][Axis{:lat}][:]
+#
+#     # -----------------------------------------
+#     # Get initial data and time from ClimGrid A
+#     dataorig = A[1].data
+#     timeorig = A[1][Axis{:time}][:] # the function will need to loop over time
+#
+#     # Create lat-lon range consistent with length of data
+#     latorigrange = linspace(minimum(latorig), maximum(latorig), size(latorig, 2))
+#     lonorigrange = linspace(minimum(lonorig), maximum(lonorig), size(lonorig, 1))
+#
+#     knots = (lonorigrange, latorigrange)
+#
+#     # ---------------------
+#     # Allocate output Array
+#     OUT = zeros(Float64, (length(timeorig), size(B.data, 2), size(B.data, 3)))
+#
+#     # ------------------------
+#     # Interpolation
+#     p = Progress(length(timeorig), 5)
+#     for t = 1:length(timeorig)
+#
+#         itp = interpolate(knots, dataorig[t,:,:], Gridded(Constant()))
+#         itp = extrapolate(itp, Flat())
+#
+#         # itp = interpolate(dataorig[t, :, :], BSpline(Linear()), OnGrid())
+#         # sitp = scale(itp, lonorigrange, latorigrange)
+#
+#         for i in eachindex(londest)
+#             OUT[t, i] = itp[londest[i], latdest[i]]
+#             # OUT[t, i] = sitp[londest[i], latdest[i]]
+#         end
+#
+#         OUT[t, :, :] = OUT[t, :, :] .* B.msk
+#
+#         # for ilon = 1:length(londest)
+#         #     for ilat = 1:length(latdest)
+#         #         OUT[t, ilon, ilat] = sitp[londest[ilon], latdest[ilat]]
+#         #     end
+#         # end
+#
+#         next!(p)
+#
+#     end
+#
+#     # -----------------------
+#     # Construct AxisArrays and ClimGrid struct from array OUT
+#     dataOut = AxisArray(OUT, Axis{:time}(timeorig), Axis{lonsymbol}(B[1][Axis{lonsymbol}][:]), Axis{latsymbol}(B[1][Axis{latsymbol}][:]))
+#
+#     C = ClimateTools.ClimGrid(dataOut, longrid=B.longrid, latgrid=B.latgrid, msk=B.msk, grid_mapping=B.grid_mapping, dimension_dict=B.dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=B.latunits, lonunits=B.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
+#
+# end
+
 function interp_climgrid(A::ClimGrid, B::ClimGrid)
+
+    latsymbol = Symbol(B.dimension_dict["lat"])
+    lonsymbol = Symbol(B.dimension_dict["lon"])
+
+
     # ---------------------------------------
     # Get lat-lon information from ClimGrid B
-    londest = B[1][Axis{:lon}][:]
-    latdest = B[1][Axis{:lat}][:]
-
-    if B.lonunits == "degrees_east" && sum(sign.(londest) .== -1) == length(londest) #indicate all negative longitude -> remap to 0-360 degrees
-        londest = londest + 360.
-        # recreate B ClimGrid and change lonunits to "degrees_west"
-        timedest = B[1][Axis{:time}][:]
-        axisdata = AxisArray(B[1].data, Axis{:time}(timedest), Axis{:lon}(londest), Axis{:lat}(latdest))
-        B = ClimateTools.ClimGrid(axisdata, model = B.model, experiment = B.experiment, run = B.run, filename = B.filename, dataunits = B.dataunits, latunits = B.latunits, lonunits = "degrees_west", variable = B.variable, typeofvar = B.variable, typeofcal = B.typeofcal)
-    end
+    londest = B.longrid
+    latdest = B.latgrid
 
     # Get lat-lon information from ClimGrid A
-    lonorig = A[1][Axis{:lon}][:]
-    latorig = A[1][Axis{:lat}][:]
+    lonorig = A.longrid
+    latorig = A.latgrid
+
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
-    dataorig = A[1].data
+    dataorig = A[1].data[:, :, :]
     timeorig = A[1][Axis{:time}][:] # the function will need to loop over time
-
-    # Create lat-lon range consistent with length of data
-    latorigrange = linspace(latorig[1], latorig[end], length(latorig))
-    lonorigrange = linspace(lonorig[1], lonorig[end], length(lonorig))
 
     # ---------------------
     # Allocate output Array
@@ -283,50 +368,53 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
 
     # ------------------------
     # Interpolation
+    p = Progress(length(timeorig), 5)
     for t = 1:length(timeorig)
 
-        itp = interpolate(dataorig[t, :, :], BSpline(Linear()), OnCell())
-        sitp = scale(itp, lonorigrange, latorigrange)
+        datatmp = dataorig[t, :, :]
 
-        for ilon = 1:length(londest)
-            for ilat = 1:length(latdest)
-                OUT[t, ilon, ilat] = sitp[londest[ilon], latdest[ilat]]
-            end
-        end
+        # Build points values
+        points = hcat(lonorig[:], latorig[:])
+        val = datatmp[:]
+
+        # Call scipy griddata
+
+        data_interp = scipy[:griddata](points, val, (londest, latdest), method="linear")
+        # Apply mask from ClimGrid destination
+        OUT[t, :, :] = data_interp .* B.msk
+
+        next!(p)
 
     end
 
     # -----------------------
     # Construct AxisArrays and ClimGrid struct from array OUT
-    dataOut = AxisArray(OUT, Axis{:time}(timeorig), Axis{:lon}(londest), Axis{:lat}(latdest))
+    dataOut = AxisArray(OUT, Axis{:time}(timeorig), Axis{lonsymbol}(B[1][Axis{lonsymbol}][:]), Axis{latsymbol}(B[1][Axis{latsymbol}][:]))
 
-    C = ClimateTools.ClimGrid(dataOut, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = B.latunits, lonunits = B.lonunits, variable = A.variable, typeofvar = A.variable, typeofcal = A.typeofcal)
+    C = ClimateTools.ClimGrid(dataOut, longrid=B.longrid, latgrid=B.latgrid, msk=B.msk, grid_mapping=B.grid_mapping, dimension_dict=B.dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=B.latunits, lonunits=B.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
+
 end
 
+
 """
-    C = interp_climgrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)
+    C = interp_climgrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)A
 
 This function interpolate ClimGrid A onto lat-lon grid defined by londest and latdest vector.
 
 """
 
-function interp_climgrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)
-
-    # Convert longitude to 0-360 degrees
-    londest[londest .< 0.] += 360.
+function interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArray{N, 1} where N)
 
     # Get lat-lon information from ClimGrid A
-    lonorig = A[1][Axis{:lon}][:]
-    latorig = A[1][Axis{:lat}][:]
+    lonorig = A.longrid
+    latorig = A.latgrid
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
     dataorig = A[1].data
     timeorig = A[1][Axis{:time}][:] # the function will need to loop over time
 
-    # Create lat-lon range consistent with length of data
-    latorigrange = linspace(latorig[1], latorig[end], length(latorig))
-    lonorigrange = linspace(lonorig[1], lonorig[end], length(lonorig))
+    londest, latdest = ndgrid(londest, latdest)
 
     # ---------------------
     # Allocate output Array
@@ -334,24 +422,35 @@ function interp_climgrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latd
 
     # ------------------------
     # Interpolation
+    p = Progress(length(timeorig), 5)
     for t = 1:length(timeorig)
 
-        itp = interpolate(dataorig[t, :, :], BSpline(Linear()), OnCell())
-        sitp = scale(itp, lonorigrange, latorigrange)
+        datatmp = dataorig[t, :, :]
 
-        for ilon = 1:length(londest)
-            for ilat = 1:length(latdest)
-                OUT[t, ilon, ilat] = sitp[londest[ilon], latdest[ilat]]
-            end
-        end
+        # Build points values
+        points = hcat(lonorig[:], latorig[:])
+        val = datatmp[:]
+
+        # Call scipy griddata
+
+        OUT[t, :, :] = scipy[:griddata](points, val, (londest, latdest), method="linear")
+        # Apply mask from ClimGrid destination
+        # OUT[t, :, :] = data_interp .* B.msk
+
+        next!(p)
 
     end
 
     # -----------------------
     # Construct AxisArrays and ClimGrid struct from array OUT
-    dataOut = AxisArray(OUT, Axis{:time}(timeorig), Axis{:lon}(londest), Axis{:lat}(latdest))
+    dataOut = AxisArray(OUT, Axis{:time}(timeorig), Axis{:lon}(lon), Axis{:lat}(lat))
+    msk = Array{Float64}(ones((size(OUT, 2), size(OUT, 3))))
+    grid_mapping = Dict(["grid_mapping_name" => "Regular_longitude_latitude"])
+    dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
 
-    C = ClimateTools.ClimGrid(dataOut, model = A.model, experiment = A.experiment, run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = "degrees_north", lonunits = "degrees_east", variable = A.variable, typeofvar = A.variable, typeofcal = A.typeofcal)
+
+    C = ClimateTools.ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=grid_mapping, dimension_dict=dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits="degrees_north", lonunits="degrees_east", variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
+
 end
 
 """
@@ -434,8 +533,8 @@ function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)
 
 
     # Convert degrees to radians
-    lon = (lon.*π) ./ 180.0
-    lat = (lat.*π) ./ 180.0
+    lon = (lon*π) ./ 180.0
+    lat = (lat*π) ./ 180.0
 
     if northpole
         SP_lon = SP_lon - 180.0
@@ -455,24 +554,24 @@ function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)
     θ = (θ * π) / 180.0
 
     # Convert from spherical to cartesian coords
-    x = cos.(lon) .* cos.(lat)
-    y = sin.(lon) .* cos.(lat)
-    z = sin.(lat)
+    x = cos(lon) * cos(lat)
+    y = sin(lon) * cos(lat)
+    z = sin(lat)
 
     ϕ = -ϕ
     θ = -θ
 
-    x_new = cos.(θ).*cos.(ϕ).*x + sin.(ϕ).*y + sin.(θ).*cos.(ϕ).*z
-    y_new = -cos.(θ).*sin.(ϕ).*x + cos.(ϕ).*y - sin.(θ).*sin.(ϕ).*z
-    z_new = -sin.(θ).*x + cos.(θ).*z
+    x_new = cos(θ)*cos(ϕ)*x + sin(ϕ)*y + sin(θ).*cos(ϕ)*z
+    y_new = -cos(θ)*sin(ϕ)*x + cos(ϕ)*y - sin(θ)*sin(ϕ)*z
+    z_new = -sin(θ)*x + cos(θ)*z
 
     # Convert cartesian back to spherical coordinates
-    lon_new = atan2.(y_new, x_new)
-    lat_new = asin.(z_new)
+    lon_new = atan2(y_new, x_new)
+    lat_new = asin(z_new)
 
     # Convert radians back to degrees
-    lon_new = (lon_new .* 180.0) ./ π
-    lat_new = (lat_new .* 180.0) ./ π
+    lon_new = (lon_new * 180.0) / π
+    lat_new = (lat_new * 180.0) / π
 
     return lon_new, lat_new
 

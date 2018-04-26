@@ -79,8 +79,6 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
       timeV = corr_timevec(timeV, frequency)
   end
 
-  # TODO Correct the following block of code for monthly frequency
-
   if start_date !== Date(-4000)
       @argcheck start_date <= end_date
       @argcheck start_date >= timeV[1]
@@ -129,6 +127,11 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
       gridwest = reshape(longrid[iwest], :, size(longrid, 2))
 
       longrid_flip = vcat(gridwest, grideast)
+
+      ieast_vec = lon_raw .>= 0
+      iwest_vec = lon_raw .< 0
+
+      lon_raw_flip = [lon_raw[iwest_vec];lon_raw[ieast_vec]]
 
 
   else
@@ -226,6 +229,8 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
         if rotatedgrid # flip in original grid
             longrid = vcat(grideast, gridwest)
+
+
         end
 
         longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
@@ -245,6 +250,11 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
                 gridwestsub = reshape(longrid[idxwest], :, size(longrid, 2))
 
                 longrid_flip = vcat(gridwestsub, grideastsub)
+
+                ieast_vec = lon_raw .>= 0
+                iwest_vec = lon_raw .< 0
+
+                lon_raw_flip = [lon_raw[ieast_vec];lon_raw[iwest_vec]]
 
                 data = permute_west_east(data, idxwest, idxeast)
                 # longrid = longrid .- 180.0
@@ -279,6 +289,7 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
   if rotatedgrid
       longrid = longrid_flip
+      lon_raw = lon_raw_flip
   end
 
   # Convert units of optional argument data_units is provided
@@ -552,10 +563,17 @@ function spatialsubset(C::ClimGrid, poly::Array{N, 2} where N)
         poly = poly'
     end
 
-    lat = C[1][Axis{:lat}][:]
-    lon = C[1][Axis{:lon}][:]
 
-    msk = inpolyvec(lon, lat, poly)
+    lonsymbol = Symbol(C.dimension_dict["lon"])
+    latsymbol = Symbol(C.dimension_dict["lat"])
+
+    longrid = C.longrid
+    latgrid = C.latgrid
+
+    lon = C[1][Axis{lonsymbol}][:]
+    lat = C[1][Axis{latsymbol}][:]
+
+    msk = inpolygrid(longrid, latgrid, poly)
     idlon, idlat = findn(.!isnan.(msk))
     minXgrid = minimum(idlon)
     maxXgrid = maximum(idlon)
@@ -576,12 +594,14 @@ function spatialsubset(C::ClimGrid, poly::Array{N, 2} where N)
     data = applymask(data, msk)
 
     # Get lon-lat for such region
+    longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
+    latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
     lon = lon[minXgrid:maxXgrid]
     lat = lat[minYgrid:maxYgrid]
 
-    dataOut = AxisArray(data, Axis{:time}(C[1][Axis{:time}][:]), Axis{:lon}(lon), Axis{:lat}(lat))
+    dataOut = AxisArray(data, Axis{:time}(C[1][Axis{:time}][:]), Axis{lonsymbol}(lon), Axis{latsymbol}(lat))
 
-    return ClimGrid(dataOut, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, variable = C.variable, typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+    return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
 end
 
