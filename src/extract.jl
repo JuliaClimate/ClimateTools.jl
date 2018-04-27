@@ -281,6 +281,14 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
         data = permutedims(data, [4, 1, 2, 3])
     end
     msk = Array{Float64}(ones((size(data, 2), size(data, 3))))
+
+    if rotatedgrid
+        # Flip data
+        idxeast = longrid .>= 0
+        idxwest = longrid .< 0
+        data = permute_west_east(data, idxwest, idxeast)
+    end
+
   end
 
   # # Replace fillvalues with NaN
@@ -622,7 +630,7 @@ function temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
     # Temporal subset
     dataOut = C[1][Axis{:time}(startdate .. enddate)]
 
-    return ClimGrid(dataOut, C)#filename = C.filename, dataunits = C.dataunits, latunits = C.latunits, lonunits = C.lonunits, variable = C.variable, typeofvar = C.typeofvar, typeofcal = C.typeofcal, attribs = C.attribs)
+    return ClimGrid(dataOut, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
 end
 

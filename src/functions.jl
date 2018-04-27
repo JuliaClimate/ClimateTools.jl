@@ -249,10 +249,12 @@ end
 
 
 """
-    C = interp_climgrid(A::ClimGrid, B::ClimGrid)
+    C = interp_climgrid(A::ClimGrid, B::ClimGrid; method="linear", min=[], max=[])
 
 This function interpolate ClimGrid A onto lat-lon grid of ClimGrid B,
-where A, B and C are ClimGrid
+where A, B and C are ClimGrid. Available methods are "linear" (default), "nearest" and "cubic".
+
+Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min = 0.0 to convert negative precipitation to 0.0.
 
 """
 
@@ -341,10 +343,7 @@ where A, B and C are ClimGrid
 #
 # end
 
-function interp_climgrid(A::ClimGrid, B::ClimGrid)
-
-    latsymbol = Symbol(B.dimension_dict["lat"])
-    lonsymbol = Symbol(B.dimension_dict["lon"])
+function interp_climgrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[])
 
 
     # ---------------------------------------
@@ -379,7 +378,7 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
 
         # Call scipy griddata
 
-        data_interp = scipy[:griddata](points, val, (londest, latdest), method="linear")
+        data_interp = scipy[:griddata](points, val, (londest, latdest), method=method)
         # Apply mask from ClimGrid destination
         OUT[t, :, :] = data_interp .* B.msk
 
@@ -387,8 +386,18 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid)
 
     end
 
+    if !isempty(min)
+        OUT[OUT<=min] = min
+    end
+
+    if !isempty(max)
+        OUT[OUT>=max] = max
+    end
+
     # -----------------------
     # Construct AxisArrays and ClimGrid struct from array OUT
+    latsymbol = Symbol(B.dimension_dict["lat"])
+    lonsymbol = Symbol(B.dimension_dict["lon"])
     dataOut = AxisArray(OUT, Axis{:time}(timeorig), Axis{lonsymbol}(B[1][Axis{lonsymbol}][:]), Axis{latsymbol}(B[1][Axis{latsymbol}][:]))
 
     C = ClimateTools.ClimGrid(dataOut, longrid=B.longrid, latgrid=B.latgrid, msk=B.msk, grid_mapping=B.grid_mapping, dimension_dict=B.dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=B.latunits, lonunits=B.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
@@ -414,11 +423,11 @@ function interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::Abs
     dataorig = A[1].data
     timeorig = A[1][Axis{:time}][:] # the function will need to loop over time
 
-    londest, latdest = ndgrid(londest, latdest)
+    londest, latdest = ndgrid(lon, lat)
 
     # ---------------------
     # Allocate output Array
-    OUT = zeros(Float64, (length(timeorig), length(londest), length(latdest)))
+    OUT = zeros(Float64, (length(timeorig), length(lon), length(lat)))
 
     # ------------------------
     # Interpolation
@@ -449,7 +458,7 @@ function interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::Abs
     dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
 
 
-    C = ClimateTools.ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=grid_mapping, dimension_dict=dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits="degrees_north", lonunits="degrees_east", variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
+    C = ClimateTools.ClimGrid(dataOut, longrid=londest, latgrid=latdest, msk=msk, grid_mapping=grid_mapping, dimension_dict=dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits="degrees_north", lonunits="degrees_east", variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 
 end
 
@@ -585,17 +594,48 @@ end
 # grid_in = [[12; 12; 12] [55; 54; 53]]
 # rot2lonlat(grid_in[:, 1], grid_in[:, 2], SP_lon2, SP_lat2, northpole=false)
 
-function permute_west_east(data, iwest, ieast)
+function permute_west_east(data::AbstractArray{N,T} where N where T, iwest, ieast)
 
     dataout = similar(data)
 
-    for t = 1:size(data, 1)
-        datatmp = data[t, :, :]
-        datawest = reshape(datatmp[iwest], :, size(datatmp, 2))
-        dataeast = reshape(datatmp[ieast], :, size(datatmp, 2))
-        dataout[t, :, :] = vcat(datawest, dataeast)
+    if ndims(data) == 2
+
+        datatmp = data[:, :]
+        # datawest = reshape(datatmp[iwest], :, size(datatmp, 2))
+        # dataeast = reshape(datatmp[ieast], :, size(datatmp, 2))
+        dataout[:, :] = permute_west_east2D(datatmp, iwest, ieast)
+
+
+    elseif ndims(data) == 3
+
+        for t = 1:size(data, 1)
+            datatmp = data[t, :, :]
+            # datawest = reshape(datatmp[iwest], :, size(datatmp, 2))
+            # dataeast = reshape(datatmp[ieast], :, size(datatmp, 2))
+            dataout[t, :, :] = permute_west_east2D(datatmp, iwest, ieast) #vcat(datawest, dataeast)
+        end
+
+    elseif ndims(data) == 4
+
+        for t = 1:size(data, 1)
+            for l = 1:size(data, 4)
+                datatmp = data[t, :, :, l]
+                # datawest = reshape(datatmp[iwest], :, size(datatmp, 2))
+                # dataeast = reshape(datatmp[ieast], :, size(datatmp, 2))
+                dataout[t, :, :, l] = permute_west_east2D(datatmp, iwest, ieast) #vcat(datawest, dataeast)
+            end
+        end
+
     end
 
     return dataout
+
+end
+
+function permute_west_east2D(data::AbstractArray{N,2} where N, iwest, ieast)
+
+    datawest = reshape(data[iwest], :, size(data, 2))
+    dataeast = reshape(data[ieast], :, size(data, 2))
+    return vcat(datawest, dataeast)
 
 end

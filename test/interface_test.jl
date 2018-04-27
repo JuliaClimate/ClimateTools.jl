@@ -22,17 +22,17 @@ B = merge(C, C)
 @test size(B.data) == (1, 256, 128) # C being similar, they should not add up, as opposed to vcat
 # Operators +, -, *, /
 B = C + C
-@test B[1].data[1, 1, 1] == 431.787f0
+@test B[1].data[1, 1, 1] == 438.4457f0
 B = C - C
 @test B[1].data[1, 1, 1] == 0.0
 B = C / 2
-@test B[1].data[1, 1, 1] == 107.94675f0
+@test B[1].data[1, 1, 1] == 109.61143f0
 B = C / 2.2
-@test B[1].data[1, 1, 1] == 98.13340620561078
+@test B[1].data[1, 1, 1] == 99.6467520973899
 B = C * 2
-@test B[1].data[1, 1, 1] == 431.787f0
+@test B[1].data[1, 1, 1] == 438.4457f0
 B = C * 2.2
-@test B[1].data[1, 1, 1] == 474.9656860351563
+@test B[1].data[1, 1, 1] == 482.2902801513672
 
 # @test typeof(show(C)) == Dict{Any, Any}
 @test typeof(C[1].data) == Array{Float64,3} || typeof(C[1].data) == Array{Float32,3}
@@ -47,16 +47,16 @@ B = C * 2.2
 @test annualmax(C)[9] == "annualmax"
 @test C[10] == "tas"
 @test C[11] == "noleap"
-@test_throws ErrorException C[12]
+@test typeof(C[12]) == Dict{Any, Any}
+@test C[12]["project_id"] == "IPCC Fourth Assessment"
+@test_throws ErrorException C[13]
 @test annualmax(C)[10] == "tas"
-@test size(C) == (11, )
-@test size(C, 1) == 11
-@test length(C) == 11
-@test endof(C) == 11
-@test C[end] == "noleap"
+@test size(C) == (21, )
+@test size(C, 1) == 21
+@test length(C) == 21
+@test endof(C) == 21
+@test_throws ErrorException C[end]
 @test ndims(C) == 1
-
-
 
 
 # Spatial subset
@@ -80,7 +80,7 @@ Csub = spatialsubset(C, P)
 @test isnan(Csub[1][1, 1, 1, 1])
 C = nc2julia(filenc, "tas")
 Csub = temporalsubset(C, Date(2000, 05, 15), Date(2000, 05, 15))
-@test Csub[1][1, 1, 1] == 215.8935f0
+@test Csub[1][1, 1, 1] == 219.22285f0
 @test Csub[1][Axis{:time}][1] == Date(2000, 05, 15)
 
 # Time resolution
@@ -98,8 +98,8 @@ timevec = NetCDF.ncread(filenc, "time")
 
 
 # MESHGRID
-YV = [1 2 3]'
-XV = [1 2 3]'
+YV = [1, 2, 3]
+XV = [1, 2, 3]
 @test meshgrid(XV, YV) == ([1 2 3; 1 2 3; 1 2 3], [1 1 1; 2 2 2; 3 3 3])
 
 ## INPOLY
@@ -260,14 +260,17 @@ poly = Float64[0 0
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = nc2julia(filename, "tas")
 # Get lat lon vector
-lat = C[1][Axis{:lat}][:]
-lon = C[1][Axis{:lon}][:]
+lat = Float32.(C[1][Axis{:lat}][:])
+lon = Float32.(C[1][Axis{:lon}][:])
+latgrid = Float32.(C.latgrid)
+longrid = Float32.(C.longrid)
 # Shift longitude by 1
-lon += 1
+lon += Float32(1.0)
+longrid += Float32(1.0)
 axisdata = AxisArray(C[1].data, Axis{:time}(C[1][Axis{:time}][:]), Axis{:lon}(lon), Axis{:lat}(lat))
-C2 = ClimGrid(axisdata, variable = "tas")
-@test interp_climgrid(C, C2)[1].data[1, 1, 1] == 215.83078002929688
-@test interp_climgrid(C, lon, lat)[1].data[1, 1, 1] == 215.83078002929688
+C2 = ClimGrid(axisdata, variable = "tas", longrid=longrid, latgrid=latgrid, msk=C.msk)
+@test interp_climgrid(C, C2)[1].data[1, 1, 1] == 219.2400638156467
+@test interp_climgrid(C, lon, lat)[1].data[1, 1, 1] == 219.2400638156467
 
 # Test applymask
 # 1-D data

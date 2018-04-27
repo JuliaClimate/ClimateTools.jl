@@ -47,10 +47,10 @@ end
 struct ClimGrid{A <: AxisArray}
 # struct ClimGrid
   data::A
-  longrid::AbstractArray{N,2} where N
-  latgrid::AbstractArray{N,2} where N
-  msk::Array{N, 2} where N
-  grid_mapping::Dict#{String, Any} # bindings for native grid
+  longrid::Array{N,T} where N where T
+  latgrid::Array{N,T} where N where T
+  msk::Array{N,T} where N where T
+  grid_mapping::Dict # bindings for native grid
   dimension_dict::Dict
   model::String
   frequency::String
@@ -72,15 +72,19 @@ end
 
 function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), model="NA", frequency="NA", experiment="NA", run="NA", project="NA", institute="NA", filename="NA", dataunits="NA", latunits="NA", lonunits="NA", variable="NA", typeofvar="NA", typeofcal="NA", varattribs=Dict(), globalattribs=Dict())
 
+    if isempty(dimension_dict)
+        dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
+    end
+
     ClimGrid(data, longrid, latgrid, msk, grid_mapping, dimension_dict, model, frequency, experiment, run, project, institute, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal, varattribs, globalattribs)
 
 end
 
-function ClimGrid(data, C::ClimateTools.ClimGrid)
-
-    ClimGrid(data, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
-
-end
+# function ClimGrid(data; climgrid::ClimGrid=C)
+#
+#     ClimGrid(data, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+#
+# end
 
 # Included files
 include("functions.jl")
