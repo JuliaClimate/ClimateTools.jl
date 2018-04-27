@@ -104,6 +104,6 @@ export shapefile_coords, timeresolution, pr_timefactor, spatialsubset
 export temporalsubset, qqmap, ndgrid, permute_west_east
 export project_id, model_id, institute_id, experiment_id, frequency_var, runsim_id, getdim_lat, getdim_lon, isdefined
 export @isdefined
-export rot2lonlat, buildarray
+export rot2lonlat, buildarray, timeindex
 
 end #module

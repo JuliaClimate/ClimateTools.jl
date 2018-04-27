@@ -117,3 +117,30 @@ Base.show(io::IO, ::MIME"text/plain", C::ClimGrid) = print(io, "ClimGrid struct 
 "Frequency: ", C.frequency, "\n",
 "Global attributes: ", summary(C[12]), "\n",
 "Filename: ", C[8])
+
+"""
+    timeindex(timeVec, start_date, end_date, freq)
+
+Return the index of time vector specified by start_date and end_date. Provide timestep "freq" to account for monthly timestep.
+"""
+
+function timeindex(timeV, start_date, end_date, frequency)
+    if start_date !== Date(-4000)
+        @argcheck start_date <= end_date
+        @argcheck start_date >= timeV[1]
+        @argcheck end_date <= timeV[end]
+        if frequency != "mon"
+            idxtimebeg = find(timeV .== start_date)[1]
+            idxtimeend = find(timeV .== end_date)[1]
+        elseif frequency == "mon"
+            idxtimebeg = find(timeV .== start_date)[1]
+            idxtimeend = find(timeV .== Date(Dates.year(end_date), Dates.month(end_date), Dates.day(1)))[1]
+
+        end
+    else # no time specified
+        idxtimebeg = 1
+        idxtimeend = length(timeV)
+    end
+
+    return idxtimebeg, idxtimeend
+end

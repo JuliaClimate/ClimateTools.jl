@@ -42,6 +42,7 @@ status, figh = mapclimgrid(annualmax(C), region = "Europe");@test status == true
 # precip
 C = nc2julia(filename, "pr")
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, start_date=Date(2000, 05, 15), end_date=Date(2000, 05, 15));@test status == true; PyPlot.close()
 status, figh = mapclimgrid(prcp1(C), region = "World");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(prcp1(C), region = "Canada");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(prcp1(C), region = "Europe");@test status == true; PyPlot.close()

@@ -70,24 +70,6 @@ end
 
 This function creates a 2-D mesh-grid in a format consistent with Matlab's function ndgrid(). XV and YV are vectors.
 """
-# function meshgrid(XV, YV)
-#
-# 	# Number of columns ("width")
-# 	num_cols = length(XV);
-#
-# 	# Number of rows ("height")
-# 	num_rows = length(YV);
-#
-# 	# Replace the columns vector
-# 	X = repmat(XV', num_rows, 1);
-#
-# 	# Replate the rows vector
-# 	Y = repmat(YV, 1, num_cols);
-#
-# 	# Return X and Y
-# 	return X, Y
-#
-# end
 
 ndgrid(v::AbstractVector) = copy(v)
 
@@ -141,10 +123,9 @@ function meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T},
 end
 
 """
-    inpolyvec(lon, lat, poly::AbstractArray{N,2} where N)
+    inpolygrid(lon, lat, poly::AbstractArray{N,2} where N)
 
-Used to test a vector of points. Columns should be consistent with polygon.
-
+Used to test a grid of points. Returns a mask of ones and NaNs of the same size as lon and lat.
 
 """
 
@@ -258,94 +239,8 @@ Min and max optional keyword are used to constraint the results of the interpola
 
 """
 
-# function interp_climgrid(A::ClimGrid, B::ClimGrid)
-#
-#     latsymbol = Symbol(B.dimension_dict["lat"])
-#     lonsymbol = Symbol(B.dimension_dict["lon"])
-#
-#     grid_mapping_dest = B.grid_mapping["grid_mapping_name"]
-#     grid_mapping_src = A.grid_mapping["grid_mapping_name"]
-#
-#     # DEFINE SRC AND DEST GRID BASED ON GRID MAPPING
-#     if grid_mapping_dest == "Regular_longitude_latitude" # lat-lon native
-#         londest = B.longrid#B[1][Axis{lonsymbol}][:]
-#         latdest = B.latgrid#[1][Axis{latsymbol}][:]
-#
-#     end
-#
-#     if grid_mapping_src == "rotated_latitude_longitude"
-#
-#     end
-#
-#
-#
-#     # ---------------------------------------
-#     # Get lat-lon information from ClimGrid B
-#     londest = B.longrid
-#     latdest = B.latgrid
-#     # londest = B[1][Axis{lonsymbol}][:]
-#     # latdest = B[1][Axis{latsymbol}][:]
-#
-#     # Get lat-lon information from ClimGrid A
-#     lonorig = A.longrid
-#     latorig = A.latgrid
-#     # lonorig = A[1][Axis{:lon}][:]
-#     # latorig = A[1][Axis{:lat}][:]
-#
-#     # -----------------------------------------
-#     # Get initial data and time from ClimGrid A
-#     dataorig = A[1].data
-#     timeorig = A[1][Axis{:time}][:] # the function will need to loop over time
-#
-#     # Create lat-lon range consistent with length of data
-#     latorigrange = linspace(minimum(latorig), maximum(latorig), size(latorig, 2))
-#     lonorigrange = linspace(minimum(lonorig), maximum(lonorig), size(lonorig, 1))
-#
-#     knots = (lonorigrange, latorigrange)
-#
-#     # ---------------------
-#     # Allocate output Array
-#     OUT = zeros(Float64, (length(timeorig), size(B.data, 2), size(B.data, 3)))
-#
-#     # ------------------------
-#     # Interpolation
-#     p = Progress(length(timeorig), 5)
-#     for t = 1:length(timeorig)
-#
-#         itp = interpolate(knots, dataorig[t,:,:], Gridded(Constant()))
-#         itp = extrapolate(itp, Flat())
-#
-#         # itp = interpolate(dataorig[t, :, :], BSpline(Linear()), OnGrid())
-#         # sitp = scale(itp, lonorigrange, latorigrange)
-#
-#         for i in eachindex(londest)
-#             OUT[t, i] = itp[londest[i], latdest[i]]
-#             # OUT[t, i] = sitp[londest[i], latdest[i]]
-#         end
-#
-#         OUT[t, :, :] = OUT[t, :, :] .* B.msk
-#
-#         # for ilon = 1:length(londest)
-#         #     for ilat = 1:length(latdest)
-#         #         OUT[t, ilon, ilat] = sitp[londest[ilon], latdest[ilat]]
-#         #     end
-#         # end
-#
-#         next!(p)
-#
-#     end
-#
-#     # -----------------------
-#     # Construct AxisArrays and ClimGrid struct from array OUT
-#     dataOut = AxisArray(OUT, Axis{:time}(timeorig), Axis{lonsymbol}(B[1][Axis{lonsymbol}][:]), Axis{latsymbol}(B[1][Axis{latsymbol}][:]))
-#
-#     C = ClimateTools.ClimGrid(dataOut, longrid=B.longrid, latgrid=B.latgrid, msk=B.msk, grid_mapping=B.grid_mapping, dimension_dict=B.dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=B.latunits, lonunits=B.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
-#
-# end
-
 # TODO define interpolation for 4D grid
 function interp_climgrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[])
-
 
     # ---------------------------------------
     # Get lat-lon information from ClimGrid B
@@ -355,7 +250,6 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=
     # Get lat-lon information from ClimGrid A
     lonorig = A.longrid
     latorig = A.latgrid
-
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
@@ -444,8 +338,6 @@ function interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::Abs
         # Call scipy griddata
 
         OUT[t, :, :] = scipy[:griddata](points, val, (londest, latdest), method=method)
-        # Apply mask from ClimGrid destination
-        # OUT[t, :, :] = data_interp .* B.msk
 
         next!(p)
 

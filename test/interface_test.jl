@@ -79,6 +79,9 @@ Csub = spatialsubset(C, P)
 @test Csub[1][1, 12, 1, 1] == 6.658482f0
 @test isnan(Csub[1][1, 1, 1, 1])
 
+poly= [[NaN 10 -10 -10 10 10];[NaN -10 -20 10 10 -10]] # meridian test
+C = nc2julia(filenc, "tas", poly=poly)
+
 # Spatial subset
 C = nc2julia(filenc, "tas")
 Csub = temporalsubset(C, Date(2000, 05, 15), Date(2000, 05, 15))

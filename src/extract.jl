@@ -17,7 +17,8 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
   # TODO this file is a complete mess, but it works. Clean it up!
   # TODO create another function for orography extraction (2D dataset)
-  # Get attributes for type "ClimGrid" using NCDataset.jl
+
+  # Get attributes
   ncI = NetCDF.ncinfo(file);
   attribs = NetCDF.ncinfo(file).gatts;
   ds = NCDatasets.Dataset(file)
@@ -53,8 +54,8 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
   varattrib = Dict(ds[variable].attrib)
 
   if latname != "lat" && lonname != "lon" # means we don't have a "regular" grid
-      latgrid = NetCDF.ncread(file, "lat")#ds["lat"][:, :]
-      longrid = NetCDF.ncread(file, "lon")#ds["lon"][:, :]
+      latgrid = NetCDF.ncread(file, "lat")
+      longrid = NetCDF.ncread(file, "lon")
       if @isdefined varattrib["grid_mapping"]
           map_dim = varattrib["grid_mapping"]
           map_attrib = Dict(ds[map_dim].attrib)
@@ -63,8 +64,6 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
           error("File an issue on https://github.com/Balinus/ClimateTools.jl/issues to get the grid supported")
       end
   else # if no grid provided, create one
-      # longrid, latgrid = ndgrid(lon_raw, lat_raw)
-      # longrid, latgrid = meshgrid(lon_raw, lat_raw)
       longrid, latgrid = ndgrid(lon_raw, lat_raw)
       map_attrib = Dict(["grid_mapping_name" => "Regular_longitude_latitude"])
   end
@@ -73,37 +72,17 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
   # TIME
 
   # Construct time vector from info in netCDF file *str*
-  # TODO add time frequency to buildtimevec to comply with monthly values
   timeV = buildtimevec(file)
   if frequency == "mon"
       timeV = corr_timevec(timeV, frequency)
   end
 
-  if start_date !== Date(-4000)
-      @argcheck start_date <= end_date
-      @argcheck start_date >= timeV[1]
-      @argcheck end_date <= timeV[end]
-      if frequency != "mon"
-          idxtimebeg = find(timeV .== start_date)[1]
-          idxtimeend = find(timeV .== end_date)[1]
-      elseif frequency == "mon"
-          idxtimebeg = find(timeV .== start_date)[1]
-          idxtimeend = find(timeV .== Date(Dates.year(end_date), Dates.month(end_date), Dates.day(1)))[1]
-
-      end
-  else
-      idxtimebeg = 1
-      idxtimeend = length(timeV)
-  end
+  idxtimebeg, idxtimeend = timeindex(timeV, start_date, end_date, frequency)
 
   timeV = timeV[idxtimebeg:idxtimeend]
 
-  # Correct longitude from 0, 360 => -180, 180
-  # from 0, 360 to -180, 180
-  # dataout, lonout = basemap[:shiftgrid](180.0, datain', longrid[:, 1], start=false)
-  # from -180, 180 to 0, 360
-  # dataorig, lonorig = basemap[:shiftgrid](0.0, dataout, lonout, start=true)
-
+  # ==================
+  # Spatial shift if grid is 0-360.
   rotatedgrid = false
   if sum(longrid .> 180) >= 1
       rotatedgrid = true
@@ -133,14 +112,9 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
       lon_raw_flip = [lon_raw[iwest_vec];lon_raw[ieast_vec]]
 
-
   else
       longrid_flip = longrid
-
-
   end
-
-
 
   # ===================
   # GET DATA
@@ -173,11 +147,13 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
     end
 
+    # Get index
     idlon, idlat = findn(.!isnan.(msk))
     minXgrid = minimum(idlon)
     maxXgrid = maximum(idlon)
     minYgrid = minimum(idlat)
     maxYgrid = maximum(idlat)
+
     if ndims(data) == 3
         data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, idxtimebeg:idxtimeend]
         # Permute dims
@@ -191,7 +167,7 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
     #new mask (e.g. representing the region of the polygon)
     msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
-    data = applymask(data, msk)
+    data = applymask(data, msk) # needed when polygon is not rectangular
 
     # Get lon_raw and lat_raw for such region
     lon_raw = lon_raw[minXgrid:maxXgrid]
@@ -229,17 +205,10 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
         if rotatedgrid # flip in original grid
             longrid = vcat(grideast, gridwest)
-
-
         end
 
         longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
         latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
-
-        # reflip in destination grid
-        # if rotatedgrid # flip in original grid
-        #
-        # end
 
 
         if rotatedgrid
@@ -257,13 +226,6 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
                 lon_raw_flip = [lon_raw[ieast_vec];lon_raw[iwest_vec]]
 
                 data = permute_west_east(data, idxwest, idxeast)
-                # longrid = longrid .- 180.0
-                # else
-                # longrid = longrid + 180.0
-            # else
-                # longrid_flip = longrid
-            # end
-
 
         end
 
@@ -402,16 +364,6 @@ elseif calType == "360_day"
   return dateTmp
 end
 
-# function buildtimevec2(str::String)
-#
-#   # Time vectors
-#   timevector = NetCDF.ncread(str, "time_vectors")
-#   if size(timevector, 1) < size(timevector, 2)
-#       timevector = timevector'
-#   end
-#
-#   return Base.Date.(timevector)
-# end
 
 """
 Number of leap years in date vector
@@ -446,8 +398,7 @@ function sumleapyear(dates::StepRange{Date,Base.Dates.Day})
   for idx = 1:length(years)
     if Dates.isleapyear(years[idx])
       out += 1
-    end
-    # out[idx] = Dates.isleapyear(test[idx])
+    end    
   end
 
   return out
