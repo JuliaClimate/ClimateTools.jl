@@ -9,7 +9,7 @@ P = [x y]
 P = P'
 lat = NetCDF.ncread(filenc, "lat")
 lon = NetCDF.ncread(filenc, "lon")
-msk = inpolyvec(lon, lat, P)
+msk = inpolygrid(C.longrid, C.latgrid, P)
 C = nc2julia(filenc, "tas", poly = P)
 status, figh = mapclimgrid(C); @test status == true; PyPlot.close()
 C = nc2julia(filenc, "tas")
@@ -19,15 +19,15 @@ status, figh = mapclimgrid(C, mask = msk); @test status == true; PyPlot.close()
 @test isnan(x[1])
 @test isnan(y[1])
 
-filename = joinpath(dirname(@__FILE__), "data", "zoneAgricoleQc15km.shp")
-polyshp = read(filename,Shapefile.Handle)
-x, y = shapefile_coords(polyshp.shapes[2])
-P = [x y]
-P = P'
-cities_lat = collect(45.5016889:0.1:46.8138783)
-cities_lon = collect(-73.56725599999999:0.1:-71.2079809) + 360
-@test sum(.!isnan.(inpolyvec(cities_lon, cities_lat, P))) == 336
-@test sum(.!isnan.(inpolyvec(cities_lon - 360, cities_lat, P))) == 336
+# filename = joinpath(dirname(@__FILE__), "data", "zoneAgricoleQc15km.shp")
+# polyshp = read(filename,Shapefile.Handle)
+# x, y = shapefile_coords(polyshp.shapes[2])
+# P = [x y]
+# P = P'
+# cities_lat = collect(45.5016889:0.1:46.8138783)
+# cities_lon = collect(-73.56725599999999:0.1:-71.2079809) + 360
+# @test sum(.!isnan.(inpolyvec(cities_lon, cities_lat, P))) == 336
+# @test sum(.!isnan.(inpolyvec(cities_lon - 360, cities_lat, P))) == 336
 
 # Mapping test
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")

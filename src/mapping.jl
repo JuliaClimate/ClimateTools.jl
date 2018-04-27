@@ -5,7 +5,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
   # Some tests
   if !isempty(mask)
       @assert (size(C[1], 2), size(C[1], 3)) == (size(mask, 1), size(mask, 2))
-      mask = mask'
+      # mask = mask'
   end
 
   # Get x-y dimension names
@@ -158,7 +158,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
     end
 
     if !isempty(poly)
-        msk = inpolyvec(lon, lat, poly)
+        msk = inpolygrid(C.longrid, C.latgrid, poly)
         cs = m[:contourf](x .* msk, y .* msk, data2 .* msk, cmap=get_cmap(cm))
     elseif !isempty(mask)
         cs = m[:contourf](x .* mask, y .* mask, data2 .* mask, cmap = get_cmap(cm))

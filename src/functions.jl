@@ -148,54 +148,54 @@ Used to test a vector of points. Columns should be consistent with polygon.
 
 """
 
-function inpolyvec(lon, lat, poly::AbstractArray{N,2} where N)
-
-    OUT = fill(NaN, size(lon, 1), size(lat, 1)) # grid mask
-
-    # Convert longitude to 0-360 degrees_east
-    # lon[lon .< 0] += 360
-
-    # Find number of polygons (separated by NaN values)
-    polyidx = findn(isnan.(poly[1, :])) #poly start index
-    npoly = length(polyidx) # number of polygons
-
-    for p = 1:npoly # loop over each polygon
-        # Build poly n
-        if p != npoly
-            polyn = poly[:, polyidx[p] + 1:polyidx[p + 1] - 1]
-        elseif p == npoly
-            polyn = poly[:, polyidx[p] + 1:end]
-        end
-        # Convert to 0-360 longitude
-        if sum(polyn[1, :] .< 0) == length(polyn[1, :])
-            polyn[1,:] += 360
-        end
-
-        # get_limits of polyn
-        minlon = minimum(polyn[1, :])
-        maxlon = maximum(polyn[1, :])
-        minlat = minimum(polyn[2, :])
-        maxlat = maximum(polyn[2, :])
-
-        lonidx = findn((lon .<= maxlon) .& (lon .>= minlon))
-        latidx = findn((lat .<= maxlat) .& (lat .>= minlat))
-
-
-        for j in lonidx # = 1:size(lon, 1)
-            for i in latidx # = 1:size(lat, 1) # loop over pair of points to test
-
-                # if inpoly([lon[j], lat[i]], polyn)
-                #     OUT[j, i] = 1.0
-                # end
-                if OUT[j, i] != 1.0 && inpoly([lon[j], lat[i]], polyn)
-                    OUT[j, i] = 1.0
-                end
-            end
-        end
-    end
-    return OUT
-
-end
+# function inpolyvec(lon, lat, poly::AbstractArray{N,2} where N)
+#
+#     OUT = fill(NaN, size(lon, 1), size(lat, 1)) # grid mask
+#
+#     # Convert longitude to 0-360 degrees_east
+#     # lon[lon .< 0] += 360
+#
+#     # Find number of polygons (separated by NaN values)
+#     polyidx = findn(isnan.(poly[1, :])) #poly start index
+#     npoly = length(polyidx) # number of polygons
+#
+#     for p = 1:npoly # loop over each polygon
+#         # Build poly n
+#         if p != npoly
+#             polyn = poly[:, polyidx[p] + 1:polyidx[p + 1] - 1]
+#         elseif p == npoly
+#             polyn = poly[:, polyidx[p] + 1:end]
+#         end
+#         # Convert to 0-360 longitude
+#         if sum(polyn[1, :] .< 0) == length(polyn[1, :])
+#             polyn[1,:] += 360
+#         end
+#
+#         # get_limits of polyn
+#         minlon = minimum(polyn[1, :])
+#         maxlon = maximum(polyn[1, :])
+#         minlat = minimum(polyn[2, :])
+#         maxlat = maximum(polyn[2, :])
+#
+#         lonidx = findn((lon .<= maxlon) .& (lon .>= minlon))
+#         latidx = findn((lat .<= maxlat) .& (lat .>= minlat))
+#
+#
+#         for j in lonidx # = 1:size(lon, 1)
+#             for i in latidx # = 1:size(lat, 1) # loop over pair of points to test
+#
+#                 # if inpoly([lon[j], lat[i]], polyn)
+#                 #     OUT[j, i] = 1.0
+#                 # end
+#                 if OUT[j, i] != 1.0 && inpoly([lon[j], lat[i]], polyn)
+#                     OUT[j, i] = 1.0
+#                 end
+#             end
+#         end
+#     end
+#     return OUT
+#
+# end
 
 function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} where N, poly::AbstractArray{N,2} where N)
 
@@ -343,6 +343,7 @@ Min and max optional keyword are used to constraint the results of the interpola
 #
 # end
 
+# TODO define interpolation for 4D grid
 function interp_climgrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[])
 
 
@@ -412,7 +413,7 @@ This function interpolate ClimGrid A onto lat-lon grid defined by londest and la
 
 """
 
-function interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArray{N, 1} where N)
+function interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArray{N, 1} where N; method::String="linear", min=[], max=[])
 
     # Get lat-lon information from ClimGrid A
     lonorig = A.longrid
@@ -442,12 +443,20 @@ function interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::Abs
 
         # Call scipy griddata
 
-        OUT[t, :, :] = scipy[:griddata](points, val, (londest, latdest), method="linear")
+        OUT[t, :, :] = scipy[:griddata](points, val, (londest, latdest), method=method)
         # Apply mask from ClimGrid destination
         # OUT[t, :, :] = data_interp .* B.msk
 
         next!(p)
 
+    end
+
+    if !isempty(min)
+        OUT[OUT<=min] = min
+    end
+
+    if !isempty(max)
+        OUT[OUT>=max] = max
     end
 
     # -----------------------
