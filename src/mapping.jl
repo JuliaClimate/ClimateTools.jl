@@ -44,8 +44,8 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
       m = basemap[:Basemap](llcrnrlon = -80.5, llcrnrlat = 41., urcrnrlon = -50.566, urcrnrlat = 62.352, rsphere = (6378137.00, 6356752.3142), resolution = "l", projection = "lcc",  lat_1 = 50., lon_0 = -70.)
 
   elseif region == "World"
-      # m = basemap[:Basemap](projection="cyl", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180, resolution = "c")
-      m = basemap[:Basemap](projection="eck4", lon_0 = -10., resolution = "l")
+      m = basemap[:Basemap](projection="cyl", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180, resolution = "c")
+      # m = basemap[:Basemap](projection="eck4", lon_0 = -10., resolution = "l")
 
   elseif region == "Europe"
       m = basemap[:Basemap](width=6800000, height = 4500000, rsphere = (6378137.00, 6356752.3142), resolution = "l", projection = "lcc", lat_1 = 30., lat_2 = 45, lat_0 = 52, lon_0 = 10.)
