@@ -1,5 +1,5 @@
 # TODO add quantile estimation as indices
-function _buildarray(C::ClimateTools.ClimGrid, dataout, numYears)
+function buildarray(C::ClimateTools.ClimGrid, dataout, numYears)
     lonsymbol = Symbol(C.dimension_dict["lon"])
     latsymbol = Symbol(C.dimension_dict["lat"])
     FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]))
