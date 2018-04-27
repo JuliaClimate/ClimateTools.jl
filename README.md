@@ -15,22 +15,20 @@ This package is a collection of commonly-used tools in Climate Science. Basics o
 
 This package is registered on METADATA.jl and can be added with `Pkg.add("ClimateTools")` and used with `using ClimateTools`.
 
-The climate indices are coded to use **multiple threads**. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.CPU_CORES`.
-
-Since the package is evolving quickly, you might prefer to checkout the git repo directly, although the master might not be working (I usually don't push broken version though).
-
 ```julia
 Pkg.add("ClimateTools") # Tagged release
 Pkg.checkout("ClimateTools") # For latest master branch
 ```
 
+The climate indices are coded to use **multiple threads**. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.CPU_CORES`.
+
 ## Objectives
 
-* Visualization of NetCDF files (e.g. temporal mean of a given NetCDF file), for rapid evaluation of NetCDF files
-* Migration of NetCDF files to a Julia `ClimGrid` type for data analysis
+* Extraction and visualization of NetCDF datasets, with user-provided polygons and start and end date.
 * Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI)
 * Custom climate indices
-* Post-processing of climate timeseries using Quantile-Quantile mapping methods (cf. Piani et al. 2010)
+* Interpolation of a datasets onto another grid
+* Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Piani et al. 2010)
 
 ## Getting started
 
@@ -41,22 +39,38 @@ Pkg.checkout("ClimateTools") # For latest master branch
 The entry point of `ClimateTools` is to load data with the `nc2julia` function. Optional polygon clipping feature is available. By providing such polygon, the `nc2julia` function  returns a `ClimGrid` with grid points contained in the polygon.
 
 ```julia
-C = nc2julia(filename::String, var::String; poly::Array, data_units::String)
+C = nc2julia(filename::String, var::String; poly::Array, data_units::String, start_date::Date, end_date::Date)
 ```
 
 `nc2julia` return a `ClimGrid` type. Using the optional `poly` argument, the user can provide a polygon and the returned `ClimGrid` will only contains the grid points inside the provided polygon. For some variable, the optional keyword argument `data_units` can be provided. For example, precipitation in climate models are usually provided as `kg/m^2/s`. By specifying `data_units = mm`, the `nc2julia` function returns accumulation at the data time resolution. Similarly, the user can provide `Celsius` as `data_units` and `nc2julia` will return `Celsius` instead of `Kelvin`.
 
+The `ClimGrid` is a in-memory representation of a CF-compliant netCDF file for a single variable.
+
 ```julia
-struct ClimGrid
-  data::AxisArray    # Data
-  model::String      # Climate model name
-  experiment::String # Historical, RCP 4.5, RCP 8.5, etc.
-  run::String        # Which member
-  filename::String   # local filename path
-  dataunits::String  # Celsius, kelvin, etc..
-  latunits::String   # degrees_north, degrees_south
-  lonunits::String   # degrees_east
-  var::String        # "pr", "tasmax", etc...
+struct ClimGrid{A <: AxisArray}
+# struct ClimGrid
+  data::A
+  longrid::AbstractArray{N,2} where N # the longitude grid
+  latgrid::AbstractArray{N,2} where N # the latitude grid
+  msk::Array{N, 2} where N
+  grid_mapping::Dict#{String, Any} # bindings for native grid
+  dimension_dict::Dict
+  model::String
+  frequency::String
+  experiment::String
+  run::String
+  project::String # CORDEX, CMIP5, etc.
+  institute::String
+  filename::String
+  dataunits::String
+  latunits::String # of the coordinate variable
+  lonunits::String # of the coordinate variable
+  variable::String # Type of variable (i.e. can be the same as "var", but it is changed when calculating indices)
+  typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
+  typeofcal::String # Calendar type
+  varattribs::Dict # Variable attributes
+  globalattribs::Dict # Global attributes
+
 end
 ```
 
@@ -111,7 +125,9 @@ ind = annualmax(data::Array{Float64, 3}, dates::StepRange{Date, Base.Dates.Day})
 
 ### Interpolation
 
-A typical step in climate analysis is to interpolate a given grid onto another grid. `ClimateTools` provides such a tool through the Interpolations.jl package. The following command will interpolate the data contained in `ClimGrid A` into the coordinates of `ClimGrid B` and returns a new `ClimGrid C` which contains the interpolated data of `A` into the grid of `B`.
+A typical step in climate analysis is to interpolate a given grid onto another grid. `ClimateTools` provides such a tool by wrapping Scipy griddata function. It is intended for visualization or as a 1st step before bias-correcting the `ClimGrid` dataset.
+
+The following command will interpolate the data contained in `ClimGrid A` into the coordinates of `ClimGrid B` and returns a new `ClimGrid C` which contains the interpolated data of `A` into the grid of `B`.
 
 ```julia
 C = interp_climgrid(A::ClimGrid, B::ClimGrid)
@@ -122,6 +138,10 @@ It is also possible to interpolate a `ClimGrid` onto specified longitude and lat
 ```julia
 C = interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N, 1})
 ```
+
+### Bias-correction
+
+TODO
 
 ### Merging ClimGrid type
 
