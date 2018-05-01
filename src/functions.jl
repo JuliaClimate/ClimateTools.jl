@@ -273,11 +273,11 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=
     end
 
     if !isempty(min)
-        OUT[OUT<=min] = min
+        OUT[OUT.<=min] = min
     end
 
     if !isempty(max)
-        OUT[OUT>=max] = max
+        OUT[OUT.>=max] = max
     end
 
     # -----------------------
@@ -335,11 +335,11 @@ function interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::Abs
     end
 
     if !isempty(min)
-        OUT[OUT<=min] = min
+        OUT[OUT.<=min] = min
     end
 
     if !isempty(max)
-        OUT[OUT>=max] = max
+        OUT[OUT.>=max] = max
     end
 
     # -----------------------
@@ -404,80 +404,80 @@ end
 
 
 
-function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)
-
-    # Copyright (c) 2013, Simon Funder
-    # All rights reserved.
-    #
-    # Redistribution and use in source and binary forms, with or without
-    # modification, are permitted provided that the following conditions are
-    # met:
-    #
-    #     * Redistributions of source code must retain the above copyright
-    #       notice, this list of conditions and the following disclaimer.
-    #     * Redistributions in binary form must reproduce the above copyright
-    #       notice, this list of conditions and the following disclaimer in
-    #       the documentation and/or other materials provided with the distribution
-    #
-    # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-    # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-    # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-    # ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-    # LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-    # CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-    # SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-    # INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-    # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-    # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-    # POSSIBILITY OF SUCH DAMAGE.
-
-
-
-    # Convert degrees to radians
-    lon = (lon*π) ./ 180.0
-    lat = (lat*π) ./ 180.0
-
-    if northpole
-        SP_lon = SP_lon - 180.0
-        SP_lat = -SP_lat
-
-        θ = 90.0 + SP_lat # Rotation around y-axis
-        # θ = NP_lat # Rotation around y-axis
-        ϕ = SP_lon # Rotation around z-axis
-    else
-
-        θ = 90.0 + SP_lat # Rotation around y-axis
-        # θ = NP_lat # Rotation around y-axis
-        ϕ = SP_lon # Rotation around z-axis
-    end
-
-    ϕ = (ϕ * π) / 180.0 # Convert degrees to radians
-    θ = (θ * π) / 180.0
-
-    # Convert from spherical to cartesian coords
-    x = cos(lon) * cos(lat)
-    y = sin(lon) * cos(lat)
-    z = sin(lat)
-
-    ϕ = -ϕ
-    θ = -θ
-
-    x_new = cos(θ)*cos(ϕ)*x + sin(ϕ)*y + sin(θ).*cos(ϕ)*z
-    y_new = -cos(θ)*sin(ϕ)*x + cos(ϕ)*y - sin(θ)*sin(ϕ)*z
-    z_new = -sin(θ)*x + cos(θ)*z
-
-    # Convert cartesian back to spherical coordinates
-    lon_new = atan2(y_new, x_new)
-    lat_new = asin(z_new)
-
-    # Convert radians back to degrees
-    lon_new = (lon_new * 180.0) / π
-    lat_new = (lat_new * 180.0) / π
-
-    return lon_new, lat_new
-
-
-end
+# function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)
+#
+#     # Copyright (c) 2013, Simon Funder
+#     # All rights reserved.
+#     #
+#     # Redistribution and use in source and binary forms, with or without
+#     # modification, are permitted provided that the following conditions are
+#     # met:
+#     #
+#     #     * Redistributions of source code must retain the above copyright
+#     #       notice, this list of conditions and the following disclaimer.
+#     #     * Redistributions in binary form must reproduce the above copyright
+#     #       notice, this list of conditions and the following disclaimer in
+#     #       the documentation and/or other materials provided with the distribution
+#     #
+#     # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#     # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#     # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+#     # ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+#     # LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#     # CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#     # SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#     # INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#     # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#     # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#     # POSSIBILITY OF SUCH DAMAGE.
+#
+#
+#
+#     # Convert degrees to radians
+#     lon = (lon*π) ./ 180.0
+#     lat = (lat*π) ./ 180.0
+#
+#     if northpole
+#         SP_lon = SP_lon - 180.0
+#         SP_lat = -SP_lat
+#
+#         θ = 90.0 + SP_lat # Rotation around y-axis
+#         # θ = NP_lat # Rotation around y-axis
+#         ϕ = SP_lon # Rotation around z-axis
+#     else
+#
+#         θ = 90.0 + SP_lat # Rotation around y-axis
+#         # θ = NP_lat # Rotation around y-axis
+#         ϕ = SP_lon # Rotation around z-axis
+#     end
+#
+#     ϕ = (ϕ * π) / 180.0 # Convert degrees to radians
+#     θ = (θ * π) / 180.0
+#
+#     # Convert from spherical to cartesian coords
+#     x = cos(lon) * cos(lat)
+#     y = sin(lon) * cos(lat)
+#     z = sin(lat)
+#
+#     ϕ = -ϕ
+#     θ = -θ
+#
+#     x_new = cos(θ)*cos(ϕ)*x + sin(ϕ)*y + sin(θ).*cos(ϕ)*z
+#     y_new = -cos(θ)*sin(ϕ)*x + cos(ϕ)*y - sin(θ)*sin(ϕ)*z
+#     z_new = -sin(θ)*x + cos(θ)*z
+#
+#     # Convert cartesian back to spherical coordinates
+#     lon_new = atan2(y_new, x_new)
+#     lat_new = asin(z_new)
+#
+#     # Convert radians back to degrees
+#     lon_new = (lon_new * 180.0) / π
+#     lat_new = (lat_new * 180.0) / π
+#
+#     return lon_new, lat_new
+#
+#
+# end
 
 # # example for rot2lonlat
 # SP_lon2 = 18
@@ -540,19 +540,5 @@ function permute_east_west2D(data::AbstractArray{N,2} where N, iwest, ieast)
     datawest = reshape(data[iwest], :, size(data, 2))
     dataeast = reshape(data[ieast], :, size(data, 2))
     return vcat(dataeast, datawest)
-
-end
-
-function shiftgrid_180_east_west(longrid)
-    ieast = longrid >= 0.0
-    iwest = longrid .< 0.0
-
-    grideast = reshape(longrid[ieast], :, size(longrid, 2))
-    gridwest = reshape(longrid[iwest], :, size(longrid, 2))
-    #
-    longrid_flip = vcat(grideast, gridwest)
-
-    return longrid_flip
-
 
 end

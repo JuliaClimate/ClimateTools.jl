@@ -83,12 +83,6 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
   # ==================
   # Spatial shift if grid is 0-360.
-  # Template
-  # 1) if sum(longrid .> 180) >= 1 => Convert to -180, +180
-  # 2) shiftgrid
-  # 3) if polygon => reshiftgrid back (?)
-  # 4) Extract the correct indexes
-  # 5) shiftgrid and shiftdata
   rotatedgrid = false
   if sum(longrid .> 180) >= 1
       rotatedgrid = true
@@ -149,10 +143,6 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
         lon_raw = ClimateTools.shiftvector_180_west_east(lon_raw)
 
-        # ieastvec = lon_raw .>= 0
-        # iwestvec = lon_raw .< 0
-        #
-        # lon_raw = [lon_raw[iwestvec]; lon_raw[ieastvec]]
     end
 
     # Idem for longrid and latgrid
@@ -166,13 +156,6 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
         if rotatedgrid
 
             longrid_flip = ClimateTools.shiftgrid_180_west_east(longrid)
-
-            # idxeast = longrid .>= 0
-            # idxwest = longrid .< 0
-            # grideastsub = reshape(longrid[idxeast], :, size(longrid, 2))
-            # gridwestsub = reshape(longrid[idxwest], :, size(longrid, 2))
-            #
-            # longrid_flip = vcat(gridwestsub, grideastsub)
 
             data = permute_west_east(data, longrid)#idxwest, idxeast)
             msk = ClimateTools.permute_west_east(msk, longrid)
@@ -212,25 +195,13 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
 
         if rotatedgrid
-            # if sum(longrid .> 180) >= 1
 
             longrid_flip = shiftgrid_180_west_east(longrid)
-                # idxeast = longrid .>= 0
-                # idxwest = longrid .< 0
-                # grideastsub = reshape(longrid[idxeast], :, size(longrid, 2))
-                # gridwestsub = reshape(longrid[idxwest], :, size(longrid, 2))
-                #
-                # longrid_flip = vcat(gridwestsub, grideastsub)
 
-                lon_raw_flip = shiftvector_180_east_west(lon_raw)
+            lon_raw_flip = shiftvector_180_east_west(lon_raw)
 
-                # ieast_vec = lon_raw .>= 0
-                # iwest_vec = lon_raw .< 0
-                #
-                # lon_raw_flip = [lon_raw[ieast_vec];lon_raw[iwest_vec]]
-
-                data = permute_west_east(data, longrid)#idxwest, idxeast)
-                msk = ClimateTools.permute_west_east(msk, longrid)
+            data = permute_west_east(data, longrid)#idxwest, idxeast)
+            msk = ClimateTools.permute_west_east(msk, longrid)
 
         end
 
@@ -240,23 +211,14 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
       msk = Array{Float64}(ones((size(data, 1), size(data, 2))))
     if ndims(data) == 3
         data = extractdata(data, msk, idxtimebeg, idxtimeend)
-        # data = data[:, :, idxtimebeg:idxtimeend]
-        # # # Permute dims (climate indices calculations are quicker, but extraction is longer)
-        # data = permutedims(data, [3, 1, 2])
-
     elseif ndims(data) == 4
         data = extractdata(data, msk, idxtimebeg, idxtimeend)
-        # data = data[:, :, :, idxtimebeg:idxtimeend]
-        # # # Permute dims
-        # data = permutedims(data, [4, 1, 2, 3])
     end
 
 
     if rotatedgrid
-        # Flip data
-        # idxeast = longrid .>= 0
-        # idxwest = longrid .< 0
-        data = permute_west_east(data, longrid)#idxwest, idxeast)
+        # Flip data "west-east"
+        data = permute_west_east(data, longrid)
     end
 
   end
@@ -269,24 +231,6 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
       longrid = longrid_flip
       lon_raw = lon_raw_flip
   end
-
-  # # trim padding for meridian polygons
-  # if meridian
-  #
-  #     idlon, idlat = findn(.!isnan.(msk))
-  #     minXgrid = minimum(idlon)
-  #     maxXgrid = maximum(idlon)
-  #     minYgrid = minimum(idlat)
-  #     maxYgrid = maximum(idlat)
-  #
-  #     msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
-  #     data = data[:, minXgrid:maxXgrid, minYgrid:maxYgrid]
-  #
-  #     data = applymask(data, msk)
-  #
-  # end
-
-
 
   # Convert units of optional argument data_units is provided
   if data_units == "Celsius" && (variable == "tas" || variable == "tasmax" || variable == "tasmin") && dataunits == "K"
@@ -611,92 +555,19 @@ function temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
 
 end
 
-function model_id(attrib::NCDatasets.Attributes)
+model_id(attrib::NCDatasets.Attributes)= get(attrib,"model_id",get(attrib,"model","N/A"))
 
-    model = "N/A"
+experiment_id(attrib::NCDatasets.Attributes) = get(attrib,"experiment_id",get(attrib,"experiment","N/A"))
 
-    try
-        model = attrib["model_id"]
-    catch
-        try
-            model = attrib["model"]
-        end
-    end
+project_id(attrib::NCDatasets.Attributes) = get(attrib,"project_id",get(attrib,"project","N/A"))
 
-    return model
-end
+institute_id(attrib::NCDatasets.Attributes) = get(attrib,"institute_id",get(attrib,"institute","N/A"))
 
-function experiment_id(attrib::NCDatasets.Attributes)
+frequency_var(attrib::NCDatasets.Attributes) = get(attrib,"frequency","N/A")
 
-    experiment = "N/A"
+runsim_id(attrib::NCDatasets.Attributes) = get(attrib, "parent_experiment_rip", get(attrib,"driving_model_ensemble_member","N/A"))
 
-    try
-        experiment = attrib["experiment_id"]
-    catch
-        try
-            experiment = attrib["experiment"]
-        end
-    end
 
-    return experiment
-end
-
-function project_id(attrib::NCDatasets.Attributes)
-
-    project = "N/A"
-
-    try
-        project = attrib["project_id"]
-    catch
-        try
-            project = attrib["project"]
-        end
-    end
-
-    return project
-end
-
-function institute_id(attrib::NCDatasets.Attributes)
-
-    institute = "N/A"
-
-    try
-        institute = attrib["institute_id"]
-    catch
-        try
-            institute = attrib["institute_id"]
-        end
-    end
-
-    return institute
-
-end
-
-function frequency_var(attrib::NCDatasets.Attributes)
-
-    frequency = "N/A"
-
-    try
-        frequency = attrib["frequency"]
-
-    end
-
-    return frequency
-end
-
-function runsim_id(attrib::NCDatasets.Attributes)
-
-    runsim = "N/A"
-
-    try
-        runsim = attrib["parent_experiment_rip"]
-    catch
-        try
-            runsim = attrib["driving_model_ensemble_member"]
-        end
-    end
-    return runsim
-end
 
 function getdim_lat(ds::NCDatasets.Dataset)
 
@@ -745,6 +616,7 @@ function shiftgrid_180_west_east(longrid)
     return longrid_flip
 
 end
+
 
 function shiftgrid_180_east_west(longrid)
 
@@ -801,6 +673,22 @@ function shiftarray_east_west(data, longrid_flip)
 
 end
 
+
+
+function shiftvector_180_east_west(lon_raw)
+
+    for ilon in eachindex(lon_raw)
+        if lon_raw[ilon] >= 180
+            lon_raw[ilon] = lon_raw[ilon] - 360
+        end
+    end
+    ieast_vec = lon_raw .>= 0
+    iwest_vec = lon_raw .< 0
+    lon_raw_flip = [lon_raw[ieast_vec];lon_raw[iwest_vec]]
+    return lon_raw_flip
+
+end
+
 function shiftvector_180_west_east(lon_raw)
 
     for ilon in eachindex(lon_raw)
@@ -818,22 +706,7 @@ function shiftvector_180_west_east(lon_raw)
 
 end
 
-function shiftvector_180_east_west(lon_raw)
 
-    for ilon in eachindex(lon_raw)
-        if lon_raw[ilon] >= 180
-            lon_raw[ilon] = lon_raw[ilon] - 360
-        end
-    end
-
-    ieast_vec = lon_raw .>= 0
-    iwest_vec = lon_raw .< 0
-
-    lon_raw_flip = [lon_raw[ieast_vec];lon_raw[iwest_vec]]
-
-    return lon_raw_flip
-
-end
 
 function extractdata(data, msk, idxtimebeg, idxtimeend)
 
