@@ -1,18 +1,18 @@
 # test that nc2julia return a ClimGrid type
-filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
-C = nc2julia(filename, "tas")
-@test nc2julia(filename, "tas", data_units = "Celsius")[2] == "Celsius"
-@test nc2julia(filename, "pr", data_units = "mm")[2] == "mm"
-@test typeof(nc2julia(filename, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:time,Array{Date,1}},AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}}}}}
+filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
+C = nc2julia(filenc, "tas")
+@test nc2julia(filenc, "tas", data_units = "Celsius")[2] == "Celsius"
+@test nc2julia(filenc, "pr", data_units = "mm")[2] == "mm"
+@test typeof(nc2julia(filenc, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:time,Array{Date,1}},AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}}}}}
 
-@test typeof(buildtimevec(filename)) == Array{Date, 1}
+@test typeof(buildtimevec(filenc)) == Array{Date, 1}
 
 # Time units
-units = NetCDF.ncgetatt(filename, "time", "units") # get starting date
+units = NetCDF.ncgetatt(filenc, "time", "units") # get starting date
 m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1) # match a date from string
 daysfrom = m.match # get only the date ()"yyyy-mm-dd" format)
 initDate = Date(daysfrom, "yyyy-mm-dd")
-timeRaw = floor.(NetCDF.ncread(filename, "time"))
+timeRaw = floor.(NetCDF.ncread(filenc, "time"))
 @test sumleapyear(initDate::Date, timeRaw) == 485
 
 # INTERFACE

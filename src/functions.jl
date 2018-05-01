@@ -215,13 +215,6 @@ function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} wh
                 OUT[ix, iy] = 1.0
             end
         end
-        # # ?????
-        #
-        # for i in eachindex(lon)
-        #     if OUT[i] != 1.0 && inpoly([lon[i], lat[i]], polyn)
-        #         OUT[i] = 1.0
-        #     end
-        # end
 
     end
     return OUT
@@ -250,10 +243,11 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=
     # Get lat-lon information from ClimGrid A
     lonorig = A.longrid
     latorig = A.latgrid
+    points = hcat(lonorig[:], latorig[:])
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
-    dataorig = A[1].data[:, :, :]
+    dataorig = view(A[1].data,:, :, :)
     timeorig = A[1][Axis{:time}][:] # the function will need to loop over time
 
     # ---------------------
@@ -265,15 +259,12 @@ function interp_climgrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=
     p = Progress(length(timeorig), 5)
     for t = 1:length(timeorig)
 
-        datatmp = dataorig[t, :, :]
-
-        # Build points values
-        points = hcat(lonorig[:], latorig[:])
-        val = datatmp[:]
+        # Points values
+        val = dataorig[t, :, :][:]
 
         # Call scipy griddata
-
         data_interp = scipy[:griddata](points, val, (londest, latdest), method=method)
+
         # Apply mask from ClimGrid destination
         OUT[t, :, :] = data_interp .* B.msk
 
@@ -495,9 +486,12 @@ end
 # grid_in = [[12; 12; 12] [55; 54; 53]]
 # rot2lonlat(grid_in[:, 1], grid_in[:, 2], SP_lon2, SP_lat2, northpole=false)
 
-function permute_west_east(data::AbstractArray{N,T} where N where T, iwest, ieast)
+function permute_west_east(data::AbstractArray{N,T} where N where T, longrid)#iwest, ieast)
 
     dataout = similar(data)
+    ieast = longrid .>= 0.0
+    iwest = longrid .< 0.0
+
 
     if ndims(data) == 2
 
@@ -538,5 +532,27 @@ function permute_west_east2D(data::AbstractArray{N,2} where N, iwest, ieast)
     datawest = reshape(data[iwest], :, size(data, 2))
     dataeast = reshape(data[ieast], :, size(data, 2))
     return vcat(datawest, dataeast)
+
+end
+
+function permute_east_west2D(data::AbstractArray{N,2} where N, iwest, ieast)
+
+    datawest = reshape(data[iwest], :, size(data, 2))
+    dataeast = reshape(data[ieast], :, size(data, 2))
+    return vcat(dataeast, datawest)
+
+end
+
+function shiftgrid_180_east_west(longrid)
+    ieast = longrid >= 0.0
+    iwest = longrid .< 0.0
+
+    grideast = reshape(longrid[ieast], :, size(longrid, 2))
+    gridwest = reshape(longrid[iwest], :, size(longrid, 2))
+    #
+    longrid_flip = vcat(grideast, gridwest)
+
+    return longrid_flip
+
 
 end

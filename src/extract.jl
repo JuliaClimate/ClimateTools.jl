@@ -83,37 +83,24 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
   # ==================
   # Spatial shift if grid is 0-360.
+  # Template
+  # 1) if sum(longrid .> 180) >= 1 => Convert to -180, +180
+  # 2) shiftgrid
+  # 3) if polygon => reshiftgrid back (?)
+  # 4) Extract the correct indexes
+  # 5) shiftgrid and shiftdata
   rotatedgrid = false
   if sum(longrid .> 180) >= 1
       rotatedgrid = true
 
-      for ilon in eachindex(longrid)
-          if longrid[ilon] >= 180
-              longrid[ilon] = longrid[ilon] - 360
-          end
-      end
+      # Shift 360 degrees grid to -180, +180 degrees
+      longrid_flip = ClimateTools.shiftgrid_180_west_east(longrid)
 
-      for ilon in eachindex(lon_raw)
-          if lon_raw[ilon] >= 180
-              lon_raw[ilon] = lon_raw[ilon] - 360
-          end
-      end
-
-      ieast = longrid .>= 0
-      iwest = longrid .< 0
-
-      grideast = reshape(longrid[ieast], :, size(longrid, 2))
-      gridwest = reshape(longrid[iwest], :, size(longrid, 2))
-
-      longrid_flip = vcat(gridwest, grideast)
-
-      ieast_vec = lon_raw .>= 0
-      iwest_vec = lon_raw .< 0
-
-      lon_raw_flip = [lon_raw[iwest_vec];lon_raw[ieast_vec]]
+      # Shift 360 degrees vector to -180, +180 degrees
+      lon_raw_flip = ClimateTools.shiftvector_180_west_east(lon_raw)
 
   else
-      longrid_flip = longrid
+      longrid_flip = longrid # grid is already "flipped" by design
   end
 
   # ===================
@@ -122,52 +109,37 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
   data = NetCDF.open(file, variable)
   if !isempty(poly)
 
-    minpoly = minimum(poly[1, .!isnan.(poly[1, :])])
-    maxpoly = maximum(poly[1, .!isnan.(poly[1, :])])
+    # Test to see if the polygon crosses the meridian
+    meridian = ClimateTools.meridian_check(poly)
 
-    meridian = false
-    if sign(minpoly)*sign(maxpoly) == sign(-1.0) # polygon crosses the meridian
-       meridian = true
-    end
-
-    msk = inpolygrid(longrid_flip, latgrid, poly) # mask of inpoly
+    # Build mask based on provided polygon
+    msk = inpolygrid(longrid_flip, latgrid, poly)
 
     if sum(isnan.(msk)) == length(msk) # no grid point insode polygon
         throw(error("No grid points found inside the provided polygon"))
     end
 
     if rotatedgrid
-        # Regrid msk if the grid have been rotated to get proper index for data extraction
-        idxeast = longrid_flip .>= 0
-        idxwest = longrid_flip .< 0
-        mskeast = reshape(msk[idxeast], :, size(msk, 2))
-        mskwest = reshape(msk[idxwest], :, size(msk, 2))
-
-        msk = vcat(mskeast, mskwest)
-
+        # Regrid msk to original grid if the grid have been rotated to get proper index for data extraction
+        msk = ClimateTools.shiftarray_east_west(msk, longrid_flip)
     end
 
-    # Get index
+    #Extract data based on mask
+    data = ClimateTools.extractdata(data, msk, idxtimebeg, idxtimeend)
+
+    #new mask (e.g. representing the region of the polygon)
     idlon, idlat = findn(.!isnan.(msk))
     minXgrid = minimum(idlon)
     maxXgrid = maximum(idlon)
     minYgrid = minimum(idlat)
     maxYgrid = maximum(idlat)
-
-    if ndims(data) == 3
-        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, idxtimebeg:idxtimeend]
-        # Permute dims
-        # permutedims!(data, data, [3, 1, 2])
-        data = permutedims(data, [3, 1, 2])
-    elseif ndims(data) == 4
-        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, idxtimebeg:idxtimeend]
-        # Permute dims
-        data = permutedims(data, [4, 1, 2, 3])
-    end
-
-    #new mask (e.g. representing the region of the polygon)
     msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
     data = applymask(data, msk) # needed when polygon is not rectangular
+
+    if rotatedgrid
+        # Regrid msk to shifted grid if the grid have been rotated to get final mask
+        #shiftarray_west_east(msk, longrid)
+    end
 
     # Get lon_raw and lat_raw for such region
     lon_raw = lon_raw[minXgrid:maxXgrid]
@@ -175,15 +147,17 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
     if map_attrib["grid_mapping_name"] == "Regular_longitude_latitude"
 
-        ieastvec = lon_raw .>= 0
-        iwestvec = lon_raw .< 0
+        lon_raw = ClimateTools.shiftvector_180_west_east(lon_raw)
 
-        lon_raw = [lon_raw[iwestvec]; lon_raw[ieastvec]]
+        # ieastvec = lon_raw .>= 0
+        # iwestvec = lon_raw .< 0
+        #
+        # lon_raw = [lon_raw[iwestvec]; lon_raw[ieastvec]]
     end
 
     # Idem for longrid and latgrid
     if meridian
-        longrid = vcat(grideast, gridwest)
+        longrid = ClimateTools.shiftgrid_180_east_west(longrid)#grideast, gridwest)
         longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
         latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
 
@@ -191,20 +165,46 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
         if rotatedgrid
 
-            idxeast = longrid .>= 0
-            idxwest = longrid .< 0
-            grideastsub = reshape(longrid[idxeast], :, size(longrid, 2))
-            gridwestsub = reshape(longrid[idxwest], :, size(longrid, 2))
+            longrid_flip = ClimateTools.shiftgrid_180_west_east(longrid)
 
-            longrid_flip = vcat(gridwestsub, grideastsub)
+            # idxeast = longrid .>= 0
+            # idxwest = longrid .< 0
+            # grideastsub = reshape(longrid[idxeast], :, size(longrid, 2))
+            # gridwestsub = reshape(longrid[idxwest], :, size(longrid, 2))
+            #
+            # longrid_flip = vcat(gridwestsub, grideastsub)
 
-            data = permute_west_east(data, idxwest, idxeast)
+            data = permute_west_east(data, longrid)#idxwest, idxeast)
+            msk = ClimateTools.permute_west_east(msk, longrid)
+
+            # Try to trim padding
+            # idlon, idlat = findn(.!isnan.(msk))
+            # minXgrid = minimum(idlon)
+            # maxXgrid = maximum(idlon)
+            # minYgrid = minimum(idlat)
+            # maxYgrid = maximum(idlat)
+            #
+            # msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
+            # data = data[:, minXgrid:maxXgrid, minYgrid:maxYgrid]
+            # lon_raw_flip = lon_raw[minXgrid:maxXgrid]
+            #
+            # longrid_flip = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
+            # longrid_flip = ClimateTools.shiftgrid_180_west_east(longrid_flip)
+            # latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
+
+            #     data = applymask(data, msk)
+
+
+
         end
+
+
+
 
     else
 
         if rotatedgrid # flip in original grid
-            longrid = vcat(grideast, gridwest)
+            longrid = shiftgrid_180_east_west(longrid) #grideast, gridwest)
         end
 
         longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
@@ -213,42 +213,50 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
         if rotatedgrid
             # if sum(longrid .> 180) >= 1
-                idxeast = longrid .>= 0
-                idxwest = longrid .< 0
-                grideastsub = reshape(longrid[idxeast], :, size(longrid, 2))
-                gridwestsub = reshape(longrid[idxwest], :, size(longrid, 2))
 
-                longrid_flip = vcat(gridwestsub, grideastsub)
+            longrid_flip = shiftgrid_180_west_east(longrid)
+                # idxeast = longrid .>= 0
+                # idxwest = longrid .< 0
+                # grideastsub = reshape(longrid[idxeast], :, size(longrid, 2))
+                # gridwestsub = reshape(longrid[idxwest], :, size(longrid, 2))
+                #
+                # longrid_flip = vcat(gridwestsub, grideastsub)
 
-                ieast_vec = lon_raw .>= 0
-                iwest_vec = lon_raw .< 0
+                lon_raw_flip = shiftvector_180_east_west(lon_raw)
 
-                lon_raw_flip = [lon_raw[ieast_vec];lon_raw[iwest_vec]]
+                # ieast_vec = lon_raw .>= 0
+                # iwest_vec = lon_raw .< 0
+                #
+                # lon_raw_flip = [lon_raw[ieast_vec];lon_raw[iwest_vec]]
 
-                data = permute_west_east(data, idxwest, idxeast)
+                data = permute_west_east(data, longrid)#idxwest, idxeast)
+                msk = ClimateTools.permute_west_east(msk, longrid)
 
         end
 
     end
 
   elseif isempty(poly) # no polygon clipping
+      msk = Array{Float64}(ones((size(data, 1), size(data, 2))))
     if ndims(data) == 3
-        data = data[:, :, idxtimebeg:idxtimeend]
-        # # Permute dims (climate indices calculations are quicker, but extraction is longer)
-        data = permutedims(data, [3, 1, 2])
+        data = extractdata(data, msk, idxtimebeg, idxtimeend)
+        # data = data[:, :, idxtimebeg:idxtimeend]
+        # # # Permute dims (climate indices calculations are quicker, but extraction is longer)
+        # data = permutedims(data, [3, 1, 2])
 
     elseif ndims(data) == 4
-        data = data[:, :, :, idxtimebeg:idxtimeend]
-        # # Permute dims
-        data = permutedims(data, [4, 1, 2, 3])
+        data = extractdata(data, msk, idxtimebeg, idxtimeend)
+        # data = data[:, :, :, idxtimebeg:idxtimeend]
+        # # # Permute dims
+        # data = permutedims(data, [4, 1, 2, 3])
     end
-    msk = Array{Float64}(ones((size(data, 2), size(data, 3))))
+
 
     if rotatedgrid
         # Flip data
-        idxeast = longrid .>= 0
-        idxwest = longrid .< 0
-        data = permute_west_east(data, idxwest, idxeast)
+        # idxeast = longrid .>= 0
+        # idxwest = longrid .< 0
+        data = permute_west_east(data, longrid)#idxwest, idxeast)
     end
 
   end
@@ -261,6 +269,24 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
       longrid = longrid_flip
       lon_raw = lon_raw_flip
   end
+
+  # # trim padding for meridian polygons
+  # if meridian
+  #
+  #     idlon, idlat = findn(.!isnan.(msk))
+  #     minXgrid = minimum(idlon)
+  #     maxXgrid = maximum(idlon)
+  #     minYgrid = minimum(idlat)
+  #     maxYgrid = maximum(idlat)
+  #
+  #     msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
+  #     data = data[:, minXgrid:maxXgrid, minYgrid:maxYgrid]
+  #
+  #     data = applymask(data, msk)
+  #
+  # end
+
+
 
   # Convert units of optional argument data_units is provided
   if data_units == "Celsius" && (variable == "tas" || variable == "tasmax" || variable == "tasmin") && dataunits == "K"
@@ -398,7 +424,7 @@ function sumleapyear(dates::StepRange{Date,Base.Dates.Day})
   for idx = 1:length(years)
     if Dates.isleapyear(years[idx])
       out += 1
-    end    
+    end
   end
 
   return out
@@ -697,5 +723,152 @@ function getdim_lon(ds::NCDatasets.Dataset)
     else
         error("Manually verify x/lat dimension name")
     end
+
+end
+
+function shiftgrid_180_west_east(longrid)
+
+    for ilon in eachindex(longrid)
+        if longrid[ilon] >= 180
+            longrid[ilon] = longrid[ilon] - 360
+        end
+    end
+
+    ieast = longrid .>= 0
+    iwest = longrid .< 0
+
+    grideast = reshape(longrid[ieast], :, size(longrid, 2))
+    gridwest = reshape(longrid[iwest], :, size(longrid, 2))
+
+    longrid_flip = vcat(gridwest, grideast)
+
+    return longrid_flip
+
+end
+
+function shiftgrid_180_east_west(longrid)
+
+    for ilon in eachindex(longrid)
+        if longrid[ilon] >= 180
+            longrid[ilon] = longrid[ilon] - 360
+        end
+    end
+
+    ieast = longrid .>= 0
+    iwest = longrid .< 0
+
+    grideast = reshape(longrid[ieast], :, size(longrid, 2))
+    gridwest = reshape(longrid[iwest], :, size(longrid, 2))
+
+    longrid_flip = vcat(grideast, gridwest)
+
+    return longrid_flip
+
+end
+
+
+"""
+    shiftdata_360(data, longrid)
+
+This function takes a -180, +180 grid and transform it into a 0-360 degress grid
+"""
+
+function shiftarray_west_east(data, longrid_flip)
+
+    ieast = longrid_flip .>= 0
+    iwest = longrid_flip .< 0
+
+    msk = permute_west_east2D(data, iwest, ieast)
+    # mskeast = reshape(data[idxeast], :, size(data, 2))
+    # mskwest = reshape(data[idxwest], :, size(data, 2))
+    #
+    # msk = vcat(mskeast, mskwest)
+    return msk
+
+end
+
+function shiftarray_east_west(data, longrid_flip)
+
+    ieast = longrid_flip .>= 0
+    iwest = longrid_flip .< 0
+
+    msk = permute_east_west2D(data, iwest, ieast)
+    # mskeast = reshape(data[idxeast], :, size(data, 2))
+    # mskwest = reshape(data[idxwest], :, size(data, 2))
+    #
+    # msk = vcat(mskeast, mskwest)
+    return msk
+
+end
+
+function shiftvector_180_west_east(lon_raw)
+
+    for ilon in eachindex(lon_raw)
+        if lon_raw[ilon] >= 180
+            lon_raw[ilon] = lon_raw[ilon] - 360
+        end
+    end
+
+    ieast_vec = lon_raw .>= 0
+    iwest_vec = lon_raw .< 0
+
+    lon_raw_flip = [lon_raw[iwest_vec];lon_raw[ieast_vec]]
+
+    return lon_raw_flip
+
+end
+
+function shiftvector_180_east_west(lon_raw)
+
+    for ilon in eachindex(lon_raw)
+        if lon_raw[ilon] >= 180
+            lon_raw[ilon] = lon_raw[ilon] - 360
+        end
+    end
+
+    ieast_vec = lon_raw .>= 0
+    iwest_vec = lon_raw .< 0
+
+    lon_raw_flip = [lon_raw[ieast_vec];lon_raw[iwest_vec]]
+
+    return lon_raw_flip
+
+end
+
+function extractdata(data, msk, idxtimebeg, idxtimeend)
+
+    idlon, idlat = findn(.!isnan.(msk))
+    minXgrid = minimum(idlon)
+    maxXgrid = maximum(idlon)
+    minYgrid = minimum(idlat)
+    maxYgrid = maximum(idlat)
+
+    if ndims(data) == 3
+        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, idxtimebeg:idxtimeend]
+        # Permute dims
+        # permutedims!(data, data, [3, 1, 2])
+        data = permutedims(data, [3, 1, 2])
+    elseif ndims(data) == 4
+        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, idxtimebeg:idxtimeend]
+        # Permute dims
+        data = permutedims(data, [4, 1, 2, 3])
+    end
+
+    return data
+
+
+end
+
+function meridian_check(poly)
+
+    minpoly = minimum(poly[1, .!isnan.(poly[1, :])])
+    maxpoly = maximum(poly[1, .!isnan.(poly[1, :])])
+
+    meridian = false
+    if sign(minpoly)*sign(maxpoly) == sign(-1.0) # polygon crosses the meridian
+       meridian = true
+    end
+
+    return meridian
 
 end

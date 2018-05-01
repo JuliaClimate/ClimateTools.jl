@@ -27,13 +27,16 @@ The quantile-quantile transfer function between **ref** and **obs** is etimated 
 
 function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())
 
+    # Consistency checks
+    @argcheck size(obs[1]) == size(ref[1]) == size(fut[1])
 
     #Get date vectors
     datevec_obs = obs[1][Axis{:time}][:]
     datevec_ref = ref[1][Axis{:time}][:]
     datevec_fut = fut[1][Axis{:time}][:]
 
-    obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2 = corrjuliandays(obs[1][:, 1, 1].data, ref[1][:, 1, 1].data, fut[1][:, 1, 1].data, datevec_obs, datevec_ref, datevec_fut)
+    # Modify dates (e.g. 29th feb are dropped/lost by default)
+    obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2 = corrjuliandays(obs[1][:,1,1].data, ref[1][:,1,1].data, fut[1][:,1,1].data, datevec_obs, datevec_ref, datevec_fut)
 
     # Prepare output array
     dataout = fill(NaN, (size(futvec2, 1), size(fut[1], 2), size(fut[1],3)))::Array{N, T} where N where T
@@ -44,11 +47,11 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     for k = 1:size(obs[1], 3)
         for j = 1:size(obs[1], 2)
 
-            obsvec = obs[1][:, j, k].data
-            refvec = ref[1][:, j, k].data
-            futvec = fut[1][:, j, k].data
+            obsvec = obs[1][:,j,k].data
+            refvec = ref[1][:,j,k].data
+            futvec = fut[1][:,j,k].data
 
-            dataout[:, j, k] = qqmap(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap = extrap)
+            dataout[:,j,k] = qqmap(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap = extrap)
 
         end
         next!(p)
@@ -59,7 +62,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
 
     dataout2 = AxisArray(dataout, Axis{:time}(datevec_fut2), Axis{lonsymbol}(fut[1][Axis{lonsymbol}][:]), Axis{latsymbol}(fut[1][Axis{latsymbol}][:]))
 
-    return ClimGrid(dataout2, longrid=fut.longrid, model = fut.model, experiment = fut.experiment, run = fut.run, filename = fut.filename, dataunits = fut.dataunits, latunits = fut.latunits, lonunits = fut.lonunits, variable = fut.variable, typeofvar = fut.typeofvar, typeofcal = fut.typeofcal)
+    return ClimGrid(dataout2, longrid=fut.longrid, model=fut.model, experiment=fut.experiment, run=fut.run, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal)
 
 end
 
@@ -84,7 +87,6 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
 
     # LOOP OVER ALL DAYS OF THE YEAR
     Threads.@threads for ijulian = 1:365
-    # for ijulian = 1:365
 
         # idx for values we want to correct
         idxfut = (fut_jul .== ijulian)
