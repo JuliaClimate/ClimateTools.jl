@@ -1,11 +1,15 @@
 # ClimateTools.jl documentation
 
+```@meta
+CurrentModule = ClimateTools
+```
+
 ```@contents
 ```
 
 ## Installation
 
-This package is registered in `METADATA.jl` and so can be installed using `Pkg.add`
+test This package is registered in `METADATA.jl` and so can be installed using `Pkg.add`
 
 ```julia
 Pkg.add("ClimateTools")
@@ -19,22 +23,21 @@ Pkg.checkout("ClimateTools")
 
 ## Functions
 
-```@docs
-ClimateTools.frostdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.icingdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.annualmin(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.annualmax(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.tropicalnights(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.customthresover(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
-ClimateTools.customthresunder(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
-ClimateTools.prcp1(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.inpoly(p, poly::Matrix)
-ClimateTools.summerdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.meshgrid(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.windnr(p, poly::Matrix)
-ClimateTools.boxcar3(A::AbstractArray)
+<!-- ```@docs
+ClimateTools.frostdays(::ClimGrid)
+ClimateTools.icingdays(::ClimGrid)
+ClimateTools.annualmin(::ClimGrid)
+ClimateTools.annualmax(::ClimGrid)
+ClimateTools.tropicalnights(::ClimGrid)
+ClimateTools.customthresover(::ClimGrid, thres)
+ClimateTools.customthresunder(::ClimGrid, thres)
+ClimateTools.prcp1(::ClimGrid)
+ClimateTools.summerdays(::ClimGrid)
+ClimateTools.inpolygrid(longrid, latgrid, poly::Matrix)
+ClimateTools.meshgrid()
+ClimateTools.ndgrid()
 
-```
+``` -->
 
 ## Index
 
