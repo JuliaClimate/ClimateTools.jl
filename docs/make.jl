@@ -3,7 +3,7 @@ using Documenter, ClimateTools
 makedocs(sitename = "ClimateTools.jl",
     pages = [
         "index.md",
-        "gettingstarted.md"
+        "gettingstarted.md",
         "indices.md",
         "examples.md",
     ]
@@ -12,5 +12,5 @@ makedocs(sitename = "ClimateTools.jl",
 deploydocs(
     deps   = Deps.pip("mkdocs", "python-markdown-math"),
     repo   = "github.com/Balinus/ClimateTools.jl.git",
-    julia  = "release"
+    julia  = "0.6.0"
 )

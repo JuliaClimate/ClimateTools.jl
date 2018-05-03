@@ -33,7 +33,7 @@ Pkg.checkout("ClimateTools")
 
 ## Functions - Climate indices
 
-```@docs
+<!-- ```@docs
 ClimateTools.frostdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
 ClimateTools.icingdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
 ClimateTools.annualmin(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
@@ -43,7 +43,7 @@ ClimateTools.customthresover(data::Array{Float64, 1}, timeV::StepRange{Date, Bas
 ClimateTools.customthresunder(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
 ClimateTools.prcp1(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
 ClimateTools.summerdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-```
+``` -->
 
 ## Functions - Reading netCDF files
 

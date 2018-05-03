@@ -25,7 +25,7 @@ before_install:
   #- (sudo apt-get -qq update && sudo apt-get install -y python python-pip && sudo pip install matplotlib)
   - julia -e 'ENV["PYTHON"]=""; Pkg.add("Conda"); using Conda; Conda.update(); Conda.add("matplotlib"); Conda.add("basemap"); Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.add("PyPlot");'
 after_success:
-  - julia -e 'Pkg.add("Documenter");ENV["DOCUMENTER_DEBUG"] = "true";cd(Pkg.dir("ClimateTools")); include(joinpath("docs", "make.jl"))'
+  - julia -e 'Pkg.add("Documenter");ENV["DOCUMENTER_DEBUG"]="true"; cd(Pkg.dir("ClimateTools")); include(joinpath("docs", "make.jl"))'
   # - julia -e 'cd(Pkg.dir("ClimateTools")); include(joinpath("docs", "make.jl"))'
   - julia -e 'cd(Pkg.dir("ClimateTools")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
   - julia -e 'cd(Pkg.dir("ClimateTools")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
