@@ -53,23 +53,19 @@
     <a class="current" href=".">Home</a>
     <ul class="subnav">
             
-    <li class="toctree-l2"><a href="#climatetoolsjl-documentation">ClimateTools.jl documentation</a></li>
+    <li class="toctree-l2"><a href="#climatetoolsjl">ClimateTools.jl</a></li>
     
         <ul>
         
-            <li><a class="toctree-l3" href="#overview">Overview</a></li>
+            <li><a class="toctree-l3" href="#documentation">Documentation</a></li>
         
             <li><a class="toctree-l3" href="#objectives">Objectives</a></li>
         
-            <li><a class="toctree-l3" href="#installation">Installation</a></li>
+            <li><a class="toctree-l3" href="#getting-started">Getting started</a></li>
         
-            <li><a class="toctree-l3" href="#functions-climate-indices">Functions - Climate indices</a></li>
+            <li><a class="toctree-l3" href="#contributors">Contributors</a></li>
         
-            <li><a class="toctree-l3" href="#functions-reading-netcdf-files">Functions - Reading netCDF files</a></li>
-        
-            <li><a class="toctree-l3" href="#functions-tools">Functions - Tools</a></li>
-        
-            <li><a class="toctree-l3" href="#index">Index</a></li>
+            <li><a class="toctree-l3" href="#to-do">TO-DO</a></li>
         
         </ul>
     
@@ -102,7 +98,7 @@
     <li>Home</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/Balinus/ClimateTools.jl/edit/master/docs/index.md"
+        <a href="https://github.com/Balinus/ClimateTools./blob/master/docs/src/index.md/index.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -112,88 +108,153 @@
           <div role="main">
             <div class="section">
               
-                <p><a id='ClimateTools.jl-documentation-1'></a></p>
-<h1 id="climatetoolsjl-documentation">ClimateTools.jl documentation</h1>
-<ul>
-<li><a href=".#ClimateTools.jl-documentation-1">ClimateTools.jl documentation</a><ul>
-<li><a href=".#Overview-1">Overview</a></li>
-<li><a href=".#Objectives-1">Objectives</a></li>
-<li><a href=".#Installation-1">Installation</a></li>
-<li><a href=".#Functions-Climate-indices-1">Functions - Climate indices</a></li>
-<li><a href=".#Functions-Reading-netCDF-files-1">Functions - Reading netCDF files</a></li>
-<li><a href=".#Functions-Tools-1">Functions - Tools</a></li>
-<li><a href=".#Index-1">Index</a></li>
-</ul>
-</li>
-</ul>
-<p><a id='Overview-1'></a></p>
-<h2 id="overview">Overview</h2>
-<p>This package is a collection of commonly-used tools in Climate Science. This is mainly a work-in-progress package, developed for myself and is available here, for <em>common-good</em> purpose as well as for archive purpose. Nothing fancy here, basics of climate field analysis will be covered, with some forays into some <em>"state-of-the-art"</em> techniques.</p>
-<p>The climate indices are coded to use multiple threads. To gain maximum performance, use (bash shell) <code>export JULIA_NUM_THREADS=n</code>, where <em>n</em> is the number of threads. To get an idea of the number of threads you can use type (in Julia) <code>Sys.CPU_CORES</code>. This can greatly reduce calculation time.</p>
+                <p><a id='ClimateTools.jl-1'></a></p>
+<h1 id="climatetoolsjl">ClimateTools.jl</h1>
+<table>
+<thead>
+<tr>
+<th align="center"><strong>Package Status</strong></th>
+<th align="center"><strong>Package Evaluator</strong></th>
+<th align="center"><strong>Build Status</strong></th>
+<th align="center"><strong>DOI</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"><a href="http://www.repostatus.org/#wip"><img alt="Project Status: WIP - Initial development is in progress, but there has not yet been a stable, usable release suitable for the public." src="http://www.repostatus.org/badges/latest/wip.svg" /></a></td>
+<td align="center"><a href="https://coveralls.io/github/Balinus/ClimateTools.jl?branch=master"><img alt="Coverage Status" src="https://coveralls.io/repos/github/Balinus/ClimateTools.jl/badge.svg?branch=master" /></a> <a href="http://codecov.io/github/Balinus/ClimateTools.jl?branch=master"><img alt="codecov.io" src="http://codecov.io/github/Balinus/ClimateTools.jl/coverage.svg?branch=master" /></a></td>
+<td align="center"><a href="https://travis-ci.org/Balinus/ClimateTools.jl"><img alt="Build Status" src="https://travis-ci.org/Balinus/ClimateTools.jl.svg?branch=master" /></a></td>
+<td align="center"><a href="https://zenodo.org/badge/latestdoi/76293821"><img alt="DOI" src="https://zenodo.org/badge/76293821.svg" /></a></td>
+</tr>
+</tbody>
+</table>
+<p><a id='Documentation-1'></a></p>
+<h2 id="documentation">Documentation</h2>
+<p><a href="https://balinus.github.io/ClimateTools.jl/stable"><img alt="" src="https://img.shields.io/badge/docs-stable-blue.svg" /></a> <a href="https://balinus.github.io/ClimateTools.jl/latest"><img alt="" src="https://img.shields.io/badge/docs-latest-blue.svg" /></a></p>
+<p>This package is a collection of commonly-used tools in Climate Science. Basics of climate field analysis will be covered, with some forays into exploratory techniques. The package is aimed to ease the typical steps of analysis climate models outputs and observed time series from weather stations.</p>
+<p>This package is registered on METADATA.jl and can be added with <code>Pkg.add("ClimateTools")</code> and used with <code>using ClimateTools</code>.</p>
+<pre><code class="julia">Pkg.add(&quot;ClimateTools&quot;) # Tagged release
+Pkg.checkout(&quot;ClimateTools&quot;) # For latest master branch
+</code></pre>
+
+<p>The climate indices are coded to use <strong>multiple threads</strong>. To gain maximum performance, use (bash shell) <code>export JULIA_NUM_THREADS=n</code>, where <em>n</em> is the number of threads. To get an idea of the number of threads you can use type (in Julia) <code>Sys.CPU_CORES</code>.</p>
 <p><a id='Objectives-1'></a></p>
 <h2 id="objectives">Objectives</h2>
 <ul>
-<li>Visualization of NetCDF files (e.g. temporal mean of a given NetCDF file), for rapid evaluation of NetCDF files</li>
-<li>Migration of NetCDF files to Julia matrix</li>
+<li>Extraction and visualization of NetCDF datasets, with user-provided polygons and start and end date.</li>
 <li>Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI)</li>
 <li>Custom climate indices</li>
-<li>Post-processing of climate timeseries using Quantile-Quantile mapping methods (cf. Piani et al. 2010)</li>
+<li>Interpolation of a datasets onto another grid</li>
+<li>Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Piani et al. 2010)</li>
 </ul>
-<p><a id='Installation-1'></a></p>
-<h2 id="installation">Installation</h2>
-<p>This package is registered in <code>METADATA.jl</code> and so can be installed using <code>Pkg.add</code></p>
-<pre><code class="julia">Pkg.add(&quot;ClimateTools&quot;)
+<p><a id='Getting-started-1'></a></p>
+<h2 id="getting-started">Getting started</h2>
+<p><code>using ClimateTools</code></p>
+<p><a id='Reading-a-NetCDF-file-1'></a></p>
+<h3 id="reading-a-netcdf-file">Reading a NetCDF file</h3>
+<p>The entry point of <code>ClimateTools</code> is to load data with the <code>nc2julia</code> function. Optional polygon clipping feature is available. By providing such polygon, the <code>nc2julia</code> function  returns a <code>ClimGrid</code> with grid points contained in the polygon.</p>
+<pre><code class="julia">C = nc2julia(filename::String, var::String; poly::Array, data_units::String, start_date::Date, end_date::Date)
 </code></pre>
 
-<p>For the latest version, checkout master branch</p>
-<pre><code class="julia">Pkg.checkout(&quot;ClimateTools&quot;)
-</code></pre>
-
-<p><a id='Functions-Climate-indices-1'></a></p>
-<h2 id="functions-climate-indices">Functions - Climate indices</h2>
-<pre><code>ClimateTools.frostdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.icingdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.annualmin(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.annualmax(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.tropicalnights(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.customthresover(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
-ClimateTools.customthresunder(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
-ClimateTools.prcp1(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.summerdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-</code></pre>
-
-<p><a id='Functions-Reading-netCDF-files-1'></a></p>
-<h2 id="functions-reading-netcdf-files">Functions - Reading netCDF files</h2>
-<pre><code>ClimateTools.nc2julia(file::String, var::String, poly::Array{Float64})
-</code></pre>
-
-<pre><code class="julia">type ClimGrid  
-  data::AxisArray  
+<p><code>nc2julia</code> return a <code>ClimGrid</code> type. Using the optional <code>poly</code> argument, the user can provide a polygon and the returned <code>ClimGrid</code> will only contains the grid points inside the provided polygon. For some variable, the optional keyword argument <code>data_units</code> can be provided. For example, precipitation in climate models are usually provided as <code>kg/m^2/s</code>. By specifying <code>data_units = mm</code>, the <code>nc2julia</code> function returns accumulation at the data time resolution. Similarly, the user can provide <code>Celsius</code> as <code>data_units</code> and <code>nc2julia</code> will return <code>Celsius</code> instead of <code>Kelvin</code>.</p>
+<p>The <code>ClimGrid</code> is a in-memory representation of a CF-compliant netCDF file for a single variable.</p>
+<pre><code class="julia">struct ClimGrid{A &lt;: AxisArray}
+# struct ClimGrid
+  data::A
+  longrid::AbstractArray{N,2} where N # the longitude grid
+  latgrid::AbstractArray{N,2} where N # the latitude grid
+  msk::Array{N, 2} where N
+  grid_mapping::Dict#{String, Any} # bindings for native grid
+  dimension_dict::Dict
   model::String
+  frequency::String
   experiment::String
   run::String
+  project::String # CORDEX, CMIP5, etc.
+  institute::String
   filename::String
   dataunits::String
-  latunits::String
-  lonunits::String
+  latunits::String # of the coordinate variable
+  lonunits::String # of the coordinate variable
+  variable::String # Type of variable (i.e. can be the same as &quot;var&quot;, but it is changed when calculating indices)
+  typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
+  typeofcal::String # Calendar type
+  varattribs::Dict # Variable attributes
+  globalattribs::Dict # Global attributes
+
 end
 </code></pre>
 
-<p><a id='Functions-Tools-1'></a></p>
-<h2 id="functions-tools">Functions - Tools</h2>
-<pre><code>ClimateTools.inpoly(p, poly::Matrix)
-ClimateTools.meshgrid(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.windnr(p, poly::Matrix)
-ClimateTools.boxcar3(A::AbstractArray)
+<p>Furthermore, there is also the <code>spatialsubset</code> function which acts on <code>ClimGrid</code> type and further subset the data through a spatial subset using a user polygon. The function returns a <code>ClimGrid</code>.</p>
+<pre><code class="julia">C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
 </code></pre>
 
-<p><a id='Index-1'></a></p>
-<h2 id="index">Index</h2>
+<p>Temporal subset of the data is also possible with the <code>temporalsubset</code> function:</p>
+<pre><code class="julia">C = temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
+</code></pre>
+
+<p><a id='Mapping-the-ClimGrid-type-1'></a></p>
+<h3 id="mapping-the-climgrid-type">Mapping the ClimGrid type</h3>
+<p>Mapping climate information can be done by using <code>mapclimgrid</code>:</p>
+<pre><code class="julia">mapclimgrid(C::ClimGrid; region = &quot;World&quot;)
+</code></pre>
+
+<p>Which should return</p>
+<p align="center">   <img src="https://cloud.githubusercontent.com/assets/3630311/23712122/e97bd322-03ef-11e7-93da-749c961c4070.png?raw=true" width="771" height="388" alt="Precipitation example"/> </p>
+
+<p>Note that if the <code>ClimGrid</code> data structure has 3 dimensions (time x longitude x latitude) the <code>mapclimgrid</code> function makes a time-average (i.e. climatological mean). Right now, options are available for region: <code>World</code>, <code>Canada</code>, <code>Quebec</code> and the default <code>auto</code> which use the maximum and minimum of the lat-long coordinates inside the <code>ClimGrid</code> structure. The user can also provide a polygon(s) and the <code>mapclimgrid</code> function will clip the grid points outside the specified polygon. Another option is to provide a mask (with dimensions identical to the spatial dimension of the <code>ClimGrid</code> data) which contains <code>NaN</code> and <code>1.0</code> and the data inside the <code>ClimGrid</code> struct will be clipped with the mask. Other regions will be added in the future, as well as the option to send a custom region defined by a lat-lon box.</p>
+<p>In a future release, the user will have the option to specify his own time period (e.g. plotting the time-average of a given month and year, as opposed to the time-average of the whole <code>ClimGrid</code> structure).</p>
+<p><a id='Indices-1'></a></p>
+<h3 id="indices">Indices</h3>
+<p>More than 20 climate indices are available in the package, such as the annual number of tropical nights, annual maximum and minimum, etc. You can calculate such indices simply with:</p>
+<pre><code class="julia">ind = annualmax(C::ClimGrid)
+</code></pre>
+
+<p>Which returns another <code>ClimGrid</code>. You can also map this <code>ClimGrid</code> with the <code>mapclimgrid</code> function and returns the climatological mean of the annual maximum (e.g. daily precipitation in the example below). A list of indices can be found in the documentation and in the <code>functions.jl</code> source code.</p>
+<p align="center">   <img src="https://cloud.githubusercontent.com/assets/3630311/23873133/59b85c08-0807-11e7-967b-7cc7d28aada0.png?raw=true" width="771" height="388" alt="Precipitation example"/> </p>
+
+<p>Climate Indices functions also accept other type of argument. For example, <code>annualmax</code> can be called with the following type:</p>
+<pre><code class="julia">ind = annualmax(data::Array{Float64, 3}, dates::StepRange{Date, Base.Dates.Day})
+</code></pre>
+
+<p><a id='Interpolation-1'></a></p>
+<h3 id="interpolation">Interpolation</h3>
+<p>A typical step in climate analysis is to interpolate a given grid onto another grid. <code>ClimateTools</code> provides such a tool by wrapping Scipy griddata function. It is intended for visualization or as a 1st step before bias-correcting the <code>ClimGrid</code> dataset.</p>
+<p>The following command will interpolate the data contained in <code>ClimGrid A</code> into the coordinates of <code>ClimGrid B</code> and returns a new <code>ClimGrid C</code> which contains the interpolated data of <code>A</code> into the grid of <code>B</code>.</p>
+<pre><code class="julia">C = interp_climgrid(A::ClimGrid, B::ClimGrid)
+</code></pre>
+
+<p>It is also possible to interpolate a <code>ClimGrid</code> onto specified longitude and latitude vectors.</p>
+<pre><code class="julia">C = interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N, 1})
+</code></pre>
+
+<p><a id='Bias-correction-1'></a></p>
+<h3 id="bias-correction">Bias-correction</h3>
+<p>TODO</p>
+<p><a id='Merging-ClimGrid-type-1'></a></p>
+<h3 id="merging-climgrid-type">Merging ClimGrid type</h3>
+<p>Sometimes, the timeseries are split among multiple files (e.g. climate models outputs). To obtain the complete timeseries, you can <code>merge</code> 2 <code>ClimGrid</code>. The method is based on the merging of 2 <code>AxisArrays</code> and is overloaded for the <code>ClimGrid</code> type.</p>
+<pre><code class="julia">C = merge(C1::ClimGrid, C2::ClimGrid)
+</code></pre>
+
+<p><a id='Contributors-1'></a></p>
+<h2 id="contributors">Contributors</h2>
+<p>If you'd like to have other climate indices coded, please, submit them through a Pull Request! I'd be more than happy to include them. Alternatively, provide the equation in Issues.</p>
+<p><a id='TO-DO-1'></a></p>
+<h2 id="to-do">TO-DO</h2>
 <ul>
-<li><a href=".#ClimateTools.inpoly-Tuple{Any,Array{T,2}}"><code>ClimateTools.inpoly</code></a></li>
-<li><a href=".#ClimateTools.meshgrid-Tuple{Array{Float64,1},StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.meshgrid</code></a></li>
-<li><a href=".#ClimateTools.windnr-Tuple{Any,Array{T,2}}"><code>ClimateTools.windnr</code></a></li>
+<li>Add a standard quantile-quantile mapping technique</li>
+<li>Dashboard tool. This will return the main characteristics of a ClimGrid: maps of minimum, maximum and mean climatological values, seasonal cycle, timeseries of annual maximum, minimum and mean values, etc...</li>
+<li>Create a WeatherStation type.</li>
+<li>Export ClimGrid to netCDF file.</li>
+<li>Add a more complex quantile-quantile mapping technique, combining extreme value theory and quantile-quantile standard technique</li>
+<li>Add GRIB file support (probably through <a href="https://github.com/joa-quim/GMT.jl">GMT.jl</a>)</li>
 </ul>
+<p>N.B. version 0.1.2 is compatible with Julia 0.5 and version &gt;0.2.0 is for Julia 0.6. To use a specific version of the package, you can use in Julia the following command:</p>
+<pre><code class="julia">Pkg.pin(&quot;ClimateTools&quot;,v&quot;0.1.2&quot;) # if using Julia 0.5
+</code></pre>
+
+<!– Pages = [     "gettingstarted.md",     "indices.md",     "examples.md" ] –>
               
             </div>
           </div>
@@ -209,12 +270,12 @@ ClimateTools.boxcar3(A::AbstractArray)
 
   Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-	  
+      
         </div>
       </div>
 
     </section>
-    
+
   </div>
 
   <div class="rst-versions" role="note" style="cursor: pointer">
@@ -226,14 +287,17 @@ ClimateTools.boxcar3(A::AbstractArray)
       
     </span>
 </div>
+    <script>var base_url = '.';</script>
     <script src="./js/theme.js"></script>
       <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
       <script src="./assets/mathjaxhelper.js"></script>
+      <script src="./search/require.js"></script>
+      <script src="./search/search.js"></script>
 
 </body>
 </html>
 
 <!--
-MkDocs version : 0.16.3
-Build Date UTC : 2017-05-05 13:00:02
+MkDocs version : 0.17.3
+Build Date UTC : 2018-05-04 13:50:56
 -->
