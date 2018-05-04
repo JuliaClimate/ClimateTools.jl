@@ -1,12 +1,16 @@
 using Documenter, ClimateTools
 
 makedocs(sitename = "ClimateTools.jl",
-    # pages = [
-    #     "index.md",
-    #     "gettingstarted.md",
-    #     "indices.md",
-    #     "examples.md",
-    # ]
+    pages = [
+        "Home" => "index.md",
+        "Getting Started" => "gettingstarted.md",
+        "Climate Indices" => "indices.md",
+        "Interpolation" => "interpolation.md",
+        "Bias correction" => "biascorrection.md",
+        "Maps" => "maps.md",
+        "Interface" => "interface.md",
+        "Examples" => "examples.md",
+    ]
 )
 
 deploydocs(

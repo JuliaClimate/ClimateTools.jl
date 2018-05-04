@@ -1,81 +1,60 @@
-# ClimateTools.jl documentation
+# Getting started
 
-```@contents
-```
+## Reading a NetCDF file
 
-## Overview
-
-This package is a collection of commonly-used tools in Climate Science. This is mainly a work-in-progress package, developed for myself and is available here, for _common-good_ purpose as well as for archive purpose. Nothing fancy here, basics of climate field analysis will be covered, with some forays into some _"state-of-the-art"_ techniques.
-
-The climate indices are coded to use multiple threads. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.CPU_CORES`. This can greatly reduce calculation time.
-
-## Objectives
-
-* Visualization of NetCDF files (e.g. temporal mean of a given NetCDF file), for rapid evaluation of NetCDF files
-* Migration of NetCDF files to Julia matrix
-* Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI)
-* Custom climate indices
-* Post-processing of climate timeseries using Quantile-Quantile mapping methods (cf. Piani et al. 2010)
-
-## Installation
-
-This package is registered in `METADATA.jl` and so can be installed using `Pkg.add`
+The entry point of `ClimateTools` is to load data with the `nc2julia` function. Optional polygon clipping feature is available. By providing such polygon, the `nc2julia` function  returns a `ClimGrid` with grid points contained in the polygon.
 
 ```julia
-Pkg.add("ClimateTools")
+C = nc2julia(filename::String, var::String; poly::Array, data_units::String, start_date::Date, end_date::Date)
 ```
 
-For the latest version, checkout master branch
+`nc2julia` return a `ClimGrid` type. Using the optional `poly` argument, the user can provide a polygon and the returned `ClimGrid` will only contains the grid points inside the provided polygon. For some variable, the optional keyword argument `data_units` can be provided. For example, precipitation in climate models are usually provided as `kg/m^2/s`. By specifying `data_units = mm`, the `nc2julia` function returns accumulation at the data time resolution. Similarly, the user can provide `Celsius` as `data_units` and `nc2julia` will return `Celsius` instead of `Kelvin`.
+
+The `ClimGrid` is a in-memory representation of a CF-compliant netCDF file for a single variable.
 
 ```julia
-Pkg.checkout("ClimateTools")
-```
-
-## Functions - Climate indices
-
-<!-- ```@docs
-ClimateTools.frostdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.icingdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.annualmin(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.annualmax(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.tropicalnights(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.customthresover(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
-ClimateTools.customthresunder(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day}, thres)
-ClimateTools.prcp1(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.summerdays(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-``` -->
-
-## Functions - Reading netCDF files
-
-```@docs
-ClimateTools.nc2julia(file::String, var::String, poly::Array{Float64})
-```
-
-```julia
-type ClimGrid  
-  data::AxisArray  
+struct ClimGrid{A <: AxisArray}
+# struct ClimGrid
+  data::A
+  longrid::AbstractArray{N,2} where N # the longitude grid
+  latgrid::AbstractArray{N,2} where N # the latitude grid
+  msk::Array{N, 2} where N
+  grid_mapping::Dict#{String, Any} # bindings for native grid
+  dimension_dict::Dict
   model::String
+  frequency::String
   experiment::String
   run::String
+  project::String # CORDEX, CMIP5, etc.
+  institute::String
   filename::String
   dataunits::String
-  latunits::String
-  lonunits::String
+  latunits::String # of the coordinate variable
+  lonunits::String # of the coordinate variable
+  variable::String # Type of variable (i.e. can be the same as "var", but it is changed when calculating indices)
+  typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
+  typeofcal::String # Calendar type
+  varattribs::Dict # Variable attributes
+  globalattribs::Dict # Global attributes
+
 end
 ```
 
+There is a `spatialsubset` function which acts on `ClimGrid` type and further subset the data through a spatial subset using a provided polygon. The function returns a `ClimGrid`. Polygons needs to be on a -180, +180 longitude coordinates.
 
-
-## Functions - Tools
-
-```@docs
-ClimateTools.inpoly(p, poly::Matrix)
-ClimateTools.meshgrid(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
-ClimateTools.windnr(p, poly::Matrix)
-ClimateTools.boxcar3(A::AbstractArray)
+```julia
+C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
 ```
 
+Temporal subset of the data is also possible with the `temporalsubset` function:
+
+```julia
+C = temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
+```
+
+
+<!--
 ## Index
 
 ```@index
-```
+``` -->
