@@ -71,8 +71,6 @@
         
             <li><a class="toctree-l3" href="#annual-indices">Annual indices</a></li>
         
-            <li><a class="toctree-l3" href="#functions-tools">Functions - Tools</a></li>
-        
             <li><a class="toctree-l3" href="#seasonal-indices">Seasonal indices</a></li>
         
         </ul>
@@ -104,6 +102,11 @@
             <li class="toctree-l1">
 		
     <a class="" href="../examples/">Examples</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../functions/">Index</a>
 	    </li>
           
         </ul>
@@ -165,36 +168,13 @@
 
 <p>Annual maximum of array data.</p>
 <p>Let data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/2f672c6dd7215717acdb35016d9b20e8c5d9480b/src/indices.jl#L512-L518' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/c96337a5fc53548ee0319fb3e8797f06a657ffaa/src/indices.jl#L512-L518' class='documenter-source'>source</a><br></p>
 <pre><code>annualmax(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
 </code></pre>
 
 <p>Annual maximum of array data.</p>
 <p>Let data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/2f672c6dd7215717acdb35016d9b20e8c5d9480b/src/indices.jl#L539-L545' class='documenter-source'>source</a><br></p>
-<p><a id='Functions-Tools-1'></a></p>
-<h2 id="functions-tools">Functions - Tools</h2>
-<p><a id='ClimateTools.inpoly-Tuple{Any,Array{T,2} where T}' href='#ClimateTools.inpoly-Tuple{Any,Array{T,2} where T}'>#</a>
-<strong><code>ClimateTools.inpoly</code></strong> &mdash; <em>Method</em>.</p>
-<pre><code>inpoly(p, poly::Matrix)
-</code></pre>
-
-<p>Determines if a point is inside a polygon.</p>
-<ul>
-<li>p – point (x,y) or [x,y]</li>
-<li>poly – polygon vertices <a href="../a closed poly">x1 x2 ... xn x1                           y1 y2 ... yn y1</a></li>
-</ul>
-<p>Returns true if point has an odd winding number.  This should label points as exterior which are inside outcrops.  See test for a test.</p>
-<p>Author: Github "Mauro3" / "Mauro"</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/2f672c6dd7215717acdb35016d9b20e8c5d9480b/src/functions.jl#L48-L62' class='documenter-source'>source</a><br></p>
-<p><a id='ClimateTools.windnr-Tuple{Any,Array{T,2} where T}' href='#ClimateTools.windnr-Tuple{Any,Array{T,2} where T}'>#</a>
-<strong><code>ClimateTools.windnr</code></strong> &mdash; <em>Method</em>.</p>
-<pre><code>windnr(p, poly::Matrix)
-</code></pre>
-
-<p>Determines the winding number of a point and a polygon, i.e. how many times a polygon winds around the point.</p>
-<p>It follows Dan Sunday: http://geomalgorithms.com/a03-_inclusion.html.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/2f672c6dd7215717acdb35016d9b20e8c5d9480b/src/functions.jl#L1-L8' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/c96337a5fc53548ee0319fb3e8797f06a657ffaa/src/indices.jl#L539-L545' class='documenter-source'>source</a><br></p>
 <p><a id='Seasonal-indices-1'></a></p>
 <h2 id="seasonal-indices">Seasonal indices</h2>
 <p>Coming soon.</p>

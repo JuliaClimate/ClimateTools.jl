@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <meta name="author" content="Balinus">
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Index - ClimateTools.jl</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/highlight.css">
+  <link href="../assets/Documenter.css" rel="stylesheet">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Index";
+    var mkdocs_page_input_path = "functions.md";
+    var mkdocs_page_url = "/functions/";
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js"></script>
+  <script src="../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> ClimateTools.jl</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../gettingstarted/">Getting started</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../indices/">Climate indices</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../interpolation/">Interpolation</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../biascorrection/">Bias correction</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../maps/">Maps</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../interface/">Interface</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../examples/">Examples</a>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Index</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#index">Index</a></li>
+    
+
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">ClimateTools.jl</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Index</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/Balinus/ClimateTools./blob/master/docs/src/index.md/functions.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <p><a id='Index-1'></a></p>
+<h1 id="index">Index</h1>
+<p><a id='ClimateTools.inpoly-Tuple{Any,Array{T,2} where T}' href='#ClimateTools.inpoly-Tuple{Any,Array{T,2} where T}'>#</a>
+<strong><code>ClimateTools.inpoly</code></strong> &mdash; <em>Method</em>.</p>
+<pre><code>inpoly(p, poly::Matrix)
+</code></pre>
+
+<p>Determines if a point is inside a polygon.</p>
+<ul>
+<li>p – point (x,y) or [x,y]</li>
+<li>poly – polygon vertices <a href="../a closed poly">x1 x2 ... xn x1                           y1 y2 ... yn y1</a></li>
+</ul>
+<p>Returns true if point has an odd winding number.  This should label points as exterior which are inside outcrops.  See test for a test.</p>
+<p>Author: Github "Mauro3" / "Mauro"</p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/c96337a5fc53548ee0319fb3e8797f06a657ffaa/src/functions.jl#L48-L62' class='documenter-source'>source</a><br></p>
+<p><a id='ClimateTools.inpolygrid-Tuple{AbstractArray{N,2} where N,AbstractArray{N,2} where N,AbstractArray{N,2} where N}' href='#ClimateTools.inpolygrid-Tuple{AbstractArray{N,2} where N,AbstractArray{N,2} where N,AbstractArray{N,2} where N}'>#</a>
+<strong><code>ClimateTools.inpolygrid</code></strong> &mdash; <em>Method</em>.</p>
+<pre><code>inpolygrid(lon, lat, poly::AbstractArray{N,2} where N)
+</code></pre>
+
+<p>Used to test a grid of points. Returns a mask of ones and NaNs of the same size as lon and lat.</p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/c96337a5fc53548ee0319fb3e8797f06a657ffaa/src/functions.jl#L175-L180' class='documenter-source'>source</a><br></p>
+<p><a id='ClimateTools.interp_climgrid-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}' href='#ClimateTools.interp_climgrid-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}'>#</a>
+<strong><code>ClimateTools.interp_climgrid</code></strong> &mdash; <em>Method</em>.</p>
+<pre><code>C = interp_climgrid(A::ClimGrid, B::ClimGrid; method=&quot;linear&quot;, min=[], max=[])
+</code></pre>
+
+<p>This function interpolate <code>ClimGrid</code> A onto the lon-lat grid of <code>ClimGrid</code> B, where A and B are <code>ClimGrid</code>. Available methods for interpolation are "linear" (default), "nearest" and "cubic".</p>
+<p>Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.</p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/c96337a5fc53548ee0319fb3e8797f06a657ffaa/src/functions.jl#L225-L233' class='documenter-source'>source</a><br></p>
+<p><a id='ClimateTools.interp_climgrid-Tuple{ClimateTools.ClimGrid,AbstractArray{N,1} where N,AbstractArray{N,1} where N}' href='#ClimateTools.interp_climgrid-Tuple{ClimateTools.ClimGrid,AbstractArray{N,1} where N,AbstractArray{N,1} where N}'>#</a>
+<strong><code>ClimateTools.interp_climgrid</code></strong> &mdash; <em>Method</em>.</p>
+<pre><code>C = interp_climgrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)A
+</code></pre>
+
+<p>This function interpolate ClimGrid A onto lat-lon grid defined by londest and latdest vector.</p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/c96337a5fc53548ee0319fb3e8797f06a657ffaa/src/functions.jl#L293-L298' class='documenter-source'>source</a><br></p>
+<p><a id='ClimateTools.meshgrid-Union{Tuple{AbstractArray{T,1},AbstractArray{T,1}}, Tuple{T}} where T' href='#ClimateTools.meshgrid-Union{Tuple{AbstractArray{T,1},AbstractArray{T,1}}, Tuple{T}} where T'>#</a>
+<strong><code>ClimateTools.meshgrid</code></strong> &mdash; <em>Method</em>.</p>
+<pre><code>X, Y = meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T})
+</code></pre>
+
+<p>This function creates a 2-D mesh-grid in a format consistent with Matlab's function meshgrid(). XV and YV are vectors.</p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/c96337a5fc53548ee0319fb3e8797f06a657ffaa/src/functions.jl#L100-L104' class='documenter-source'>source</a><br></p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="../examples/" class="btn btn-neutral" title="Examples"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/Balinus/ClimateTools.jl/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href="../examples/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js"></script>
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script src="../assets/mathjaxhelper.js"></script>
+      <script src="../search/require.js"></script>
+      <script src="../search/search.js"></script>
+
+</body>
+</html>

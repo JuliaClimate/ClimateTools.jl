@@ -94,6 +94,11 @@
     <a class="" href="../examples/">Examples</a>
 	    </li>
           
+            <li class="toctree-l1">
+		
+    <a class="" href="../functions/">Index</a>
+	    </li>
+          
         </ul>
       </div>
       &nbsp;
@@ -133,11 +138,11 @@
 <h1 id="interpolation">Interpolation</h1>
 <p>A typical step in climate analysis is to interpolate a given grid onto another grid. <code>ClimateTools</code> provides such a tool by wrapping Scipy griddata function. It is intended for visualization or as a 1st step before bias-correcting the <code>ClimGrid</code> dataset.</p>
 <p>The following command will interpolate the data contained in <code>ClimGrid A</code> into the coordinates of <code>ClimGrid B</code> and returns a new <code>ClimGrid C</code> which contains the interpolated data of <code>A</code> into the grid of <code>B</code>.</p>
-<pre><code class="julia">C = interp_climgrid(A::ClimGrid, B::ClimGrid)
+<pre><code class="julia-repl">C = interp_climgrid(A::ClimGrid, B::ClimGrid)
 </code></pre>
 
 <p>It is also possible to interpolate a <code>ClimGrid</code> onto specified longitude and latitude vectors.</p>
-<pre><code class="julia">C = interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N, 1})
+<pre><code class="julia-repl">C = interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N, 1})
 </code></pre>
               
             </div>

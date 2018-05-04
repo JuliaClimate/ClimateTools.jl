@@ -102,6 +102,11 @@
     <a class="" href="../examples/">Examples</a>
 	    </li>
           
+            <li class="toctree-l1">
+		
+    <a class="" href="../functions/">Index</a>
+	    </li>
+          
         </ul>
       </div>
       &nbsp;
@@ -174,7 +179,7 @@
 end
 </code></pre>
 
-<p>There is a <code>spatialsubset</code> function which acts on <code>ClimGrid</code> type and further subset the data through a spatial subset using a provided polygon. The function returns a <code>ClimGrid</code>. Polygons needs to be on a -180, +180 longitude coordinates.</p>
+<p>There is a <code>spatialsubset</code> function which acts on <code>ClimGrid</code> type and further subset the data through a spatial subset using a provided polygon. The function returns a <code>ClimGrid</code>. <strong>Polygons needs to be on a -180, +180 longitude coordinates, as data coordinates defaults to such grid.</strong> For instance, global models are often on a 0-360 degrees grid.</p>
 <pre><code class="julia">C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
 </code></pre>
 
@@ -188,8 +193,11 @@ end
 <h2 id="index">Index</h2>
 <ul>
 <li><a href="../indices/#ClimateTools.annualmax"><code>ClimateTools.annualmax</code></a></li>
-<li><a href="../indices/#ClimateTools.inpoly-Tuple{Any,Array{T,2} where T}"><code>ClimateTools.inpoly</code></a></li>
-<li><a href="../indices/#ClimateTools.windnr-Tuple{Any,Array{T,2} where T}"><code>ClimateTools.windnr</code></a></li>
+<li><a href="../functions/#ClimateTools.inpoly-Tuple{Any,Array{T,2} where T}"><code>ClimateTools.inpoly</code></a></li>
+<li><a href="../functions/#ClimateTools.inpolygrid-Tuple{AbstractArray{N,2} where N,AbstractArray{N,2} where N,AbstractArray{N,2} where N}"><code>ClimateTools.inpolygrid</code></a></li>
+<li><a href="../functions/#ClimateTools.interp_climgrid-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}"><code>ClimateTools.interp_climgrid</code></a></li>
+<li><a href="../functions/#ClimateTools.interp_climgrid-Tuple{ClimateTools.ClimGrid,AbstractArray{N,1} where N,AbstractArray{N,1} where N}"><code>ClimateTools.interp_climgrid</code></a></li>
+<li><a href="../functions/#ClimateTools.meshgrid-Union{Tuple{AbstractArray{T,1},AbstractArray{T,1}}, Tuple{T}} where T"><code>ClimateTools.meshgrid</code></a></li>
 </ul>
 <p>–&gt;</p>
               

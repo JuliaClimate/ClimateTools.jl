@@ -88,10 +88,15 @@
     <a class="current" href="./">Examples</a>
     <ul class="subnav">
             
-    <li class="toctree-l2"><a href="#examples">Examples</a></li>
+    <li class="toctree-l2"><a href="#typical-workflow-for-a-climate-scenario">Typical workflow for a climate scenario</a></li>
     
 
     </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../functions/">Index</a>
 	    </li>
           
         </ul>
@@ -129,14 +134,33 @@
           <div role="main">
             <div class="section">
               
-                <p><a id='Examples-1'></a></p>
-<h1 id="examples">Examples</h1>
+                <p><a id='Typical-workflow-for-a-climate-scenario-1'></a></p>
+<h1 id="typical-workflow-for-a-climate-scenario">Typical workflow for a climate scenario</h1>
+<p>Say you need to create a climate scenario over a region defined by the following polygon.</p>
+<pre><code class="julia-repl">julia&gt; poly_reg = [[NaN -65 -80 -80 -65 -65];[NaN 42 42 52 52 42]]
+2×6 Array{Float64,2}:
+ NaN  -65.0  -80.0  -80.0  -65.0  -65.0
+ NaN   42.0   42.0   52.0   52.0   42.0
+</code></pre>
+
+<p>First step is to extract data over this region, with the <code>nc2julia</code> function. Data can be downloaded over the ESGF nodes (e.g. https://esgf-node.llnl.gov/projects/esgf-llnl/). In the following example, a custom in-house simulation done at Ouranos is used, but any compliant CF file can be used.</p>
+<pre><code class="julia-repl">C = nc2julia(&quot;crcm_ouranos_bby_195306.nc&quot;, &quot;tasmax&quot;, poly=poly_reg)
+</code></pre>
+
+<p>First step of verification is to map the time-mean data with the <code>mapclimgrid</code> function to see if there is something wrong.</p>
+<pre><code class="julia-repl">mapclimgrid(C)
+</code></pre>
+
+<p>Which should return the following map.</p>
+<p align="center">   <img src="https://user-images.githubusercontent.com/3630311/39647931-c0926668-4fae-11e8-9bd9-64588229c49c.png?raw=true" width="771" height="388" alt="Temperature example"/> </p>
               
             </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../functions/" class="btn btn-neutral float-right" title="Index">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href="../interface/" class="btn btn-neutral" title="Interface"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -169,6 +193,8 @@
       
         <span><a href="../interface/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
+      
+        <span style="margin-left: 15px"><a href="../functions/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
