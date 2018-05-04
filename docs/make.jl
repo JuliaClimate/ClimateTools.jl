@@ -1,6 +1,7 @@
 using Documenter, ClimateTools
 
 makedocs(sitename = "ClimateTools.jl",
+    format = :html,
     pages = [
         "Home" => "index.md",
         "Getting Started" => "gettingstarted.md",
