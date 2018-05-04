@@ -31,9 +31,7 @@ annualmax
 
 ```@docs
 ClimateTools.inpoly(p, poly::Matrix)
-ClimateTools.meshgrid(data::Array{Float64, 1}, timeV::StepRange{Date, Base.Dates.Day})
 ClimateTools.windnr(p, poly::Matrix)
-ClimateTools.boxcar3(A::AbstractArray)
 ```
 
 ## Seasonal indices
