@@ -9,4 +9,60 @@
     </url>
     
 
+    
+    <url>
+     <loc>/gettingstarted/</loc>
+     <lastmod>2018-05-04</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/indices/</loc>
+     <lastmod>2018-05-04</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/interpolation/</loc>
+     <lastmod>2018-05-04</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/biascorrection/</loc>
+     <lastmod>2018-05-04</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/maps/</loc>
+     <lastmod>2018-05-04</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/interface/</loc>
+     <lastmod>2018-05-04</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/examples/</loc>
+     <lastmod>2018-05-04</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
 </urlset>
