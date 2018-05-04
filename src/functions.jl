@@ -95,14 +95,13 @@ function ndgrid{T}(vs::AbstractVector{T}...)
     out
 end
 
+meshgrid(v::AbstractVector) = meshgrid(v, v)
+
 """
-    X, Y = meshgrid(XV, YV)
+    X, Y = meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T})
 
 This function creates a 2-D mesh-grid in a format consistent with Matlab's function meshgrid(). XV and YV are vectors.
 """
-
-meshgrid(v::AbstractVector) = meshgrid(v, v)
-
 function meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T})
     m, n = length(vy), length(vx)
     vx = reshape(vx, 1, n)
@@ -122,12 +121,7 @@ function meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T},
     (vx[om, :, oo], vy[:, on, oo], vz[om, on, :])
 end
 
-"""
-    inpolygrid(lon, lat, poly::AbstractArray{N,2} where N)
 
-Used to test a grid of points. Returns a mask of ones and NaNs of the same size as lon and lat.
-
-"""
 
 # function inpolyvec(lon, lat, poly::AbstractArray{N,2} where N)
 #
@@ -178,6 +172,12 @@ Used to test a grid of points. Returns a mask of ones and NaNs of the same size 
 #
 # end
 
+"""
+    inpolygrid(lon, lat, poly::AbstractArray{N,2} where N)
+
+Used to test a grid of points. Returns a mask of ones and NaNs of the same size as lon and lat.
+
+"""
 function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} where N, poly::AbstractArray{N,2} where N)
 
     # @argcheck size(lon, 2) == size(lat)
@@ -225,13 +225,12 @@ end
 """
     C = interp_climgrid(A::ClimGrid, B::ClimGrid; method="linear", min=[], max=[])
 
-This function interpolate ClimGrid A onto lat-lon grid of ClimGrid B,
-where A, B and C are ClimGrid. Available methods are "linear" (default), "nearest" and "cubic".
+This function interpolate `ClimGrid` A onto the lon-lat grid of `ClimGrid` B,
+where A and B are `ClimGrid`. Available methods for interpolation are "linear" (default), "nearest" and "cubic".
 
-Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min = 0.0 to convert negative precipitation to 0.0.
+Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.
 
 """
-
 # TODO define interpolation for 4D grid
 function interp_climgrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[])
 

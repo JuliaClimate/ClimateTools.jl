@@ -26,14 +26,6 @@ ind = annualmax(data::Array{Float64, 3}, dates::StepRange{Date, Base.Dates.Day})
 annualmax
 ```
 
-
-## Functions - Tools
-
-```@docs
-ClimateTools.inpoly(p, poly::Matrix)
-ClimateTools.windnr(p, poly::Matrix)
-```
-
 ## Seasonal indices
 
 Coming soon.
