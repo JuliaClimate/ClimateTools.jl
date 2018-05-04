@@ -40,7 +40,7 @@ struct ClimGrid{A <: AxisArray}
 end
 ```
 
-There is a `spatialsubset` function which acts on `ClimGrid` type and further subset the data through a spatial subset using a provided polygon. The function returns a `ClimGrid`. Polygons needs to be on a -180, +180 longitude coordinates.
+There is a `spatialsubset` function which acts on `ClimGrid` type and further subset the data through a spatial subset using a provided polygon. The function returns a `ClimGrid`. **Polygons needs to be on a -180, +180 longitude coordinates, as data coordinates defaults to such grid.** For instance, global models are often on a 0-360 degrees grid.
 
 ```julia
 C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)

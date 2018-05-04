@@ -16,7 +16,7 @@ extra_javascript:
 markdown_extensions:
   - extra
   - tables
-  - fenced_code  
+  - fenced_code
 
 docs_dir: 'build'
 
@@ -29,6 +29,7 @@ pages:
   - Maps: 'maps.md'
   - Interface: 'interface.md'
   - Examples: 'examples.md'
+  - Index: 'functions.md'
 
 
 # pages = [
