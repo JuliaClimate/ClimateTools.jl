@@ -29,14 +29,20 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
       m = basemap[:Basemap](llcrnrlon = -80.5, llcrnrlat = 41., urcrnrlon = -50.566, urcrnrlat = 62.352, rsphere = (6378137.00, 6356752.3142), resolution = "l", projection = "lcc",  lat_1 = 50., lon_0 = -70.)
 
   elseif region == "World"
-      m = basemap[:Basemap](projection="cyl", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180, resolution = "c")
+      m = basemap[:Basemap](projection = "cyl", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180, resolution = "c")
       # m = basemap[:Basemap](projection="eck4", lon_0 = -10., resolution = "l")
 
+  elseif region == "Americas"
+      m = basemap[:Basemap](width=14000000, height=17000000, projection = "omerc", lon_0=-100, lat_0=15, lon_2=-120, lat_2=70, lon_1=-45, lat_1=-55, resolution = "c")
+
   elseif region == "Europe"
-      m = basemap[:Basemap](width=6800000, height = 4500000, rsphere = (6378137.00, 6356752.3142), resolution = "l", projection = "lcc", lat_1 = 30., lat_2 = 45, lat_0 = 52, lon_0 = 10.)
+      m = basemap[:Basemap](width = 6800000, height = 4500000, rsphere = (6378137.00, 6356752.3142), resolution = "l", projection = "lcc", lat_1 = 30., lat_2 = 45, lat_0 = 52, lon_0 = 10.)
 
   elseif region == "NorthAmerica"
       m = basemap[:Basemap](llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, rsphere = (6378137.00, 6356752.3142), resolution = "l", projection = "lcc",  lat_1 = 50., lon_0 = -107.)
+
+
+
 
   elseif region == "auto"
       m = basemap[:Basemap](projection="cyl", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon, resolution = "c")
