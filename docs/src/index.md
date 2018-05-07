@@ -12,7 +12,7 @@ This package is registered on METADATA.jl and can be added with `Pkg.add("Climat
 
 ## Installation
 
-```julia
+```julia-repl
 Pkg.add("ClimateTools") # Tagged release
 Pkg.checkout("ClimateTools") # For latest master branch
 ```
@@ -44,6 +44,6 @@ If you'd like to have other climate indices coded, please, submit them through a
 
 N.B. version 0.1.2 is compatible with Julia 0.5 and version >0.2.0 is for Julia 0.6. To use a specific version of the package, you can use in Julia the following command:
 
-```julia
+```julia-repl
 Pkg.pin("ClimateTools",v"0.1.2") # if using Julia 0.5
 ```
