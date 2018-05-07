@@ -6,13 +6,13 @@
 
 ## Overview
 
-This package is a collection of commonly-used tools in Climate Science. Basics of climate field analysis will be covered, with some forays into exploratory techniques. The package is aimed to ease the typical steps of analysis climate models outputs and observed time series from weather stations.
+This package is a collection of commonly-used tools in Climate Science. Basics of climate field analysis will be covered, with some forays into exploratory techniques. The package is aimed to ease the typical steps of analysis climate models outputs from netCDF files that follows [Climate Forecast conventions](http://cfconventions.org/).
 
 This package is registered on METADATA.jl and can be added with `Pkg.add("ClimateTools")` and used with `using ClimateTools`.
 
 ## Installation
 
-```julia
+```julia-repl
 Pkg.add("ClimateTools") # Tagged release
 Pkg.checkout("ClimateTools") # For latest master branch
 ```
@@ -27,7 +27,7 @@ The climate indices are coded to use **multiple threads**. To gain maximum perfo
 * Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI)
 * Custom climate indices
 * Interpolation of a datasets onto another grid
-* Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Piani et al. 2010)
+* Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)
 
 
 ## Contributors
@@ -36,15 +36,14 @@ If you'd like to have other climate indices coded, please, submit them through a
 
 ## TO-DO
 
-* Add a standard quantile-quantile mapping technique
 * Dashboard tool. This will return the main characteristics of a ClimGrid: maps of minimum, maximum and mean climatological values, seasonal cycle, timeseries of annual maximum, minimum and mean values, etc...
-* Create a WeatherStation type.
 * Export ClimGrid to netCDF file.
 * Add a more complex quantile-quantile mapping technique, combining extreme value theory and quantile-quantile standard technique
-* Add GRIB file support (probably through [GMT.jl](https://github.com/joa-quim/GMT.jl))
+
+### Notes
 
 N.B. version 0.1.2 is compatible with Julia 0.5 and version >0.2.0 is for Julia 0.6. To use a specific version of the package, you can use in Julia the following command:
 
-```julia
+```julia-repl
 Pkg.pin("ClimateTools",v"0.1.2") # if using Julia 0.5
 ```

@@ -1,5 +1,6 @@
 """
     mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Date, end_date::Date)
+<<<<<<< HEAD
 
 Returns the time-mean average of ClimGrid C.
 
@@ -17,8 +18,25 @@ Regions
 
 """
 function mapclimgrid(C::ClimGrid; region::String = "auto", states::Bool = false, poly = [], level = 1, mask = [], caxis=[], start_date::Date=Date(-4000), end_date::Date=Date(-4000))
+=======
+>>>>>>> 77adecd8df7f5470e844bffd677239a1bdfb20fc
 
-  # TODO Add options for custom time period as input and custom region
+Returns the time-mean average of ClimGrid C.
+
+Optional keyworkd includes precribed regions (see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date.
+
+## Arguments
+Regions
+- Europe
+- North America
+- Canada
+- Quebec
+- Americas
+
+"""
+function mapclimgrid(C::ClimGrid; region::String = "auto", states::Bool = false, poly = [], level = 1, mask = [], caxis = [], start_date::Date = Date(-4000), end_date::Date = Date(-4000))
+
+  # TODO Add options for custom region
 
   # Some tests
   if !isempty(mask)
