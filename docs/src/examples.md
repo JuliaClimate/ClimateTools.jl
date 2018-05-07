@@ -1,12 +1,12 @@
 # Typical workflow for a climate scenario
 
-*Note. Climate data can be downloaded at ESGF nodes (e.g. https://esgf-node.llnl.gov/projects/esgf-llnl/).*
+*Note. Climate data can be downloaded at [ESGF nodes](https://esgf-node.llnl.gov/projects/esgf-llnl/)*
 
-*Note 2. The following example is convoluted, but it gives an overview of the main steps allowed by ClimateTools package.*
+*Note 2. The following example is somewhat convoluted, but it gives an overview of the main steps allowed by ClimateTools package.*
 
 ## Exploration
 
-First step before extracting the data is to explore the actual dataset at hand. The function `Dataset` (reexported from te NCDatasets.jl package) is used is examine the file(s). In this example, the simulation is from the MIROC5 simulation.
+First step before extracting the data is to explore the actual dataset at hand. The function `Dataset` (reexported from te NCDatasets.jl package) is used to examine the file(s). In this example, the simulation is from the MIROC5 model.
 
 ```julia-repl
 julia> Dataset("datafile.nc")

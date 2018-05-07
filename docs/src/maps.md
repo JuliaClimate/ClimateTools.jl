@@ -2,7 +2,7 @@
 
 ## Mapping the ClimGrid type
 
-Mapping climate information can be done by using `mapclimgrid`.
+Mapping climate information can be done by using [`mapclimgrid`](@ref).
 
 ```julia
 mapclimgrid(C::ClimGrid; region = "World")
