@@ -1,4 +1,4 @@
-function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1, mask = [], caxis=[], start_date::Date=Date(-4000), end_date::Date=Date(-4000))
+function mapclimgrid(C::ClimGrid; region::String = "auto", states::Bool = false, poly = [], level = 1, mask = [], caxis=[], start_date::Date=Date(-4000), end_date::Date=Date(-4000))
 
   # TODO Add options for custom time period as input and custom region
 
@@ -33,7 +33,10 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
 
   elseif region == "World"
       m = basemap[:Basemap](projection = "cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180)
-      # m = basemap[:Basemap](projection="eck4", lon_0 = -10., resolution = "l")
+
+  elseif region == "WorldEck4"
+      m = basemap[:Basemap](projection="eck4", resolution = "c", lon_0 = -210)
+
   elseif region == "WorldAz"
       m = basemap[:Basemap](projection = "aeqd", resolution = "c", width = 28000000, height = 28000000, lon_0 = -75, lat_0 = 45)
 
@@ -55,7 +58,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
 
   # Draw the map properties
   m[:drawcoastlines](linewidth = 0.6)
-  if region == "Canada"
+  if states
       m[:drawstates](linewidth = 0.2)
   end
   m[:drawcountries](linewidth = 0.6)
@@ -170,7 +173,10 @@ function mapclimgrid(;region::String = "auto", states::Bool = true)
 
     elseif region == "World"
         m = basemap[:Basemap](projection = "cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180)
-        # m = basemap[:Basemap](projection="eck4", lon_0 = -10., resolution = "l")
+
+    elseif region == "WorldEck4"
+        m = basemap[:Basemap](projection="eck4", resolution = "c", lon_0 = -210)
+
     elseif region == "WorldAz"
         m = basemap[:Basemap](projection = "aeqd", resolution = "c", width = 28000000, height = 28000000, lon_0 = -75, lat_0 = 45)
 
