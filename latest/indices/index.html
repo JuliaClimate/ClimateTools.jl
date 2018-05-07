@@ -149,14 +149,14 @@
 <p><a id='Indices-1'></a></p>
 <h2 id="indices">Indices</h2>
 <p>More than 20 climate indices are available in the package, such as the annual number of tropical nights, annual maximum and minimum, etc. You can calculate such indices simply with:</p>
-<pre><code class="julia">ind = annualmax(C::ClimGrid)
+<pre><code class="julia-repl">ind = annualmax(C::ClimGrid)
 </code></pre>
 
 <p>Which returns another <code>ClimGrid</code>. You can also map this <code>ClimGrid</code> with the <code>mapclimgrid</code> function and returns the climatological mean of the annual maximum (e.g. daily precipitation in the example below). A list of indices can be found in the documentation and in the <code>functions.jl</code> source code.</p>
 <p align="center">   <img src="https://cloud.githubusercontent.com/assets/3630311/23873133/59b85c08-0807-11e7-967b-7cc7d28aada0.png?raw=true" width="771" height="388" alt="Precipitation example"/> </p>
 
 <p>Climate Indices functions also accept other type of argument. For example, <code>annualmax</code> can be called with the following type:</p>
-<pre><code class="julia">ind = annualmax(data::Array{Float64, 3}, dates::StepRange{Date, Base.Dates.Day})
+<pre><code class="julia-repl">ind = annualmax(data::Array{Float64, 3}, dates::StepRange{Date, Base.Dates.Day})
 </code></pre>
 
 <p><a id='Annual-indices-1'></a></p>
@@ -168,13 +168,13 @@
 
 <p>Annual maximum of array data.</p>
 <p>Let data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/e01e256e145204155387182909ca0e0bef46195e/src/indices.jl#L512-L518' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/7fe1191a0c71b3df89528b09363560a4f5f6d589/src/indices.jl#L512-L518' class='documenter-source'>source</a><br></p>
 <pre><code>annualmax(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})
 </code></pre>
 
 <p>Annual maximum of array data.</p>
 <p>Let data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.</p>
-<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/e01e256e145204155387182909ca0e0bef46195e/src/indices.jl#L539-L545' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/7fe1191a0c71b3df89528b09363560a4f5f6d589/src/indices.jl#L539-L545' class='documenter-source'>source</a><br></p>
 <p><a id='Seasonal-indices-1'></a></p>
 <h2 id="seasonal-indices">Seasonal indices</h2>
 <p>Coming soon.</p>

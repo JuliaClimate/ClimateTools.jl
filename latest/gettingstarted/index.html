@@ -147,12 +147,12 @@
 <p><a id='Reading-a-NetCDF-file-1'></a></p>
 <h2 id="reading-a-netcdf-file">Reading a NetCDF file</h2>
 <p>The entry point of <code>ClimateTools</code> is to load data with the <code>nc2julia</code> function. Optional polygon clipping feature is available. By providing such polygon, the <code>nc2julia</code> function  returns a <code>ClimGrid</code> with grid points contained in the polygon.</p>
-<pre><code class="julia">C = nc2julia(filename::String, var::String; poly::Array, data_units::String, start_date::Date, end_date::Date)
+<pre><code class="julia-repl">C = nc2julia(filename::String, var::String; poly::Array, data_units::String, start_date::Date, end_date::Date)
 </code></pre>
 
 <p><code>nc2julia</code> return a <code>ClimGrid</code> type. Using the optional <code>poly</code> argument, the user can provide a polygon and the returned <code>ClimGrid</code> will only contains the grid points inside the provided polygon. For some variable, the optional keyword argument <code>data_units</code> can be provided. For example, precipitation in climate models are usually provided as <code>kg/m^2/s</code>. By specifying <code>data_units = mm</code>, the <code>nc2julia</code> function returns accumulation at the data time resolution. Similarly, the user can provide <code>Celsius</code> as <code>data_units</code> and <code>nc2julia</code> will return <code>Celsius</code> instead of <code>Kelvin</code>.</p>
 <p>The <code>ClimGrid</code> is a in-memory representation of a CF-compliant netCDF file for a single variable.</p>
-<pre><code class="julia">struct ClimGrid{A &lt;: AxisArray}
+<pre><code class="julia-repl">struct ClimGrid{A &lt;: AxisArray}
 # struct ClimGrid
   data::A
   longrid::AbstractArray{N,2} where N # the longitude grid
@@ -180,11 +180,11 @@ end
 </code></pre>
 
 <p>There is a <code>spatialsubset</code> function which acts on <code>ClimGrid</code> type and further subset the data through a spatial subset using a provided polygon. The function returns a <code>ClimGrid</code>. <strong>Polygons needs to be on a -180, +180 longitude coordinates, as data coordinates defaults to such grid.</strong> For instance, global models are often on a 0-360 degrees grid.</p>
-<pre><code class="julia">C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
+<pre><code class="julia-repl">C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
 </code></pre>
 
 <p>Temporal subset of the data is also possible with the <code>temporalsubset</code> function:</p>
-<pre><code class="julia">C = temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
+<pre><code class="julia-repl">C = temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
 </code></pre>
 
 <!–
@@ -207,12 +207,12 @@ end
 <li><a href="../functions/#ClimateTools.buildtimevec-Tuple{String}"><code>ClimateTools.buildtimevec</code></a></li>
 <li><a href="../functions/#ClimateTools.customthresover-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day},Any}"><code>ClimateTools.customthresover</code></a></li>
 <li><a href="../functions/#ClimateTools.customthresover-Tuple{ClimateTools.ClimGrid,Any}"><code>ClimateTools.customthresover</code></a></li>
-<li><a href="../functions/#ClimateTools.customthresunder-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day},Any}"><code>ClimateTools.customthresunder</code></a></li>
 <li><a href="../functions/#ClimateTools.customthresunder-Tuple{ClimateTools.ClimGrid,Any}"><code>ClimateTools.customthresunder</code></a></li>
-<li><a href="../functions/#ClimateTools.frostdays-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.frostdays</code></a></li>
+<li><a href="../functions/#ClimateTools.customthresunder-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day},Any}"><code>ClimateTools.customthresunder</code></a></li>
 <li><a href="../functions/#ClimateTools.frostdays-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.frostdays</code></a></li>
-<li><a href="../functions/#ClimateTools.icingdays-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.icingdays</code></a></li>
+<li><a href="../functions/#ClimateTools.frostdays-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.frostdays</code></a></li>
 <li><a href="../functions/#ClimateTools.icingdays-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.icingdays</code></a></li>
+<li><a href="../functions/#ClimateTools.icingdays-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.icingdays</code></a></li>
 <li><a href="../functions/#ClimateTools.inpoly-Tuple{Any,Array{T,2} where T}"><code>ClimateTools.inpoly</code></a></li>
 <li><a href="../functions/#ClimateTools.inpolygrid-Tuple{AbstractArray{N,2} where N,AbstractArray{N,2} where N,AbstractArray{N,2} where N}"><code>ClimateTools.inpolygrid</code></a></li>
 <li><a href="../functions/#ClimateTools.interp_climgrid-Tuple{ClimateTools.ClimGrid,AbstractArray{N,1} where N,AbstractArray{N,1} where N}"><code>ClimateTools.interp_climgrid</code></a></li>
@@ -224,14 +224,14 @@ end
 <li><a href="../functions/#ClimateTools.pr_timefactor-Tuple{String}"><code>ClimateTools.pr_timefactor</code></a></li>
 <li><a href="../functions/#ClimateTools.prcp1-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.prcp1</code></a></li>
 <li><a href="../functions/#ClimateTools.prcp1-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.prcp1</code></a></li>
-<li><a href="../functions/#ClimateTools.qqmap-Tuple{Array{N,1} where N,Array{N,1} where N,Array{N,1} where N,Any,Any,Any}"><code>ClimateTools.qqmap</code></a></li>
 <li><a href="../functions/#ClimateTools.qqmap-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid,ClimateTools.ClimGrid}"><code>ClimateTools.qqmap</code></a></li>
+<li><a href="../functions/#ClimateTools.qqmap-Tuple{Array{N,1} where N,Array{N,1} where N,Array{N,1} where N,Any,Any,Any}"><code>ClimateTools.qqmap</code></a></li>
 <li><a href="../functions/#ClimateTools.shapefile_coords-Tuple{Shapefile.Polygon}"><code>ClimateTools.shapefile_coords</code></a></li>
 <li><a href="../functions/#ClimateTools.shapefile_coords_poly-Tuple{Shapefile.Polygon}"><code>ClimateTools.shapefile_coords_poly</code></a></li>
 <li><a href="../functions/#ClimateTools.spatialsubset-Tuple{ClimateTools.ClimGrid,Array{N,2} where N}"><code>ClimateTools.spatialsubset</code></a></li>
 <li><a href="../functions/#ClimateTools.sumleapyear-Tuple{Date,Any}"><code>ClimateTools.sumleapyear</code></a></li>
-<li><a href="../functions/#ClimateTools.summerdays-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.summerdays</code></a></li>
 <li><a href="../functions/#ClimateTools.summerdays-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.summerdays</code></a></li>
+<li><a href="../functions/#ClimateTools.summerdays-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.summerdays</code></a></li>
 <li><a href="../functions/#ClimateTools.temporalsubset-Tuple{ClimateTools.ClimGrid,Date,Date}"><code>ClimateTools.temporalsubset</code></a></li>
 <li><a href="../functions/#ClimateTools.timeindex-NTuple{4,Any}"><code>ClimateTools.timeindex</code></a></li>
 <li><a href="../functions/#ClimateTools.timeresolution-Tuple{Array{N,1} where N}"><code>ClimateTools.timeresolution</code></a></li>
