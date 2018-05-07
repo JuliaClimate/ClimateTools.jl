@@ -1,4 +1,3 @@
-
 # Shapefile test
 filename = joinpath(dirname(@__FILE__), "data", "SudQC_GCM.shp")
 filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
@@ -73,3 +72,14 @@ status, figh = mapclimgrid(C, poly = P);@test status == true; PyPlot.close() # f
 status, figh = mapclimgrid(C, mask = msk);@test status == true; PyPlot.close() # feeding a 4D field with a mask
 C = nc2julia(filenc, "ua", poly = P)
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close() # feeding a 4D field
+
+# empty map generation
+status, figh = mapclimgrid(region = "World");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "WorldAz");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "WorldEck4");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "Canada");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "Quebec");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "QuebecNSP");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "Americas");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "NorthAmerica");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "Greenwich");@test status == true; PyPlot.close()
