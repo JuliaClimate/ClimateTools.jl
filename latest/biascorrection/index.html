@@ -136,6 +136,13 @@
               
                 <p><a id='Bias-correction-1'></a></p>
 <h1 id="bias-correction">Bias correction</h1>
+<p>Quantile-quantile mapping (Themeßl et al. 2012, Grenier et al. 2015) is provided with ClimateTools.jl through the function <a href="../functions/#ClimateTools.qqmap-Tuple{Array{N,1} where N,Array{N,1} where N,Array{N,1} where N,Any,Any,Any}"><code>qqmap</code></a>.</p>
+<pre><code class="julia">qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String=&quot;Additive&quot;, detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())
+</code></pre>
+
+<p>More information can be found in these references.</p>
+<p>Themeßl, Matthias Jakob, Andreas Gobiet, and Georg Heinrich. 2012. “Empirical-Statistical Downscaling and Error Correction of Regional Climate Models and Its Impact on the Climate Change Signal.” Climatic Change 112 (2). Springer: 449–68.</p>
+<p>Grenier, Patrick, Ramón de Elía, and Diane Chaumont. 2015. “Chances of Short-Term Cooling Estimated from a Selection of CMIP5-Based Climate Scenarios during 2006-2035 over Canada.” Journal of Climate, January 2015. American Meteorological Society. doi:10.1175/JCLI-D-14-00224.1.</p>
               
             </div>
           </div>
