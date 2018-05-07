@@ -146,11 +146,11 @@
               
                 <p><a id='Typical-workflow-for-a-climate-scenario-1'></a></p>
 <h1 id="typical-workflow-for-a-climate-scenario">Typical workflow for a climate scenario</h1>
-<p><em>Note. Climate data can be downloaded at ESGF nodes (e.g. https://esgf-node.llnl.gov/projects/esgf-llnl/).</em></p>
-<p><em>Note 2. The following example is convoluted, but it gives an overview of the main steps allowed by ClimateTools package.</em></p>
+<p><em>Note. Climate data can be downloaded at <a href="https://esgf-node.llnl.gov/projects/esgf-llnl/">ESGF nodes</a></em></p>
+<p><em>Note 2. The following example is somewhat convoluted, but it gives an overview of the main steps allowed by ClimateTools package.</em></p>
 <p><a id='Exploration-1'></a></p>
 <h2 id="exploration">Exploration</h2>
-<p>First step before extracting the data is to explore the actual dataset at hand. The function <code>Dataset</code> (reexported from te NCDatasets.jl package) is used is examine the file(s). In this example, the simulation is from the MIROC5 simulation.</p>
+<p>First step before extracting the data is to explore the actual dataset at hand. The function <code>Dataset</code> (reexported from te NCDatasets.jl package) is used to examine the file(s). In this example, the simulation is from the MIROC5 model.</p>
 <pre><code class="julia-repl">julia&gt; Dataset(&quot;datafile.nc&quot;)
 
 Dataset: /path/to/file/tasmax_day_MIROC5_historical_r1i1p1_19900101-19991231.nc
