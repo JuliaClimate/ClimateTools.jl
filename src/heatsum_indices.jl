@@ -75,153 +75,153 @@ function daysabove10(data::AbstractArray{N, 3} where N, timeV::StepRange{Date, B
   return FD
 end
 
-"""
-    customthresover(C::ClimGrid)
-
-customthresover, annual number of days over a specified threshold.
-
-Let TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:
-
-  TS[i,j] > thres.
-"""
-
-function customthresover(C::ClimGrid, thres)
-  years    = Dates.year.(C.data[Axis{:time}][:])
-  numYears = unique(years)
-  dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
-  datain   = C.data.data
-
-  # Indice calculation
-  Threads.@threads for i in 1:length(numYears)
-    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t > thres, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
-  end
-
-  # Build output AxisArray
-  FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
-
-  # Return climGrid type containing the indice
-  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = string("Days over ", thres, " ", C.dataunits), typeofvar = C.typeofvar, typeofcal = C.typeofcal)
-end
-
-"""
-    customthresover(data::AbstractArray, time::StepRange{Date,Base.Dates.Day}, thres)
-
-customthresover, annual number of days over a specified threshold.
-
-Let TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:
-
-  TS[i,j] > thres.
-"""
-
-function customthresover(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day}, thres)
-  years    = Dates.year.(timeV)
-  numYears = unique(years)
-  FD       = zeros(Int64, (length(numYears)))
-
-  Threads.@threads for i in 1:length(numYears)
-    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t > thres, +, view(FD, i:i), view(data, idx))
-  end
-  return FD
-end
-
-function customthresover(data::AbstractArray{N, 2} where N, timeV::StepRange{Date, Base.Dates.Day}, thres)
-  years    = Dates.year.(timeV)
-  numYears = unique(years)
-  FD       = zeros(Int64, (length(numYears), size(data, 2)))
-
-  Threads.@threads for i in 1:length(numYears)
-    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t > thres, +, view(FD, i:i, :), view(data, idx, :, :))
-  end
-  return FD
-end
-
-function customthresover(data::AbstractArray{N, 3} where N, timeV::StepRange{Date, Base.Dates.Day}, thres)
-  years    = Dates.year.(timeV)
-  numYears = unique(years)
-  FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
-
-  Threads.@threads for i in 1:length(numYears)
-    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t > thres, +, view(FD, i:i, :, :), view(data, idx, :, :))
-  end
-  return FD
-end
-
-"""
-    customthresunder(C::ClimGrid)
-
-customthresover, annual number of days under a specified threshold.
-
-Let TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:
-
-  TS[i,j] < thres.
-"""
-
-function customthresunder(C::ClimGrid, thres)
-  years    = Dates.year.(C.data[Axis{:time}][:])
-  numYears = unique(years)
-  dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
-  datain   = C.data.data
-
-  # Indice calculation
-  Threads.@threads for i in 1:length(numYears)
-    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t < thres, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
-  end
-
-  # Build output AxisArray
-  FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
-
-  # Return climGrid type containing the indice
-  return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = string("Days under ", thres, " ", C.dataunits), typeofvar = C.typeofvar, typeofcal = C.typeofcal)
-end
-
-
-"""
-    customthresunder(data::AbstractArray, time::StepRange{Date,Base.Dates.Day}, thres)
-
-customthresover, annual number of days under a specified threshold.
-
-Let TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:
-
-    TS[i,j] < thres.
-"""
-
-function customthresunder(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day}, thres)
-  years    = Dates.year.(timeV)
-  numYears = unique(years)
-  FD       = zeros(Int64, (length(numYears)))
-
-  Threads.@threads for i in 1:length(numYears)
-    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t < thres, +, view(FD, i:i), view(data, idx))
-  end
-  return FD
-end
-
-function customthresunder(data::AbstractArray{N, 2} where N, timeV::StepRange{Date, Base.Dates.Day}, thres)
-  years    = Dates.year.(timeV)
-  numYears = unique(years)
-  FD       = zeros(Int64, (length(numYears), size(data, 2)))
-
-  Threads.@threads for i in 1:length(numYears)
-    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t < thres, +, view(FD, i:i, :), view(data, idx, :, :))
-  end
-  return FD
-end
-
-function customthresunder(data::AbstractArray{N, 3} where N, timeV::StepRange{Date, Base.Dates.Day}, thres)
-  years    = Dates.year.(timeV)
-  numYears = unique(years)
-  FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
-
-  Threads.@threads for i in 1:length(numYears)
-    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t < thres, +, view(FD, i:i, :, :), view(data, idx, :, :))
-  end
-  return FD
-end
+# """
+#     customthresover(C::ClimGrid)
+#
+# customthresover, annual number of days over a specified threshold.
+#
+# Let TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:
+#
+#   TS[i,j] > thres.
+# """
+#
+# function customthresover(C::ClimGrid, thres)
+#   years    = Dates.year.(C.data[Axis{:time}][:])
+#   numYears = unique(years)
+#   dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+#   datain   = C.data.data
+#
+#   # Indice calculation
+#   Threads.@threads for i in 1:length(numYears)
+#     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+#     Base.mapreducedim!(t -> t > thres, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
+#   end
+#
+#   # Build output AxisArray
+#   FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
+#
+#   # Return climGrid type containing the indice
+#   return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = string("Days over ", thres, " ", C.dataunits), typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+# end
+#
+# """
+#     customthresover(data::AbstractArray, time::StepRange{Date,Base.Dates.Day}, thres)
+#
+# customthresover, annual number of days over a specified threshold.
+#
+# Let TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:
+#
+#   TS[i,j] > thres.
+# """
+#
+# function customthresover(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day}, thres)
+#   years    = Dates.year.(timeV)
+#   numYears = unique(years)
+#   FD       = zeros(Int64, (length(numYears)))
+#
+#   Threads.@threads for i in 1:length(numYears)
+#     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+#     Base.mapreducedim!(t -> t > thres, +, view(FD, i:i), view(data, idx))
+#   end
+#   return FD
+# end
+#
+# function customthresover(data::AbstractArray{N, 2} where N, timeV::StepRange{Date, Base.Dates.Day}, thres)
+#   years    = Dates.year.(timeV)
+#   numYears = unique(years)
+#   FD       = zeros(Int64, (length(numYears), size(data, 2)))
+#
+#   Threads.@threads for i in 1:length(numYears)
+#     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+#     Base.mapreducedim!(t -> t > thres, +, view(FD, i:i, :), view(data, idx, :, :))
+#   end
+#   return FD
+# end
+#
+# function customthresover(data::AbstractArray{N, 3} where N, timeV::StepRange{Date, Base.Dates.Day}, thres)
+#   years    = Dates.year.(timeV)
+#   numYears = unique(years)
+#   FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
+#
+#   Threads.@threads for i in 1:length(numYears)
+#     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+#     Base.mapreducedim!(t -> t > thres, +, view(FD, i:i, :, :), view(data, idx, :, :))
+#   end
+#   return FD
+# end
+#
+# """
+#     customthresunder(C::ClimGrid)
+#
+# customthresover, annual number of days under a specified threshold.
+#
+# Let TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:
+#
+#   TS[i,j] < thres.
+# """
+#
+# function customthresunder(C::ClimGrid, thres)
+#   years    = Dates.year.(C.data[Axis{:time}][:])
+#   numYears = unique(years)
+#   dataout  = zeros(Int64, (length(numYears), size(C.data, 2), size(C.data, 3)))
+#   datain   = C.data.data
+#
+#   # Indice calculation
+#   Threads.@threads for i in 1:length(numYears)
+#     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+#     Base.mapreducedim!(t -> t < thres, +, view(dataout, i:i, :, :), view(datain, idx, :,:))
+#   end
+#
+#   # Build output AxisArray
+#   FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(C[1][Axis{:lat}][:]))
+#
+#   # Return climGrid type containing the indice
+#   return ClimGrid(FD, model = C.model, experiment = C.experiment, run = C.run, filename = C.filename, dataunits = "days", latunits = C.latunits, lonunits = C.lonunits, variable = string("Days under ", thres, " ", C.dataunits), typeofvar = C.typeofvar, typeofcal = C.typeofcal)
+# end
+#
+#
+# """
+#     customthresunder(data::AbstractArray, time::StepRange{Date,Base.Dates.Day}, thres)
+#
+# customthresover, annual number of days under a specified threshold.
+#
+# Let TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:
+#
+#     TS[i,j] < thres.
+# """
+#
+# function customthresunder(data::AbstractArray{N, 1} where N, timeV::StepRange{Date, Base.Dates.Day}, thres)
+#   years    = Dates.year.(timeV)
+#   numYears = unique(years)
+#   FD       = zeros(Int64, (length(numYears)))
+#
+#   Threads.@threads for i in 1:length(numYears)
+#     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+#     Base.mapreducedim!(t -> t < thres, +, view(FD, i:i), view(data, idx))
+#   end
+#   return FD
+# end
+#
+# function customthresunder(data::AbstractArray{N, 2} where N, timeV::StepRange{Date, Base.Dates.Day}, thres)
+#   years    = Dates.year.(timeV)
+#   numYears = unique(years)
+#   FD       = zeros(Int64, (length(numYears), size(data, 2)))
+#
+#   Threads.@threads for i in 1:length(numYears)
+#     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+#     Base.mapreducedim!(t -> t < thres, +, view(FD, i:i, :), view(data, idx, :, :))
+#   end
+#   return FD
+# end
+#
+# function customthresunder(data::AbstractArray{N, 3} where N, timeV::StepRange{Date, Base.Dates.Day}, thres)
+#   years    = Dates.year.(timeV)
+#   numYears = unique(years)
+#   FD       = zeros(Int64, (length(numYears), size(data, 2), size(data, 3)))
+#
+#   Threads.@threads for i in 1:length(numYears)
+#     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+#     Base.mapreducedim!(t -> t < thres, +, view(FD, i:i, :, :), view(data, idx, :, :))
+#   end
+#   return FD
+# end
