@@ -31,17 +31,11 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", states::Bool = false,
   elseif region == "QuebecNSP"
       m = basemap[:Basemap](projection = "nsper", resolution= "l", satellite_height = 2000000, lon_0 = -72.5, lat_0 = 55)
 
-  elseif region == "World"
-      m = basemap[:Basemap](projection = "cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180)
-
-  elseif region == "WorldEck4"
-      m = basemap[:Basemap](projection="eck4", resolution = "c", lon_0 = -210)
-
-  elseif region == "WorldAz"
-      m = basemap[:Basemap](projection = "aeqd", resolution = "c", width = 28000000, height = 28000000, lon_0 = -75, lat_0 = 45)
-
   elseif region == "Americas"
       m = basemap[:Basemap](projection = "omerc", resolution = "c", width=14000000, height=17000000, lon_0 = -100, lat_0 =    15, lon_1 = -45, lon_2 = -120, lat_1 = -55, lat_2 = 70)
+
+  elseif region == "Greenwich"
+      m = basemap[:Basemap](projection = "omerc", resolution = "c", width=9000000, height=15000000, lon_0 = 10, lat_0 = 25, lon_1 = -10, lon_2 = 20, lat_1 = -75, lat_2 = 30)
 
   elseif region == "Europe"
       m = basemap[:Basemap](projection = "lcc", resolution = "l", width = 6800000, height = 4700000, lat_0 = 53, lon_0 = 20, lat_1 = 33, lat_2 = 50, rsphere = (6378137.00, 6356752.3142))
@@ -49,8 +43,14 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", states::Bool = false,
   elseif region == "NorthAmerica"
       m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, lon_0 = -107, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
 
-  elseif region == "Greenwich"
-      m = basemap[:Basemap](projection = "omerc", resolution = "c", width=9000000, height=15000000, lon_0 = 10, lat_0 = 25, lon_1 = -10, lon_2 = 20, lat_1 = -75, lat_2 = 30)
+  elseif region == "World"
+      m = basemap[:Basemap](projection = "cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180)
+
+  elseif region == "WorldAz"
+      m = basemap[:Basemap](projection = "aeqd", resolution = "c", width = 28000000, height = 28000000, lon_0 = -75, lat_0 = 45)
+
+  elseif region == "WorldEck4"
+      m = basemap[:Basemap](projection="eck4", resolution = "c", lon_0 = -210)
 
   elseif region == "auto"
       m = basemap[:Basemap](projection="cyl", resolution = "c", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon)
@@ -58,12 +58,17 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", states::Bool = false,
 
   # Draw the map properties
   m[:drawcoastlines](linewidth = 0.6)
+  m[:drawcountries](linewidth = 0.6)
+
   if states
       m[:drawstates](linewidth = 0.2)
   end
-  m[:drawcountries](linewidth = 0.6)
-  m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5)
-  m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6)
+
+  if region != "QuebecNSP"
+      m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6)
+      m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5)
+  end
+
 
   x, y = m(C.longrid, C.latgrid)
 
@@ -171,17 +176,11 @@ function mapclimgrid(;region::String = "auto", states::Bool = true)
     elseif region == "QuebecNSP"
         m = basemap[:Basemap](projection = "nsper", resolution= "l", satellite_height = 2000000, lon_0 = -72.5, lat_0 = 55)
 
-    elseif region == "World"
-        m = basemap[:Basemap](projection = "cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180)
-
-    elseif region == "WorldEck4"
-        m = basemap[:Basemap](projection="eck4", resolution = "c", lon_0 = -210)
-
-    elseif region == "WorldAz"
-        m = basemap[:Basemap](projection = "aeqd", resolution = "c", width = 28000000, height = 28000000, lon_0 = -75, lat_0 = 45)
-
     elseif region == "Americas"
         m = basemap[:Basemap](projection = "omerc", resolution = "c", width=14000000, height=17000000, lon_0 = -100, lat_0 =    15, lon_1 = -45, lon_2 = -120, lat_1 = -55, lat_2 = 70)
+
+    elseif region == "Greenwich"
+        m = basemap[:Basemap](projection = "omerc", resolution = "c", width=9000000, height=15000000, lon_0 = 10, lat_0 = 25, lon_1 = -10, lon_2 = 20, lat_1 = -75, lat_2 = 30)
 
     elseif region == "Europe"
         m = basemap[:Basemap](projection = "lcc", resolution = "l", width = 6800000, height = 4700000, lat_0 = 53, lon_0 = 20, lat_1 = 33, lat_2 = 50, rsphere = (6378137.00, 6356752.3142))
@@ -189,21 +188,31 @@ function mapclimgrid(;region::String = "auto", states::Bool = true)
     elseif region == "NorthAmerica"
         m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, lon_0 = -107, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
 
-    elseif region == "Greenwich"
-        m = basemap[:Basemap](projection = "omerc", resolution = "c", width=9000000, height=15000000, lon_0 = 10, lat_0 = 25, lon_1 = -10, lon_2 = 20, lat_1 = -75, lat_2 = 30)
+    elseif region == "World"
+        m = basemap[:Basemap](projection = "cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180)
+
+    elseif region == "WorldAz"
+        m = basemap[:Basemap](projection = "aeqd", resolution = "c", width = 28000000, height = 28000000, lon_0 = -75, lat_0 = 45)
+
+    elseif region == "WorldEck4"
+        m = basemap[:Basemap](projection="eck4", resolution = "c", lon_0 = -210)
 
     elseif region == "auto"
-        m = basemap[:Basemap](projection="cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180, )
+        m = basemap[:Basemap](projection="cyl", resolution = "c", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon)
     end
 
     # Draw the map properties
     m[:drawcoastlines](linewidth = 0.6)
+    m[:drawcountries](linewidth = 0.6)
+
     if states
         m[:drawstates](linewidth = 0.2)
     end
-    m[:drawcountries](linewidth = 0.6)
-    m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5)
-    m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6)
+
+    if region != "QuebecNSP"
+        m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6)
+        m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5)
+    end
 
     return true, fig, ax
 

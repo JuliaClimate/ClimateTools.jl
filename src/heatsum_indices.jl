@@ -1,9 +1,9 @@
-function buildarray(C::ClimateTools.ClimGrid, dataout, numYears)
-    lonsymbol = Symbol(C.dimension_dict["lon"])
-    latsymbol = Symbol(C.dimension_dict["lat"])
-    FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]))
-    return FD
-end
+# function buildarray(C::ClimateTools.ClimGrid, dataout, numYears)
+#     lonsymbol = Symbol(C.dimension_dict["lon"])
+#     latsymbol = Symbol(C.dimension_dict["lat"])
+#     FD = AxisArray(dataout, Axis{:time}(Dates.Year.(numYears)), Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]))
+#     return FD
+# end
 
 """
     daysabove10(C::ClimGrid)
