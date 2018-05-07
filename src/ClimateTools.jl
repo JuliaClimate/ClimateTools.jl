@@ -2,7 +2,9 @@ module ClimateTools
 
 # External modules
 using NetCDF
-using NCDatasets
+using Reexport
+@reexport using NCDatasets
+# using NCDatasets
 using Shapefile
 using AxisArrays
 using ArgCheck
@@ -100,8 +102,9 @@ export frostdays, summerdays, icingdays, tropicalnights
 export customthresover, customthresunder, annualmax, annualmin
 export annualmean, annualsum, nc2julia, sumleapyear, buildtimevec
 export mapclimgrid, interp_climgrid, ClimGrid, inpolyvec, applymask
-export shapefile_coords, timeresolution, pr_timefactor, spatialsubset
-export temporalsubset, qqmap, ndgrid, permute_west_east
+export shapefile_coords, shapefile_coords_poly, timeresolution
+export pr_timefactor, spatialsubset, temporalsubset
+export qqmap, ndgrid, permute_west_east
 export project_id, model_id, institute_id, experiment_id, frequency_var, runsim_id, getdim_lat, getdim_lon, isdefined
 export @isdefined
 export buildarray, timeindex

@@ -271,13 +271,30 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 
 end
 
+
+function nc2julia(files::Array{String,1}, variable::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = "")
+
+    C = [] # initialize # TODO better initialization
+
+    for ifile = 1:length(files)
+
+        datatmp = nc2julia(files[ifile], variable, poly = poly, start_date=start_date, end_date=end_date, data_units=data_units)
+
+        if ifile == 1
+            C = datatmp
+        else
+            C = merge(C, datatmp)
+        end
+    end
+    return C
+end
+
 """
     buildtimevec(str::String)Y
 
 Construct the time vector from the netCDF file str
 
 """
-
 function buildtimevec(str::String)
 
   # Time units
@@ -376,9 +393,11 @@ function sumleapyear(dates::StepRange{Date,Base.Dates.Day})
 end
 
 """
+    shapefile_coords(poly::Shapefile.Polygon)
+
 This function return the polygons contained in shp.shapes[i] (return type of Shapefile.jl package). It returns the x and y coordinates vectors.
 
-    shapefile_coords(poly::Shapefile.Polygon)
+See also [`shapefile_coords_poly`](@ref), which returns a polygon that ca be used for data extraction of the [`nc2julia`](@ref).
 
 """
 function shapefile_coords(poly::Shapefile.Polygon)
@@ -394,6 +413,20 @@ function shapefile_coords(poly::Shapefile.Polygon)
         end
     end
     x, y
+end
+
+
+"""
+    shapefile_coords_poly(poly::Shapefile.Polygon)
+
+Return the polygons contained in shp.shapes[i] (return type of Shapefile.jl package). It returns an array containing the polygons.
+
+See also [`shapefile_coords`](@ref), which returns vectors as opposed to array. Returned polygon is consistent with the data extraction of the [`nc2julia`](@ref) function.
+
+"""
+function shapefile_coords_poly(poly::Shapefile.Polygon)
+    x, y = shapefile_coords(poly)
+    return [x y]'
 end
 
 function corr_timevec(timeV, timefreq)
@@ -428,9 +461,9 @@ end
 """
     timeresolution(timevec::Array{N,1} where N)
 
-This function return the time resolution of the vector timevec, as obtained by the following call form the NetCDF.jl package
+Return the time resolution of the vector timevec.
 
-    timevec = NetCDF.ncread("netcdf_file.nc", "time")
+
 """
 
 function timeresolution(timevec::Array{N,1} where N)
@@ -453,9 +486,9 @@ function timeresolution(timevec::Array{N,1} where N)
 end
 
 """
-This function return the time factor that should be applied to ptrecipitation to get accumulation for resolution "rez"
-
     function pr_timefactor(rez::String)
+
+Return the time factor that should be applied to precipitation to get accumulation for resolution "rez"
 
 """
 
@@ -477,9 +510,9 @@ end
 
 
 """
-    function spatialsubset(C::ClimGrid, poly::Array{N, 2})
+    spatialsubset(C::ClimGrid, poly::Array{N, 2})
 
-Returns the spatial subset of ClimGrid C. The spatial subset is defined by a polygon poly
+Returns the spatial subset of ClimGrid C. The spatial subset is defined by the polygon poly, defined on a -180, +180 longitude reference.
 
 """
 
@@ -535,7 +568,7 @@ function spatialsubset(C::ClimGrid, poly::Array{N, 2} where N)
 end
 
 """
-    function temporalsubset(C::ClimGrid, start::Date, end::Date)
+    function temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
 
 Returns the temporal subset of ClimGrid C. The temporal subset is defined by a start and end date.
 
@@ -555,7 +588,7 @@ function temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
 
 end
 
-model_id(attrib::NCDatasets.Attributes)= get(attrib,"model_id",get(attrib,"model","N/A"))
+model_id(attrib::NCDatasets.Attributes) = get(attrib,"model_id",get(attrib,"model","N/A"))
 
 experiment_id(attrib::NCDatasets.Attributes) = get(attrib,"experiment_id",get(attrib,"experiment","N/A"))
 
@@ -638,23 +671,12 @@ function shiftgrid_180_east_west(longrid)
 
 end
 
-
-"""
-    shiftdata_360(data, longrid)
-
-This function takes a -180, +180 grid and transform it into a 0-360 degress grid
-"""
-
 function shiftarray_west_east(data, longrid_flip)
 
     ieast = longrid_flip .>= 0
     iwest = longrid_flip .< 0
 
     msk = permute_west_east2D(data, iwest, ieast)
-    # mskeast = reshape(data[idxeast], :, size(data, 2))
-    # mskwest = reshape(data[idxwest], :, size(data, 2))
-    #
-    # msk = vcat(mskeast, mskwest)
     return msk
 
 end
@@ -665,14 +687,9 @@ function shiftarray_east_west(data, longrid_flip)
     iwest = longrid_flip .< 0
 
     msk = permute_east_west2D(data, iwest, ieast)
-    # mskeast = reshape(data[idxeast], :, size(data, 2))
-    # mskwest = reshape(data[idxwest], :, size(data, 2))
-    #
-    # msk = vcat(mskeast, mskwest)
     return msk
 
 end
-
 
 
 function shiftvector_180_east_west(lon_raw)
