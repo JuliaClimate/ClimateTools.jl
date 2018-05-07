@@ -4,7 +4,7 @@
 
 The entry point of `ClimateTools` is to load data with the `nc2julia` function. Optional polygon clipping feature is available. By providing such polygon, the `nc2julia` function  returns a `ClimGrid` with grid points contained in the polygon.
 
-```julia
+```julia-repl
 C = nc2julia(filename::String, var::String; poly::Array, data_units::String, start_date::Date, end_date::Date)
 ```
 
@@ -12,7 +12,7 @@ C = nc2julia(filename::String, var::String; poly::Array, data_units::String, sta
 
 The `ClimGrid` is a in-memory representation of a CF-compliant netCDF file for a single variable.
 
-```julia
+```julia-repl
 struct ClimGrid{A <: AxisArray}
 # struct ClimGrid
   data::A
@@ -40,15 +40,15 @@ struct ClimGrid{A <: AxisArray}
 end
 ```
 
-There is a `spatialsubset` function which acts on `ClimGrid` type and further subset the data through a spatial subset using a provided polygon. The function returns a `ClimGrid`. Polygons needs to be on a -180, +180 longitude coordinates.
+There is a `spatialsubset` function which acts on `ClimGrid` type and further subset the data through a spatial subset using a provided polygon. The function returns a `ClimGrid`. **Polygons needs to be on a -180, +180 longitude coordinates, as data coordinates defaults to such grid.** For instance, global models are often on a 0-360 degrees grid.
 
-```julia
+```julia-repl
 C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
 ```
 
 Temporal subset of the data is also possible with the `temporalsubset` function:
 
-```julia
+```julia-repl
 C = temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
 ```
 
