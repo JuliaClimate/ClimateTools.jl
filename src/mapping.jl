@@ -21,36 +21,43 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
   # MAP DEFINITION
 
   # Projection
-  figh, ax = subplots(figsize=(4.875, 3.25))
+  fig, ax = subplots(figsize=(8, 6))
   if region == "Canada"
-      m = basemap[:Basemap](width=6500000,height=5000000, rsphere = (6378137.00, 6356752.3142), resolution = "l", projection = "lcc", lat_1 = 45., lat_2 = 55, lat_0 = 62, lon_0 = -95.)
+      m = basemap[:Basemap](projection = "lcc", resolution = "l", width=6500000,height=5000000, lat_0 = 62, lon_0 = -95, lat_1 = 45., lat_2 = 55, rsphere = (6378137.00, 6356752.3142))
 
   elseif region == "Quebec"
-      m = basemap[:Basemap](llcrnrlon = -80.5, llcrnrlat = 41., urcrnrlon = -50.566, urcrnrlat = 62.352, rsphere = (6378137.00, 6356752.3142), resolution = "l", projection = "lcc",  lat_1 = 50., lon_0 = -70.)
+      m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -80.5, llcrnrlat = 41., urcrnrlon = -50.566, urcrnrlat = 62.352, lon_0 = -70, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
+
+  elseif region == "QuebecNSP"
+      m = basemap[:Basemap](projection = "nsper", resolution= "l", satellite_height = 2000000, lon_0 = -72.5, lat_0 = 55)
 
   elseif region == "World"
-      m = basemap[:Basemap](projection = "cyl", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180, resolution = "c")
+      m = basemap[:Basemap](projection = "cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180)
       # m = basemap[:Basemap](projection="eck4", lon_0 = -10., resolution = "l")
+  elseif region == "WorldAz"
+      m = basemap[:Basemap](projection = "aeqd", resolution = "c", width = 28000000, height = 28000000, lon_0 = -75, lat_0 = 45)
 
   elseif region == "Americas"
-      m = basemap[:Basemap](width=14000000, height=17000000, projection = "omerc", lon_0=-100, lat_0=15, lon_2=-120, lat_2=70, lon_1=-45, lat_1=-55, resolution = "c")
+      m = basemap[:Basemap](projection = "omerc", resolution = "c", width=14000000, height=17000000, lon_0 = -100, lat_0 =    15, lon_1 = -45, lon_2 = -120, lat_1 = -55, lat_2 = 70)
 
   elseif region == "Europe"
-      m = basemap[:Basemap](width = 6800000, height = 4500000, rsphere = (6378137.00, 6356752.3142), resolution = "l", projection = "lcc", lat_1 = 30., lat_2 = 45, lat_0 = 52, lon_0 = 10.)
+      m = basemap[:Basemap](projection = "lcc", resolution = "l", width = 6800000, height = 4700000, lat_0 = 53, lon_0 = 20, lat_1 = 33, lat_2 = 50, rsphere = (6378137.00, 6356752.3142))
 
   elseif region == "NorthAmerica"
-      m = basemap[:Basemap](llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, rsphere = (6378137.00, 6356752.3142), resolution = "l", projection = "lcc",  lat_1 = 50., lon_0 = -107.)
+      m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, lon_0 = -107, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
 
-
-
+  elseif region == "Greenwich"
+      m = basemap[:Basemap](projection = "omerc", resolution = "c", width=9000000, height=15000000, lon_0 = 10, lat_0 = 25, lon_1 = -10, lon_2 = 20, lat_1 = -75, lat_2 = 30)
 
   elseif region == "auto"
-      m = basemap[:Basemap](projection="cyl", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon, resolution = "c")
+      m = basemap[:Basemap](projection="cyl", resolution = "c", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon)
   end
 
   # Draw the map properties
   m[:drawcoastlines](linewidth = 0.6)
-  # m[:drawstates](linewidth = 0.2)
+  if region == "Canada"
+      m[:drawstates](linewidth = 0.2)
+  end
   m[:drawcountries](linewidth = 0.6)
   m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5)
   m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6)
@@ -144,5 +151,54 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", poly = [], level = 1,
 
 
 
-  return true, figh, ax, cbar
+  return true, fig, ax, cbar
+end
+
+
+function mapclimgrid(;region::String = "auto", states::Bool = true)
+
+    fig, ax = subplots(figsize=(8, 6))
+
+    if region == "Canada"
+        m = basemap[:Basemap](projection = "lcc", resolution = "l", width=6500000,height=5000000, lat_0 = 62, lon_0 = -95, lat_1 = 45., lat_2 = 55, rsphere = (6378137.00, 6356752.3142))
+
+    elseif region == "Quebec"
+        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -80.5, llcrnrlat = 41., urcrnrlon = -50.566, urcrnrlat = 62.352, lon_0 = -70, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
+
+    elseif region == "QuebecNSP"
+        m = basemap[:Basemap](projection = "nsper", resolution= "l", satellite_height = 2000000, lon_0 = -72.5, lat_0 = 55)
+
+    elseif region == "World"
+        m = basemap[:Basemap](projection = "cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180)
+        # m = basemap[:Basemap](projection="eck4", lon_0 = -10., resolution = "l")
+    elseif region == "WorldAz"
+        m = basemap[:Basemap](projection = "aeqd", resolution = "c", width = 28000000, height = 28000000, lon_0 = -75, lat_0 = 45)
+
+    elseif region == "Americas"
+        m = basemap[:Basemap](projection = "omerc", resolution = "c", width=14000000, height=17000000, lon_0 = -100, lat_0 =    15, lon_1 = -45, lon_2 = -120, lat_1 = -55, lat_2 = 70)
+
+    elseif region == "Europe"
+        m = basemap[:Basemap](projection = "lcc", resolution = "l", width = 6800000, height = 4700000, lat_0 = 53, lon_0 = 20, lat_1 = 33, lat_2 = 50, rsphere = (6378137.00, 6356752.3142))
+
+    elseif region == "NorthAmerica"
+        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, lon_0 = -107, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
+
+    elseif region == "Greenwich"
+        m = basemap[:Basemap](projection = "omerc", resolution = "c", width=9000000, height=15000000, lon_0 = 10, lat_0 = 25, lon_1 = -10, lon_2 = 20, lat_1 = -75, lat_2 = 30)
+
+    elseif region == "auto"
+        m = basemap[:Basemap](projection="cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180, )
+    end
+
+    # Draw the map properties
+    m[:drawcoastlines](linewidth = 0.6)
+    if states
+        m[:drawstates](linewidth = 0.2)
+    end
+    m[:drawcountries](linewidth = 0.6)
+    m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5)
+    m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6)
+
+    return true, fig, ax
+
 end
