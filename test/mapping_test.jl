@@ -76,10 +76,10 @@ status, figh = mapclimgrid(C);@test status == true; PyPlot.close() # feeding a 4
 # empty map generation
 status, figh = mapclimgrid(region = "World");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(region = "WorldAz");@test status == true; PyPlot.close()
-status, figh = mapclimgrid(region = "WorldEck4");@test status == true; PyPlot.close()
+# status, figh = mapclimgrid(region = "WorldEck4");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(region = "Canada");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(region = "Quebec");@test status == true; PyPlot.close()
-status, figh = mapclimgrid(region = "QuebecNSP");@test status == true; PyPlot.close()
+# status, figh = mapclimgrid(region = "QuebecNSP");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(region = "Americas");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(region = "NorthAmerica");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(region = "Greenwich");@test status == true; PyPlot.close()
