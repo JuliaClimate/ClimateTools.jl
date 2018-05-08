@@ -67,7 +67,7 @@ function mapclimgrid(C::ClimGrid; region::String = "auto", states::Bool = false,
       m = basemap[:Basemap](projection = "aeqd", resolution = "c", width = 28000000, height = 28000000, lon_0 = -75, lat_0 = 45)
 
   elseif region == "WorldEck4"
-      m = basemap[:Basemap](projection="eck4", resolution = "c", lon_0 = -210)
+      m = basemap[:Basemap](projection="eck4", resolution = "c", lon_0 = 0)
 
   elseif region == "auto"
       m = basemap[:Basemap](projection="cyl", resolution = "c", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon)
@@ -212,7 +212,7 @@ function mapclimgrid(;region::String = "auto", states::Bool = true)
         m = basemap[:Basemap](projection = "aeqd", resolution = "c", width = 28000000, height = 28000000, lon_0 = -75, lat_0 = 45)
 
     elseif region == "WorldEck4"
-        m = basemap[:Basemap](projection="eck4", resolution = "c", lon_0 = -210)
+        m = basemap[:Basemap](projection="eck4", resolution = "c", lon_0 = 0)
 
     elseif region == "auto"
         m = basemap[:Basemap](projection="cyl", resolution = "c", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon)
