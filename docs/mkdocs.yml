@@ -1,6 +1,6 @@
 site_name:        ClimateTools.jl
 repo_url:         https://github.com/Balinus/ClimateTools.jl/
-edit_uri:        https://github.com/Balinus/ClimateTools./blob/master/docs/src/index.md
+# edit_uri:        https://github.com/Balinus/ClimateTools./blob/master/docs/src/index.md
 site_description: Collection of commonly-used tools in Climate Science
 site_author:      Balinus
 
