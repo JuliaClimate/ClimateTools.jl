@@ -90,9 +90,32 @@ function Base.:/(A::ClimGrid, k)
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " / ", k), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 end
 
+"""
+    minimum(A::ClimGrid)
+
+Compute the minimum value of `ClimGrid` A
+"""
 Base.minimum(A::ClimGrid) = minimum(A[1])
+
+"""
+    maximum(A::ClimGrid)
+
+Compute the maximum value of `ClimGrid` A
+"""
 Base.maximum(A::ClimGrid) = maximum(A[1])
+
+"""
+    std(A::ClimGrid)
+
+Compute the standard deviation of `ClimGrid` A
+"""
 Base.std(A::ClimGrid) = std(A[1])
+
+"""
+    var(A::ClimGrid)
+
+Compute the variance of `ClimGrid` A
+"""
 Base.var(A::ClimGrid) = var(A[1])
 
 

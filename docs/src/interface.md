@@ -7,3 +7,10 @@ Sometimes, the timeseries are split among multiple files (e.g. climate models ou
 ```julia-repl
 C = merge(C1::ClimGrid, C2::ClimGrid)
 ```
+
+## Operators
+
+Basic operators are overloaded on `ClimGrid`.
+
+
+[`minimum`](@ref)

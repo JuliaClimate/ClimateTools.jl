@@ -53,30 +53,7 @@ end
 """
     ClimGrid{A <: AxisArray}
 
-struct ClimGrid{A <: AxisArray}
-  data::A
-  longrid::Array{N,T} where N where T
-  latgrid::Array{N,T} where N where T
-  msk::Array{N,T} where N where T
-  grid_mapping::Dict # information of native grid
-  dimension_dict::Dict
-  model::String
-  frequency::String
-  experiment::String
-  run::String
-  project::String
-  institute::String
-  filename::String
-  dataunits::String
-  latunits::String # of the coordinate variable
-  lonunits::String # of the coordinate variable
-  variable::String # Type of variable (i.e. can be the same as "var", but it is changed when calculating indices)
-  typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
-  typeofcal::String # Calendar type
-  varattribs::Dict # Variable attributes
-  globalattribs::Dict # Global attributes
-
-end
+In-memory representation of Climate Forecast netCDF files.
 """
 
 struct ClimGrid{A <: AxisArray}
