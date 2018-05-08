@@ -3,9 +3,9 @@ filename = joinpath(dirname(@__FILE__), "data", "SudQC_GCM.shp")
 filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 
 polyshp = read(filename,Shapefile.Handle)
-x, y = shapefile_coords(polyshp.shapes[1])
-P = [x y]
-P = P'
+P = shapefile_coords_poly(polyshp.shapes[1])
+# P = [x y]
+# P = P'
 lat = NetCDF.ncread(filenc, "lat")
 lon = NetCDF.ncread(filenc, "lon")
 msk = inpolygrid(C.longrid, C.latgrid, P)
