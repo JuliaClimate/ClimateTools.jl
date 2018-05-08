@@ -1,4 +1,3 @@
-
 # Shapefile test
 filename = joinpath(dirname(@__FILE__), "data", "SudQC_GCM.shp")
 filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
@@ -34,9 +33,14 @@ filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = nc2julia(filename, "tas")
 status, figh = mapclimgrid(C);@test status == true;PyPlot.close()
 status, figh = mapclimgrid(C, region = "World");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, region = "WorldAz");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, region = "WorldEck4");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "Canada");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "Quebec");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, region = "QuebecNSP");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, region = "Americas");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "NorthAmerica");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, region = "Greenwich");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(annualmax(C), region = "Europe");@test status == true; PyPlot.close()
 
 # precip
@@ -44,9 +48,15 @@ C = nc2julia(filename, "pr")
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, start_date=Date(2000, 05, 15), end_date=Date(2000, 05, 15));@test status == true; PyPlot.close()
 status, figh = mapclimgrid(prcp1(C), region = "World");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(prcp1(C), region = "WorldAz");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(prcp1(C), region = "WorldEck4");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(prcp1(C), region = "Canada");@test status == true; PyPlot.close()
-status, figh = mapclimgrid(prcp1(C), region = "Europe");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(prcp1(C), region = "Quebec");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(prcp1(C), region = "QuebecNSP");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(prcp1(C), region = "Americas");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(prcp1(C), region = "NorthAmerica");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(prcp1(C), region = "Greenwich");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(prcp1(C), region = "Europe");@test status == true; PyPlot.close()
 
 # ua wind
 filename = joinpath(dirname(@__FILE__), "data", "SudQC_GCM.shp")
@@ -62,3 +72,14 @@ status, figh = mapclimgrid(C, poly = P);@test status == true; PyPlot.close() # f
 status, figh = mapclimgrid(C, mask = msk);@test status == true; PyPlot.close() # feeding a 4D field with a mask
 C = nc2julia(filenc, "ua", poly = P)
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close() # feeding a 4D field
+
+# empty map generation
+status, figh = mapclimgrid(region = "World");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "WorldAz");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "WorldEck4");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "Canada");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "Quebec");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "QuebecNSP");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "Americas");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "NorthAmerica");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "Greenwich");@test status == true; PyPlot.close()

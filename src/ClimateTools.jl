@@ -95,10 +95,12 @@ include("extract.jl")
 include("interface.jl")
 include("mapping.jl")
 include("biascorrect.jl")
+include("heatsum_indices.jl")
 
 # Exported functions
 export windnr, leftorright, inpoly, inpolygrid, meshgrid, prcp1
 export frostdays, summerdays, icingdays, tropicalnights
+export daysabove10 #, daysbelow0, degdaysabove, degdaysbelow
 export customthresover, customthresunder, annualmax, annualmin
 export annualmean, annualsum, nc2julia, sumleapyear, buildtimevec
 export mapclimgrid, interp_climgrid, ClimGrid, inpolyvec, applymask
