@@ -35,7 +35,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   timebeg, timeend = timeindex(timeV, start_date, end_date, C.frequency)
 
   # =============
-  # MAP DEFINITION  
+  # MAP DEFINITION
 
   status, fig, ax, m = mapclimgrid(region=region, states=states, llon=llon, rlon=rlon, slat=slat, nlat=nlat)
 
@@ -126,12 +126,14 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
       title(string(C[3], " - ", C[4], " - ", C[5], " - ", C.variable))
   end
 
-
-
   return true, fig, ax, cbar
 end
 
+"""
+    mapclimgrid(; region::String="auto", poly, level, mask, caxis, start_date::Date, end_date::Date)
 
+Empty map generator.
+"""
 function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[], slat=[], nlat=[])
 
     fig, ax = subplots(figsize=(8, 6))
