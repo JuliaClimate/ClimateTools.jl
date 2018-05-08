@@ -150,7 +150,8 @@
 <pre><code class="julia-repl">C = nc2julia(filename::String, var::String; poly::Array, data_units::String, start_date::Date, end_date::Date)
 </code></pre>
 
-<p><code>nc2julia</code> return a <code>ClimGrid</code> type. Using the optional <code>poly</code> argument, the user can provide a polygon and the returned <code>ClimGrid</code> will only contains the grid points inside the provided polygon. For some variable, the optional keyword argument <code>data_units</code> can be provided. For example, precipitation in climate models are usually provided as <code>kg/m^2/s</code>. By specifying <code>data_units = mm</code>, the <code>nc2julia</code> function returns accumulation at the data time resolution. Similarly, the user can provide <code>Celsius</code> as <code>data_units</code> and <code>nc2julia</code> will return <code>Celsius</code> instead of <code>Kelvin</code>.</p>
+<p><code>nc2julia</code> return a <code>ClimGrid</code> type. Using the optional <code>poly</code> argument, the user can provide a polygon and the returned <code>ClimGrid</code> will only contains the grid points inside the provided polygon. The polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).</p>
+<p>For some variable, the optional keyword argument <code>data_units</code> can be provided. For example, precipitation in climate models are usually provided as <code>kg/m^2/s</code>. By specifying <code>data_units = mm</code>, the <code>nc2julia</code> function returns accumulation at the data time resolution. Similarly, the user can provide <code>Celsius</code> as <code>data_units</code> and <code>nc2julia</code> will return <code>Celsius</code> instead of <code>Kelvin</code>.</p>
 <p>The <code>ClimGrid</code> is a in-memory representation of a CF-compliant netCDF file for a single variable.</p>
 <pre><code class="julia-repl">struct ClimGrid{A &lt;: AxisArray}
 # struct ClimGrid
@@ -194,36 +195,40 @@ end
 <ul>
 <li><a href="../functions/#ClimateTools.ClimGrid"><code>ClimateTools.ClimGrid</code></a></li>
 <li><a href="../functions/#ClimateTools.ClimGrid-Tuple{Any}"><code>ClimateTools.ClimGrid</code></a></li>
+<li><a href="../functions/#Base.maximum-Tuple{ClimateTools.ClimGrid}"><code>Base.maximum</code></a></li>
 <li><a href="../functions/#Base.merge-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}"><code>Base.merge</code></a></li>
+<li><a href="../functions/#Base.minimum-Tuple{ClimateTools.ClimGrid}"><code>Base.minimum</code></a></li>
+<li><a href="../functions/#Base.std-Tuple{ClimateTools.ClimGrid}"><code>Base.std</code></a></li>
+<li><a href="../functions/#Base.var-Tuple{ClimateTools.ClimGrid}"><code>Base.var</code></a></li>
 <li><a href="../functions/#Base.vcat-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}"><code>Base.vcat</code></a></li>
-<li><a href="../functions/#ClimateTools.annualmax-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.annualmax</code></a></li>
 <li><a href="../functions/#ClimateTools.annualmax-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.annualmax</code></a></li>
+<li><a href="../functions/#ClimateTools.annualmax-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.annualmax</code></a></li>
 <li><a href="../indices/#ClimateTools.annualmax"><code>ClimateTools.annualmax</code></a></li>
-<li><a href="../functions/#ClimateTools.annualmean-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.annualmean</code></a></li>
 <li><a href="../functions/#ClimateTools.annualmean-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.annualmean</code></a></li>
-<li><a href="../functions/#ClimateTools.annualmin-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.annualmin</code></a></li>
+<li><a href="../functions/#ClimateTools.annualmean-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.annualmean</code></a></li>
 <li><a href="../functions/#ClimateTools.annualmin-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.annualmin</code></a></li>
+<li><a href="../functions/#ClimateTools.annualmin-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.annualmin</code></a></li>
 <li><a href="../functions/#ClimateTools.annualsum-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.annualsum</code></a></li>
 <li><a href="../functions/#ClimateTools.annualsum-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.annualsum</code></a></li>
 <li><a href="../functions/#ClimateTools.applymask-Tuple{AbstractArray{N,4} where N,AbstractArray{N,2} where N}"><code>ClimateTools.applymask</code></a></li>
 <li><a href="../functions/#ClimateTools.buildtimevec-Tuple{String}"><code>ClimateTools.buildtimevec</code></a></li>
-<li><a href="../functions/#ClimateTools.customthresover-Tuple{ClimateTools.ClimGrid,Any}"><code>ClimateTools.customthresover</code></a></li>
 <li><a href="../functions/#ClimateTools.customthresover-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day},Any}"><code>ClimateTools.customthresover</code></a></li>
+<li><a href="../functions/#ClimateTools.customthresover-Tuple{ClimateTools.ClimGrid,Any}"><code>ClimateTools.customthresover</code></a></li>
 <li><a href="../functions/#ClimateTools.customthresunder-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day},Any}"><code>ClimateTools.customthresunder</code></a></li>
 <li><a href="../functions/#ClimateTools.customthresunder-Tuple{ClimateTools.ClimGrid,Any}"><code>ClimateTools.customthresunder</code></a></li>
-<li><a href="../functions/#ClimateTools.daysabove10-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.daysabove10</code></a></li>
 <li><a href="../functions/#ClimateTools.daysabove10-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.daysabove10</code></a></li>
+<li><a href="../functions/#ClimateTools.daysabove10-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.daysabove10</code></a></li>
 <li><a href="../functions/#ClimateTools.frostdays-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.frostdays</code></a></li>
 <li><a href="../functions/#ClimateTools.frostdays-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.frostdays</code></a></li>
 <li><a href="../functions/#ClimateTools.icingdays-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.icingdays</code></a></li>
 <li><a href="../functions/#ClimateTools.icingdays-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.icingdays</code></a></li>
 <li><a href="../functions/#ClimateTools.inpoly-Tuple{Any,Array{T,2} where T}"><code>ClimateTools.inpoly</code></a></li>
 <li><a href="../functions/#ClimateTools.inpolygrid-Tuple{AbstractArray{N,2} where N,AbstractArray{N,2} where N,AbstractArray{N,2} where N}"><code>ClimateTools.inpolygrid</code></a></li>
-<li><a href="../functions/#ClimateTools.interp_climgrid-Tuple{ClimateTools.ClimGrid,AbstractArray{N,1} where N,AbstractArray{N,1} where N}"><code>ClimateTools.interp_climgrid</code></a></li>
 <li><a href="../functions/#ClimateTools.interp_climgrid-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}"><code>ClimateTools.interp_climgrid</code></a></li>
-<li><a href="../functions/#ClimateTools.mapclimgrid-Tuple{}"><code>ClimateTools.mapclimgrid</code></a></li>
-<li><a href="../functions/#ClimateTools.mapclimgrid-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.mapclimgrid</code></a></li>
+<li><a href="../functions/#ClimateTools.interp_climgrid-Tuple{ClimateTools.ClimGrid,AbstractArray{N,1} where N,AbstractArray{N,1} where N}"><code>ClimateTools.interp_climgrid</code></a></li>
 <li><a href="../maps/#ClimateTools.mapclimgrid"><code>ClimateTools.mapclimgrid</code></a></li>
+<li><a href="../functions/#ClimateTools.mapclimgrid-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.mapclimgrid</code></a></li>
+<li><a href="../functions/#ClimateTools.mapclimgrid-Tuple{}"><code>ClimateTools.mapclimgrid</code></a></li>
 <li><a href="../functions/#ClimateTools.meshgrid-Union{Tuple{AbstractArray{T,1},AbstractArray{T,1}}, Tuple{T}} where T"><code>ClimateTools.meshgrid</code></a></li>
 <li><a href="../functions/#ClimateTools.nc2julia-Tuple{String,String}"><code>ClimateTools.nc2julia</code></a></li>
 <li><a href="../functions/#ClimateTools.ndgrid-Tuple{AbstractArray{T,1} where T}"><code>ClimateTools.ndgrid</code></a></li>
@@ -241,8 +246,8 @@ end
 <li><a href="../functions/#ClimateTools.temporalsubset-Tuple{ClimateTools.ClimGrid,Date,Date}"><code>ClimateTools.temporalsubset</code></a></li>
 <li><a href="../functions/#ClimateTools.timeindex-NTuple{4,Any}"><code>ClimateTools.timeindex</code></a></li>
 <li><a href="../functions/#ClimateTools.timeresolution-Tuple{Array{N,1} where N}"><code>ClimateTools.timeresolution</code></a></li>
-<li><a href="../functions/#ClimateTools.tropicalnights-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.tropicalnights</code></a></li>
 <li><a href="../functions/#ClimateTools.tropicalnights-Tuple{ClimateTools.ClimGrid}"><code>ClimateTools.tropicalnights</code></a></li>
+<li><a href="../functions/#ClimateTools.tropicalnights-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}"><code>ClimateTools.tropicalnights</code></a></li>
 <li><a href="../functions/#ClimateTools.windnr-Tuple{Any,Array{T,2} where T}"><code>ClimateTools.windnr</code></a></li>
 </ul>
 <p>–&gt;</p>

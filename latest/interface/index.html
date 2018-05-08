@@ -89,6 +89,8 @@
         
             <li><a class="toctree-l3" href="#merging-climgrid-type">Merging ClimGrid type</a></li>
         
+            <li><a class="toctree-l3" href="#operators">Operators</a></li>
+        
         </ul>
     
 
@@ -147,6 +149,11 @@
 <p>Sometimes, the timeseries are split among multiple files (e.g. climate models outputs). To obtain the complete timeseries, you can <code>merge</code> 2 <code>ClimGrid</code>. The method is based on the merging of 2 <code>AxisArrays</code> and is overloaded for the <code>ClimGrid</code> type.</p>
 <pre><code class="julia-repl">C = merge(C1::ClimGrid, C2::ClimGrid)
 </code></pre>
+
+<p><a id='Operators-1'></a></p>
+<h2 id="operators">Operators</h2>
+<p>Basic operators are overloaded on <code>ClimGrid</code>.</p>
+<p><a href="../functions/#Base.minimum-Tuple{ClimateTools.ClimGrid}"><code>minimum</code></a></p>
               
             </div>
           </div>
