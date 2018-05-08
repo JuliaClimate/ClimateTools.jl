@@ -144,11 +144,31 @@
 <h1 id="maps">Maps</h1>
 <p><a id='Mapping-the-ClimGrid-type-1'></a></p>
 <h2 id="mapping-the-climgrid-type">Mapping the ClimGrid type</h2>
-<p>Mapping climate information can be done by using <a href="../functions/#ClimateTools.mapclimgrid-Tuple{ClimateTools.ClimGrid}"><code>mapclimgrid</code></a>.</p>
-<pre><code class="julia">mapclimgrid(C::ClimGrid; region = &quot;World&quot;)
+<p>Mapping climate information can be done by using <a href="./#ClimateTools.mapclimgrid"><code>mapclimgrid</code></a>.</p>
+<p><a id='ClimateTools.mapclimgrid' href='#ClimateTools.mapclimgrid'>#</a>
+<strong><code>ClimateTools.mapclimgrid</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>mapclimgrid(C::ClimGrid; region::String=&quot;auto&quot;, poly, level, mask, caxis, start_date::Date, end_date::Date)
 </code></pre>
 
-<p>Which should return</p>
+<p>Maps the time-mean average of ClimGrid C.</p>
+<p>Optional keyworkd includes precribed regions (see list below), spatial clipping by polygon (keyword <em>poly</em>) or mask (keyword <em>mask</em>, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date.</p>
+<p><strong>Arguments</strong></p>
+<p>Regions</p>
+<ul>
+<li>Europe</li>
+<li>NorthAmerica</li>
+<li>Canada</li>
+<li>Quebec, QuebecNSP</li>
+<li>Americas</li>
+<li>World, WorldAz, WorldEck4</li>
+<li>Greenwich</li>
+</ul>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/6c953db3277a7e1679a5cbd9f07ae2404f59f43b/src/mapping.jl#L1-L17' class='documenter-source'>source</a><br></p>
+<pre><code>mapclimgrid(; region::String=&quot;auto&quot;, poly, level, mask, caxis, start_date::Date, end_date::Date)
+</code></pre>
+
+<p>Empty map generator.</p>
+<p><a target='_blank' href='https://github.com/Balinus/ClimateTools.jl/blob/6c953db3277a7e1679a5cbd9f07ae2404f59f43b/src/mapping.jl#L132-L136' class='documenter-source'>source</a><br></p>
 <p align="center">   <img src="https://cloud.githubusercontent.com/assets/3630311/23712122/e97bd322-03ef-11e7-93da-749c961c4070.png?raw=true" width="771" height="388" alt="Precipitation example"/> </p>
 
 <p>Note that the function plots the climatological mean of the provided <code>ClimGrid</code>. Multiple options are available for region: <code>World</code>, <code>Canada</code>, <code>Quebec</code> and the default <code>auto</code> which use the maximum and minimum of the lat-long coordinates inside the <code>ClimGrid</code> structure. The user can also provide a polygon(s) and the <code>mapclimgrid</code> function will clip the grid points outside the specified polygon. Another option is to provide a mask (with dimensions identical to the spatial dimension of the <code>ClimGrid</code> data) which contains <code>NaN</code> and <code>1.0</code> and the data inside the <code>ClimGrid</code> struct will be clipped with the mask. Other regions will be added in the future, as well as the option to send a custom region defined by a lat-lon box.</p>
