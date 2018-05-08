@@ -132,7 +132,7 @@ end
 """
     mapclimgrid(; region::String="auto", poly, level, mask, caxis, start_date::Date, end_date::Date)
 
-Empty map generator.
+Empty map generator, when called without a ClimGrid as the positional argument.
 """
 function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[], slat=[], nlat=[])
 
@@ -157,7 +157,7 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
         m = basemap[:Basemap](projection = "lcc", resolution = "l", width = 6800000, height = 4700000, lat_0 = 53, lon_0 = 20, lat_1 = 33, lat_2 = 50, rsphere = (6378137.00, 6356752.3142))
 
     elseif region == "NorthAmerica"
-        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, lon_0 = -107, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
+        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, lon_0 = -95, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
 
     elseif region == "World"
         m = basemap[:Basemap](projection = "cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180)
