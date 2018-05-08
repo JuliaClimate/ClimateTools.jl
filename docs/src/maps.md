@@ -4,11 +4,9 @@
 
 Mapping climate information can be done by using [`mapclimgrid`](@ref).
 
-```julia
-mapclimgrid(C::ClimGrid; region = "World")
+```@docs
+mapclimgrid
 ```
-
-Which should return
 
 <p align="center">
   <img src="https://cloud.githubusercontent.com/assets/3630311/23712122/e97bd322-03ef-11e7-93da-749c961c4070.png?raw=true" width="771" height="388" alt="Precipitation example"/>
