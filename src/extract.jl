@@ -395,7 +395,7 @@ end
 """
     shapefile_coords(poly::Shapefile.Polygon)
 
-This function return the polygons contained in shp.shapes[i] (return type of Shapefile.jl package). It returns the x and y coordinates vectors.
+This function return the polygons contained in shp.shapes[i]. It returns the x and y coordinates vectors.
 
 See also [`shapefile_coords_poly`](@ref), which returns a polygon that ca be used for data extraction of the [`nc2julia`](@ref).
 
@@ -419,7 +419,7 @@ end
 """
     shapefile_coords_poly(poly::Shapefile.Polygon)
 
-Return the polygons contained in shp.shapes[i] (return type of Shapefile.jl package). It returns an array containing the polygons.
+Return the polygons contained in shp.shapes[i]. It returns an array containing the polygons.
 
 See also [`shapefile_coords`](@ref), which returns vectors as opposed to array. Returned polygon is consistent with the data extraction of the [`nc2julia`](@ref) function.
 

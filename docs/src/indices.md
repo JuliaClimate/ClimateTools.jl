@@ -1,4 +1,4 @@
-# Indices in ClimateTools package (WIP)
+# Climate Indices
 
 ## Indices
 
