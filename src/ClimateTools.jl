@@ -19,6 +19,10 @@ import Base.size
 import Base.endof
 import Base.setindex!
 import Base.similar
+import Base.minimum
+import Base.maximum
+import Base.std
+import Base.var
 import Base: +
 import Base: -
 import Base: *
@@ -46,13 +50,15 @@ end
 
 # TYPES
 # TODO Less stringent grid type in AxisArrays. Conform more closely to CF conventions. Add information on grid type.
+"""
+    ClimGrid{A <: AxisArray}
+
 struct ClimGrid{A <: AxisArray}
-# struct ClimGrid
   data::A
   longrid::Array{N,T} where N where T
   latgrid::Array{N,T} where N where T
   msk::Array{N,T} where N where T
-  grid_mapping::Dict # bindings for native grid
+  grid_mapping::Dict # information of native grid
   dimension_dict::Dict
   model::String
   frequency::String
@@ -71,6 +77,38 @@ struct ClimGrid{A <: AxisArray}
   globalattribs::Dict # Global attributes
 
 end
+"""
+
+struct ClimGrid{A <: AxisArray}
+  data::A
+  longrid::Array{N,T} where N where T
+  latgrid::Array{N,T} where N where T
+  msk::Array{N,T} where N where T
+  grid_mapping::Dict # information of native grid
+  dimension_dict::Dict
+  model::String
+  frequency::String
+  experiment::String
+  run::String
+  project::String
+  institute::String
+  filename::String
+  dataunits::String
+  latunits::String # of the coordinate variable
+  lonunits::String # of the coordinate variable
+  variable::String # Type of variable (i.e. can be the same as "var", but it is changed when calculating indices)
+  typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
+  typeofcal::String # Calendar type
+  varattribs::Dict # Variable attributes
+  globalattribs::Dict # Global attributes
+
+end
+
+"""
+    ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), model="NA", frequency="NA", experiment="NA", run="NA", project="NA", institute="NA", filename="NA", dataunits="NA", latunits="NA", lonunits="NA", variable="NA", typeofvar="NA", typeofcal="NA", varattribs=Dict(), globalattribs=Dict())
+
+Constructor of the ClimGrid function. Data is an AxisArray. Everything else is optional, but usually needed for further processing (mapping, interpolation, etc...).
+"""
 
 function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), model="NA", frequency="NA", experiment="NA", run="NA", project="NA", institute="NA", filename="NA", dataunits="NA", latunits="NA", lonunits="NA", variable="NA", typeofvar="NA", typeofcal="NA", varattribs=Dict(), globalattribs=Dict())
 
@@ -110,5 +148,6 @@ export qqmap, ndgrid, permute_west_east
 export project_id, model_id, institute_id, experiment_id, frequency_var, runsim_id, getdim_lat, getdim_lon, isdefined
 export @isdefined
 export buildarray, timeindex
+export minimum, maximum, std, var
 
 end #module

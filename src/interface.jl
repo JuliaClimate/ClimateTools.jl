@@ -31,6 +31,14 @@ function Base.:+(A::ClimGrid, B::ClimGrid)
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " + ", B.experiment), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 end
 
+function Base.:+(A::ClimGrid, k)
+    axisArraytmp = A.data + k
+
+    axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+
+    ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " + ", k), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
+end
+
 function Base.:-(A::ClimGrid, B::ClimGrid)
     axisArraytmp = A.data - B.data
 
@@ -40,24 +48,39 @@ function Base.:-(A::ClimGrid, B::ClimGrid)
     axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{lonsymbol}][:]), Axis{:lat}(A[1][Axis{latsymbol}][:]))
 
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " - ", B.experiment), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
-    #model = A.model, experiment = string(A.experiment, " minus ", B.experiment), run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
+end
+
+function Base.:-(A::ClimGrid, k)
+    axisArraytmp = A.data - k
+
+    axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+
+    ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " - ", k), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
+end
+
+function Base.:*(A::ClimGrid, B::ClimGrid)
+    axisArraytmp = A.data .* B.data
+
+    axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+
+    ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " * ", B.experiment), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 end
 
 function Base.:*(A::ClimGrid, k)
-    axisArraytmp = A.data * k
+    axisArraytmp = A.data .* k
 
     axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
 
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " * ", k), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 end
 
-# function Base.:*(A::ClimGrid, B::ClimGrid)
-#   axisArraytmp = A.data * B.data
-#
-#   axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
-#
-#   ClimGrid(axisArray, model = A.model, experiment = string(A.experiment, " multiplied by another ClimGrid"), run = A.run, filename = A.filename, dataunits = A.dataunits, latunits = A.latunits, lonunits = A.lonunits, variable = A.variable, typeofvar = A.typeofvar, typeofcal = A.typeofcal)
-# end
+function Base.:/(A::ClimGrid, B::ClimGrid)
+    axisArraytmp = A.data ./ B.data
+
+    axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+
+    ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " / ", B.experiment), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
+end
 
 function Base.:/(A::ClimGrid, k)
     axisArraytmp = A.data / k
@@ -66,6 +89,12 @@ function Base.:/(A::ClimGrid, k)
 
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " / ", k), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 end
+
+Base.minimum(A::ClimGrid) = minimum(A[1])
+Base.maximum(A::ClimGrid) = maximum(A[1])
+Base.std(A::ClimGrid) = std(A[1])
+Base.var(A::ClimGrid) = var(A[1])
+
 
 function getindex(C::ClimGrid,i::Int)
     if i == 1
