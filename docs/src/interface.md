@@ -14,3 +14,6 @@ Basic operators are overloaded on `ClimGrid`.
 
 
 [`minimum`](@ref)
+[`maximum`](@ref)
+[`std`](@ref)
+[`var`](@ref)

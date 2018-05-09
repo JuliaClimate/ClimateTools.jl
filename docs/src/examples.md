@@ -1,3 +1,5 @@
+# Examples
+
 # Typical workflow for a climate scenario
 
 *Note. Climate data can be downloaded at [ESGF nodes](https://esgf-node.llnl.gov/projects/esgf-llnl/)*
@@ -166,9 +168,7 @@ julia> mapclimgrid(model, region = "Quebec")
 
 Which should return the following map.
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/3630311/39715456-52e4c33c-51fb-11e8-8935-ada243924e5f.png?raw=true" width="771" height="388" alt="Temperature example - MIROC5"/>
-</p>
+![MIROC5](assets/MIROC5.png)
 
 ### Sidenote: merging files/data
 
@@ -222,9 +222,7 @@ julia> obs = nc2julia(obsfiles, "tasmax", poly=poly_reg)
 julia> mapclimgrid(obs, region = "Quebec")
 ```
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/3630311/39715713-2b8b5084-51fc-11e8-8814-145ef5c49a3b.png?raw=true" width="771" height="388" alt="CFS daily model - 1950-1969"/>
-</p>
+![NRCAN](assets/NRCAN.png)
 
 ### Interpolation
 
@@ -255,9 +253,7 @@ Filename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc
 julia> mapclimgrid(modelinterp, region = "Quebec")
 ```
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/3630311/39715960-e9b10bee-51fc-11e8-8add-e0f1aa2004b6.png?raw=true" width="771" height="388" alt="CFS daily model - 1950-1969"/>
-</p>
+![MIROC5_INTERP](assets/MIROC5_INTERP.png)
 
 Notice that there is no new information created here. The interpolation is using Scipy's griddata under the hood and is simply a linear interpolation onto the *obs* grid.
 
@@ -292,6 +288,4 @@ Mapping the results show that the local information is integrated into the model
 julia> mapclimgrid(model_qqmap, region = "Quebec")
 ```
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/3630311/39717770-3cc2da74-5202-11e8-9a8d-b508934bd7ee.png?raw=true" width="771" height="388" alt="CFS daily model - 1950-1969"/>
-</p>
+![MIROC5_QQMAP](assets/MIROC5_QQMAP.png)
