@@ -121,9 +121,9 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
           begYear = string(C[1][Axis{:time}][1])[1:4]
           endYear = string(C[1][Axis{:time}][end])[1:4]
       end
-      title(string(C[3], " - ", C[4], " - ", C[5], " - ", C.variable, " - ", begYear, " - ", endYear))
+      title(string(C[3], " - ", C[5], " - ", C.variable, " - ", begYear, " - ", endYear))
   else
-      title(string(C[3], " - ", C[4], " - ", C[5], " - ", C.variable))
+      title(string(C[3], " - ", C[5], " - ", C.variable))
   end
 
   return true, fig, ax, cbar
@@ -186,5 +186,51 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
     end
 
     return true, fig, ax, m
+
+end
+
+"""
+    plot(C::ClimGrid)
+
+Plots the spatial average timeserie of ClimGrid `C`.
+"""
+
+function PyPlot.plot(C::ClimGrid; titlefig="", gridfig::Bool=true)
+
+    data = C[1].data
+    timevec = C[1][Axis{:time}][:]
+
+    if typeof(timevec[1]) != Date
+        if typeof(timevec[1]) == Base.Dates.Year
+            timevec = Date.(timevec)
+        end
+    end
+
+    average = fill(NaN, length(timevec))
+
+    # Spatial mean for each timestep
+    for t in 1:length(timevec)
+        datatmp = data[t, :, :]
+        average[t] = mean(datatmp[.!isnan.(datatmp)])
+    end
+
+    figh, ax = subplots()
+
+    plot(timevec, average, lw = 1.5, label = C.model)
+    xlabel("Time")
+    ylabel(C.dataunits)
+    legend()
+    if isempty(titlefig)
+        titlefig = C.variable
+    end
+    title(titlefig)
+    if gridfig
+        grid()
+    end
+
+    return figh, ax
+
+
+
 
 end

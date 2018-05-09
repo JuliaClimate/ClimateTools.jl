@@ -124,7 +124,7 @@ export pr_timefactor, spatialsubset, temporalsubset
 export qqmap, ndgrid, permute_west_east
 export project_id, model_id, institute_id, experiment_id, frequency_var, runsim_id, getdim_lat, getdim_lon, isdefined
 export @isdefined
-export buildarray, timeindex
+export buildarray, timeindex, plot
 export minimum, maximum, std, var
 
 end #module

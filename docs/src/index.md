@@ -6,13 +6,6 @@ This package is a collection of commonly-used tools in Climate Science. Basics o
 
 This package is registered on METADATA.jl and can be added with `Pkg.add("ClimateTools")` and used with `using ClimateTools`.
 
-## Installation
-
-```julia-repl
-Pkg.add("ClimateTools") # Tagged release
-Pkg.checkout("ClimateTools") # For latest master branch
-```
-
 ## Notes
 
 The climate indices are coded to use **multiple threads**. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.CPU_CORES`.
@@ -20,9 +13,8 @@ The climate indices are coded to use **multiple threads**. To gain maximum perfo
 ## Objectives
 
 * Extraction and visualization of NetCDF datasets, with user-provided polygons and start and end date.
-* Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI)
-* Custom climate indices
-* Interpolation of a datasets onto another grid
+* Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices
+* Regridding of a datasets onto another grid
 * Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)
 
 
