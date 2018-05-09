@@ -2,23 +2,23 @@ var documenterSearchIndex = {"docs": [
 
 {
     "location": "index.html#",
-    "page": "ClimateTools.jl",
-    "title": "ClimateTools.jl",
+    "page": "Home",
+    "title": "Home",
     "category": "page",
     "text": ""
 },
 
 {
-    "location": "index.html#ClimateTools.jl-1",
-    "page": "ClimateTools.jl",
-    "title": "ClimateTools.jl",
+    "location": "index.html#Home-1",
+    "page": "Home",
+    "title": "Home",
     "category": "section",
     "text": ""
 },
 
 {
     "location": "index.html#Overview-1",
-    "page": "ClimateTools.jl",
+    "page": "Home",
     "title": "Overview",
     "category": "section",
     "text": "This package is a collection of commonly-used tools in Climate Science. Basics of climate field analysis will be covered, with some forays into exploratory techniques. The package is aimed to ease the typical steps of analysis climate models outputs from netCDF files that follows Climate Forecast conventions.This package is registered on METADATA.jl and can be added with Pkg.add(\"ClimateTools\") and used with using ClimateTools."
@@ -26,7 +26,7 @@ var documenterSearchIndex = {"docs": [
 
 {
     "location": "index.html#Installation-1",
-    "page": "ClimateTools.jl",
+    "page": "Home",
     "title": "Installation",
     "category": "section",
     "text": "Pkg.add(\"ClimateTools\") # Tagged release\nPkg.checkout(\"ClimateTools\") # For latest master branch"
@@ -34,7 +34,7 @@ var documenterSearchIndex = {"docs": [
 
 {
     "location": "index.html#Notes-1",
-    "page": "ClimateTools.jl",
+    "page": "Home",
     "title": "Notes",
     "category": "section",
     "text": "The climate indices are coded to use multiple threads. To gain maximum performance, use (bash shell) export JULIA_NUM_THREADS=n, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) Sys.CPU_CORES."
@@ -42,7 +42,7 @@ var documenterSearchIndex = {"docs": [
 
 {
     "location": "index.html#Objectives-1",
-    "page": "ClimateTools.jl",
+    "page": "Home",
     "title": "Objectives",
     "category": "section",
     "text": "Extraction and visualization of NetCDF datasets, with user-provided polygons and start and end date.\nClimate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI)\nCustom climate indices\nInterpolation of a datasets onto another grid\nPost-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)"
@@ -50,7 +50,7 @@ var documenterSearchIndex = {"docs": [
 
 {
     "location": "index.html#Contributors-1",
-    "page": "ClimateTools.jl",
+    "page": "Home",
     "title": "Contributors",
     "category": "section",
     "text": "If you\'d like to have other climate indices coded, please, submit them through a Pull Request! I\'d be more than happy to include them. Alternatively, provide the equation in Issues."
@@ -58,7 +58,7 @@ var documenterSearchIndex = {"docs": [
 
 {
     "location": "index.html#TO-DO-1",
-    "page": "ClimateTools.jl",
+    "page": "Home",
     "title": "TO-DO",
     "category": "section",
     "text": "Dashboard tool. This will return the main characteristics of a ClimGrid: maps of minimum, maximum and mean climatological values, seasonal cycle, timeseries of annual maximum, minimum and mean values, etc...\nExport ClimGrid to netCDF file.\nAdd a more complex quantile-quantile mapping technique, combining extreme value theory and quantile-quantile standard technique"
@@ -66,7 +66,7 @@ var documenterSearchIndex = {"docs": [
 
 {
     "location": "index.html#Notes-2",
-    "page": "ClimateTools.jl",
+    "page": "Home",
     "title": "Notes",
     "category": "section",
     "text": "N.B. version 0.1.2 is compatible with Julia 0.5 and version >0.2.0 is for Julia 0.6. To use a specific version of the package, you can use in Julia the following command:Pkg.pin(\"ClimateTools\",v\"0.1.2\") # if using Julia 0.5"
@@ -277,7 +277,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Examples",
     "title": "Extraction",
     "category": "section",
-    "text": "Now, say you need to create a climate scenario, using a given simulation, over a region defined by the following polygon.julia> poly_reg = [[NaN -65 -80 -80 -65 -65];[NaN 42 42 52 52 42]]\n2×6 Array{Float64,2}:\n NaN  -65.0  -80.0  -80.0  -65.0  -65.0\n NaN   42.0   42.0   52.0   52.0   42.0The extraction of the desired variable can be done with the nc2julia function, by providing the polygon.julia> gcmfiles =[\"tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc\",\n\"tasmax_day_MIROC5_historical_r1i1p1_19900101-19991231.nc\",\n\"tasmax_day_MIROC5_historical_r1i1p1_20000101-20091231.nc\"]\n\njulia> model = nc2julia(gcm_files, \"tasmax\", poly=poly_reg)\nClimGrid struct with data:\n   3-dimensional AxisArray{Float32,3,...} with axes:\n    :time, Date[1980-01-01, 1980-01-02, 1980-01-03, 1980-01-04, 1980-01-05, 1980-01-06, 1980-01-07, 1980-01-08, 1980-01-09, 1980-01-10  …  2009-12-22, 2009-12-23, 2009-12-24, 2009-12-25, 2009-12-26, 2009-12-27, 2009-12-28, 2009-12-29, 2009-12-30, 2009-12-31]\n    :lon, [-78.75, -77.3438, -75.9375, -74.5313, -73.125, -71.7188, -70.3125, -68.9063, -67.5, -66.0938]\n    :lat, [42.7233, 44.1241, 45.5249, 46.9256, 48.3264, 49.7271, 51.1279]\nAnd data, a 10950×10×7 Array{Float32,3}\nProject: CMIP5\nInstitute: MIROC\nModel: MIROC5\nExperiment: historical\nRun: r1i1p1\nVariable: tasmax\nData units: K\nFrequency: day\nGlobal attributes: Dict{Any,Any} with 27 entries\nFilename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.ncOne possible verification of the extraced data is to map the time-mean data with the mapclimgrid function to see if there is something wrong.julia> mapclimgrid(model, region = \"Quebec\")Which should return the following map.(Image: MIROC5)"
+    "text": "Now, say you need to create a climate scenario, using a given simulation, over a region defined by the following polygon.julia> poly_reg = [[NaN -65 -80 -80 -65 -65];[NaN 42 42 52 52 42]]\n2×6 Array{Float64,2}:\n NaN  -65.0  -80.0  -80.0  -65.0  -65.0\n NaN   42.0   42.0   52.0   52.0   42.0The extraction of the desired variable can be done with the nc2julia function, by providing the polygon.julia> gcmfiles =[\"tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc\",\n\"tasmax_day_MIROC5_historical_r1i1p1_19900101-19991231.nc\",\n\"tasmax_day_MIROC5_historical_r1i1p1_20000101-20091231.nc\"]\n\njulia> model = nc2julia(gcm_files, \"tasmax\", poly=poly_reg)\nClimGrid struct with data:\n   3-dimensional AxisArray{Float32,3,...} with axes:\n    :time, Date[1980-01-01, 1980-01-02, 1980-01-03, 1980-01-04, 1980-01-05, 1980-01-06, 1980-01-07, 1980-01-08, 1980-01-09, 1980-01-10  …  2009-12-22, 2009-12-23, 2009-12-24, 2009-12-25, 2009-12-26, 2009-12-27, 2009-12-28, 2009-12-29, 2009-12-30, 2009-12-31]\n    :lon, [-78.75, -77.3438, -75.9375, -74.5313, -73.125, -71.7188, -70.3125, -68.9063, -67.5, -66.0938]\n    :lat, [42.7233, 44.1241, 45.5249, 46.9256, 48.3264, 49.7271, 51.1279]\nAnd data, a 10950×10×7 Array{Float32,3}\nProject: CMIP5\nInstitute: MIROC\nModel: MIROC5\nExperiment: historical\nRun: r1i1p1\nVariable: tasmax\nData units: K\nFrequency: day\nGlobal attributes: Dict{Any,Any} with 27 entries\nFilename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.ncOne possible verification of the extracted data is to map the time-mean data with the mapclimgrid function to see if there is something wrong.julia> mapclimgrid(model, region = \"Quebec\")Which should return the following map.(Image: MIROC5)"
 },
 
 {
@@ -285,7 +285,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Examples",
     "title": "Sidenote: merging files/data",
     "category": "section",
-    "text": "As a sidenote, climate data files are usually on the order of multiple GBs and institution generally split a single simulation into multiple files. In order to calculate climatologies, it is thus essential to merge the data into a single structure. The function merge is provided to combine 2 ClimGrid.julia> C = merge(C1, C2) # merge C1 with C2The merge function is useful when you have 2 or 3 files. However, a single simulation can sometimes be splitted into yearly files. Hence, extracting timeseries on climatological timescales can imply loading more than a hundred files just to get a complete timeserie for a given gridpoint. The function nc2julia has a method where the 1st positional argument is an Array of strings (as opposed to a single string).julia> C = nc2julia(strarray::Array{String,1}, variable::String; poly, start_date::Date, end_date::Date, data_units::String))This is how the MIROC5 simulation has been loaded."
+    "text": "Climate data files are usually on the order of multiple GBs and institution generally split a single simulation into multiple files. In order to calculate climatologies, it is thus essential to merge the data into a single structure. The function merge is provided to combine 2 ClimGrid.julia> C = merge(C1, C2) # merge C1 with C2The merge function is useful when you have 2 or 3 files. However, a single simulation can sometimes be splitted into yearly files. Hence, extracting timeseries on climatological timescales can imply loading more than a hundred files just to get a complete timeserie for a given gridpoint. The function nc2julia has a method where the 1st positional argument is an Array of strings (as opposed to a single string).julia> C = nc2julia(strarray::Array{String,1}, variable::String; poly, start_date::Date, end_date::Date, data_units::String))This is how the MIROC5 simulation has been loaded."
 },
 
 {
@@ -309,7 +309,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Examples",
     "title": "Quantile-quantile mapping",
     "category": "section",
-    "text": "The high-resolution local information is integrated into ClimGrid modelinterp at the bias correction step. There is a daily transfer function applied on a quantile basis.The call signature is qqmap(obs, ref, fut) where the transfer function is estimated between obs and ref and applied on fut. Note that ref and fut can be the same, as in this example. A typical use-case would be obs and ref covering the same (historical, e.g. 1961-2010) temporal window and fut being a simulation covering a future climatological period (which could be a mix of historic and future, such as 1961-2090). This step is computationally intensive.julia> model_qqmap = qqmap(obs, modelinterp, modelinterp)\nProgress: 100%|█████████████████████████████████████████| Time: 0:11:20\nClimGrid struct with data:\n   3-dimensional AxisArray{Float64,3,...} with axes:\n    :time, Date[1980-01-01, 1980-01-02, 1980-01-03, 1980-01-04, 1980-01-05, 1980-01-06, 1980-01-07, 1980-01-08, 1980-01-09, 1980-01-10  …  2009-12-22, 2009-12-23, 2009-12-24, 2009-12-25, 2009-12-26, 2009-12-27, 2009-12-28, 2009-12-29, 2009-12-30, 2009-12-31]\n    :lon, Float32[-79.9583, -79.875, -79.7917, -79.7083, -79.625, -79.5417, -79.4583, -79.375, -79.2917, -79.2083  …  -65.7917, -65.7083, -65.625, -65.5417, -65.4583, -65.375, -65.2917, -65.2083, -65.125, -65.0417]\n    :lat, Float32[51.9583, 51.875, 51.7917, 51.7083, 51.625, 51.5417, 51.4583, 51.375, 51.2917, 51.2083  …  42.7917, 42.7083, 42.625, 42.5417, 42.4583, 42.375, 42.2917, 42.2083, 42.125, 42.0417]\nAnd data, a 10950×180×120 Array{Float64,3}\nProject: CMIP5\nInstitute: MIROC\nModel: MIROC5\nExperiment: historical\nRun: r1i1p1\nVariable: tasmax\nData units: K\nFrequency: NA\nGlobal attributes: Dict{Any,Any} with 0 entries\nFilename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.ncMapping the results show that the local information is integrated into the model, and that the natural \"mask\" of the observation grid is applied naturally.julia> mapclimgrid(model_qqmap, region = \"Quebec\")(Image: MIROC5_QQMAP)"
+    "text": "The high-resolution local information is integrated into ClimGrid modelinterp at the bias correction step. There is a daily transfer function applied on a quantile basis.The call signature is qqmap(obs, ref, fut) where the transfer function is estimated between obs and ref and applied on fut. Note that ref and fut can be the same, as in this example. A typical use-case would be obs and ref covering the same (historical, e.g. 1961-2010) temporal window and fut being a simulation covering a future climatological period (which could be a mix of historic and future, such as 1961-2090). This step is computationally intensive.julia> model_qqmap = qqmap(obs, modelinterp, modelinterp)\nProgress: 100%|█████████████████████████████████████████| Time: 0:11:20\nClimGrid struct with data:\n   3-dimensional AxisArray{Float64,3,...} with axes:\n    :time, Date[1980-01-01, 1980-01-02, 1980-01-03, 1980-01-04, 1980-01-05, 1980-01-06, 1980-01-07, 1980-01-08, 1980-01-09, 1980-01-10  …  2009-12-22, 2009-12-23, 2009-12-24, 2009-12-25, 2009-12-26, 2009-12-27, 2009-12-28, 2009-12-29, 2009-12-30, 2009-12-31]\n    :lon, Float32[-79.9583, -79.875, -79.7917, -79.7083, -79.625, -79.5417, -79.4583, -79.375, -79.2917, -79.2083  …  -65.7917, -65.7083, -65.625, -65.5417, -65.4583, -65.375, -65.2917, -65.2083, -65.125, -65.0417]\n    :lat, Float32[51.9583, 51.875, 51.7917, 51.7083, 51.625, 51.5417, 51.4583, 51.375, 51.2917, 51.2083  …  42.7917, 42.7083, 42.625, 42.5417, 42.4583, 42.375, 42.2917, 42.2083, 42.125, 42.0417]\nAnd data, a 10950×180×120 Array{Float64,3}\nProject: CMIP5\nInstitute: MIROC\nModel: MIROC5\nExperiment: historical\nRun: r1i1p1\nVariable: tasmax\nData units: K\nFrequency: NA\nGlobal attributes: Dict{Any,Any} with 0 entries\nFilename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.ncMapping the results show that the local information is integrated into the model, and that the natural \"mask\" of the observation grid is applied naturally.julia> mapclimgrid(model_qqmap, region = \"Quebec\")(Image: MIROC5_QQMAP)Proper assessment of future climate conditions over the specified region would involve replicating these steps for minimally a dozen simulations from multiple models and different emission scenario (e.g. RCP4.5, RCP8.5, etc.)."
 },
 
 {
