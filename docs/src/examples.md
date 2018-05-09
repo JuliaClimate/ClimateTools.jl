@@ -189,7 +189,7 @@ This is how the MIROC5 simulation has been loaded.
 
 ## Bias correction
 
-An important step in climate scenarios design is to correct the statistical bias of the simulations compared against a chosen reference (more often than not, weather observations). A typical method is to do quantile-quantile mapping between the simulation timeseries and observed timeseries. The function `qqmap` does so. First step would be to interpolate the simulated field onto the reference grid. Here we use the dataset provided by the [Canadian Forest Service](https://cfs.nrcan.gc.ca/projects/3/4, see McKenney et al. 2011) for the interpolation step and the bias correction step.
+An important step in climate scenarios design is to correct the statistical bias of the simulations compared against a chosen reference (more often than not, weather observations). A typical method is to do quantile-quantile mapping between the simulation timeseries and observed timeseries. The function `qqmap` does so. First step would be to interpolate the simulated field onto the reference grid. Here we use the dataset provided by the [Canadian Forest Service](https://cfs.nrcan.gc.ca/projects/3/4) (McKenney et al. 2011) for the interpolation step and the bias correction step.
 
 *McKenney, D. W., Hutchinson, M.F., Papadopol, P., Lawrence, K., Pedlar, J., Campbell, K., Milewska, E., Hopkinson, R., Price, D., Owen, T. (2011). "Customized spatial climate models for North America." Bulletin of American Meteorological Society-BAMS December: 1612-1622.*
 
