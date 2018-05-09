@@ -290,4 +290,4 @@ julia> mapclimgrid(model_qqmap, region = "Quebec")
 
 ![MIROC5_QQMAP](assets/MIROC5_QQMAP.png)
 
-Proper assessment of future climate conditions over the specified region would involve replicating these steps for minimally a dozen simulations from multiple models and different emission scenario (e.g. RCP4.5, RCP8.5, etc.).
+Proper assessment of future climate conditions over the specified region would involve replicating these steps for minimally a dozen simulations from multiple models and different emission scenarios (e.g. RCP4.5, RCP8.5, etc.).
