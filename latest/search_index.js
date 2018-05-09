@@ -25,14 +25,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#Installation-1",
-    "page": "Home",
-    "title": "Installation",
-    "category": "section",
-    "text": "Pkg.add(\"ClimateTools\") # Tagged release\nPkg.checkout(\"ClimateTools\") # For latest master branch"
-},
-
-{
     "location": "index.html#Notes-1",
     "page": "Home",
     "title": "Notes",
@@ -45,7 +37,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Objectives",
     "category": "section",
-    "text": "Extraction and visualization of NetCDF datasets, with user-provided polygons and start and end date.\nClimate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI)\nCustom climate indices\nInterpolation of a datasets onto another grid\nPost-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)"
+    "text": "Extraction and visualization of NetCDF datasets, with user-provided polygons and start and end date.\nClimate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices\nRegridding of a datasets onto another grid\nPost-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)"
 },
 
 {
@@ -89,11 +81,43 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "gettingstarted.html#Installation-1",
+    "page": "Getting started",
+    "title": "Installation",
+    "category": "section",
+    "text": ""
+},
+
+{
+    "location": "gettingstarted.html#Required-dependencies-1",
+    "page": "Getting started",
+    "title": "Required dependencies",
+    "category": "section",
+    "text": "In theory, launching the command using ClimateTools should install all required dependencies. However, sometimes it\'s just better to do it manually to ensure that all steps are properly done. If the installation fails when launching ùsing ClimateTools, here are the steps to do it manually.ENV[\"PYTHON\"] = \"\" # tells PyCall to use Julia\'s Conda python environement\nPkg.add(\"Conda\")\nusing Conda\nConda.update()\nConda.add(\"matplotlib\")\nConda.add(\"basemap\")\nConda.add(\"scipy\")\nConda.add(\"numpy\")\nPkg.add(\"PyCall\")\nPkg.build(\"PyCall\")\nPkg.add(\"Pyplot\")"
+},
+
+{
+    "location": "gettingstarted.html#Installing-ClimateTools.jl-1",
+    "page": "Getting started",
+    "title": "Installing ClimateTools.jl",
+    "category": "section",
+    "text": "Pkg.add(\"ClimateTools\") # Tagged release\nPkg.checkout(\"ClimateTools\") # For latest master branch"
+},
+
+{
     "location": "gettingstarted.html#Reading-a-NetCDF-file-1",
     "page": "Getting started",
     "title": "Reading a NetCDF file",
     "category": "section",
-    "text": "The entry point of ClimateTools is to load data with the nc2julia function. Optional polygon clipping feature is available. By providing such polygon, the nc2julia function  returns a ClimGrid with grid points contained in the polygon.C = nc2julia(filename::String, var::String; poly::Array, data_units::String, start_date::Date, end_date::Date)nc2julia return a ClimGrid type. Using the optional poly argument, the user can provide a polygon and the returned ClimGrid will only contains the grid points inside the provided polygon. The polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).For some variable, the optional keyword argument data_units can be provided. For example, precipitation in climate models are usually provided as kg/m^2/s. By specifying data_units = mm, the nc2julia function returns accumulation at the data time resolution. Similarly, the user can provide Celsius as data_units and nc2julia will return Celsius instead of Kelvin.The ClimGrid is a in-memory representation of a CF-compliant netCDF file for a single variable.struct ClimGrid\n  data::AxisArray # Data\n  longrid::AbstractArray{N,2} where N # the longitude grid\n  latgrid::AbstractArray{N,2} where N # the latitude grid\n  msk::Array{N, 2} where N # Data mask (NaNs and 1.0)\n  grid_mapping::Dict#{String, Any} # bindings for native grid\n  dimension_dict::Dict\n  model::String\n  frequency::String # Day, month, years\n  experiment::String # Historical, RCP4.5, RCP8.5, etc.\n  run::String\n  project::String # CORDEX, CMIP5, etc.\n  institute::String # UQAM, DMI, etc.\n  filename::String # Path of the original file\n  dataunits::String # Celsius, kelvin, etc.\n  latunits::String # latitude coordinate unit\n  lonunits::String # longitude coordinate unit\n  variable::String # Type of variable (i.e. can be the same as \"typeofvar\", but it is changed when calculating indices)\n  typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)\n  typeofcal::String # Calendar type\n  varattribs::Dict # Variable attributes dictionary\n  globalattribs::Dict # Global attributes dictionary\nendThere is a spatialsubset function which acts on ClimGrid type and further subset the data through a spatial subset using a provided polygon. The function returns a ClimGrid. Polygons needs to be on a -180, +180 longitude coordinates, as data coordinates defaults to such grid. For instance, global models are often on a 0-360 degrees grid.C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)Temporal subset of the data is also possible with the temporalsubset function:C = temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)"
+    "text": "The entry point of ClimateTools is to load data with the nc2julia function. Optional polygon clipping feature is available. By providing such polygon, the nc2julia function  returns a ClimGrid with grid points contained in the polygon.C = nc2julia(filename::String, var::String; poly::Array, data_units::String, start_date::Date, end_date::Date)nc2julia return a ClimGrid type. The ClimGrid is a in-memory representation of a CF-compliant netCDF file for a single variable.Using the optional poly argument, the user can provide a polygon and the returned ClimGrid will only contains the grid points inside the provided polygon. The polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).start_date and end_date can also be provided. It is useful when climate simulations file spans multiple decades/centuries and one only needs a temporal subset.For some variable, the optional keyword argument data_units can be provided. For example, precipitation in climate models are usually provided as kg/m^2/s. By specifying data_units = mm, the nc2julia function returns accumulation at the data time resolution. Similarly, the user can provide Celsius as data_units and nc2julia will return Celsius instead of Kelvin.struct ClimGrid\n  data::AxisArray # Data\n  longrid::AbstractArray{N,2} where N # the longitude grid\n  latgrid::AbstractArray{N,2} where N # the latitude grid\n  msk::Array{N, 2} where N # Data mask (NaNs and 1.0)\n  grid_mapping::Dict#{String, Any} # bindings for native grid\n  dimension_dict::Dict\n  model::String\n  frequency::String # Day, month, years\n  experiment::String # Historical, RCP4.5, RCP8.5, etc.\n  run::String\n  project::String # CORDEX, CMIP5, etc.\n  institute::String # UQAM, DMI, etc.\n  filename::String # Path of the original file\n  dataunits::String # Celsius, kelvin, etc.\n  latunits::String # latitude coordinate unit\n  lonunits::String # longitude coordinate unit\n  variable::String # Type of variable (i.e. can be the same as \"typeofvar\", but it is changed when calculating indices)\n  typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)\n  typeofcal::String # Calendar type\n  varattribs::Dict # Variable attributes dictionary\n  globalattribs::Dict # Global attributes dictionary\nend"
+},
+
+{
+    "location": "gettingstarted.html#Subsetting-1",
+    "page": "Getting started",
+    "title": "Subsetting",
+    "category": "section",
+    "text": "Once the data is loaded in a ClimGrid, options to further subset the data are available.There is a spatialsubset function which acts on ClimGrid type and further subset the data through a spatial subset using a provided polygon. The function returns a ClimGrid. Polygons needs to be on a -180, +180 longitude coordinates, as data coordinates defaults to such grid. For instance, global models are often on a 0-360 degrees grid.C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)Temporal subset of the data is also possible with the temporalsubset function:C = temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)"
 },
 
 {
@@ -181,7 +205,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Maps",
     "title": "Maps",
     "category": "page",
-    "text": ""
+    "text": "CurrentModule = ClimateTools"
 },
 
 {
@@ -206,6 +230,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Mapping the ClimGrid type",
     "category": "section",
     "text": "Mapping climate information can be done by using mapclimgrid.(Image: BNU-ESM)mapclimgridNote that the function plots the climatological mean of the provided ClimGrid. Multiple options are available for region: World, Canada, Quebec, WorldAz, WorldEck4, ..., and the default auto which use the maximum and minimum of the lat-long coordinates inside the ClimGrid structure. The user can also provide a polygon(s) and the mapclimgrid function will clip the grid points outside the specified polygon. Another option is to provide a mask (with dimensions identical to the spatial dimension of the ClimGrid data) which contains NaN and 1.0 and the data inside the ClimGrid struct will be clipped with the mask. Other regions will be added in the future, as well as the option to send a custom region defined by a lat-lon box."
+},
+
+{
+    "location": "maps.html#Timeseries-1",
+    "page": "Maps",
+    "title": "Timeseries",
+    "category": "section",
+    "text": "Plotting timeseries of a given ClimGrid C is simply done by calling plot.using ClimateTools\npoly_reg = [[NaN -65 -80 -80 -65 -65];[NaN 42 42 52 52 42]]\n# Extract tasmax variable over specified polygon, between January 1st 1950 and December 31st 2005\nC_hist = nc2julia(\"historical.nc\", \"tasmax\", data_units=\"Celsius\", poly=poly_reg, start_date=Date(1950, 01, 01), end_date=Date(2005, 12, 31)))\n# Extract tasmax variable over specified polygon, between January 1st 2006 and December 31st 2090 for emission scenario RCP8.5\nC_future85 = nc2julia(\"futureRCP85.nc\", \"tasmax\", data_units=\"Celsius\", poly=poly_reg, start_date=Date(2006, 01, 01), end_date=Date(2090, 12, 31)))\nC = merge(C_hist, C_future)\nind = annualmax(C) # compute annual maximum\nplot(ind)(Image: annualmaxtasmax)Note. label ticks should be improved!The timeserie represent the spatial average of the annual maximum temperature over the following region.mapclimgrid(ind, region = \"QuebecNSP\")(Image: annualmaxtasmax_maps)The map represent the time average over 1950-2090 of the annual maximum temperature."
 },
 
 {
@@ -721,6 +753,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#PyPlot.plot-Tuple{ClimateTools.ClimGrid}",
+    "page": "Index",
+    "title": "PyPlot.plot",
+    "category": "method",
+    "text": "plot(C::ClimGrid)\n\nPlots the spatial average timeserie of ClimGrid C.\n\n\n\n"
+},
+
+{
     "location": "functions.html#ClimateTools.ClimGrid",
     "page": "Index",
     "title": "ClimateTools.ClimGrid",
@@ -737,27 +777,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Base.merge-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
-    "page": "Index",
-    "title": "Base.merge",
-    "category": "method",
-    "text": "merge(A::ClimGrid, B::ClimGrid)\n\nCombines two ClimGrid. Based on the AxisArrays method.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Base.vcat-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
-    "page": "Index",
-    "title": "Base.vcat",
-    "category": "method",
-    "text": "vcat(A::ClimGrid, B::ClimGrid)\n\nCombines two ClimGrid. Based on the AxisArrays method. Better way to do it would be to use the merge method.\n\n\n\n"
-},
-
-{
     "location": "functions.html#Index-1",
     "page": "Index",
     "title": "Index",
     "category": "section",
-    "text": "CurrentModule = ClimateToolsModules = [ClimateTools]\nOrder   = [:function, :type]"
+    "text": "CurrentModule = ClimateToolsModules = [ClimateTools]\nPrivate = false\nOrder   = [:function, :type]"
 },
 
 ]}
