@@ -10,8 +10,8 @@
 
 First step before extracting the data is to explore the actual dataset at hand. The function `Dataset` (reexported from te NCDatasets.jl package) is used to examine the file(s). In this example, the simulation is from the MIROC5 model.
 
-```julia-repl
-julia> Dataset("datafile.nc")
+```julia
+Dataset("datafile.nc")
 
 Dataset: /path/to/file/tasmax_day_MIROC5_historical_r1i1p1_19900101-19991231.nc
 Group: /
@@ -127,8 +127,8 @@ You can see the dimensions of the data, as well as the name of the variable(s), 
 
 Now, say you need to create a climate scenario, using a given simulation, over a region defined by the following polygon.
 
-```julia-repl
-julia> poly_reg = [[NaN -65 -80 -80 -65 -65];[NaN 42 42 52 52 42]]
+```julia
+poly_reg = [[NaN -65 -80 -80 -65 -65];[NaN 42 42 52 52 42]]
 2×6 Array{Float64,2}:
  NaN  -65.0  -80.0  -80.0  -65.0  -65.0
  NaN   42.0   42.0   52.0   52.0   42.0
@@ -136,12 +136,12 @@ julia> poly_reg = [[NaN -65 -80 -80 -65 -65];[NaN 42 42 52 52 42]]
 
 The extraction of the desired variable can be done with the `nc2julia` function, by providing the polygon.
 
-```julia-repl
-julia> gcmfiles =["tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc",
+```julia
+gcmfiles =["tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc",
 "tasmax_day_MIROC5_historical_r1i1p1_19900101-19991231.nc",
 "tasmax_day_MIROC5_historical_r1i1p1_20000101-20091231.nc"]
 
-julia> model = nc2julia(gcm_files, "tasmax", poly=poly_reg)
+model = nc2julia(gcm_files, "tasmax", poly=poly_reg)
 ClimGrid struct with data:
    3-dimensional AxisArray{Float32,3,...} with axes:
     :time, Date[1980-01-01, 1980-01-02, 1980-01-03, 1980-01-04, 1980-01-05, 1980-01-06, 1980-01-07, 1980-01-08, 1980-01-09, 1980-01-10  …  2009-12-22, 2009-12-23, 2009-12-24, 2009-12-25, 2009-12-26, 2009-12-27, 2009-12-28, 2009-12-29, 2009-12-30, 2009-12-31]
@@ -162,8 +162,8 @@ Filename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc
 
 One possible verification of the extracted data is to map the time-mean data with the `mapclimgrid` function to see if there is something wrong.
 
-```julia-repl
-julia> mapclimgrid(model, region = "Quebec")
+```julia
+mapclimgrid(model, region = "Quebec")
 ```
 
 Which should return the following map.
@@ -174,14 +174,14 @@ Which should return the following map.
 
 Climate data files are usually on the order of multiple GBs and institution generally split a single simulation into multiple files. In order to calculate climatologies, it is thus essential to merge the data into a single structure. The function `merge` is provided to combine 2 `ClimGrid`.
 
-```julia-repl
-julia> C = merge(C1, C2) # merge C1 with C2
+```julia
+C = merge(C1, C2) # merge C1 with C2
 ```
 
 The `merge` function is useful when you have 2 or 3 files. However, a single simulation can sometimes be splitted into yearly files. Hence, extracting timeseries on climatological timescales can imply loading more than a hundred files just to get a complete timeserie for a given gridpoint. The function `nc2julia` has a method where the 1st positional argument is an Array of strings (as opposed to a single string).
 
-```julia-repl
-julia> C = nc2julia(strarray::Array{String,1}, variable::String; poly, start_date::Date, end_date::Date, data_units::String))
+```julia
+C = nc2julia(strarray::Array{String,1}, variable::String; poly, start_date::Date, end_date::Date, data_units::String))
 ```
 
 This is how the MIROC5 simulation has been loaded.
@@ -189,12 +189,12 @@ This is how the MIROC5 simulation has been loaded.
 
 ## Bias correction
 
-An important step in climate scenarios design is to correct the statistical bias of the simulations compared against a chosen reference (more often than not, weather observations). A typical method is to do quantile-quantile mapping between the simulation timeseries and observed timeseries. The function `qqmap` does so. First step would be to interpolate the simulated field onto the reference grid. Here we use the dataset provided by the Canadian Forest Service (https://cfs.nrcan.gc.ca/projects/3/4, see McKenney et al. 2011) for the interpolation step and the bias correction step.
+An important step in climate scenarios design is to correct the statistical bias of the simulations compared against a chosen reference (more often than not, weather observations). A typical method is to do quantile-quantile mapping between the simulation timeseries and observed timeseries. The function `qqmap` does so. First step would be to interpolate the simulated field onto the reference grid. Here we use the dataset provided by the [Canadian Forest Service](https://cfs.nrcan.gc.ca/projects/3/4, see McKenney et al. 2011) for the interpolation step and the bias correction step.
 
 *McKenney, D. W., Hutchinson, M.F., Papadopol, P., Lawrence, K., Pedlar, J., Campbell, K., Milewska, E., Hopkinson, R., Price, D., Owen, T. (2011). "Customized spatial climate models for North America." Bulletin of American Meteorological Society-BAMS December: 1612-1622.*
 
-```julia-repl
-julia> obsfiles = ["nrcan_canada_daily_tasmax_1950.nc",
+```julia
+obsfiles = ["nrcan_canada_daily_tasmax_1950.nc",
 "nrcan_canada_daily_tasmax_1951.nc",
 "nrcan_canada_daily_tasmax_1952.nc",
 "nrcan_canada_daily_tasmax_1953.nc",
@@ -215,11 +215,11 @@ julia> obsfiles = ["nrcan_canada_daily_tasmax_1950.nc",
 "nrcan_canada_daily_tasmax_1968.nc",
 "nrcan_canada_daily_tasmax_1969.nc"]
 
-julia> obs = nc2julia(obsfiles, "tasmax", poly=poly_reg)
+obs = nc2julia(obsfiles, "tasmax", poly=poly_reg)
 ```
 
-```julia-repl
-julia> mapclimgrid(obs, region = "Quebec")
+```julia
+mapclimgrid(obs, region = "Quebec")
 ```
 
 ![NRCAN](assets/NRCAN.png)
@@ -228,8 +228,8 @@ julia> mapclimgrid(obs, region = "Quebec")
 
 The interpolation is done with the `interp_climgrid` function. The following command interpolate the values of `ClimGrid model` onto the grid of `ClimGrid obs`.
 
-```julia-repl
-julia> modelinterp = interp_climgrid(model, obs)
+```julia
+modelinterp = interp_climgrid(model, obs)
 Progress: 100%|█████████████████████████████████████████| Time: 0:00:38
 ClimGrid struct with data:
    3-dimensional AxisArray{Float64,3,...} with axes:
@@ -249,7 +249,7 @@ Global attributes: Dict{Any,Any} with 27 entries
 Filename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc
 ```
 
-```julia-repl
+```julia
 julia> mapclimgrid(modelinterp, region = "Quebec")
 ```
 
@@ -261,8 +261,8 @@ Notice that there is no new information created here. The interpolation is using
 
 The high-resolution local information is integrated into `ClimGrid modelinterp` at the bias correction step. There is a daily transfer function applied on a quantile basis.The call signature is `qqmap(obs, ref, fut)` where the transfer function is estimated between `obs` and `ref` and applied on `fut`. Note that `ref` and `fut` can be the same, as in this example. A typical use-case would be `obs` and `ref` covering the same (historical, e.g. 1961-2010) temporal window and `fut` being a simulation covering a future climatological period (which could be a mix of historic and future, such as 1961-2090). This step is computationally intensive.
 
-```julia-repl
-julia> model_qqmap = qqmap(obs, modelinterp, modelinterp)
+```julia
+model_qqmap = qqmap(obs, modelinterp, modelinterp)
 Progress: 100%|█████████████████████████████████████████| Time: 0:11:20
 ClimGrid struct with data:
    3-dimensional AxisArray{Float64,3,...} with axes:
@@ -284,8 +284,8 @@ Filename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc
 
 Mapping the results show that the local information is integrated into the model, and that the natural "mask" of the observation grid is applied naturally.
 
-```julia-repl
-julia> mapclimgrid(model_qqmap, region = "Quebec")
+```julia
+mapclimgrid(model_qqmap, region = "Quebec")
 ```
 
 ![MIROC5_QQMAP](assets/MIROC5_QQMAP.png)

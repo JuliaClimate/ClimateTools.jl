@@ -4,12 +4,12 @@ A typical step in climate analysis is to interpolate a given grid onto another g
 
 The following command will interpolate the data contained in `ClimGrid A` into the coordinates of `ClimGrid B` and returns a new `ClimGrid C` which contains the interpolated data of `A` into the grid of `B`.
 
-```julia-repl
+```julia
 C = interp_climgrid(A::ClimGrid, B::ClimGrid)
 ```
 
 It is also possible to interpolate a `ClimGrid` onto specified longitude and latitude vectors.
 
-```julia-repl
+```julia
 C = interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N, 1})
 ```

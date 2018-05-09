@@ -4,7 +4,7 @@
 
 More than 20 climate indices are available in the package, such as the annual number of tropical nights, annual maximum and minimum, etc. You can calculate such indices simply with:
 
-```julia-repl
+```julia
 ind = annualmax(C::ClimGrid)
 ```
 
@@ -18,7 +18,7 @@ mapclimgrid(C)
 
 Climate Indices functions also accept other type of arguments. For example, `annualmax` can be called with the following type:
 
-```julia-repl
+```julia
 ind = annualmax(data::Array{Float64, 3}, dates::StepRange{Date, Base.Dates.Day})
 ```
 
