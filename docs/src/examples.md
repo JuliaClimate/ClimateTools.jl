@@ -160,7 +160,7 @@ Global attributes: Dict{Any,Any} with 27 entries
 Filename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc
 ```
 
-One possible verification of the extraced data is to map the time-mean data with the `mapclimgrid` function to see if there is something wrong.
+One possible verification of the extracted data is to map the time-mean data with the `mapclimgrid` function to see if there is something wrong.
 
 ```julia-repl
 julia> mapclimgrid(model, region = "Quebec")
@@ -172,7 +172,7 @@ Which should return the following map.
 
 ### Sidenote: merging files/data
 
-As a sidenote, climate data files are usually on the order of multiple GBs and institution generally split a single simulation into multiple files. In order to calculate climatologies, it is thus essential to merge the data into a single structure. The function `merge` is provided to combine 2 `ClimGrid`.
+Climate data files are usually on the order of multiple GBs and institution generally split a single simulation into multiple files. In order to calculate climatologies, it is thus essential to merge the data into a single structure. The function `merge` is provided to combine 2 `ClimGrid`.
 
 ```julia-repl
 julia> C = merge(C1, C2) # merge C1 with C2
@@ -289,3 +289,5 @@ julia> mapclimgrid(model_qqmap, region = "Quebec")
 ```
 
 ![MIROC5_QQMAP](assets/MIROC5_QQMAP.png)
+
+Proper assessment of future climate conditions over the specified region would involve replicating these steps for minimally a dozen simulations from multiple models and different emission scenario (e.g. RCP4.5, RCP8.5, etc.).
