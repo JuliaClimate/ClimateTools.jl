@@ -36,13 +36,13 @@ The climate indices are coded to use **multiple threads**. To gain maximum perfo
 
 ### Reading a NetCDF file
 
-The entry point of `ClimateTools` is to load data with the `nc2julia` function. Optional polygon clipping feature is available. By providing such polygon, the `nc2julia` function  returns a `ClimGrid` with grid points contained in the polygon.
+The entry point of `ClimateTools` is to load data with the `nc2julia` function. Optional polygon clipping feature is available. By providing such polygon, the `load` function  returns a `ClimGrid` with grid points contained in the polygon.
 
 ```julia
-C = nc2julia(filename::String, var::String; poly::Array, data_units::String, start_date::Date, end_date::Date)
+C = load(filename::String, var::String; poly::Array, data_units::String, start_date::Date, end_date::Date)
 ```
 
-`nc2julia` return a `ClimGrid` type. Using the optional `poly` argument, the user can provide a polygon and the returned `ClimGrid` will only contains the grid points inside the provided polygon. For some variable, the optional keyword argument `data_units` can be provided. For example, precipitation in climate models are usually provided as `kg/m^2/s`. By specifying `data_units = mm`, the `nc2julia` function returns accumulation at the data time resolution. Similarly, the user can provide `Celsius` as `data_units` and `nc2julia` will return `Celsius` instead of `Kelvin`.
+`load` returns a `ClimGrid` type. Using the optional `poly` argument, the user can provide a polygon and the returned `ClimGrid` will only contains the grid points inside the provided polygon. For some variable, the optional keyword argument `data_units` can be provided. For example, precipitation in climate models are usually provided as `kg/m^2/s`. By specifying `data_units = mm`, the `load` function returns accumulation at the data time resolution. Similarly, the user can provide `Celsius` as `data_units` and `load` will return `Celsius` instead of `Kelvin`.
 
 The `ClimGrid` is a in-memory representation of a CF-compliant netCDF file for a single variable.
 
