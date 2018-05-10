@@ -150,7 +150,7 @@ Filename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc</code></pre><
 &quot;nrcan_canada_daily_tasmax_1968.nc&quot;,
 &quot;nrcan_canada_daily_tasmax_1969.nc&quot;]
 
-obs = nc2julia(obsfiles, &quot;tasmax&quot;, poly=poly_reg)</code></pre><pre><code class="language-julia">mapclimgrid(obs, region = &quot;Quebec&quot;)</code></pre><p><img src="assets/NRCAN.png" alt="NRCAN"/></p><h3><a class="nav-anchor" id="Interpolation-1" href="#Interpolation-1">Interpolation</a></h3><p>The interpolation is done with the <code>interp_climgrid</code> function. The following command interpolate the values of <code>ClimGrid model</code> onto the grid of <code>ClimGrid obs</code>.</p><pre><code class="language-julia">modelinterp = interp_climgrid(model, obs)
+obs = nc2julia(obsfiles, &quot;tasmax&quot;, poly=poly_reg)</code></pre><pre><code class="language-julia">mapclimgrid(obs, region = &quot;Quebec&quot;)</code></pre><p><img src="assets/NRCAN.png" alt="NRCAN"/></p><h3><a class="nav-anchor" id="Interpolation-/-Regridding-1" href="#Interpolation-/-Regridding-1">Interpolation / Regridding</a></h3><p>The interpolation is done with the <code>regrid</code> function. The following command interpolate the values of <code>ClimGrid model</code> onto the grid of <code>ClimGrid obs</code>.</p><pre><code class="language-julia">modelinterp = regrid(model, obs)
 Progress: 100%|█████████████████████████████████████████| Time: 0:00:38
 ClimGrid struct with data:
    3-dimensional AxisArray{Float64,3,...} with axes:

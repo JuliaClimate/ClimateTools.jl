@@ -33,11 +33,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#Objectives-1",
+    "location": "index.html#Features-1",
     "page": "Home",
-    "title": "Objectives",
+    "title": "Features",
     "category": "section",
-    "text": "Extraction and visualization of NetCDF datasets, with user-provided polygons and start and end date.\nClimate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices\nRegridding of a datasets onto another grid\nPost-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)"
+    "text": "Extraction and visualization of CF-compliant netCDF datasets\nCustom user-provided polygons and start and end date for localized studies\nClimate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices\nRegridding of a datasets onto another grid\nPost-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)"
 },
 
 {
@@ -181,7 +181,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Interpolation",
     "title": "Interpolation",
     "category": "section",
-    "text": "A typical step in climate analysis is to interpolate a given grid onto another grid. ClimateTools provides such a tool by wrapping Scipy griddata function. It is intended for visualization or as a 1st step before bias-correcting the ClimGrid dataset.The following command will interpolate the data contained in ClimGrid A into the coordinates of ClimGrid B and returns a new ClimGrid C which contains the interpolated data of A into the grid of B.C = interp_climgrid(A::ClimGrid, B::ClimGrid)It is also possible to interpolate a ClimGrid onto specified longitude and latitude vectors.C = interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N, 1})"
+    "text": "A typical step in climate analysis is to interpolate a given grid onto another grid. ClimateTools provides such a tool by wrapping Scipy griddata function. It is intended for visualization or as a 1st step before bias-correcting the ClimGrid dataset.regrid function will interpolate the data contained in ClimGrid A into the coordinates of ClimGrid B and returns a new ClimGrid C which contains the interpolated data of A into the grid of B.C = regrid(A::ClimGrid, B::ClimGrid)It is also possible to interpolate a ClimGrid onto specified longitude and latitude vectors.C = regrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N, 1})"
 },
 
 {
@@ -329,11 +329,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "examples.html#Interpolation-1",
+    "location": "examples.html#Interpolation-/-Regridding-1",
     "page": "Examples",
-    "title": "Interpolation",
+    "title": "Interpolation / Regridding",
     "category": "section",
-    "text": "The interpolation is done with the interp_climgrid function. The following command interpolate the values of ClimGrid model onto the grid of ClimGrid obs.modelinterp = interp_climgrid(model, obs)\nProgress: 100%|█████████████████████████████████████████| Time: 0:00:38\nClimGrid struct with data:\n   3-dimensional AxisArray{Float64,3,...} with axes:\n    :time, Date[1980-01-01, 1980-01-02, 1980-01-03, 1980-01-04, 1980-01-05, 1980-01-06, 1980-01-07, 1980-01-08, 1980-01-09, 1980-01-10  …  2009-12-22, 2009-12-23, 2009-12-24, 2009-12-25, 2009-12-26, 2009-12-27, 2009-12-28, 2009-12-29, 2009-12-30, 2009-12-31]\n    :lon, Float32[-79.9583, -79.875, -79.7917, -79.7083, -79.625, -79.5417, -79.4583, -79.375, -79.2917, -79.2083  …  -65.7917, -65.7083, -65.625, -65.5417, -65.4583, -65.375, -65.2917, -65.2083, -65.125, -65.0417]\n    :lat, Float32[51.9583, 51.875, 51.7917, 51.7083, 51.625, 51.5417, 51.4583, 51.375, 51.2917, 51.2083  …  42.7917, 42.7083, 42.625, 42.5417, 42.4583, 42.375, 42.2917, 42.2083, 42.125, 42.0417]\nAnd data, a 10950×180×120 Array{Float64,3}\nProject: CMIP5\nInstitute: MIROC\nModel: MIROC5\nExperiment: historical\nRun: r1i1p1\nVariable: tasmax\nData units: K\nFrequency: day\nGlobal attributes: Dict{Any,Any} with 27 entries\nFilename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.ncjulia> mapclimgrid(modelinterp, region = \"Quebec\")(Image: MIROC5_INTERP)Notice that there is no new information created here. The interpolation is using Scipy\'s griddata under the hood and is simply a linear interpolation onto the obs grid."
+    "text": "The interpolation is done with the regrid function. The following command interpolate the values of ClimGrid model onto the grid of ClimGrid obs.modelinterp = regrid(model, obs)\nProgress: 100%|█████████████████████████████████████████| Time: 0:00:38\nClimGrid struct with data:\n   3-dimensional AxisArray{Float64,3,...} with axes:\n    :time, Date[1980-01-01, 1980-01-02, 1980-01-03, 1980-01-04, 1980-01-05, 1980-01-06, 1980-01-07, 1980-01-08, 1980-01-09, 1980-01-10  …  2009-12-22, 2009-12-23, 2009-12-24, 2009-12-25, 2009-12-26, 2009-12-27, 2009-12-28, 2009-12-29, 2009-12-30, 2009-12-31]\n    :lon, Float32[-79.9583, -79.875, -79.7917, -79.7083, -79.625, -79.5417, -79.4583, -79.375, -79.2917, -79.2083  …  -65.7917, -65.7083, -65.625, -65.5417, -65.4583, -65.375, -65.2917, -65.2083, -65.125, -65.0417]\n    :lat, Float32[51.9583, 51.875, 51.7917, 51.7083, 51.625, 51.5417, 51.4583, 51.375, 51.2917, 51.2083  …  42.7917, 42.7083, 42.625, 42.5417, 42.4583, 42.375, 42.2917, 42.2083, 42.125, 42.0417]\nAnd data, a 10950×180×120 Array{Float64,3}\nProject: CMIP5\nInstitute: MIROC\nModel: MIROC5\nExperiment: historical\nRun: r1i1p1\nVariable: tasmax\nData units: K\nFrequency: day\nGlobal attributes: Dict{Any,Any} with 27 entries\nFilename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.ncjulia> mapclimgrid(modelinterp, region = \"Quebec\")(Image: MIROC5_INTERP)Notice that there is no new information created here. The interpolation is using Scipy\'s griddata under the hood and is simply a linear interpolation onto the obs grid."
 },
 
 {
@@ -561,22 +561,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.interp_climgrid-Tuple{ClimateTools.ClimGrid,AbstractArray{N,1} where N,AbstractArray{N,1} where N}",
-    "page": "Index",
-    "title": "ClimateTools.interp_climgrid",
-    "category": "method",
-    "text": "C = interp_climgrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)A\n\nThis function interpolate ClimGrid A onto lat-lon grid defined by londest and latdest vector.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#ClimateTools.interp_climgrid-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
-    "page": "Index",
-    "title": "ClimateTools.interp_climgrid",
-    "category": "method",
-    "text": "C = interp_climgrid(A::ClimGrid, B::ClimGrid; method=\"linear\", min=[], max=[])\n\nThis function interpolate ClimGrid A onto the lon-lat grid of ClimGrid B, where A and B are ClimGrid. Available methods for interpolation are \"linear\" (default), \"nearest\" and \"cubic\".\n\nMin and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.\n\n\n\n"
-},
-
-{
     "location": "functions.html#ClimateTools.mapclimgrid-Tuple{ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.mapclimgrid",
@@ -654,6 +638,22 @@ var documenterSearchIndex = {"docs": [
     "title": "ClimateTools.qqmap",
     "category": "method",
     "text": "qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method=\"Additive\", detrend=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp::Function = Linear(), extrap::Function = Flat())\n\nQuantile-Quantile mapping bias correction. For each julian day of the year (+/- window size), a transfer function is estimated through an empirical quantile-quantile mapping.\n\nThe quantile-quantile transfer function between ref and obs is etimated on a julian day (and grid-point) basis with a moving window around the julian day. Hence, for a given julian day, the transfer function is then applied to the fut dataset for a given julian day.\n\nOptions\n\nmethod::String = \"Additive\" (default) or \"Multiplicative\". Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.\n\ndetrend::Bool = true (default). A 4th order polynomial is adjusted to the time series and the residuals are corrected with the quantile-quantile mapping.\n\nwindow::Int = 15 (default). The size of the window used to extract the statistical characteristics around a given julian day.\n\nrankn::Int = 50 (default). The number of bins used for the quantile estimations. The quantiles uses by default 50 bins between 0.01 and 0.99. The bahavior between the bins is controlled by the interp keyword argument. The behaviour of the quantile-quantile estimation outside the 0.01 and 0.99 range is controlled by the extrap keyword argument.\n\nthresnan::Float64 = 0.1 (default). The fraction is missing values authorized for the estimation of the quantile-quantile mapping for a given julian days. If there is more than treshnan missing values, the output for this given julian days returns NaNs.\n\nkeep_original::Bool = false (default). If keep_original is set to true, the values are set to the original values in presence of too many NaNs.\n\ninterp = Interpolations.Linear() (default). When the data to be corrected lies between 2 quantile bins, the value of the transfer function is linearly interpolated between the 2 closest quantile estimation. The argument is from Interpolations.jl package.\n\nextrap = Interpolations.Flat() (default). The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no \"inflation problem\" with the bias correction. The argument is from Interpolation.jl package.\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.regrid-Tuple{ClimateTools.ClimGrid,AbstractArray{N,1} where N,AbstractArray{N,1} where N}",
+    "page": "Index",
+    "title": "ClimateTools.regrid",
+    "category": "method",
+    "text": "C = regrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)A\n\nInterpolate ClimGrid A onto lat-lon grid defined by londest and latdest vector.\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.regrid-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
+    "page": "Index",
+    "title": "ClimateTools.regrid",
+    "category": "method",
+    "text": "C = regrid(A::ClimGrid, B::ClimGrid; method=\"linear\", min=[], max=[])\n\nInterpolate ClimGrid A onto the lon-lat grid of ClimGrid B, where A and B are ClimGrid. Available methods for interpolation are \"linear\" (default), \"nearest\" and \"cubic\".\n\nMin and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.\n\n\n\n"
 },
 
 {
