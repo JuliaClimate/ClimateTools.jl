@@ -53,7 +53,7 @@ Determines if a point is inside a polygon.
 - p -- point (x,y) or [x,y]
 - poly -- polygon vertices [x1 x2 ... xn x1
                             y1 y2 ... yn y1]
-          
+
 
 Returns true if point has an odd winding number.  This should label
 points as exterior which are inside outcrops.  See test for a test.
@@ -223,16 +223,16 @@ end
 
 
 """
-    C = interp_climgrid(A::ClimGrid, B::ClimGrid; method="linear", min=[], max=[])
+    C = regrid(A::ClimGrid, B::ClimGrid; method="linear", min=[], max=[])
 
-This function interpolate `ClimGrid` A onto the lon-lat grid of `ClimGrid` B,
+Interpolate `ClimGrid` A onto the lon-lat grid of `ClimGrid` B,
 where A and B are `ClimGrid`. Available methods for interpolation are "linear" (default), "nearest" and "cubic".
 
 Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.
 
 """
 # TODO define interpolation for 4D grid
-function interp_climgrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[])
+function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[])
 
     # ---------------------------------------
     # Get lat-lon information from ClimGrid B
@@ -291,13 +291,13 @@ end
 
 
 """
-    C = interp_climgrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)A
+    C = regrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)A
 
-This function interpolate ClimGrid A onto lat-lon grid defined by londest and latdest vector.
+Interpolate `ClimGrid` A onto lat-lon grid defined by londest and latdest vector.
 
 """
 
-function interp_climgrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArray{N, 1} where N; method::String="linear", min=[], max=[])
+function regrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArray{N, 1} where N; method::String="linear", min=[], max=[])
 
     # Get lat-lon information from ClimGrid A
     lonorig = A.longrid

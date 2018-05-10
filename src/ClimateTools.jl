@@ -118,7 +118,7 @@ export frostdays, summerdays, icingdays, tropicalnights
 export daysabove10 #, daysbelow0, degdaysabove, degdaysbelow
 export customthresover, customthresunder, annualmax, annualmin
 export annualmean, annualsum, nc2julia, sumleapyear, buildtimevec
-export mapclimgrid, interp_climgrid, ClimGrid, inpolyvec, applymask
+export mapclimgrid, regrid, ClimGrid, inpolyvec, applymask
 export shapefile_coords, shapefile_coords_poly, timeresolution
 export pr_timefactor, spatialsubset, temporalsubset
 export qqmap, ndgrid, permute_west_east

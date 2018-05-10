@@ -224,12 +224,12 @@ mapclimgrid(obs, region = "Quebec")
 
 ![NRCAN](assets/NRCAN.png)
 
-### Interpolation
+### Interpolation / Regridding
 
-The interpolation is done with the `interp_climgrid` function. The following command interpolate the values of `ClimGrid model` onto the grid of `ClimGrid obs`.
+The interpolation is done with the `regrid` function. The following command interpolate the values of `ClimGrid model` onto the grid of `ClimGrid obs`.
 
 ```julia
-modelinterp = interp_climgrid(model, obs)
+modelinterp = regrid(model, obs)
 Progress: 100%|█████████████████████████████████████████| Time: 0:00:38
 ClimGrid struct with data:
    3-dimensional AxisArray{Float64,3,...} with axes:

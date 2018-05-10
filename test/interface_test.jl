@@ -263,7 +263,7 @@ poly = Float64[0 0
 @test inpoly([0.5,0.2], poly)
 @test !inpoly([0.7,0.5], poly)
 
-# Test Interpolation
+# Test Interpolation/regridding
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = nc2julia(filename, "tas")
 # Get lat lon vector
@@ -276,10 +276,10 @@ lon += Float32(1.0)
 longrid += Float32(1.0)
 axisdata = AxisArray(C[1].data, Axis{:time}(C[1][Axis{:time}][:]), Axis{:lon}(lon), Axis{:lat}(lat))
 C2 = ClimGrid(axisdata, variable = "tas", longrid=longrid, latgrid=latgrid, msk=C.msk)
-@test interp_climgrid(C, C2)[1].data[1, 1, 1] == 219.2400638156467
-@test interp_climgrid(C, C2, min=0.0, max=0.0)[1].data[1, 1, 1] == 0.0
-@test interp_climgrid(C, lon, lat)[1].data[1, 1, 1] == 219.2400638156467
-@test interp_climgrid(C, lon, lat, min=0.0, max=0.0)[1].data[1, 1, 1] == 0.0
+@test regrid(C, C2)[1].data[1, 1, 1] == 219.2400638156467
+@test regrid(C, C2, min=0.0, max=0.0)[1].data[1, 1, 1] == 0.0
+@test regrid(C, lon, lat)[1].data[1, 1, 1] == 219.2400638156467
+@test regrid(C, lon, lat, min=0.0, max=0.0)[1].data[1, 1, 1] == 0.0
 
 # Test applymask
 # 1-D data

@@ -10,13 +10,13 @@ This package is registered on METADATA.jl and can be added with `Pkg.add("Climat
 
 The climate indices are coded to use **multiple threads**. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.CPU_CORES`.
 
-## Objectives
+## Features
 
-* Extraction and visualization of NetCDF datasets, with user-provided polygons and start and end date.
+* Extraction and visualization of CF-compliant netCDF datasets
+* Custom user-provided polygons and start and end date for localized studies
 * Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices
 * Regridding of a datasets onto another grid
 * Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)
-
 
 ## Contributors
 
