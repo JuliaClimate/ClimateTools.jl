@@ -291,3 +291,13 @@ mapclimgrid(model_qqmap, region = "Quebec")
 ![MIROC5_QQMAP](assets/MIROC5_QQMAP.png)
 
 Proper assessment of future climate conditions over the specified region would involve replicating these steps for minimally a dozen simulations from multiple models and different emission scenarios (e.g. RCP4.5, RCP8.5, etc.).
+
+## Climate indices
+
+Once the climate data is downscaled (interpolation **and** bias correction) to the proper scale, the user can compute climate indices. For example, annual maximum values of daily maximum temperature could be desired ([`annualmax`](@ref)).
+
+```julia
+annmax = annualmax(model_qqmap)
+```
+
+The return value of climate indices functions are another `ClimGrid`, but at the yearly scale in the case of annual maximum. Maps and timeseries can be plotted with [`mapclimgrid`](@ref) and [`plot`](@ref) respectively.

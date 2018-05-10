@@ -35,7 +35,7 @@ plot(ind)
 
 ![annualmaxtasmax](assets/timeserie_uqam_crcm5.png)
 
-*Note. label ticks should be improved!*
+*Note. Time labels ticks should be improved!*
 
 The timeserie represent the spatial average of the annual maximum temperature over the following region.
 

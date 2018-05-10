@@ -248,6 +248,7 @@ function load(file::String, variable::String; poly = ([]), start_date::Date = Da
     else
         dataunits = "mm"
     end
+    varattrib["standard_name"] = "precipitation"
   end
 
   # Create AxisArray from variable "data"
