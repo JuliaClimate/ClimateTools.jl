@@ -302,6 +302,7 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArra
     # Get lat-lon information from ClimGrid A
     lonorig = A.longrid
     latorig = A.latgrid
+    points = hcat(lonorig[:], latorig[:])
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
@@ -322,7 +323,7 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArra
         datatmp = dataorig[t, :, :]
 
         # Build points values
-        points = hcat(lonorig[:], latorig[:])
+
         val = datatmp[:]
 
         # Call scipy griddata
