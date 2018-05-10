@@ -1,12 +1,11 @@
 """
-    mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Date, end_date::Date)
+    mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Date, end_date::Date, surfacetype::Symbol)
 
 Maps the time-mean average of ClimGrid C.
 
-Optional keyworkd includes precribed regions (see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date.
+Optional keyworkd includes precribed regions (keyword *region*, see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword *level* is used to map a given level (defaults to 1). *caxis* is used to limit the colorscale.
 
-## Arguments
-Regions
+## Arguments for keyword *region*
 - Europe
 - NorthAmerica
 - Canada
@@ -14,8 +13,13 @@ Regions
 - Americas
 - World, WorldAz, WorldEck4
 - Greenwich
+
+## Arguments for keyword *surfacetype*
+- :contour
+- :contourf
+- :pcolormesh
 """
-function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Date=Date(-4000), end_date::Date=Date(-4000))
+function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Date=Date(-4000), end_date::Date=Date(-4000), surfacetype::Symbol=:contourf)
 
   # TODO Add options for custom region
 
@@ -35,96 +39,53 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   timebeg, timeend = timeindex(timeV, start_date, end_date, C.frequency)
 
   # =============
-  # MAP DEFINITION
-
-  status, fig, ax, m = mapclimgrid(region=region, states=states, llon=llon, rlon=rlon, slat=slat, nlat=nlat)
-
-  x, y = m(C.longrid, C.latgrid)
-
   # Colorscale
   # TODO replace C[10] comparison with C.varattribs["standard_name"]
+
+
+
 
   if C[10] == "pr" || C[10]=="huss"
       # cm = "YlGnBu"
       cm = cmocean[:cm][:deep]
   elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin"
       cm = "YlOrBr"
-      # cm = cmocean[:cm][:solar]
-  elseif C[10]=="psl"
+      # cm = "RdYlBu_r"
+      # cm = "Blues"
+      # cm = mpl[:cm][:get_cmap]("OrRd")
+
+      # cm = cmocean[:cm][:thermal]
+  elseif C[10]=="psl" # pressure
       cm = cmocean[:cm][:deep_r]
+  elseif C[10]=="ua" # wind
+      cm = cmocean[:cm][:balance]
   else
       cm = "viridis"
   end
 
   # =================
   # PLOT DATA
-  # 3D fields
-  if ndims(C[1]) == 3
-    data2 = squeeze(mean(C[1][timebeg:timeend, :, :], 1), 1) #time mean
+  # Time-average
+  data2 = timeavg(C, timebeg, timeend, mask, poly, level)
 
-    # TODO throw error/warning if no grid point inside polygon or mask
+  # Get colorscale limits
+  vmin, vmax = getcslimits(caxis, data2)
+  norm = mpl[:colors][:Normalize](vmin=vmin, vmax=vmax)
 
-    if !isempty(mask) # if mask is already provided
-        data2 = data2 .* mask
-    elseif !isempty(poly) # if mask needs to be calculated from polygon
-        msk = inpolygrid(C.longrid, C.latgrid, poly)
-        data2 = data2 .* msk
-    end
 
-    if !isempty(caxis)
-        vmin = caxis[1]
-        vmax = caxis[2]
-    else
-        vmin=minimum(data2[.!isnan.(data2)])
-        vmax=maximum(data2[.!isnan.(data2)])
-    end
+  # Plot on the map
+  status, fig, ax, m = mapclimgrid(region=region, states=states, llon=llon, rlon=rlon, slat=slat, nlat=nlat)
 
-    # Plot data
-    cs = m[:contourf](x, y, data2, cmap = get_cmap(cm), vmin=vmin, vmax=vmax)
-
-    # TODO create 2D ClimGrid
-  # # 2D fields
-  # elseif ndims(C[1]) == 2
-  #     if isempty(poly)
-  #         cs = m[:contourf](x, y, convert(Array,C[1][:,:])', cmap = get_cmap(cm))
-  #     else
-  #         msk = inpolyvec(lon, lat, poly)'
-  #         cs = m[:contourf](x .* msk, y .* msk, convert(Array,C[1][:,:])' .* msk, cmap = get_cmap(cm))
-  #     end
-
-  # 4D fields
-  elseif ndims(C[1]) == 4 # 3D field
-    data2 = squeeze(mean(C[1][timebeg:timeend, :, :, level], 1), 1) # time mean over "level"
-
-    if !isempty(poly)
-        msk = inpolygrid(C.longrid, C.latgrid, poly)
-        data2 = data2 .* msk
-    elseif !isempty(mask)
-        data2 = data2 .* mask
-    end
-    cs = m[:contourf](x, y, data2, cmap = get_cmap(cm))
-
-  end
+  x, y = m(C.longrid, C.latgrid)
+  cs = m[surfacetype](x, y, data2, norm=norm, cmap = get_cmap(cm), vmin=vmin, vmax=vmax)
 
   # Colorbar
-  cbar = colorbar(cs, orientation = "vertical", shrink = 0.7, label = C[2])
+  cbar = colorbar(cs, orientation = "vertical", shrink = 0.7, label = getunitslabel(C))
 
-  if ndims(C[1]) > 2
+  # Title
+  titlestr = titledef(C)
+  title(titlestr)
 
-      if typeof((C[1][Axis{:time}][1])) == Date
-          begYear = string(Base.Dates.year(C[1][Axis{:time}][1]))
-          endYear = string(Base.Dates.year(C[1][Axis{:time}][end]))
-      elseif typeof((C[1][Axis{:time}][1])) == Base.Dates.Year
-          begYear = string(C[1][Axis{:time}][1])[1:4]
-          endYear = string(C[1][Axis{:time}][end])[1:4]
-      elseif typeof((C[1][Axis{:time}][1])) == Int
-          begYear = string(C[1][Axis{:time}][1])[1:4]
-          endYear = string(C[1][Axis{:time}][end])[1:4]
-      end
-      title(string(C[3], " - ", C[5], " - ", C.variable, " - ", begYear, " - ", endYear))
-  else
-      title(string(C[3], " - ", C[5], " - ", C.variable))
-  end
 
   return true, fig, ax, cbar
 end
@@ -229,5 +190,130 @@ function PyPlot.plot(C::ClimGrid; titlefig="", gridfig::Bool=true)
     end
 
     return figh, ax
+
+end
+
+"""
+    getcslimits(caxis, data)
+
+Returns minimum and maximum values of the colorscale axis. Used internally by [`mapclimgrid`](@ref).
+"""
+
+function getcslimits(caxis, data)
+
+    if !isempty(caxis)
+        vmin = caxis[1]
+        vmax = caxis[2]
+    else
+        vmin=minimum(data[.!isnan.(data)])
+        vmax=maximum(data[.!isnan.(data)])
+    end
+
+    return vmin, vmax
+
+
+end
+
+"""
+    timeavg(C, timebeg, timeend, mask, poly, level)
+
+Returns an array for mapping purpose. Used internally by [`mapclimgrid`](@ref).
+"""
+
+function timeavg(C, timebeg, timeend, mask, poly, level)
+    data2 = Array{Float64}(size(C[1], 2), size(C[1], 3))
+    if ndims(C[1]) == 3
+      data2 = squeeze(mean(C[1][timebeg:timeend, :, :], 1), 1) #time mean
+
+      # TODO throw error/warning if no grid point inside polygon or mask
+
+      if !isempty(mask) # if mask is already provided
+          data2 = data2 .* mask
+      elseif !isempty(poly) # if mask needs to be calculated from polygon
+          msk = inpolygrid(C.longrid, C.latgrid, poly)
+          data2 = data2 .* msk
+      end
+
+      # TODO create 2D ClimGrid
+    # # 2D fields
+    # elseif ndims(C[1]) == 2
+    #     if isempty(poly)
+    #         cs = m[:contourf](x, y, convert(Array,C[1][:,:])', cmap = get_cmap(cm))
+    #     else
+    #         msk = inpolyvec(lon, lat, poly)'
+    #         cs = m[:contourf](x .* msk, y .* msk, convert(Array,C[1][:,:])' .* msk, cmap = get_cmap(cm))
+    #     end
+
+    # 4D fields
+  elseif ndims(C[1]) == 4 # 4D field
+      data2 = squeeze(mean(C[1][timebeg:timeend, :, :, level], 1), 1) # time mean over "level"
+
+      if !isempty(poly)
+          msk = inpolygrid(C.longrid, C.latgrid, poly)
+          data2 = data2 .* msk
+      elseif !isempty(mask)
+          data2 = data2 .* mask
+      end
+
+    end
+    return data2
+end
+
+"""
+    titledef(C::ClimGrid)
+
+Returns the title. Used internally by [`mapclimgrid`](@ref).
+"""
+
+function titledef(C::ClimGrid)
+    if ndims(C[1]) > 2
+
+        if typeof((C[1][Axis{:time}][1])) == Date
+            begYear = string(Base.Dates.year(C[1][Axis{:time}][1]))
+            endYear = string(Base.Dates.year(C[1][Axis{:time}][end]))
+        elseif typeof((C[1][Axis{:time}][1])) == Base.Dates.Year
+            begYear = string(C[1][Axis{:time}][1])[1:4]
+            endYear = string(C[1][Axis{:time}][end])[1:4]
+        elseif typeof((C[1][Axis{:time}][1])) == Int
+            begYear = string(C[1][Axis{:time}][1])[1:4]
+            endYear = string(C[1][Axis{:time}][end])[1:4]
+        end
+        titlestr = string(C[3], " - ", C[5], " - ", C.variable, " - ", begYear, " - ", endYear)
+
+    else
+        titlestr = string(C[3], " - ", C[5], " - ", C.variable)
+    end
+
+    return titlestr
+
+end
+
+"""
+    getunitslabel(C::ClimGrid)
+
+Return verbose label for colorbar. Used internally by [`mapclimgrid`](@ref).
+"""
+
+function getunitslabel(C::ClimGrid)
+
+    standardname = C.varattribs["standard_name"]
+
+    units = Dict(["air_temperature" => "Air temperature",
+    "specific_humidity" => "Specific humidity (%)",
+    "precipitation" => "Precipitation",
+    "precipitation_flux" => "Precipitation flux",
+    "air_pressure_at_sea_level" => "Air pressure at sea level",
+    "eastward_wind" => "Eastward wind"
+    ])
+
+    label = ""
+
+    try
+        label = string(units[standardname], " (", C[2], ")")
+    catch
+        label = C[2]
+    end
+
+    return label
 
 end
