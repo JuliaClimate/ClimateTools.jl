@@ -230,7 +230,4 @@ function PyPlot.plot(C::ClimGrid; titlefig="", gridfig::Bool=true)
 
     return figh, ax
 
-
-
-
 end

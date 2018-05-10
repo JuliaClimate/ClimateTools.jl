@@ -25,9 +25,9 @@ Plotting timeseries of a given `ClimGrid` C is simply done by calling [`plot`](@
 using ClimateTools
 poly_reg = [[NaN -65 -80 -80 -65 -65];[NaN 42 42 52 52 42]]
 # Extract tasmax variable over specified polygon, between January 1st 1950 and December 31st 2005
-C_hist = nc2julia("historical.nc", "tasmax", data_units="Celsius", poly=poly_reg, start_date=Date(1950, 01, 01), end_date=Date(2005, 12, 31)))
+C_hist = load("historical.nc", "tasmax", data_units="Celsius", poly=poly_reg, start_date=Date(1950, 01, 01), end_date=Date(2005, 12, 31)))
 # Extract tasmax variable over specified polygon, between January 1st 2006 and December 31st 2090 for emission scenario RCP8.5
-C_future85 = nc2julia("futureRCP85.nc", "tasmax", data_units="Celsius", poly=poly_reg, start_date=Date(2006, 01, 01), end_date=Date(2090, 12, 31)))
+C_future85 = load("futureRCP85.nc", "tasmax", data_units="Celsius", poly=poly_reg, start_date=Date(2006, 01, 01), end_date=Date(2090, 12, 31)))
 C = merge(C_hist, C_future)
 ind = annualmax(C) # compute annual maximum
 plot(ind)

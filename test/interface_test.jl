@@ -1,9 +1,9 @@
-# test that nc2julia return a ClimGrid type
+# test that load return a ClimGrid type
 filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
-C = nc2julia(filenc, "tas")
-@test nc2julia(filenc, "tas", data_units = "Celsius")[2] == "Celsius"
-@test nc2julia(filenc, "pr", data_units = "mm")[2] == "mm"
-@test typeof(nc2julia(filenc, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:time,Array{Date,1}},AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}}}}}
+C = load(filenc, "tas")
+@test load(filenc, "tas", data_units = "Celsius")[2] == "Celsius"
+@test load(filenc, "pr", data_units = "mm")[2] == "mm"
+@test typeof(load(filenc, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:time,Array{Date,1}},AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}}}}}
 
 @test typeof(buildtimevec(filenc)) == Array{Date, 1}
 
@@ -66,28 +66,28 @@ polyshp = read(filename,Shapefile.Handle)
 x, y = shapefile_coords(polyshp.shapes[1])
 P = [x y]
 P = P'
-C = nc2julia(filenc, "tas")
+C = load(filenc, "tas")
 Csub = spatialsubset(C, P)
 @test size(Csub[1]) == (1, 23, 12)
 @test Csub[1][1, 1, 1] == 294.6609f0
 Csub = spatialsubset(C, P')
 @test size(Csub[1]) == (1, 23, 12)
 @test Csub[1][1, 1, 1] == 294.6609f0
-C = nc2julia(filenc, "ua")
+C = load(filenc, "ua")
 Csub = spatialsubset(C, P)
 @test size(Csub[1]) == (1, 23, 12, 17)
 @test Csub[1][1, 12, 1, 1] == 6.658482f0
 @test isnan(Csub[1][1, 1, 1, 1])
 
 poly= [[NaN 10 -10 -10 10 10];[NaN -10 -20 10 10 -10]] # meridian test
-C = nc2julia(filenc, "tas", poly=poly)
+C = load(filenc, "tas", poly=poly)
 
 # Spatial subset
-C = nc2julia(filenc, "tas")
+C = load(filenc, "tas")
 Csub = temporalsubset(C, Date(2000, 05, 15), Date(2000, 05, 15))
 @test Csub[1][1, 1, 1] == 219.22285f0
 @test Csub[1][Axis{:time}][1] == Date(2000, 05, 15)
-B = nc2julia(filenc, "tas", start_date=Date(2000, 05, 15), end_date=Date(2000, 05, 15))
+B = load(filenc, "tas", start_date=Date(2000, 05, 15), end_date=Date(2000, 05, 15))
 @test B[1] == C[1]
 
 # Time resolution
@@ -265,7 +265,7 @@ poly = Float64[0 0
 
 # Test Interpolation/regridding
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
-C = nc2julia(filename, "tas")
+C = load(filename, "tas")
 # Get lat lon vector
 lat = Float32.(C[1][Axis{:lat}][:])
 lon = Float32.(C[1][Axis{:lon}][:])

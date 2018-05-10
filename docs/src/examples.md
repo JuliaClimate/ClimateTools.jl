@@ -134,14 +134,14 @@ poly_reg = [[NaN -65 -80 -80 -65 -65];[NaN 42 42 52 52 42]]
  NaN   42.0   42.0   52.0   52.0   42.0
 ```
 
-The extraction of the desired variable can be done with the `nc2julia` function, by providing the polygon.
+The extraction of the desired variable can be done with the `load` function, by providing the polygon.
 
 ```julia
 gcmfiles =["tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc",
 "tasmax_day_MIROC5_historical_r1i1p1_19900101-19991231.nc",
 "tasmax_day_MIROC5_historical_r1i1p1_20000101-20091231.nc"]
 
-model = nc2julia(gcm_files, "tasmax", poly=poly_reg)
+model = load(gcm_files, "tasmax", poly=poly_reg)
 ClimGrid struct with data:
    3-dimensional AxisArray{Float32,3,...} with axes:
     :time, Date[1980-01-01, 1980-01-02, 1980-01-03, 1980-01-04, 1980-01-05, 1980-01-06, 1980-01-07, 1980-01-08, 1980-01-09, 1980-01-10  …  2009-12-22, 2009-12-23, 2009-12-24, 2009-12-25, 2009-12-26, 2009-12-27, 2009-12-28, 2009-12-29, 2009-12-30, 2009-12-31]
@@ -178,10 +178,10 @@ Climate data files are usually on the order of multiple GBs and institution gene
 C = merge(C1, C2) # merge C1 with C2
 ```
 
-The `merge` function is useful when you have 2 or 3 files. However, a single simulation can sometimes be splitted into yearly files. Hence, extracting timeseries on climatological timescales can imply loading more than a hundred files just to get a complete timeserie for a given gridpoint. The function `nc2julia` has a method where the 1st positional argument is an Array of strings (as opposed to a single string).
+The `merge` function is useful when you have 2 or 3 files. However, a single simulation can sometimes be splitted into yearly files. Hence, extracting timeseries on climatological timescales can imply loading more than a hundred files just to get a complete timeserie for a given gridpoint. The function `load` has a method where the 1st positional argument is an Array of strings (as opposed to a single string).
 
 ```julia
-C = nc2julia(strarray::Array{String,1}, variable::String; poly, start_date::Date, end_date::Date, data_units::String))
+C = load(strarray::Array{String,1}, variable::String; poly, start_date::Date, end_date::Date, data_units::String))
 ```
 
 This is how the MIROC5 simulation has been loaded.
@@ -215,7 +215,7 @@ obsfiles = ["nrcan_canada_daily_tasmax_1950.nc",
 "nrcan_canada_daily_tasmax_1968.nc",
 "nrcan_canada_daily_tasmax_1969.nc"]
 
-obs = nc2julia(obsfiles, "tasmax", poly=poly_reg)
+obs = load(obsfiles, "tasmax", poly=poly_reg)
 ```
 
 ```julia

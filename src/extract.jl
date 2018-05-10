@@ -1,5 +1,5 @@
 """
-    nc2julia(file::String, variable::String; poly = Array{Float64}([]), start_date::Date, end_date::Date, data_units::String = "")
+    load(file::String, variable::String; poly = Array{Float64}([]), start_date::Date, end_date::Date, data_units::String = "")
 
 Returns a ClimGrid type with the data in **file** of variable **var** inside the polygon **poly**. Metadata is built-in the ClimGrid type, from the netCDF attributes.
 
@@ -9,10 +9,10 @@ The polygon provided should be in the -180, +180 longitude format. If the polygo
 
 Options for data_units are for precipitation : "mm", which converts the usual "kg m-2 s-1" unit found in netCDF files. For temperature : "Celsius", which converts the usual "Kelvin" unit.
 
-**Note:** nc2julia is based on CF conventions (http://cfconventions.org/). If you are unable to read the netCDF file with nc2julia, the user will need to read it with low-level functions available in the NetCDF.jl package (https://github.com/JuliaGeo/NetCDF.jl).
+**Note:** load uses CF conventions (http://cfconventions.org/). If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in the NetCDF.jl package (https://github.com/JuliaGeo/NetCDF.jl).
 """
 
-function nc2julia(file::String, variable::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = "")
+function load(file::String, variable::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = "")
 
 
   # TODO this file is a complete mess, but it works. Clean it up!
@@ -260,7 +260,7 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
     # Convert data to AxisArray
     dataOut = AxisArray(data, Axis{:time}(timeV), Axis{Symbol(lonname)}(lon_raw), Axis{Symbol(latname)}(lat_raw), Axis{:plev}(plev))
   else
-    throw(error("nc2julia takes only 3D and 4D variables for the moment"))
+    throw(error("load takes only 3D and 4D variables for the moment"))
   end
 
   close(ds)
@@ -272,13 +272,13 @@ function nc2julia(file::String, variable::String; poly = ([]), start_date::Date 
 end
 
 
-function nc2julia(files::Array{String,1}, variable::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = "")
+function load(files::Array{String,1}, variable::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = "")
 
     C = [] # initialize # TODO better initialization
 
     for ifile = 1:length(files)
 
-        datatmp = nc2julia(files[ifile], variable, poly = poly, start_date=start_date, end_date=end_date, data_units=data_units)
+        datatmp = load(files[ifile], variable, poly = poly, start_date=start_date, end_date=end_date, data_units=data_units)
 
         if ifile == 1
             C = datatmp
@@ -397,7 +397,7 @@ end
 
 This function return the polygons contained in shp.shapes[i]. It returns the x and y coordinates vectors.
 
-See also [`shapefile_coords_poly`](@ref), which returns a polygon that ca be used for data extraction of the [`nc2julia`](@ref).
+See also [`shapefile_coords_poly`](@ref), which returns a polygon that ca be used for data extraction of the [`load`](@ref).
 
 """
 function shapefile_coords(poly::Shapefile.Polygon)
@@ -421,7 +421,7 @@ end
 
 Return the polygons contained in shp.shapes[i]. It returns an array containing the polygons.
 
-See also [`shapefile_coords`](@ref), which returns vectors as opposed to array. Returned polygon is consistent with the data extraction of the [`nc2julia`](@ref) function.
+See also [`shapefile_coords`](@ref), which returns vectors as opposed to array. Returned polygon is consistent with the data extraction of the [`load`](@ref) function.
 
 """
 function shapefile_coords_poly(poly::Shapefile.Polygon)

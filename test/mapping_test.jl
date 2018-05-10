@@ -9,9 +9,9 @@ P = shapefile_coords_poly(polyshp.shapes[1])
 lat = NetCDF.ncread(filenc, "lat")
 lon = NetCDF.ncread(filenc, "lon")
 msk = inpolygrid(C.longrid, C.latgrid, P)
-C = nc2julia(filenc, "tas", poly = P)
+C = load(filenc, "tas", poly = P)
 status, figh = mapclimgrid(C); @test status == true; PyPlot.close()
-C = nc2julia(filenc, "tas")
+C = load(filenc, "tas")
 status, figh = mapclimgrid(C, mask = msk); @test status == true; PyPlot.close()
 @test length(x) == 6
 @test length(y) == 6
@@ -30,7 +30,7 @@ status, figh = mapclimgrid(C, mask = msk); @test status == true; PyPlot.close()
 
 # Mapping test
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
-C = nc2julia(filename, "tas")
+C = load(filename, "tas")
 status, figh = mapclimgrid(C);@test status == true;PyPlot.close()
 status, figh = mapclimgrid(C, region = "World");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "WorldAz");@test status == true; PyPlot.close()
@@ -44,7 +44,7 @@ status, figh = mapclimgrid(C, region = "Greenwich");@test status == true; PyPlot
 status, figh = mapclimgrid(annualmax(C), region = "Europe");@test status == true; PyPlot.close()
 
 # precip
-C = nc2julia(filename, "pr", data_units="mm") + 2.0
+C = load(filename, "pr", data_units="mm") + 2.0
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, start_date=Date(2000, 05, 15), end_date=Date(2000, 05, 15));@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "World");@test status == true; PyPlot.close()
@@ -65,12 +65,12 @@ polyshp = read(filename,Shapefile.Handle)
 x, y = shapefile_coords(polyshp.shapes[1])
 P = [x y]
 P = P'
-C = nc2julia(filenc, "ua")
+C = load(filenc, "ua")
 status, figh = mapclimgrid(C, level = 3);@test status == true; PyPlot.close() # given level
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close() # feeding a 4D field
 status, figh = mapclimgrid(C, poly = P);@test status == true; PyPlot.close() # feeding a 4D field with a polygon
 status, figh = mapclimgrid(C, mask = msk);@test status == true; PyPlot.close() # feeding a 4D field with a mask
-C = nc2julia(filenc, "ua", poly = P)
+C = load(filenc, "ua", poly = P)
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close() # feeding a 4D field
 
 # empty map generation

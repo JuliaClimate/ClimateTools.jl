@@ -22,13 +22,13 @@ Pkg.checkout("ClimateTools") # For latest master branch
 
 The climate indices are coded to use **multiple threads**. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.CPU_CORES`.
 
-## Objectives
+## Features
 
-* Extraction and visualization of NetCDF datasets, with user-provided polygons and start and end date.
-* Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI)
-* Custom climate indices
-* Interpolation of a datasets onto another grid
-* Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Piani et al. 2010)
+* Extraction and visualization of CF-compliant netCDF datasets
+* Custom user-provided polygons and start and end date for localized studies
+* Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices
+* Regridding of a datasets onto another grid
+* Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)
 
 ## Getting started
 
@@ -47,9 +47,8 @@ C = nc2julia(filename::String, var::String; poly::Array, data_units::String, sta
 The `ClimGrid` is a in-memory representation of a CF-compliant netCDF file for a single variable.
 
 ```julia
-struct ClimGrid{A <: AxisArray}
-# struct ClimGrid
-  data::A
+struct ClimGrid
+  data::AxisArray
   longrid::AbstractArray{N,2} where N # the longitude grid
   latgrid::AbstractArray{N,2} where N # the latitude grid
   msk::Array{N, 2} where N
@@ -157,12 +156,11 @@ If you'd like to have other climate indices coded, please, submit them through a
 
 ## TO-DO
 
-* Add a standard quantile-quantile mapping technique
 * Dashboard tool. This will return the main characteristics of a ClimGrid: maps of minimum, maximum and mean climatological values, seasonal cycle, timeseries of annual maximum, minimum and mean values, etc...
 * Create a WeatherStation type.
 * Export ClimGrid to netCDF file.
 * Add a more complex quantile-quantile mapping technique, combining extreme value theory and quantile-quantile standard technique
-* Add GRIB file support (probably through [GMT.jl](https://github.com/joa-quim/GMT.jl))
+
 
 N.B. version 0.1.2 is compatible with Julia 0.5 and version >0.2.0 is for Julia 0.6. To use a specific version of the package, you can use in Julia the following command:
 
