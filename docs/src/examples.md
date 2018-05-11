@@ -219,7 +219,7 @@ obs = load(obsfiles, "tasmax", poly=poly_reg)
 ```
 
 ```julia
-mapclimgrid(obs, region = "Quebec")
+mapclimgrid(obs, region = "Quebec",titlestr="Gridded Obs, 1980-2009")
 ```
 
 ![NRCAN](assets/NRCAN.png)
@@ -250,7 +250,7 @@ Filename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc
 ```
 
 ```julia
-julia> mapclimgrid(modelinterp, region = "Quebec")
+julia> mapclimgrid(modelinterp, region = "Quebec", titlestr="MIROC5 - Interpolated - 1980-2009")
 ```
 
 ![MIROC5_INTERP](assets/MIROC5_INTERP.png)
@@ -259,7 +259,7 @@ Notice that there is no new information created here. The interpolation is using
 
 ### Quantile-quantile mapping
 
-The high-resolution local information is integrated into `ClimGrid modelinterp` at the bias correction step. There is a daily transfer function applied on a quantile basis.The call signature is `qqmap(obs, ref, fut)` where the transfer function is estimated between `obs` and `ref` and applied on `fut`. Note that `ref` and `fut` can be the same, as in this example. A typical use-case would be `obs` and `ref` covering the same (historical, e.g. 1961-2010) temporal window and `fut` being a simulation covering a future climatological period (which could be a mix of historic and future, such as 1961-2090). This step is computationally intensive.
+The high-resolution local information is integrated into `ClimGrid modelinterp` at the bias correction step. There is a daily transfer function applied on a quantile basis.The call signature is `qqmap(obs, ref, fut)` where the transfer function is estimated between `obs` and `ref` and applied on `fut`. Note that `ref` and `fut` can be the same, as in this example. A typical use-case would be `obs` and `ref` covering the same (historical, e.g. 1961-2010) temporal window and `fut` being a simulation covering a future climatological period (which could be a mix of historic and future, such as 1961-2090). This step is computationally intensive (uses of multiple threads can help here if set by the user).
 
 ```julia
 model_qqmap = qqmap(obs, modelinterp, modelinterp)
@@ -285,12 +285,20 @@ Filename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc
 Mapping the results show that the local information is integrated into the model, and that the natural "mask" of the observation grid is applied naturally.
 
 ```julia
-mapclimgrid(model_qqmap, region = "Quebec")
+mapclimgrid(model_qqmap, region = "Quebec", titlestr="MIROC5 - Interpolated and Quantile-Quantile corrected - 1980-2009")
 ```
 
 ![MIROC5_QQMAP](assets/MIROC5_QQMAP.png)
 
 Proper assessment of future climate conditions over the specified region would involve replicating these steps for minimally a dozen simulations from multiple models and different emission scenarios (e.g. RCP4.5, RCP8.5, etc.).
+
+We can show the effect of bias correction by simply subtracting `model_qqmap` from `modelinterp`.
+
+```julia
+mapclimgrid(modelinterp-model_qqmap, region = "qc", titlestr="MIROC5 - bias correction effect - 1980-2009", center_cs=true)
+```
+
+![MIROC5_effect](assets/MIROC5_QQMAP_EFFECT.png)
 
 ## Climate indices
 
@@ -301,3 +309,18 @@ annmax = annualmax(model_qqmap)
 ```
 
 The return value of climate indices functions are another `ClimGrid`, but at the yearly scale in the case of annual maximum. Maps and timeseries can be plotted with [`mapclimgrid`](@ref) and [`plot`](@ref) respectively.
+
+Here's the effect of bias correcting on annual maximum values.
+
+```julia
+max_obs = annualmax(obs)
+max_modelinterp = annualmax(modelinterp)
+max_modelqqmap = annualmax(model_qqmap)
+
+# Plots
+plot(max_obs, label="OBS")
+plot(max_modelinterp, label="MIROC5 - interpolated")
+plot(max_modelqqmap, label="MIROC5 - bias corrected", titlefig = "Effect of bias correction on annual maximum values")
+```
+
+![timeseries](assets/timeseries.png)
