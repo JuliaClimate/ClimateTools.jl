@@ -63,7 +63,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
 
     dataout2 = AxisArray(dataout, Axis{:time}(datevec_fut2), Axis{lonsymbol}(fut[1][Axis{lonsymbol}][:]), Axis{latsymbol}(fut[1][Axis{latsymbol}][:]))
 
-    return ClimGrid(dataout2, longrid=fut.longrid, latgrid=fut.latgrid, model=fut.model, project=fut.project, institute=fut.institute, experiment=fut.experiment, run=fut.run, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal)
+    return ClimGrid(dataout2, longrid=fut.longrid, latgrid=fut.latgrid, model=fut.model, project=fut.project, institute=fut.institute, experiment=fut.experiment, run=fut.run, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal, varattribs=fut.varattribs, globalattribs=fut.varattribs)
 
 end
 
