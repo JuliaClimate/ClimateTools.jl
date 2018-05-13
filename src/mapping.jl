@@ -52,6 +52,17 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
       else
           cm = "YlOrBr"
       end
+      # cm = mpl[:colors][:LinearSegmentedColormap][:from_list]("cm_custom", ((255/255,247/255,236/255),(254/255,232/255,200/255),(253/255,212/255,158/255),(253/255,187/255,132/255),(252/255,141/255,89/255),(239/255,101/255,72/255),(215/255,48/255,31/255), (179/255,0/255,0/255), (127/255,0/255,0/255)), N=255)
+      #
+      # # cmap = mpl[:cm][:get_cmap](cm)
+      # colorlist = cm(linspace(0, 1, 255))
+      #
+      # cm = mpl[:colors][:LinearSegmentedColormap][:from_list]("cm_custom", colorlist, 255)
+
+
+
+      # cm = LinearSegmentedColormap.from_list(
+      #   cmap_name, colors, N=n_bin)
       # cm = "RdYlBu_r"
       # cm = "Blues"
       # cm = mpl[:cm][:get_cmap]("OrRd")
@@ -73,14 +84,18 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   # Get colorscale limits
   vmin, vmax = getcslimits(caxis, data2, center_cs)
 
-  norm = mpl[:colors][:Normalize](vmin=vmin, vmax=vmax)
+  # norm = mpl[:colors][:Normalize](vmin=vmin, vmax=vmax)
 
 
   # Plot on the map
   status, fig, ax, m = mapclimgrid(region=region, states=states, llon=llon, rlon=rlon, slat=slat, nlat=nlat)
 
   x, y = m(C.longrid, C.latgrid)
-  cs = m[surfacetype](x, y, data2, norm=norm, cmap = get_cmap(cm), vmin=vmin, vmax=vmax)
+  if surfacetype == :contourf
+    cs = m[surfacetype](x, y, data2, 12, cmap = cm, vmin=vmin, vmax=vmax)
+  else
+    cs = m[surfacetype](x, y, data2, cmap = cm, vmin=vmin, vmax=vmax)
+  end
 
   # Colorbar
   cbar = colorbar(cs, orientation = "vertical", shrink = 0.7, label = getunitslabel(C))
