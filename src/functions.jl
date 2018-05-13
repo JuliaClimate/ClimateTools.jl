@@ -236,12 +236,10 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
 
     # ---------------------------------------
     # Get lat-lon information from ClimGrid B
-    londest = B.longrid
-    latdest = B.latgrid
+    londest, latdest = getgrids(B)
 
     # Get lat-lon information from ClimGrid A
-    lonorig = A.longrid
-    latorig = A.latgrid
+    lonorig, latorig = getgrids(A)
     points = hcat(lonorig[:], latorig[:])
 
     # -----------------------------------------
@@ -300,8 +298,7 @@ Interpolate `ClimGrid` A onto lat-lon grid defined by londest and latdest vector
 function regrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArray{N, 1} where N; method::String="linear", min=[], max=[])
 
     # Get lat-lon information from ClimGrid A
-    lonorig = A.longrid
-    latorig = A.latgrid
+    lonorig, latorig = getgrids(A)    
     points = hcat(lonorig[:], latorig[:])
 
     # -----------------------------------------
@@ -321,13 +318,10 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArra
     for t = 1:length(timeorig)
 
         datatmp = dataorig[t, :, :]
-
         # Build points values
-
         val = datatmp[:]
 
         # Call scipy griddata
-
         OUT[t, :, :] = scipy[:griddata](points, val, (londest, latdest), method=method)
 
         next!(p)
@@ -355,12 +349,22 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArra
 end
 
 """
+    getgrids(C::ClimGrid)
+
+Returns longitude and latitude grids of ClimGrid C.
+"""
+function getgrids(C::ClimGrid)
+    longrid = C.longrid
+    latgrid = C.latgrid
+    return longrid, latgrid
+end
+
+"""
     applymask(A::AbstractArray{N, n}, mask::AbstractArray{N, n})
 
 This function applies a mask on the array A. Return an AbstractArray{N, n}.
 
 """
-
 function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} where N)
     for t = 1:size(A, 1) # time axis
         for lev = 1:size(A, 4) #level axis
