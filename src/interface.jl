@@ -91,6 +91,13 @@ function Base.:/(A::ClimGrid, k)
 end
 
 """
+    mean(A::ClimGrid)
+
+Compute the mean of `ClimGrid` A
+"""
+Base.mean(A::ClimGrid) = mean(A[1])
+
+"""
     minimum(A::ClimGrid)
 
 Compute the minimum value of `ClimGrid` A

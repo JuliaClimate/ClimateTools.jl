@@ -25,12 +25,19 @@ ind = annualmax(data::Array{Float64, 3}, dates::StepRange{Date, Base.Dates.Day})
 Although, without metadata contained into a `ClimGrid`, no checks are done.
 
 
-## Annual indices
+## Climate Indices
 
 ```@docs
 annualmax
+annualmean
+annualmin
+annualsum
+customthresover
+customthresunder
+daysabove10
+icingdays
+frostdays
+prcp1
+summerdays
+tropicalnights
 ```
-
-## Seasonal indices
-
-Coming soon.

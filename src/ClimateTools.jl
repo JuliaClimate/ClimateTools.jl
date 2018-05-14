@@ -25,6 +25,7 @@ import Base.minimum
 import Base.maximum
 import Base.std
 import Base.var
+import Base.mean
 import Base: +
 import Base: -
 import Base: *
@@ -126,7 +127,7 @@ export pr_timefactor, spatialsubset, temporalsubset
 export qqmap, ndgrid, permute_west_east
 export project_id, model_id, institute_id, experiment_id, frequency_var, runsim_id, getdim_lat, getdim_lon, isdefined
 export @isdefined
-export buildarray, timeindex, plot
-export minimum, maximum, std, var
+export buildarray, timeindex, plot, merge
+export minimum, maximum, std, var, mean
 
 end #module

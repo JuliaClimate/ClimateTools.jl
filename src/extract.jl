@@ -9,7 +9,7 @@ The polygon provided should be in the -180, +180 longitude format. If the polygo
 
 Options for data_units are for precipitation : "mm", which converts the usual "kg m-2 s-1" unit found in netCDF files. For temperature : "Celsius", which converts the usual "Kelvin" unit.
 
-**Note:** load uses CF conventions (http://cfconventions.org/). If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in the NetCDF.jl package (https://github.com/JuliaGeo/NetCDF.jl).
+**Note:** load uses [CF conventions](http://cfconventions.org/). If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in the [NetCDF.jl package](https://github.com/JuliaGeo/NetCDF.jl).
 """
 
 function load(file::String, variable::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = "")
@@ -271,6 +271,12 @@ function load(file::String, variable::String; poly = ([]), start_date::Date = Da
 
 
 end
+
+"""
+    load(files::Array{String,1}, variable::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = "")
+
+Loads and merge the files contained in the arrar files.
+"""
 
 
 function load(files::Array{String,1}, variable::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = "")

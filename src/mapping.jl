@@ -1,9 +1,9 @@
 """
-    mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Date, end_date::Date, titlestr::String, surfacetype::Symbol, center_cs::Bool)
+    mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Date, end_date::Date, titlestr::String, surfacetype::Symbol, ncolors::Int, center_cs::Bool)
 
 Maps the time-mean average of ClimGrid C.
 
-Optional keyworkd includes precribed regions (keyword *region*, see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword *level* is used to map a given level (defaults to 1). *caxis* is used to limit the colorscale. Set *center_cs* to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature)
+Optional keyworkd includes precribed regions (keyword *region*, see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword *level* is used to map a given level (defaults to 1). *caxis* is used to limit the colorscale. *ncolors* is used to set the number of color classes (defaults to 8). Set *center_cs* to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature).
 
 ## Arguments for keyword *region* (and shortcuts)
 - Europe ("EU")
@@ -19,7 +19,7 @@ Optional keyworkd includes precribed regions (keyword *region*, see list below),
 - :contourf
 - :pcolormesh
 """
-function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Date=Date(-4000), end_date::Date=Date(-4000), titlestr::String="", surfacetype::Symbol=:contourf, center_cs::Bool=false)
+function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Date=Date(-4000), end_date::Date=Date(-4000), titlestr::String="", surfacetype::Symbol=:contourf, ncolors::Int=8, center_cs::Bool=false)
 
   # TODO Add options for custom region
 
@@ -51,13 +51,17 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
           cm = "RdBu_r"
       else
           cm = "YlOrBr"
+          cm = "RdYlBu_r"
+          # cm = "YlOrRd"
+          # cm = "YlGnBu_r"
+          # cm = "Greys"
       end
-      cm = mpl[:colors][:LinearSegmentedColormap][:from_list]("cm_custom", ((255/255,247/255,236/255),(254/255,232/255,200/255),(253/255,212/255,158/255),(253/255,187/255,132/255),(252/255,141/255,89/255),(239/255,101/255,72/255),(215/255,48/255,31/255), (179/255,0/255,0/255), (127/255,0/255,0/255)), N=10)
+      # cm = mpl[:colors][:LinearSegmentedColormap][:from_list]("cm_custom", ((255/255,247/255,236/255),(254/255,232/255,200/255),(253/255,212/255,158/255),(253/255,187/255,132/255),(252/255,141/255,89/255),(239/255,101/255,72/255),(215/255,48/255,31/255), (179/255,0/255,0/255), (127/255,0/255,0/255)), ncolors+1)
       #
-      # # cmap = mpl[:cm][:get_cmap](cm)
-      # colorlist = cm(linspace(0, 1, 255))
-      #
-      # cm = mpl[:colors][:LinearSegmentedColormap][:from_list]("cm_custom", colorlist, 255)
+      # cmap = mpl[:cm][:get_cmap](cm)
+      # colorlist = cmap(linspace(0, 1, ncolors+2))
+      # #
+      # cm = mpl[:colors][:LinearSegmentedColormap][:from_list]("cm_custom", colorlist, ncolors+2)
 
 
 
@@ -92,7 +96,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
 
   x, y = m(C.longrid, C.latgrid)
   if surfacetype == :contourf
-    cs = m[surfacetype](x, y, data2, 12, cmap = cm, vmin=vmin, vmax=vmax)
+    cs = m[surfacetype](x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
   else
     cs = m[surfacetype](x, y, data2, cmap = cm, vmin=vmin, vmax=vmax)
   end
