@@ -1,7 +1,7 @@
 """
-    mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Date, end_date::Date, titlestr::String, surfacetype::Symbol, ncolors::Int, center_cs::Bool)
+    mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Date, end_date::Date, titlestr::String, surfacetype::Symbol, ncolors::Int, center_cs::Bool, filename::String)
 
-Maps the time-mean average of ClimGrid C.
+Maps the time-mean average of ClimGrid C. If a filename is provided, the figure is saved in a png format.
 
 Optional keyworkd includes precribed regions (keyword *region*, see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword *level* is used to map a given level (defaults to 1). *caxis* is used to limit the colorscale. *ncolors* is used to set the number of color classes (defaults to 8). Set *center_cs* to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature).
 
@@ -19,7 +19,7 @@ Optional keyworkd includes precribed regions (keyword *region*, see list below),
 - :contourf
 - :pcolormesh
 """
-function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Date=Date(-4000), end_date::Date=Date(-4000), titlestr::String="", surfacetype::Symbol=:contourf, ncolors::Int=8, center_cs::Bool=false)
+function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Date=Date(-4000), end_date::Date=Date(-4000), titlestr::String="", surfacetype::Symbol=:contourf, ncolors::Int=8, center_cs::Bool=false, filename::String="")
 
   # TODO Add options for custom region
 
@@ -113,6 +113,10 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
       titlestr = titledef(C)
   end
   title(titlestr)
+
+  if !isempty(filename)
+      PyPlot.savefig(filename)
+  end
 
   return true, fig, ax, cbar
 end
