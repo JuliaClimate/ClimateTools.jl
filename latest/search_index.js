@@ -153,19 +153,99 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "indices.html#Annual-indices-1",
+    "location": "indices.html#ClimateTools.annualmean",
     "page": "Climate Indices",
-    "title": "Annual indices",
-    "category": "section",
-    "text": "annualmax"
+    "title": "ClimateTools.annualmean",
+    "category": "function",
+    "text": "annualmean(C::ClimGrid)\n\nAnnual mean of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Calculate the mean value for year j.\n\n\n\nannualmean(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nAnnual mean of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Calculate the mean value for year j.\n\n\n\n"
 },
 
 {
-    "location": "indices.html#Seasonal-indices-1",
+    "location": "indices.html#ClimateTools.annualmin",
     "page": "Climate Indices",
-    "title": "Seasonal indices",
+    "title": "ClimateTools.annualmin",
+    "category": "function",
+    "text": "annualmin(C::ClimGrid)\n\nAnnual minimum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.\n\n\n\nannualmin(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nAnnual minimum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.\n\n\n\n"
+},
+
+{
+    "location": "indices.html#ClimateTools.annualsum",
+    "page": "Climate Indices",
+    "title": "ClimateTools.annualsum",
+    "category": "function",
+    "text": "annualsum(C::ClimGrid)\n\nAnnual sum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Sums daily values for year j.\n\n\n\nannualsum(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nValue of annual sum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Sums daily values for year j.\n\n\n\n"
+},
+
+{
+    "location": "indices.html#ClimateTools.customthresover",
+    "page": "Climate Indices",
+    "title": "ClimateTools.customthresover",
+    "category": "function",
+    "text": "customthresover(C::ClimGrid)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\n\n\ncustomthresover(data::AbstractArray, time::StepRange{Date,Base.Dates.Day}, thres)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\n\n\n"
+},
+
+{
+    "location": "indices.html#ClimateTools.customthresunder",
+    "page": "Climate Indices",
+    "title": "ClimateTools.customthresunder",
+    "category": "function",
+    "text": "customthresunder(C::ClimGrid)\n\ncustomthresover, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\n\n\ncustomthresunder(data::AbstractArray, time::StepRange{Date,Base.Dates.Day}, thres)\n\ncustomthresover, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\n\n\n"
+},
+
+{
+    "location": "indices.html#ClimateTools.daysabove10",
+    "page": "Climate Indices",
+    "title": "ClimateTools.daysabove10",
+    "category": "function",
+    "text": "daysabove10(C::ClimGrid)\n\nAnnual number of days with temperature >= 10 Celsius. This function returns a ClimGrid.\n\n\n\ndaysabove10(data::AbstractArray, timevector::StepRange{Date,Base.Dates.Day})\n\nAnnual number with temperature >= 10 Celsius. This function returns a boolean vector. true if the data is higher or equal to 1 and false otherwise.\n\n\n\n"
+},
+
+{
+    "location": "indices.html#ClimateTools.icingdays",
+    "page": "Climate Indices",
+    "title": "ClimateTools.icingdays",
+    "category": "function",
+    "text": "icingdays(C::ClimGrid)\n\nID, Number of summer days: Annual count of days when TX (daily maximum temperature) < 0 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] < 0 Celsius.\n\n\n\nicingdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nID, Number of summer days: Annual count of days when TX (daily maximum temperature) < 0 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] < 0 Celsius.\n\n\n\n"
+},
+
+{
+    "location": "indices.html#ClimateTools.frostdays",
+    "page": "Climate Indices",
+    "title": "ClimateTools.frostdays",
+    "category": "function",
+    "text": "frostdays(C::ClimGrid)\n\nFD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0 Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] < 0 Celsius.\n\n\n\nfrostdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nFD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0 Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] < 0 Celsius.\n\n\n\n"
+},
+
+{
+    "location": "indices.html#ClimateTools.prcp1",
+    "page": "Climate Indices",
+    "title": "ClimateTools.prcp1",
+    "category": "function",
+    "text": "prcp1(C::ClimGrid)\n\nAnnual number with preciptation >= 1 mm. This function returns a ClimGrid.\n\n\n\nprcp1(data::AbstractArray, timevector::StepRange{Date,Base.Dates.Day})\n\nAnnual number with preciptation >= 1 mm. This function returns a boolean vector. true if the data is higher or equal to 1 and false otherwise.\n\n\n\n"
+},
+
+{
+    "location": "indices.html#ClimateTools.summerdays",
+    "page": "Climate Indices",
+    "title": "ClimateTools.summerdays",
+    "category": "function",
+    "text": "summerdays(C::ClimGrid)\n\nSD, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] > 25 Celsius.\n\n\n\nsummerdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nSD, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] > 25 Celsius.\n\n\n\n"
+},
+
+{
+    "location": "indices.html#ClimateTools.tropicalnights",
+    "page": "Climate Indices",
+    "title": "ClimateTools.tropicalnights",
+    "category": "function",
+    "text": "tropicalnights(C::ClimGrid)\n\nTropicalNights, Number of tropical nights: Annual count of days when TN (daily maximum temperature) > 20 degree Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] > 20 Celsius.\n\n\n\ntropicalnights(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nTropicalNights, Number of tropical nights: Annual count of days when TN (daily maximum temperature) > 20 degree Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] > 20 Celsius.\n\n\n\n"
+},
+
+{
+    "location": "indices.html#Climate-Indices-2",
+    "page": "Climate Indices",
+    "title": "Climate Indices",
     "category": "section",
-    "text": "Coming soon."
+    "text": "annualmax\nannualmean\nannualmin\nannualsum\ncustomthresover\ncustomthresunder\ndaysabove10\nicingdays\nfrostdays\nprcp1\nsummerdays\ntropicalnights"
 },
 
 {
@@ -221,7 +301,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Maps",
     "title": "ClimateTools.mapclimgrid",
     "category": "function",
-    "text": "mapclimgrid(C::ClimGrid; region::String=\"auto\", poly, level, mask, caxis, start_date::Date, end_date::Date, titlestr::String, surfacetype::Symbol, center_cs::Bool)\n\nMaps the time-mean average of ClimGrid C.\n\nOptional keyworkd includes precribed regions (keyword region, see list below), spatial clipping by polygon (keyword poly) or mask (keyword mask, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword level is used to map a given level (defaults to 1). caxis is used to limit the colorscale. Set center_cs to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature)\n\nArguments for keyword region (and shortcuts)\n\nEurope (\"EU\")\nNorthAmerica (\"NA\")\nCanada (\"CA\")\nQuebec, QuebecNSP (\"QC\", \"QCNSP\")\nAmericas (\"Ams\")\nWorld, WorldAz, WorldEck4 (\"W\", \"Waz\", \"Weck4\")\nGreenwich (\"Gr\")\n\nArguments for keyword surfacetype\n\n:contour\n:contourf\n:pcolormesh\n\n\n\nmapclimgrid(; region::String=\"auto\", poly, level, mask, caxis, start_date::Date, end_date::Date)\n\nEmpty map generator, when called without a ClimGrid as the positional argument.\n\n\n\n"
+    "text": "mapclimgrid(C::ClimGrid; region::String=\"auto\", poly, level, mask, caxis, start_date::Date, end_date::Date, titlestr::String, surfacetype::Symbol, ncolors::Int, center_cs::Bool)\n\nMaps the time-mean average of ClimGrid C.\n\nOptional keyworkd includes precribed regions (keyword region, see list below), spatial clipping by polygon (keyword poly) or mask (keyword mask, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword level is used to map a given level (defaults to 1). caxis is used to limit the colorscale. ncolors is used to set the number of color classes (defaults to 8). Set center_cs to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature).\n\nArguments for keyword region (and shortcuts)\n\nEurope (\"EU\")\nNorthAmerica (\"NA\")\nCanada (\"CA\")\nQuebec, QuebecNSP (\"QC\", \"QCNSP\")\nAmericas (\"Ams\")\nWorld, WorldAz, WorldEck4 (\"W\", \"Waz\", \"Weck4\")\nGreenwich (\"Gr\")\n\nArguments for keyword surfacetype\n\n:contour\n:contourf\n:pcolormesh\n\n\n\nmapclimgrid(; region::String=\"auto\", poly, level, mask, caxis, start_date::Date, end_date::Date)\n\nEmpty map generator, when called without a ClimGrid as the positional argument.\n\n\n\n"
 },
 
 {
@@ -261,7 +341,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Merging ClimGrid type",
     "category": "section",
-    "text": "Sometimes, the timeseries are split among multiple files (e.g. climate models outputs). To obtain the complete timeseries, you can merge 2 ClimGrid. The method is based on the merging of 2 AxisArrays and is overloaded for the ClimGrid type.C = merge(C1::ClimGrid, C2::ClimGrid)"
+    "text": "Sometimes, the timeseries are split among multiple files (e.g. climate models outputs). To obtain the complete timeseries, you can merge 2 ClimGrid. The method is based on the merging of 2 AxisArrays and is overloaded for the ClimGrid type.C = merge(C1::ClimGrid, C2::ClimGrid)To merge multiple ClimGrid form an array of files, load has a method that accepts an array of files to merge."
 },
 
 {
@@ -269,7 +349,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Operators",
     "category": "section",
-    "text": "Basic operators are overloaded on ClimGrid.minimum maximum std var"
+    "text": "Basic operators are overloaded on ClimGrid.mean minimum maximum std var"
 },
 
 {
@@ -366,6 +446,22 @@ var documenterSearchIndex = {"docs": [
     "title": "Base.maximum",
     "category": "method",
     "text": "maximum(A::ClimGrid)\n\nCompute the maximum value of ClimGrid A\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Base.mean-Tuple{ClimateTools.ClimGrid}",
+    "page": "Index",
+    "title": "Base.mean",
+    "category": "method",
+    "text": "mean(A::ClimGrid)\n\nCompute the mean of ClimGrid A\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Base.merge-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
+    "page": "Index",
+    "title": "Base.merge",
+    "category": "method",
+    "text": "merge(A::ClimGrid, B::ClimGrid)\n\nCombines two ClimGrid. Based on the AxisArrays method.\n\n\n\n"
 },
 
 {
@@ -569,11 +665,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#ClimateTools.load-Tuple{Array{String,1},String}",
+    "page": "Index",
+    "title": "ClimateTools.load",
+    "category": "method",
+    "text": "load(files::Array{String,1}, variable::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = \"\")\n\nLoads and merge the files contained in the arrar files.\n\n\n\n"
+},
+
+{
     "location": "functions.html#ClimateTools.load-Tuple{String,String}",
     "page": "Index",
     "title": "ClimateTools.load",
     "category": "method",
-    "text": "load(file::String, variable::String; poly = Array{Float64}([]), start_date::Date, end_date::Date, data_units::String = \"\")\n\nReturns a ClimGrid type with the data in file of variable var inside the polygon poly. Metadata is built-in the ClimGrid type, from the netCDF attributes.\n\nInside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude/x and latitude/y dimensions.\n\nThe polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).\n\nOptions for data_units are for precipitation : \"mm\", which converts the usual \"kg m-2 s-1\" unit found in netCDF files. For temperature : \"Celsius\", which converts the usual \"Kelvin\" unit.\n\nNote: load uses CF conventions (http://cfconventions.org/). If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in the NetCDF.jl package (https://github.com/JuliaGeo/NetCDF.jl).\n\n\n\n"
+    "text": "load(file::String, variable::String; poly = Array{Float64}([]), start_date::Date, end_date::Date, data_units::String = \"\")\n\nReturns a ClimGrid type with the data in file of variable var inside the polygon poly. Metadata is built-in the ClimGrid type, from the netCDF attributes.\n\nInside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude/x and latitude/y dimensions.\n\nThe polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).\n\nOptions for data_units are for precipitation : \"mm\", which converts the usual \"kg m-2 s-1\" unit found in netCDF files. For temperature : \"Celsius\", which converts the usual \"Kelvin\" unit.\n\nNote: load uses CF conventions. If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in the NetCDF.jl package.\n\n\n\n"
 },
 
 {
@@ -581,7 +685,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.mapclimgrid",
     "category": "method",
-    "text": "mapclimgrid(C::ClimGrid; region::String=\"auto\", poly, level, mask, caxis, start_date::Date, end_date::Date, titlestr::String, surfacetype::Symbol, center_cs::Bool)\n\nMaps the time-mean average of ClimGrid C.\n\nOptional keyworkd includes precribed regions (keyword region, see list below), spatial clipping by polygon (keyword poly) or mask (keyword mask, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword level is used to map a given level (defaults to 1). caxis is used to limit the colorscale. Set center_cs to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature)\n\nArguments for keyword region (and shortcuts)\n\nEurope (\"EU\")\nNorthAmerica (\"NA\")\nCanada (\"CA\")\nQuebec, QuebecNSP (\"QC\", \"QCNSP\")\nAmericas (\"Ams\")\nWorld, WorldAz, WorldEck4 (\"W\", \"Waz\", \"Weck4\")\nGreenwich (\"Gr\")\n\nArguments for keyword surfacetype\n\n:contour\n:contourf\n:pcolormesh\n\n\n\n"
+    "text": "mapclimgrid(C::ClimGrid; region::String=\"auto\", poly, level, mask, caxis, start_date::Date, end_date::Date, titlestr::String, surfacetype::Symbol, ncolors::Int, center_cs::Bool)\n\nMaps the time-mean average of ClimGrid C.\n\nOptional keyworkd includes precribed regions (keyword region, see list below), spatial clipping by polygon (keyword poly) or mask (keyword mask, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword level is used to map a given level (defaults to 1). caxis is used to limit the colorscale. ncolors is used to set the number of color classes (defaults to 8). Set center_cs to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature).\n\nArguments for keyword region (and shortcuts)\n\nEurope (\"EU\")\nNorthAmerica (\"NA\")\nCanada (\"CA\")\nQuebec, QuebecNSP (\"QC\", \"QCNSP\")\nAmericas (\"Ams\")\nWorld, WorldAz, WorldEck4 (\"W\", \"Waz\", \"Weck4\")\nGreenwich (\"Gr\")\n\nArguments for keyword surfacetype\n\n:contour\n:contourf\n:pcolormesh\n\n\n\n"
 },
 
 {
