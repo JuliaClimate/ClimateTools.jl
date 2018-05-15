@@ -3,7 +3,7 @@
 
 Maps the time-mean average of ClimGrid C. If a filename is provided, the figure is saved in a png format.
 
-Optional keyworkd includes precribed regions (keyword *region*, see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword *level* is used to map a given level (defaults to 1). *caxis* is used to limit the colorscale. *ncolors* is used to set the number of color classes (defaults to 8). Set *center_cs* to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature).
+Optional keyworkd includes precribed regions (keyword *region*, see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword *level* is used to map a given level (defaults to 1). *caxis* is used to limit the colorscale. *ncolors* is used to set the number of color classes (defaults to 12). Set *center_cs* to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature).
 
 ## Arguments for keyword *region* (and shortcuts)
 - Europe ("EU")
@@ -19,7 +19,7 @@ Optional keyworkd includes precribed regions (keyword *region*, see list below),
 - :contourf
 - :pcolormesh
 """
-function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Date=Date(-4000), end_date::Date=Date(-4000), titlestr::String="", surfacetype::Symbol=:contourf, ncolors::Int=8, center_cs::Bool=false, filename::String="")
+function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Date=Date(-4000), end_date::Date=Date(-4000), titlestr::String="", surfacetype::Symbol=:contourf, ncolors::Int=12, center_cs::Bool=false, filename::String="")
 
   # TODO Add options for custom region
 
@@ -187,7 +187,7 @@ end
 Plots the spatial average timeserie of ClimGrid `C`.
 """
 
-function PyPlot.plot(C::ClimGrid; titlefig::String="", gridfig::Bool=true, label::String="")
+function PyPlot.plot(C::ClimGrid; titlestr::String="", gridfig::Bool=true, label::String="")
 
     data = C[1].data
     timevec = C[1][Axis{:time}][:]
@@ -216,10 +216,10 @@ function PyPlot.plot(C::ClimGrid; titlefig::String="", gridfig::Bool=true, label
     xlabel("Time")
     ylabel(C.dataunits)
     legend()
-    if isempty(titlefig)
-        titlefig = C.variable
+    if isempty(titlestr)
+        titlestr = C.variable
     end
-    title(titlefig)
+    title(titlestr)
     if gridfig
         grid("on")
     end
@@ -335,14 +335,19 @@ Return verbose label for colorbar. Used internally by [`mapclimgrid`](@ref).
 
 function getunitslabel(C::ClimGrid)
 
-    standardname = C.varattribs["standard_name"]
+    try
+        standardname = C.varattribs["standard_name"]
+    catch
+        standardname = C.varattribs["long_name"]
+    end
 
     units = Dict(["air_temperature" => "Air temperature",
     "specific_humidity" => "Specific humidity (%)",
     "precipitation" => "Precipitation",
     "precipitation_flux" => "Precipitation flux",
     "air_pressure_at_sea_level" => "Air pressure at sea level",
-    "eastward_wind" => "Eastward wind"
+    "eastward_wind" => "Eastward wind",
+    "daily maximum temperature" => "Air temperature"
     ])
 
     label = ""
