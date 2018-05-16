@@ -6,7 +6,7 @@
 
 In theory, launching the command `using ClimateTools` should install all required dependencies. However, sometimes it's just better to do it manually to ensure that all steps are properly done. If the installation fails when launching `ùsing ClimateTools`, here are the steps to do it manually.
 
-*Note. ClimateTools is developed using the Python distribution in the Conda package by default. PyCall should be built with the `ENV["PYTHON"] = ""` environment and then re-build PyCall with `Pkg.build("PyCall")`.*
+*Note. ClimateTools is developed using the Python distribution in the Conda package by default. PyCall should be built with the `ENV["PYTHON"] = ""` environment and then re-build PyCall with `Pkg.build("PyCall")`. However, it should work with python 2.7.x without modifications. Work is in progress to fully support Python 3.4+*
 
 ```julia
 ENV["PYTHON"] = "" # tells PyCall to use Julia's Conda python environment
