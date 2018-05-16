@@ -56,26 +56,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
           # cm = "YlGnBu_r"
           # cm = "Greys"
       end
-      # cm = mpl[:colors][:LinearSegmentedColormap][:from_list]("cm_custom", ((255/255,247/255,236/255),(254/255,232/255,200/255),(253/255,212/255,158/255),(253/255,187/255,132/255),(252/255,141/255,89/255),(239/255,101/255,72/255),(215/255,48/255,31/255), (179/255,0/255,0/255), (127/255,0/255,0/255)), ncolors+1)
-      #
-      if surfacetype == :contourf || surfacetype == :contour
-          N = 256
-      elseif surfacetype == :pcolormesh
-          N = ncolors
-      end
-      cmap = mpl[:cm][:get_cmap](cm)
-      colorlist = cmap(linspace(0, 1, N))
-      # #
-      cm = mpl[:colors][:LinearSegmentedColormap][:from_list]("cm_custom", colorlist, N)
 
-
-      # cm = LinearSegmentedColormap.from_list(
-      #   cmap_name, colors, N=n_bin)
-      # cm = "RdYlBu_r"
-      # cm = "Blues"
-      # cm = mpl[:cm][:get_cmap]("OrRd")
-
-      # cm = cmocean[:cm][:thermal]
   elseif C[10]=="psl" # pressure
       cm = cmocean[:cm][:deep_r]
   elseif C[10]=="ua" # wind
@@ -83,6 +64,16 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   else
       cm = "viridis"
   end
+
+  if surfacetype == :contourf || surfacetype == :contour
+      N = 256
+  elseif surfacetype == :pcolormesh
+      N = ncolors
+  end
+  cmap = mpl[:cm][:get_cmap](cm)
+  colorlist = cmap(linspace(0, 1, N))
+  # #
+  cm = mpl[:colors][:LinearSegmentedColormap][:from_list]("cm_custom", colorlist, N)
 
   # =================
   # PLOT DATA
