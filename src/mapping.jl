@@ -50,11 +50,9 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
       if center_cs
           cm = "RdBu_r"
       else
-          cm = "YlOrBr"
+          # cm = "YlOrBr"
           cm = "RdYlBu_r"
-          # cm = "YlOrRd"
-          # cm = "YlGnBu_r"
-          # cm = "Greys"
+
       end
 
   elseif C[10]=="psl" # pressure

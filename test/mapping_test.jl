@@ -11,8 +11,9 @@ lon = NetCDF.ncread(filenc, "lon")
 C = load(filenc, "tas", poly = P)
 msk = inpolygrid(C.longrid, C.latgrid, P)
 status, figh = mapclimgrid(C); @test status == true; PyPlot.close()
-C = load(filenc, "tas")
 status, figh = mapclimgrid(C, mask = msk); @test status == true; PyPlot.close()
+C = load(filenc, "tas")
+status, figh = mapclimgrid(C); @test status == true; PyPlot.close()
 @test length(x) == 6
 @test length(y) == 6
 @test isnan(x[1])
@@ -69,7 +70,7 @@ C = load(filenc, "ua")
 status, figh = mapclimgrid(C, level = 3);@test status == true; PyPlot.close() # given level
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close() # feeding a 4D field
 status, figh = mapclimgrid(C, poly = P);@test status == true; PyPlot.close() # feeding a 4D field with a polygon
-status, figh = mapclimgrid(C, mask = msk);@test status == true; PyPlot.close() # feeding a 4D field with a mask
+status, figh = mapclimgrid(spatialsubset(C, P), mask = msk);@test status == true; PyPlot.close() # feeding a 4D field with a mask
 C = load(filenc, "ua", poly = P)
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close() # feeding a 4D field
 
