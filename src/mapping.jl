@@ -1,9 +1,9 @@
 """
-    mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Date, end_date::Date, titlestr::String, surfacetype::Symbol, ncolors::Int, center_cs::Bool, filename::String)
+    mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Date, end_date::Date, titlestr::String, surfacetype::Symbol, ncolors::Int, center_cs::Bool, filename::String, cs_label::String)
 
 Maps the time-mean average of ClimGrid C. If a filename is provided, the figure is saved in a png format.
 
-Optional keyworkd includes precribed regions (keyword *region*, see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword *level* is used to map a given level (defaults to 1). *caxis* is used to limit the colorscale. *ncolors* is used to set the number of color classes (defaults to 12). Set *center_cs* to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature).
+Optional keyworkd includes precribed regions (keyword *region*, see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword *level* is used to map a given level (defaults to 1). *caxis* is used to limit the colorscale. *ncolors* is used to set the number of color classes (defaults to 12). Set *center_cs* to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature). *cs_label* is used for custom colorscale label.
 
 ## Arguments for keyword *region* (and shortcuts)
 - Europe ("EU")
@@ -19,7 +19,7 @@ Optional keyworkd includes precribed regions (keyword *region*, see list below),
 - :contourf
 - :pcolormesh
 """
-function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Date=Date(-4000), end_date::Date=Date(-4000), titlestr::String="", surfacetype::Symbol=:contourf, ncolors::Int=12, center_cs::Bool=false, filename::String="")
+function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Date=Date(-4000), end_date::Date=Date(-4000), titlestr::String="", surfacetype::Symbol=:contourf, ncolors::Int=12, center_cs::Bool=false, filename::String="", cs_label::String="")
 
   # TODO Add options for custom region
 
@@ -95,10 +95,10 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   # norm = mpl[:colors][:Normalize](vmin=vmin, vmax=vmax)
 
 
-  # Plot on the map
+  # Empty-map generator
   status, fig, ax, m = mapclimgrid(region=region, states=states, llon=llon, rlon=rlon, slat=slat, nlat=nlat)
 
-  x, y = m(C.longrid, C.latgrid)
+  x, y = m(C.longrid, C.latgrid) # convert longrid and latgrid to projected coordinates
   if surfacetype == :contourf
     cs = m[surfacetype](x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
   else
@@ -106,7 +106,10 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   end
 
   # Colorbar
-  cbar = colorbar(cs, orientation = "vertical", shrink = 0.7, label = getunitslabel(C))
+  if isempty(cs_label)
+      cs_label = getunitslabel(C)
+  end
+  cbar = colorbar(cs, orientation = "vertical", shrink = 0.7, label=cs_label)
 
   # Title
   if isempty(titlestr)
@@ -114,6 +117,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   end
   title(titlestr)
 
+  # Save to "filename" if not empty
   if !isempty(filename)
       PyPlot.savefig(filename)
   end
@@ -335,11 +339,11 @@ Return verbose label for colorbar. Used internally by [`mapclimgrid`](@ref).
 
 function getunitslabel(C::ClimGrid)
 
-    try
+    # try
         standardname = C.varattribs["standard_name"]
-    catch
-        standardname = C.varattribs["long_name"]
-    end
+    # catch
+    #     standardname = C.varattribs["long_name"]
+    # end
 
     units = Dict(["air_temperature" => "Air temperature",
     "specific_humidity" => "Specific humidity (%)",
