@@ -144,6 +144,9 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
     elseif lowercase(region) == "northamerica" || lowercase(region) == "na"
         m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, lon_0 = -95, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
 
+    elseif lowercase(region) == "southamerica" || lowercase(region) == "sa"
+        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -110., llcrnrlat = -55., urcrnrlon = -30., urcrnrlat = 17., lon_0 = -60, lat_1 = -20, rsphere = (6378137.00, 6356752.3142))
+
     elseif lowercase(region) == "world" || lowercase(region) == "w"
         m = basemap[:Basemap](projection = "cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180)
 
