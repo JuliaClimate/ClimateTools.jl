@@ -253,21 +253,9 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
 
     # ------------------------
     # Interpolation
-    p = Progress(length(timeorig), 5)
-    for t = 1:length(timeorig)
+    # p = Progress(length(timeorig), 5)
+    interp!(OUT, timeorig, dataorig, points, londest, latdest, method, msk=B.msk)
 
-        # Points values
-        val = dataorig[t, :, :][:]
-
-        # Call scipy griddata
-        data_interp = scipy[:griddata](points, val, (londest, latdest), method=method)
-
-        # Apply mask from ClimGrid destination
-        OUT[t, :, :] = data_interp .* B.msk
-
-        next!(p)
-
-    end
 
     if !isempty(min)
         OUT[OUT.<=min] = min
@@ -287,6 +275,29 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
 
 end
 
+function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk=[])
+
+    p = Progress(length(timeorig), 5)
+    for t = 1:length(timeorig)
+
+        # Points values
+        val = dataorig[t, :, :][:]
+
+        # Call scipy griddata
+        data_interp = scipy[:griddata](points, val, (londest, latdest), method=method)
+
+        # Apply mask from ClimGrid destination
+        if !isempty(msk)
+            OUT[t, :, :] = data_interp .* msk
+        else
+            OUT[t, :, :] = data_interp
+        end
+
+        next!(p)
+
+    end
+end
+
 
 """
     C = regrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)A
@@ -298,7 +309,7 @@ Interpolate `ClimGrid` A onto lat-lon grid defined by londest and latdest vector
 function regrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArray{N, 1} where N; method::String="linear", min=[], max=[])
 
     # Get lat-lon information from ClimGrid A
-    lonorig, latorig = getgrids(A)    
+    lonorig, latorig = getgrids(A)
     points = hcat(lonorig[:], latorig[:])
 
     # -----------------------------------------
@@ -314,19 +325,20 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArra
 
     # ------------------------
     # Interpolation
-    p = Progress(length(timeorig), 5)
-    for t = 1:length(timeorig)
 
-        datatmp = dataorig[t, :, :]
-        # Build points values
-        val = datatmp[:]
-
-        # Call scipy griddata
-        OUT[t, :, :] = scipy[:griddata](points, val, (londest, latdest), method=method)
-
-        next!(p)
-
-    end
+    interp!(OUT, timeorig, dataorig, points, londest, latdest, method)
+    # for t = 1:length(timeorig)
+    #
+    #     datatmp = dataorig[t, :, :]
+    #     # Build points values
+    #     val = datatmp[:]
+    #
+    #     # Call scipy griddata
+    #     OUT[t, :, :] = scipy[:griddata](points, val, (londest, latdest), method=method)
+    #
+    #     next!(p)
+    #
+    # end
 
     if !isempty(min)
         OUT[OUT.<=min] = min
