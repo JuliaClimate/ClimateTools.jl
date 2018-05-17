@@ -160,7 +160,7 @@ function load(file::String, variable::String; poly = ([]), start_date::Date = Da
             data = permute_west_east(data, longrid)#idxwest, idxeast)
             msk = ClimateTools.permute_west_east(msk, longrid)
 
-            # Try to trim padding
+            # TODO Try to trim padding when meridian is crossed and model was on a 0-360 coords
             # idlon, idlat = findn(.!isnan.(msk))
             # minXgrid = minimum(idlon)
             # maxXgrid = maximum(idlon)
@@ -209,11 +209,11 @@ function load(file::String, variable::String; poly = ([]), start_date::Date = Da
 
   elseif isempty(poly) # no polygon clipping
       msk = Array{Float64}(ones((size(data, 1), size(data, 2))))
-    if ndims(data) == 3
-        data = extractdata(data, msk, idxtimebeg, idxtimeend)
-    elseif ndims(data) == 4
-        data = extractdata(data, msk, idxtimebeg, idxtimeend)
-    end
+    # if ndims(data) == 3
+      data = extractdata(data, msk, idxtimebeg, idxtimeend)
+    # elseif ndims(data) == 4
+        # data = extractdata(data, msk, idxtimebeg, idxtimeend)
+    # end
 
 
     if rotatedgrid
@@ -242,7 +242,7 @@ function load(file::String, variable::String; poly = ([]), start_date::Date = Da
 
     rez = timeresolution(NetCDF.ncread(file, "time"))
     factor = pr_timefactor(rez)
-    data = data * factor
+    data = data .* factor
     if rez != "N/A"
         dataunits = string("mm/",rez)
     else
@@ -254,12 +254,12 @@ function load(file::String, variable::String; poly = ([]), start_date::Date = Da
   # Create AxisArray from variable "data"
   if ndims(data) == 3
     # Convert data to AxisArray
-    dataOut = AxisArray(data, Axis{:time}(timeV), Axis{Symbol(lonname)}(lon_raw), Axis{Symbol(latname)}(lat_raw))
+    dataOut = AxisArray(data, Axis{Symbol(lonname)}(lon_raw), Axis{Symbol(latname)}(lat_raw), Axis{:time}(timeV))
   elseif ndims(data) == 4 # this imply a 3D field (height component)
     # Get level vector
     plev = ds["plev"][:]#NetCDF.ncread(file, "plev")
     # Convert data to AxisArray
-    dataOut = AxisArray(data, Axis{:time}(timeV), Axis{Symbol(lonname)}(lon_raw), Axis{Symbol(latname)}(lat_raw), Axis{:plev}(plev))
+    dataOut = AxisArray(data, Axis{Symbol(lonname)}(lon_raw), Axis{Symbol(latname)}(lat_raw), Axis{:plev}(plev), Axis{:time}(timeV))
   else
     throw(error("load takes only 3D and 4D variables for the moment"))
   end
@@ -553,9 +553,9 @@ function spatialsubset(C::ClimGrid, poly::Array{N, 2} where N)
     data = C[1].data
 
     if ndims(data) == 3
-        data = data[:, minXgrid:maxXgrid, minYgrid:maxYgrid]
+        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :]
     elseif ndims(data) == 4
-        data = data[:, minXgrid:maxXgrid, minYgrid:maxYgrid, :]
+        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, :]
     end
 
     #new mask (e.g. representing the region of the polygon)
@@ -568,7 +568,11 @@ function spatialsubset(C::ClimGrid, poly::Array{N, 2} where N)
     lon = lon[minXgrid:maxXgrid]
     lat = lat[minYgrid:maxYgrid]
 
-    dataOut = AxisArray(data, Axis{:time}(C[1][Axis{:time}][:]), Axis{lonsymbol}(lon), Axis{latsymbol}(lat))
+    if ndims(data) == 3
+      dataOut = AxisArray(data, Axis{lonsymbol}(lon), Axis{latsymbol}(lat),  Axis{:time}(C[1][Axis{:time}][:]))
+    elseif ndims(data) == 4
+      dataOut = AxisArray(data, Axis{lonsymbol}(lon), Axis{latsymbol}(lat), Axis{:level}(C[1][Axis{:plev}][:]), Axis{:time}(C[1][Axis{:time}][:]))
+    end
 
     return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
@@ -730,6 +734,12 @@ function shiftvector_180_west_east(lon_raw)
 
 end
 
+"""
+    extractdata(data, msk, idxtimebeg, idxtimeend)
+
+Returns the data contained in netCDF file, using the appropriate mask and time index. Used internally by `load`.
+
+"""
 
 
 function extractdata(data, msk, idxtimebeg, idxtimeend)
@@ -743,12 +753,11 @@ function extractdata(data, msk, idxtimebeg, idxtimeend)
     if ndims(data) == 3
         data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, idxtimebeg:idxtimeend]
         # Permute dims
-        # permutedims!(data, data, [3, 1, 2])
-        data = permutedims(data, [3, 1, 2])
+        # data = permutedims(data, [3, 1, 2])
     elseif ndims(data) == 4
         data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, idxtimebeg:idxtimeend]
         # Permute dims
-        data = permutedims(data, [4, 1, 2, 3])
+        # data = permutedims(data, [4, 1, 2, 3])
     end
 
     return data

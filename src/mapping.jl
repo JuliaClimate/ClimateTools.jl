@@ -25,7 +25,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
 
   # Some tests
   if !isempty(mask)
-      @assert (size(C[1], 2),size(C[1], 3))==(size(mask, 1),size(mask, 2))
+      @assert (size(C[1], 1),size(C[1], 2))==(size(mask, 1),size(mask, 2))
   end
 
   # get boundaries and lat-lon vectors
@@ -121,7 +121,7 @@ Empty map generator, when called without a ClimGrid as the positional argument.
 """
 function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[], slat=[], nlat=[])
 
-    fig, ax = subplots(figsize=(8, 6))
+    fig, ax = subplots()
 
     if lowercase(region) == "canada" || lowercase(region) == "ca"
         m = basemap[:Basemap](projection = "lcc", resolution = "l", width=6500000,height=5000000, lat_0 = 62, lon_0 = -95, lat_1 = 45., lat_2 = 55, rsphere = (6378137.00, 6356752.3142))
@@ -195,7 +195,7 @@ function PyPlot.plot(C::ClimGrid; titlestr::String="", gridfig::Bool=true, label
 
     # Spatial mean for each timestep
     for t in 1:length(timevec)
-        datatmp = data[t, :, :]
+        datatmp = data[:, :, t]
         average[t] = mean(datatmp[.!isnan.(datatmp)])
     end
 
@@ -255,7 +255,7 @@ Returns an array for mapping purpose. Used internally by [`mapclimgrid`](@ref).
 function timeavg(C, timebeg, timeend, mask, poly, level)
     data2 = Array{Float64}(size(C[1], 2), size(C[1], 3))
     if ndims(C[1]) == 3
-      data2 = squeeze(mean(C[1][timebeg:timeend, :, :], 1), 1) #time mean
+      data2 = squeeze(mean(C[1][:, :, timebeg:timeend], 3), 3) #time mean
 
       # TODO throw error/warning if no grid point inside polygon or mask
 
@@ -278,7 +278,7 @@ function timeavg(C, timebeg, timeend, mask, poly, level)
 
     # 4D fields
   elseif ndims(C[1]) == 4 # 4D field
-      data2 = squeeze(mean(C[1][timebeg:timeend, :, :, level], 1), 1) # time mean over "level"
+      data2 = squeeze(mean(C[1][:, :, level, timebeg:timeend], 4), 3) # time mean over "level"
 
       if !isempty(poly)
           msk = inpolygrid(C.longrid, C.latgrid, poly)
