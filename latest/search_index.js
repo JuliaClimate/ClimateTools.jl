@@ -149,7 +149,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.annualmax",
     "category": "function",
-    "text": "annualmax(C::ClimGrid)\n\nAnnual maximum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.\n\n\n\nannualmax(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nAnnual maximum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.\n\n\n\n"
+    "text": "annualmax(C::ClimGrid)\n\nAnnual maximum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.\n\n\n\n"
 },
 
 {
@@ -157,7 +157,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.annualmean",
     "category": "function",
-    "text": "annualmean(C::ClimGrid)\n\nAnnual mean of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Calculate the mean value for year j.\n\n\n\nannualmean(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nAnnual mean of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Calculate the mean value for year j.\n\n\n\n"
+    "text": "annualmean(C::ClimGrid)\n\nAnnual mean of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Calculate the mean value for year j.\n\n\n\n"
 },
 
 {
@@ -165,7 +165,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.annualmin",
     "category": "function",
-    "text": "annualmin(C::ClimGrid)\n\nAnnual minimum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.\n\n\n\nannualmin(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nAnnual minimum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.\n\n\n\n"
+    "text": "annualmin(C::ClimGrid)\n\nAnnual minimum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.\n\n\n\n"
 },
 
 {
@@ -173,7 +173,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.annualsum",
     "category": "function",
-    "text": "annualsum(C::ClimGrid)\n\nAnnual sum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Sums daily values for year j.\n\n\n\nannualsum(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nValue of annual sum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Sums daily values for year j.\n\n\n\n"
+    "text": "annualsum(C::ClimGrid)\n\nAnnual sum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Sums daily values for year j.\n\n\n\n"
 },
 
 {
@@ -181,7 +181,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.customthresover",
     "category": "function",
-    "text": "customthresover(C::ClimGrid)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\n\n\ncustomthresover(data::AbstractArray, time::StepRange{Date,Base.Dates.Day}, thres)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\n\n\n"
+    "text": "customthresover(C::ClimGrid)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\n\n\n"
 },
 
 {
@@ -189,7 +189,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.customthresunder",
     "category": "function",
-    "text": "customthresunder(C::ClimGrid)\n\ncustomthresover, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\n\n\ncustomthresunder(data::AbstractArray, time::StepRange{Date,Base.Dates.Day}, thres)\n\ncustomthresover, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\n\n\n"
+    "text": "customthresunder(C::ClimGrid)\n\ncustomthresover, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\n\n\n"
 },
 
 {
@@ -197,7 +197,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.daysabove10",
     "category": "function",
-    "text": "daysabove10(C::ClimGrid)\n\nAnnual number of days with temperature >= 10 Celsius. This function returns a ClimGrid.\n\n\n\ndaysabove10(data::AbstractArray, timevector::StepRange{Date,Base.Dates.Day})\n\nAnnual number with temperature >= 10 Celsius. This function returns a boolean vector. true if the data is higher or equal to 1 and false otherwise.\n\n\n\n"
+    "text": "daysabove10(C::ClimGrid)\n\nAnnual number of days with temperature >= 10 Celsius. This function returns a ClimGrid.\n\n\n\n"
 },
 
 {
@@ -205,7 +205,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.icingdays",
     "category": "function",
-    "text": "icingdays(C::ClimGrid)\n\nID, Number of summer days: Annual count of days when TX (daily maximum temperature) < 0 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] < 0 Celsius.\n\n\n\nicingdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nID, Number of summer days: Annual count of days when TX (daily maximum temperature) < 0 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] < 0 Celsius.\n\n\n\n"
+    "text": "icingdays(C::ClimGrid)\n\nID, Number of summer days: Annual count of days when TX (daily maximum temperature) < 0 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] < 0 Celsius.\n\n\n\n"
 },
 
 {
@@ -213,7 +213,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.frostdays",
     "category": "function",
-    "text": "frostdays(C::ClimGrid)\n\nFD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0 Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] < 0 Celsius.\n\n\n\nfrostdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nFD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0 Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] < 0 Celsius.\n\n\n\n"
+    "text": "frostdays(C::ClimGrid)\n\nFD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0 Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] < 0 Celsius.\n\n\n\n"
 },
 
 {
@@ -221,7 +221,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.prcp1",
     "category": "function",
-    "text": "prcp1(C::ClimGrid)\n\nAnnual number with preciptation >= 1 mm. This function returns a ClimGrid.\n\n\n\nprcp1(data::AbstractArray, timevector::StepRange{Date,Base.Dates.Day})\n\nAnnual number with preciptation >= 1 mm. This function returns a boolean vector. true if the data is higher or equal to 1 and false otherwise.\n\n\n\n"
+    "text": "prcp1(C::ClimGrid)\n\nAnnual number with preciptation >= 1 mm. This function returns a ClimGrid.\n\n\n\n"
 },
 
 {
@@ -229,7 +229,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.summerdays",
     "category": "function",
-    "text": "summerdays(C::ClimGrid)\n\nSD, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] > 25 Celsius.\n\n\n\nsummerdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nSD, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] > 25 Celsius.\n\n\n\n"
+    "text": "summerdays(C::ClimGrid)\n\nSD, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] > 25 Celsius.\n\n\n\n"
 },
 
 {
@@ -237,7 +237,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.tropicalnights",
     "category": "function",
-    "text": "tropicalnights(C::ClimGrid)\n\nTropicalNights, Number of tropical nights: Annual count of days when TN (daily maximum temperature) > 20 degree Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] > 20 Celsius.\n\n\n\ntropicalnights(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nTropicalNights, Number of tropical nights: Annual count of days when TN (daily maximum temperature) > 20 degree Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] > 20 Celsius.\n\n\n\n"
+    "text": "tropicalnights(C::ClimGrid)\n\nTropicalNights, Number of tropical nights: Annual count of days when TN (daily maximum temperature) > 20 degree Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] > 20 Celsius.\n\n\n\n"
 },
 
 {
@@ -489,27 +489,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.annualmax-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}",
-    "page": "Index",
-    "title": "ClimateTools.annualmax",
-    "category": "method",
-    "text": "annualmax(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nAnnual maximum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.\n\n\n\n"
-},
-
-{
     "location": "functions.html#ClimateTools.annualmax-Tuple{ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.annualmax",
     "category": "method",
     "text": "annualmax(C::ClimGrid)\n\nAnnual maximum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#ClimateTools.annualmean-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}",
-    "page": "Index",
-    "title": "ClimateTools.annualmean",
-    "category": "method",
-    "text": "annualmean(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nAnnual mean of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Calculate the mean value for year j.\n\n\n\n"
 },
 
 {
@@ -521,27 +505,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.annualmin-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}",
-    "page": "Index",
-    "title": "ClimateTools.annualmin",
-    "category": "method",
-    "text": "annualmin(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nAnnual minimum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.\n\n\n\n"
-},
-
-{
     "location": "functions.html#ClimateTools.annualmin-Tuple{ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.annualmin",
     "category": "method",
     "text": "annualmin(C::ClimGrid)\n\nAnnual minimum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#ClimateTools.annualsum-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}",
-    "page": "Index",
-    "title": "ClimateTools.annualsum",
-    "category": "method",
-    "text": "annualsum(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nValue of annual sum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Sums daily values for year j.\n\n\n\n"
 },
 
 {
@@ -569,27 +537,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.customthresover-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day},Any}",
-    "page": "Index",
-    "title": "ClimateTools.customthresover",
-    "category": "method",
-    "text": "customthresover(data::AbstractArray, time::StepRange{Date,Base.Dates.Day}, thres)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\n\n\n"
-},
-
-{
     "location": "functions.html#ClimateTools.customthresover-Tuple{ClimateTools.ClimGrid,Any}",
     "page": "Index",
     "title": "ClimateTools.customthresover",
     "category": "method",
     "text": "customthresover(C::ClimGrid)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#ClimateTools.customthresunder-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day},Any}",
-    "page": "Index",
-    "title": "ClimateTools.customthresunder",
-    "category": "method",
-    "text": "customthresunder(data::AbstractArray, time::StepRange{Date,Base.Dates.Day}, thres)\n\ncustomthresover, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\n\n\n"
 },
 
 {
@@ -601,14 +553,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.daysabove10-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}",
-    "page": "Index",
-    "title": "ClimateTools.daysabove10",
-    "category": "method",
-    "text": "daysabove10(data::AbstractArray, timevector::StepRange{Date,Base.Dates.Day})\n\nAnnual number with temperature >= 10 Celsius. This function returns a boolean vector. true if the data is higher or equal to 1 and false otherwise.\n\n\n\n"
-},
-
-{
     "location": "functions.html#ClimateTools.daysabove10-Tuple{ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.daysabove10",
@@ -617,27 +561,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.frostdays-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}",
-    "page": "Index",
-    "title": "ClimateTools.frostdays",
-    "category": "method",
-    "text": "frostdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nFD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0 Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] < 0 Celsius.\n\n\n\n"
-},
-
-{
     "location": "functions.html#ClimateTools.frostdays-Tuple{ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.frostdays",
     "category": "method",
     "text": "frostdays(C::ClimGrid)\n\nFD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0 Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] < 0 Celsius.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#ClimateTools.icingdays-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}",
-    "page": "Index",
-    "title": "ClimateTools.icingdays",
-    "category": "method",
-    "text": "icingdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nID, Number of summer days: Annual count of days when TX (daily maximum temperature) < 0 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] < 0 Celsius.\n\n\n\n"
 },
 
 {
@@ -721,14 +649,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.prcp1-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}",
-    "page": "Index",
-    "title": "ClimateTools.prcp1",
-    "category": "method",
-    "text": "prcp1(data::AbstractArray, timevector::StepRange{Date,Base.Dates.Day})\n\nAnnual number with preciptation >= 1 mm. This function returns a boolean vector. true if the data is higher or equal to 1 and false otherwise.\n\n\n\n"
-},
-
-{
     "location": "functions.html#ClimateTools.prcp1-Tuple{ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.prcp1",
@@ -801,14 +721,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.summerdays-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}",
-    "page": "Index",
-    "title": "ClimateTools.summerdays",
-    "category": "method",
-    "text": "summerdays(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nSD, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] > 25 Celsius.\n\n\n\n"
-},
-
-{
     "location": "functions.html#ClimateTools.summerdays-Tuple{ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.summerdays",
@@ -838,14 +750,6 @@ var documenterSearchIndex = {"docs": [
     "title": "ClimateTools.timeresolution",
     "category": "method",
     "text": "timeresolution(timevec::Array{N,1} where N)\n\nReturn the time resolution of the vector timevec.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#ClimateTools.tropicalnights-Tuple{AbstractArray{N,1} where N,StepRange{Date,Base.Dates.Day}}",
-    "page": "Index",
-    "title": "ClimateTools.tropicalnights",
-    "category": "method",
-    "text": "tropicalnights(data::AbstractArray, time::StepRange{Date,Base.Dates.Day})\n\nTropicalNights, Number of tropical nights: Annual count of days when TN (daily maximum temperature) > 20 degree Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] > 20 Celsius.\n\n\n\n"
 },
 
 {
