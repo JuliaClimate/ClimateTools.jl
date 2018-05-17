@@ -121,57 +121,6 @@ function meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T},
     (vx[om, :, oo], vy[:, on, oo], vz[om, on, :])
 end
 
-
-
-# function inpolyvec(lon, lat, poly::AbstractArray{N,2} where N)
-#
-#     OUT = fill(NaN, size(lon, 1), size(lat, 1)) # grid mask
-#
-#     # Convert longitude to 0-360 degrees_east
-#     # lon[lon .< 0] += 360
-#
-#     # Find number of polygons (separated by NaN values)
-#     polyidx = findn(isnan.(poly[1, :])) #poly start index
-#     npoly = length(polyidx) # number of polygons
-#
-#     for p = 1:npoly # loop over each polygon
-#         # Build poly n
-#         if p != npoly
-#             polyn = poly[:, polyidx[p] + 1:polyidx[p + 1] - 1]
-#         elseif p == npoly
-#             polyn = poly[:, polyidx[p] + 1:end]
-#         end
-#         # Convert to 0-360 longitude
-#         if sum(polyn[1, :] .< 0) == length(polyn[1, :])
-#             polyn[1,:] += 360
-#         end
-#
-#         # get_limits of polyn
-#         minlon = minimum(polyn[1, :])
-#         maxlon = maximum(polyn[1, :])
-#         minlat = minimum(polyn[2, :])
-#         maxlat = maximum(polyn[2, :])
-#
-#         lonidx = findn((lon .<= maxlon) .& (lon .>= minlon))
-#         latidx = findn((lat .<= maxlat) .& (lat .>= minlat))
-#
-#
-#         for j in lonidx # = 1:size(lon, 1)
-#             for i in latidx # = 1:size(lat, 1) # loop over pair of points to test
-#
-#                 # if inpoly([lon[j], lat[i]], polyn)
-#                 #     OUT[j, i] = 1.0
-#                 # end
-#                 if OUT[j, i] != 1.0 && inpoly([lon[j], lat[i]], polyn)
-#                     OUT[j, i] = 1.0
-#                 end
-#             end
-#         end
-#     end
-#     return OUT
-#
-# end
-
 """
     inpolygrid(lon, lat, poly::AbstractArray{N,2} where N)
 
@@ -249,7 +198,7 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
 
     # ---------------------
     # Allocate output Array
-    OUT = zeros(Float64, (length(timeorig), size(B.data, 2), size(B.data, 3)))
+    OUT = zeros(Float64, (size(B.data, 1), size(B.data, 2), length(timeorig)))
 
     # ------------------------
     # Interpolation
@@ -269,35 +218,11 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
     # Construct AxisArrays and ClimGrid struct from array OUT
     latsymbol = Symbol(B.dimension_dict["lat"])
     lonsymbol = Symbol(B.dimension_dict["lon"])
-    dataOut = AxisArray(OUT, Axis{:time}(timeorig), Axis{lonsymbol}(B[1][Axis{lonsymbol}][:]), Axis{latsymbol}(B[1][Axis{latsymbol}][:]))
+    dataOut = AxisArray(OUT, Axis{lonsymbol}(B[1][Axis{lonsymbol}][:]), Axis{latsymbol}(B[1][Axis{latsymbol}][:]), Axis{:time}(timeorig))
 
     C = ClimateTools.ClimGrid(dataOut, longrid=B.longrid, latgrid=B.latgrid, msk=B.msk, grid_mapping=B.grid_mapping, dimension_dict=B.dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=B.latunits, lonunits=B.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 
 end
-
-function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk=[])
-
-    p = Progress(length(timeorig), 5)
-    for t = 1:length(timeorig)
-
-        # Points values
-        val = dataorig[t, :, :][:]
-
-        # Call scipy griddata
-        data_interp = scipy[:griddata](points, val, (londest, latdest), method=method)
-
-        # Apply mask from ClimGrid destination
-        if !isempty(msk)
-            OUT[t, :, :] = data_interp .* msk
-        else
-            OUT[t, :, :] = data_interp
-        end
-
-        next!(p)
-
-    end
-end
-
 
 """
     C = regrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)A
@@ -305,7 +230,6 @@ end
 Interpolate `ClimGrid` A onto lat-lon grid defined by londest and latdest vector.
 
 """
-
 function regrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArray{N, 1} where N; method::String="linear", min=[], max=[])
 
     # Get lat-lon information from ClimGrid A
@@ -321,7 +245,7 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArra
 
     # ---------------------
     # Allocate output Array
-    OUT = zeros(Float64, (length(timeorig), length(lon), length(lat)))
+    OUT = zeros(Float64, (length(lon), length(lat), length(timeorig)))
 
     # ------------------------
     # Interpolation
@@ -350,14 +274,43 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArra
 
     # -----------------------
     # Construct AxisArrays and ClimGrid struct from array OUT
-    dataOut = AxisArray(OUT, Axis{:time}(timeorig), Axis{:lon}(lon), Axis{:lat}(lat))
-    msk = Array{Float64}(ones((size(OUT, 2), size(OUT, 3))))
+    dataOut = AxisArray(OUT, Axis{:lon}(lon), Axis{:lat}(lat), Axis{:time}(timeorig))
+    msk = Array{Float64}(ones((size(OUT, 1), size(OUT, 2))))
     grid_mapping = Dict(["grid_mapping_name" => "Regular_longitude_latitude"])
     dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
 
 
     C = ClimateTools.ClimGrid(dataOut, longrid=londest, latgrid=latdest, msk=msk, grid_mapping=grid_mapping, dimension_dict=dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits="degrees_north", lonunits="degrees_east", variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 
+end
+
+"""
+    interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk=[])
+
+Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `regrid`.
+"""
+
+function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk=[])
+
+    p = Progress(length(timeorig), 5)
+    for t = 1:length(timeorig)
+
+        # Points values
+        val = dataorig[:, :, t][:]
+
+        # Call scipy griddata
+        data_interp = scipy[:griddata](points, val, (londest, latdest), method=method)
+
+        # Apply mask from ClimGrid destination
+        if !isempty(msk)
+            OUT[:, :, t] = data_interp .* msk
+        else
+            OUT[:, :, t] = data_interp
+        end
+
+        next!(p)
+
+    end
 end
 
 """
@@ -378,21 +331,21 @@ This function applies a mask on the array A. Return an AbstractArray{N, n}.
 
 """
 function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} where N)
-    for t = 1:size(A, 1) # time axis
-        for lev = 1:size(A, 4) #level axis
-            tmp = A[t, :, :, lev]
-            tmp .*= mask
-            A[t, :, :, lev] = tmp
+    for t = 1:size(A, 4) # time axis
+        for lev = 1:size(A, 3) #level axis
+            tmp = A[:, :, lev, t]
+            tmp .*= mask # TODO use multiple dispatch of applymask
+            A[:, :, lev, t] = tmp
         end
     end
     return A
 end
 
 function applymask(A::AbstractArray{N,3} where N, mask::AbstractArray{N, 2} where N)
-    for t = 1:size(A, 1) # time axis
-        tmp = A[t, :, :]
-        tmp .*= mask
-        A[t, :, :] = tmp
+    for t = 1:size(A, 3) # time axis
+        tmp = A[:, :, t]
+        tmp .*= mask # TODO use multiple dispatch of applymask
+        A[:, :, t] = tmp
     end
     return A
 end
@@ -519,21 +472,21 @@ function permute_west_east(data::AbstractArray{N,T} where N where T, longrid)#iw
 
     elseif ndims(data) == 3
 
-        for t = 1:size(data, 1)
-            datatmp = data[t, :, :]
+        for t = 1:size(data, 3)
+            datatmp = data[:, :, t]
             # datawest = reshape(datatmp[iwest], :, size(datatmp, 2))
             # dataeast = reshape(datatmp[ieast], :, size(datatmp, 2))
-            dataout[t, :, :] = permute_west_east2D(datatmp, iwest, ieast) #vcat(datawest, dataeast)
+            dataout[:, :, t] = permute_west_east2D(datatmp, iwest, ieast) #vcat(datawest, dataeast)
         end
 
     elseif ndims(data) == 4
 
-        for t = 1:size(data, 1)
-            for l = 1:size(data, 4)
-                datatmp = data[t, :, :, l]
+        for t = 1:size(data, 4)
+            for l = 1:size(data, 3)
+                datatmp = data[:, :, l, t]
                 # datawest = reshape(datatmp[iwest], :, size(datatmp, 2))
                 # dataeast = reshape(datatmp[ieast], :, size(datatmp, 2))
-                dataout[t, :, :, l] = permute_west_east2D(datatmp, iwest, ieast) #vcat(datawest, dataeast)
+                dataout[:, :, l, t] = permute_west_east2D(datatmp, iwest, ieast) #vcat(datawest, dataeast)
             end
         end
 
