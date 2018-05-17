@@ -40,7 +40,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2 = corrjuliandays(obs[1][1,1,:].data, ref[1][1,1,:].data, fut[1][1,1,:].data, datevec_obs, datevec_ref, datevec_fut)
 
     # Prepare output array
-    dataout = fill(NaN, (size(futvec2, 1), size(fut[1], 2), size(fut[1],3)))::Array{N, T} where N where T
+    dataout = fill(NaN, (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{N, T} where N where T
     # dataout = fill(NaN, size(futvec2))::Array{N, T} where N where T
 
     p = Progress(size(obs[1], 3), 5)
