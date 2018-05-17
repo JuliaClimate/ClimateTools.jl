@@ -135,6 +135,12 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
     elseif lowercase(region) == "americas" || lowercase(region) == "ams"
         m = basemap[:Basemap](projection = "omerc", resolution = "c", width=14000000, height=17000000, lon_0 = -100, lat_0 =    15, lon_1 = -45, lon_2 = -120, lat_1 = -55, lat_2 = 70)
 
+    elseif lowercase(region) == "arctic" || lowercase(region) == "aps"
+        m = basemap[:Basemap](projection = "npstere", resolution = "l", boundinglat = 47, lon_0 = 255)
+
+    elseif lowercase(region) == "antarctic" || lowercase(region) == "aaps"
+        m = basemap[:Basemap](projection = "spstere", resolution = "l", boundinglat = -60, lon_0 = 210)
+
     elseif lowercase(region) == "greenwich" || lowercase(region) == "gr"
         m = basemap[:Basemap](projection = "omerc", resolution = "c", width=9000000, height=15000000, lon_0 = 10, lat_0 = 25, lon_1 = -10, lon_2 = 20, lat_1 = -75, lat_2 = 30)
 
@@ -168,9 +174,14 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
         m[:drawstates](linewidth = 0.2)
     end
 
-    if lowercase(region) != "quebecnsp"
-        m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6)
-        m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5)
+    if lowercase(region) != "quebecnsp" || lowercase(region) != "qcnsp"
+      if lowercase(region) == "antarctic" || lowercase(region) == "aaps"
+        # Is there a Julia eqvlnt to Py's 'if object not in list'?
+          m[:drawmeridians](0:30:360.0, labels = [1,1,1,1], fontsize = 8, linewidth = 0)
+      else
+          m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6)
+          m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5)
+      end
     end
 
     return true, fig, ax, m
