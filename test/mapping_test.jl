@@ -103,7 +103,7 @@ data = randn(361, 181, 31)
 dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
 varattribs = Dict(["standard_name" => "random noise"])
 axisdata = AxisArray(data, Axis{:lon}(lon), Axis{:lat}(lat), Axis{:time}(timeV))
-C = ClimateTools.ClimGrid(axisdata, variable = "psl", longrid=longrid, latgrid=latgrid, dimension_dict=dimension_dict, varattribs=varattribs)
+C = ClimateTools.ClimGrid(axisdata, variable = "psl", typeofvar="psl", longrid=longrid, latgrid=latgrid, dimension_dict=dimension_dict, varattribs=varattribs)
 
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
 

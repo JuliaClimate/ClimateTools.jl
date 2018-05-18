@@ -1,4 +1,8 @@
 # test that load return a ClimGrid type
+file1 = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
+file2 = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
+files = [file1, file2]
+C = load(files, "tas")
 filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = load(filenc, "tas")
 @test load(filenc, "tas", data_units = "Celsius")[2] == "Celsius"
