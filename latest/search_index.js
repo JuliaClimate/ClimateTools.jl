@@ -609,6 +609,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#ClimateTools.load2D-Tuple{String,String}",
+    "page": "Index",
+    "title": "ClimateTools.load2D",
+    "category": "method",
+    "text": "load2D(file::String, variable::String; poly=[], data_units::String=\"\")\n\nReturns a 2D array. Should be used for fixed data, such as orography\n\n\n\n"
+},
+
+{
     "location": "functions.html#ClimateTools.mapclimgrid-Tuple{ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.mapclimgrid",
