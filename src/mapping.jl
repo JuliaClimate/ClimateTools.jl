@@ -47,13 +47,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
       cm = cmocean[:cm][:deep]
   elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin"
 
-      if center_cs
-          cm = "RdBu_r"
-      else
-          # cm = "YlOrBr"
-          cm = "RdYlBu_r"
-
-      end
+    cm = "RdYlBu_r"
 
   elseif C[10]=="psl" # pressure
       cm = cmocean[:cm][:deep_r]
@@ -61,6 +55,12 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
       cm = cmocean[:cm][:balance]
   else
       cm = "viridis"
+  end
+
+  # overide colorscale if we want to center scale
+
+  if center_cs
+      cm = "RdBu_r"
   end
 
   if surfacetype == :contourf || surfacetype == :contour
@@ -231,7 +231,9 @@ function PyPlot.plot(C::ClimGrid; titlestr::String="", gridfig::Bool=true, label
         grid("on")
     end
 
-    return figh
+    status = true
+
+    return figh, status
 
 end
 
