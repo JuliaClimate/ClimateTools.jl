@@ -299,3 +299,20 @@ axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 C = ClimateTools.ClimGrid(axisdata, variable = "tasmin")
 ind = annualmin(C)
 @test ind.data.data == Results
+
+# Days above 10
+
+data = Array{Float64, 3}(2, 2, 1826)
+data[1,1,:] = collect(1.0:1826.0); data[1,2,:] = collect(1.0:1826.0); data[2,1,:]=collect(1.0:1826.0); data[2,2,:] = collect(1.0:1826.0);
+Results = Array{Int64, 3}(2, 2, 5);
+Results[1, 1, :]=[356, 366, 365, 365, 365]'';
+Results[1, 2, :] = [356, 366, 365, 365, 365]'';
+Results[2, 1, :] = [356, 366, 365, 365, 365]'';
+Results[2, 2, :] = [356, 366, 365, 365, 365]'';
+# @test summerdays(data, d) == Results
+
+# ClimGrid based tests
+axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
+C = ClimateTools.ClimGrid(axisdata, variable = "tas")
+ind = daysabove10(C)
+@test ind.data.data == Results

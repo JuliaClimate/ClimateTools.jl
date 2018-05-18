@@ -21,18 +21,22 @@ timeRaw = floor.(NetCDF.ncread(filenc, "time"))
 B = merge(C, C)
 @test size(B.data) == (256, 128, 1) # C being similar, they should not add up, as opposed to vcat
 # Operators +, -, *, /
-B = C + C
-@test B[1].data[1, 1, 1] == 438.4457f0
-B = C - C
-@test B[1].data[1, 1, 1] == 0.0
-B = C / 2
-@test B[1].data[1, 1, 1] == 109.61143f0
-B = C / 2.2
-@test B[1].data[1, 1, 1] == 99.6467520973899
-B = C * 2
-@test B[1].data[1, 1, 1] == 438.4457f0
-B = C * 2.2
-@test B[1].data[1, 1, 1] == 482.2902801513672
+B = C + C; @test B[1].data[1, 1, 1] == 438.4457f0
+B = C * C; @test B[1].data[1, 1, 1] == 48058.66f0
+B = C / C; @test B[1].data[1, 1, 1] == 1.0f0
+B = C - C; @test B[1].data[1, 1, 1] == 0.0f0
+B = C - 1.0; @test B[1].data[1, 1, 1] == 218.2228546142578
+B = C - 1; @test B[1].data[1, 1, 1] == 218.22285f0
+B = C / 2; @test B[1].data[1, 1, 1] == 109.61143f0
+B = C / 2.2; @test B[1].data[1, 1, 1] == 99.6467520973899
+B = C * 2; @test B[1].data[1, 1, 1] == 438.4457f0
+B = C * 2.2; @test B[1].data[1, 1, 1] == 482.2902801513672
+
+@test mean(C) == 278.6421f0
+@test maximum(C) == 309.09613f0
+@test minimum(C) == 205.24321f0
+@test std(C) == 21.92836f0
+@test round(var(C), 3) == 480.853f0
 
 # @test typeof(show(C)) == Dict{Any, Any}
 @test typeof(C[1].data) == Array{Float64,3} || typeof(C[1].data) == Array{Float32,3}
