@@ -35,8 +35,10 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   nlat = maximum(C.latgrid)
 
   # Time limits
-  timeV = C[1][Axis{:time}][:]
-  timebeg, timeend = timeindex(timeV, start_date, end_date, C.frequency)
+  if ndims(C[1]) > 2
+      timeV = C[1][Axis{:time}][:]
+      timebeg, timeend = timeindex(timeV, start_date, end_date, C.frequency)
+  end
 
   # =============
   # Colorscale
@@ -76,7 +78,11 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   # =================
   # PLOT DATA
   # Time-average
-  data2 = timeavg(C, timebeg, timeend, mask, poly, level)
+  if ndims(C[1]) > 2
+      data2 = timeavg(C, timebeg, timeend, mask, poly, level)
+  elseif ndims(C[1]) == 2
+      data2 = C[1].data
+  end
 
   # Get colorscale limits
   vmin, vmax = getcslimits(caxis, data2, center_cs)
