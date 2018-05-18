@@ -25,7 +25,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
 
   # Some tests
   if !isempty(mask)
-      @assert (size(C[1], 2),size(C[1], 3))==(size(mask, 1),size(mask, 2))
+      @assert (size(C[1], 1),size(C[1], 2))==(size(mask, 1),size(mask, 2))
   end
 
   # get boundaries and lat-lon vectors
@@ -47,13 +47,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
       cm = cmocean[:cm][:deep]
   elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin"
 
-      if center_cs
-          cm = "RdBu_r"
-      else
-          # cm = "YlOrBr"
-          cm = "RdYlBu_r"
-
-      end
+    cm = "RdYlBu_r"
 
   elseif C[10]=="psl" # pressure
       cm = cmocean[:cm][:deep_r]
@@ -61,6 +55,12 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
       cm = cmocean[:cm][:balance]
   else
       cm = "viridis"
+  end
+
+  # overide colorscale if we want to center scale
+
+  if center_cs
+      cm = "RdBu_r"
   end
 
   if surfacetype == :contourf || surfacetype == :contour
@@ -121,7 +121,7 @@ Empty map generator, when called without a ClimGrid as the positional argument.
 """
 function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[], slat=[], nlat=[])
 
-    fig, ax = subplots(figsize=(8, 6))
+    fig, ax = subplots()
 
     if lowercase(region) == "canada" || lowercase(region) == "ca"
         m = basemap[:Basemap](projection = "lcc", resolution = "l", width=6500000,height=5000000, lat_0 = 62, lon_0 = -95, lat_1 = 45., lat_2 = 55, rsphere = (6378137.00, 6356752.3142))
@@ -135,6 +135,12 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
     elseif lowercase(region) == "americas" || lowercase(region) == "ams"
         m = basemap[:Basemap](projection = "omerc", resolution = "c", width=14000000, height=17000000, lon_0 = -100, lat_0 =    15, lon_1 = -45, lon_2 = -120, lat_1 = -55, lat_2 = 70)
 
+    elseif lowercase(region) == "arctic" || lowercase(region) == "aps"
+        m = basemap[:Basemap](projection = "npstere", resolution = "l", boundinglat = 47, lon_0 = 255)
+
+    elseif lowercase(region) == "antarctic" || lowercase(region) == "aaps"
+        m = basemap[:Basemap](projection = "spstere", resolution = "l", boundinglat = -60, lon_0 = 210)
+
     elseif lowercase(region) == "greenwich" || lowercase(region) == "gr"
         m = basemap[:Basemap](projection = "omerc", resolution = "c", width=9000000, height=15000000, lon_0 = 10, lat_0 = 25, lon_1 = -10, lon_2 = 20, lat_1 = -75, lat_2 = 30)
 
@@ -143,6 +149,9 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
 
     elseif lowercase(region) == "northamerica" || lowercase(region) == "na"
         m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, lon_0 = -95, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
+
+    elseif lowercase(region) == "southamerica" || lowercase(region) == "sa"
+        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -110., llcrnrlat = -55., urcrnrlon = -30., urcrnrlat = 17., lon_0 = -60, lat_1 = -20, rsphere = (6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "world" || lowercase(region) == "w"
         m = basemap[:Basemap](projection = "cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180)
@@ -165,9 +174,14 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
         m[:drawstates](linewidth = 0.2)
     end
 
-    if lowercase(region) != "quebecnsp"
-        m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6)
-        m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5)
+    if lowercase(region) != "quebecnsp" || lowercase(region) != "qcnsp"
+      if lowercase(region) == "antarctic" || lowercase(region) == "aaps"
+        # Is there a Julia eqvlnt to Py's 'if object not in list'?
+          m[:drawmeridians](0:30:360.0, labels = [1,1,1,1], fontsize = 8, linewidth = 0)
+      else
+          m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6)
+          m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5)
+      end
     end
 
     return true, fig, ax, m
@@ -195,7 +209,7 @@ function PyPlot.plot(C::ClimGrid; titlestr::String="", gridfig::Bool=true, label
 
     # Spatial mean for each timestep
     for t in 1:length(timevec)
-        datatmp = data[t, :, :]
+        datatmp = data[:, :, t]
         average[t] = mean(datatmp[.!isnan.(datatmp)])
     end
 
@@ -217,7 +231,9 @@ function PyPlot.plot(C::ClimGrid; titlestr::String="", gridfig::Bool=true, label
         grid("on")
     end
 
-    return figh
+    status = true
+
+    return figh, status
 
 end
 
@@ -255,7 +271,7 @@ Returns an array for mapping purpose. Used internally by [`mapclimgrid`](@ref).
 function timeavg(C, timebeg, timeend, mask, poly, level)
     data2 = Array{Float64}(size(C[1], 2), size(C[1], 3))
     if ndims(C[1]) == 3
-      data2 = squeeze(mean(C[1][timebeg:timeend, :, :], 1), 1) #time mean
+      data2 = squeeze(mean(C[1][:, :, timebeg:timeend], 3), 3) #time mean
 
       # TODO throw error/warning if no grid point inside polygon or mask
 
@@ -278,7 +294,7 @@ function timeavg(C, timebeg, timeend, mask, poly, level)
 
     # 4D fields
   elseif ndims(C[1]) == 4 # 4D field
-      data2 = squeeze(mean(C[1][timebeg:timeend, :, :, level], 1), 1) # time mean over "level"
+      data2 = squeeze(mean(C[1][:, :, level, timebeg:timeend], 4), 3) # time mean over "level"
 
       if !isempty(poly)
           msk = inpolygrid(C.longrid, C.latgrid, poly)

@@ -41,8 +41,11 @@ status, figh = mapclimgrid(C, region = "Quebec");@test status == true; PyPlot.cl
 # status, figh = mapclimgrid(C, region = "QuebecNSP");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "Americas");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "NorthAmerica");@test status == true; PyPlot.close()
+# status, figh = mapclimgrid(C, region = "SouthAmerica");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "Greenwich");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(annualmax(C), region = "Europe");@test status == true; PyPlot.close()
+# status, figh = mapclimgrid(annualmin(C), region = "Arctic");@test status == true; PyPlot.close()
+# status, figh = mapclimgrid(annualmin(C), region = "Antarctic");@test status == true; PyPlot.close()
 
 # precip
 C = load(filename, "pr", data_units="mm") + 2.0
@@ -56,8 +59,11 @@ status, figh = mapclimgrid(C, region = "Quebec");@test status == true; PyPlot.cl
 # status, figh = mapclimgrid(C, region = "QuebecNSP");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "Americas");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "NorthAmerica");@test status == true; PyPlot.close()
+# status, figh = mapclimgrid(C, region = "SouthAmerica");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "Greenwich");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(annualmax(C), region = "Europe");@test status == true; PyPlot.close()
+# status, figh = mapclimgrid(annualmin(C), region = "Arctic");@test status == true; PyPlot.close()
+# status, figh = mapclimgrid(annualmin(C), region = "Antarctic");@test status == true; PyPlot.close()
 
 # ua wind
 filename = joinpath(dirname(@__FILE__), "data", "SudQC_GCM.shp")
@@ -83,4 +89,29 @@ status, figh = mapclimgrid(region = "Quebec");@test status == true; PyPlot.close
 # status, figh = mapclimgrid(region = "QuebecNSP");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(region = "Americas");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(region = "NorthAmerica");@test status == true; PyPlot.close()
+# status, figh = mapclimgrid(region = "SouthAmerica");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(region = "Greenwich");@test status == true; PyPlot.close()
+# status, figh = mapclimgrid(region = "Arctic");@test status == true; PyPlot.close()
+# status, figh = mapclimgrid(region = "Antarctic");@test status == true; PyPlot.close()
+
+# DUMMY MAPS
+lon = collect(-180.0:180.0)
+lat = collect(-90.0:90.0)
+longrid, latgrid = ndgrid(lon, lat)
+timeV = d = Date(2003,1,1):Date(2003,01,31)
+data = randn(361, 181, 31)
+dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
+varattribs = Dict(["standard_name" => "random noise"])
+axisdata = AxisArray(data, Axis{:lon}(lon), Axis{:lat}(lat), Axis{:time}(timeV))
+C = ClimateTools.ClimGrid(axisdata, variable = "psl", typeofvar="psl", longrid=longrid, latgrid=latgrid, dimension_dict=dimension_dict, varattribs=varattribs)
+
+status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
+
+C = ClimateTools.ClimGrid(axisdata, variable = "dummy", longrid=longrid, latgrid=latgrid, dimension_dict=dimension_dict, varattribs=varattribs)
+
+status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, center_cs=true);@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, center_cs=true, surfacetype=:pcolormesh);@test status == true; PyPlot.close()
+
+figh, status = plot(C); @test status == true; PyPlot.close()
+figh, status = plot(C, label = "dummy", titlestr="dummytest", gridfig=true); @test status == true; PyPlot.close()

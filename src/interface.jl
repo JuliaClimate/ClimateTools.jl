@@ -1,16 +1,23 @@
-"""
-    vcat(A::ClimGrid, B::ClimGrid)
-
-Combines two ClimGrid. Based on the AxisArrays method. Better way to do it would be to use the merge method.
-"""
-
-function Base.vcat(A::ClimGrid, B::ClimGrid)
-    warn("Use merge function instead of vcat for dimensions consistency")
-    axisArraytmp = vcat(A.data, B.data)
-    # TODO add axis information in the creation of the AxisArray
-    axisArray = AxisArray(axisArraytmp)
-    ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
+function buildarrayinterface(axisArraytmp, A)
+    latsymbol = Symbol(A.dimension_dict["lat"])
+    lonsymbol = Symbol(A.dimension_dict["lon"])
+    axisArray = AxisArray(axisArraytmp, Axis{lonsymbol}(A[1][Axis{lonsymbol}][:]), Axis{latsymbol}(A[1][Axis{latsymbol}][:]), Axis{:time}(A[1][Axis{:time}][:]))
+    return axisArray
 end
+
+# """
+#     vcat(A::ClimGrid, B::ClimGrid)
+#
+# Combines two ClimGrid. Based on the AxisArrays method. Better way to do it would be to use the merge method.
+# """
+#
+# function Base.vcat(A::ClimGrid, B::ClimGrid)
+#     warn("Use merge function instead of vcat for dimensions consistency")
+#     axisArraytmp = vcat(A.data, B.data, 3)
+#     # TODO add axis information in the creation of the AxisArray
+#     axisArray = AxisArray(axisArraytmp)
+#     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
+# end
 
 """
     merge(A::ClimGrid, B::ClimGrid)
@@ -26,7 +33,7 @@ end
 function Base.:+(A::ClimGrid, B::ClimGrid)
     axisArraytmp = A.data + B.data
 
-    axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+    axisArray = buildarrayinterface(axisArraytmp, A)
 
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " + ", B.experiment), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 end
@@ -34,7 +41,7 @@ end
 function Base.:+(A::ClimGrid, k)
     axisArraytmp = A.data + k
 
-    axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+    axisArray = buildarrayinterface(axisArraytmp, A)
 
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " + ", k), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 end
@@ -42,10 +49,7 @@ end
 function Base.:-(A::ClimGrid, B::ClimGrid)
     axisArraytmp = A.data - B.data
 
-    latsymbol = Symbol(A.dimension_dict["lat"])
-    lonsymbol = Symbol(A.dimension_dict["lon"])
-
-    axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{lonsymbol}][:]), Axis{:lat}(A[1][Axis{latsymbol}][:]))
+    axisArray = buildarrayinterface(axisArraytmp, A)
 
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " - ", B.experiment), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 end
@@ -53,7 +57,7 @@ end
 function Base.:-(A::ClimGrid, k)
     axisArraytmp = A.data - k
 
-    axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+    axisArray = buildarrayinterface(axisArraytmp, A)
 
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " - ", k), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 end
@@ -61,7 +65,7 @@ end
 function Base.:*(A::ClimGrid, B::ClimGrid)
     axisArraytmp = A.data .* B.data
 
-    axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+    axisArray = buildarrayinterface(axisArraytmp, A)
 
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " * ", B.experiment), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 end
@@ -69,7 +73,7 @@ end
 function Base.:*(A::ClimGrid, k)
     axisArraytmp = A.data .* k
 
-    axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+    axisArray = buildarrayinterface(axisArraytmp, A)
 
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " * ", k), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 end
@@ -77,7 +81,7 @@ end
 function Base.:/(A::ClimGrid, B::ClimGrid)
     axisArraytmp = A.data ./ B.data
 
-    axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+    axisArray = buildarrayinterface(axisArraytmp, A)
 
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " / ", B.experiment), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 end
@@ -85,7 +89,7 @@ end
 function Base.:/(A::ClimGrid, k)
     axisArraytmp = A.data / k
 
-    axisArray = AxisArray(axisArraytmp, Axis{:time}(A[1][Axis{:time}][:]), Axis{:lon}(A[1][Axis{:lon}][:]), Axis{:lat}(A[1][Axis{:lat}][:]))
+    axisArray = buildarrayinterface(axisArraytmp, A)
 
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=string(A.experiment, " / ", k), run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 end

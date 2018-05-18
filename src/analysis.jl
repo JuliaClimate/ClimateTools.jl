@@ -1,7 +1,9 @@
 """
+    dashboard(C::ClimGrid)
+    
 This function returns the summary of ClimGrid C, such as maps of mean, maximum and minimum values in ClimGrid C. The annual cycle, the histogram and estimated probability density function and time series.
 
-dashboard(C::ClimGrid)
+
 
 """
 # function dashboard(C::ClimGrid; poly = ([]))

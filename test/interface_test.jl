@@ -1,9 +1,13 @@
 # test that load return a ClimGrid type
+file1 = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
+file2 = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
+files = [file1, file2]
+C = load(files, "tas")
 filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = load(filenc, "tas")
 @test load(filenc, "tas", data_units = "Celsius")[2] == "Celsius"
 @test load(filenc, "pr", data_units = "mm")[2] == "mm"
-@test typeof(load(filenc, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:time,Array{Date,1}},AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}}}}}
+@test typeof(load(filenc, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}},AxisArrays.Axis{:time,Array{Date,1}}}}}
 
 @test typeof(buildtimevec(filenc)) == Array{Date, 1}
 
@@ -16,23 +20,27 @@ timeRaw = floor.(NetCDF.ncread(filenc, "time"))
 @test sumleapyear(initDate::Date, timeRaw) == 485
 
 # INTERFACE
-B = vcat(C, C)
-@test size(B.data) == (2, 256, 128) # vcat does not look at dimensions
+# B = vcat(C, C)
+# @test size(B.data) == (256, 128, 2) # vcat does not look at dimensions
 B = merge(C, C)
-@test size(B.data) == (1, 256, 128) # C being similar, they should not add up, as opposed to vcat
+@test size(B.data) == (256, 128, 1) # C being similar, they should not add up, as opposed to vcat
 # Operators +, -, *, /
-B = C + C
-@test B[1].data[1, 1, 1] == 438.4457f0
-B = C - C
-@test B[1].data[1, 1, 1] == 0.0
-B = C / 2
-@test B[1].data[1, 1, 1] == 109.61143f0
-B = C / 2.2
-@test B[1].data[1, 1, 1] == 99.6467520973899
-B = C * 2
-@test B[1].data[1, 1, 1] == 438.4457f0
-B = C * 2.2
-@test B[1].data[1, 1, 1] == 482.2902801513672
+B = C + C; @test B[1].data[1, 1, 1] == 438.4457f0
+B = C * C; @test B[1].data[1, 1, 1] == 48058.66f0
+B = C / C; @test B[1].data[1, 1, 1] == 1.0f0
+B = C - C; @test B[1].data[1, 1, 1] == 0.0f0
+B = C - 1.0; @test B[1].data[1, 1, 1] == 218.2228546142578
+B = C - 1; @test B[1].data[1, 1, 1] == 218.22285f0
+B = C / 2; @test B[1].data[1, 1, 1] == 109.61143f0
+B = C / 2.2; @test B[1].data[1, 1, 1] == 99.6467520973899
+B = C * 2; @test B[1].data[1, 1, 1] == 438.4457f0
+B = C * 2.2; @test B[1].data[1, 1, 1] == 482.2902801513672
+
+@test mean(C) == 278.6421f0
+@test maximum(C) == 309.09613f0
+@test minimum(C) == 205.24321f0
+@test std(C) == 21.92836f0
+@test round(var(C), 3) == 480.853f0
 
 # @test typeof(show(C)) == Dict{Any, Any}
 @test typeof(C[1].data) == Array{Float64,3} || typeof(C[1].data) == Array{Float32,3}
@@ -68,15 +76,15 @@ P = [x y]
 P = P'
 C = load(filenc, "tas")
 Csub = spatialsubset(C, P)
-@test size(Csub[1]) == (1, 23, 12)
+@test size(Csub[1]) == (23, 12, 1)
 @test Csub[1][1, 1, 1] == 294.6609f0
 Csub = spatialsubset(C, P')
-@test size(Csub[1]) == (1, 23, 12)
+@test size(Csub[1]) == (23, 12, 1)
 @test Csub[1][1, 1, 1] == 294.6609f0
 C = load(filenc, "ua")
 Csub = spatialsubset(C, P)
-@test size(Csub[1]) == (1, 23, 12, 17)
-@test Csub[1][1, 12, 1, 1] == 6.658482f0
+@test size(Csub[1]) == (23, 12, 17, 1)
+@test Csub[1][12, 1, 1, 1] == 6.658482f0
 @test isnan(Csub[1][1, 1, 1, 1])
 
 poly= [[NaN 10 -10 -10 10 10];[NaN -10 -20 10 10 -10]] # meridian test
@@ -274,7 +282,7 @@ longrid = Float32.(C.longrid)
 # Shift longitude by 1
 lon += Float32(1.0)
 longrid += Float32(1.0)
-axisdata = AxisArray(C[1].data, Axis{:time}(C[1][Axis{:time}][:]), Axis{:lon}(lon), Axis{:lat}(lat))
+axisdata = AxisArray(C[1].data, Axis{:lon}(lon), Axis{:lat}(lat), Axis{:time}(C[1][Axis{:time}][:]))
 C2 = ClimGrid(axisdata, variable = "tas", longrid=longrid, latgrid=latgrid, msk=C.msk)
 @test regrid(C, C2)[1].data[1, 1, 1] == 219.2400638156467
 @test regrid(C, C2, min=0.0, max=0.0)[1].data[1, 1, 1] == 0.0
@@ -299,27 +307,27 @@ mask = [[NaN; 1; 1] [1.; NaN;1.]]
 @test applymask(data, mask)[3, 2] == data[3, 2]
 
 # 3-D data
-data = randn(3, 3, 2)
+data = randn(3, 2, 3)
 mask = [[NaN; 1; 1] [1.; NaN;1.]]
-@test isnan(applymask(data, mask)[1, 1, 1]) && isnan(applymask(data, mask)[1, 2, 2]) && isnan(applymask(data, mask)[2, 1, 1]) && isnan(applymask(data, mask)[2, 2, 2]) && isnan(applymask(data, mask)[3, 1, 1]) && isnan(applymask(data, mask)[3, 2, 2])
+@test isnan(applymask(data, mask)[1, 1, 1]) && isnan(applymask(data, mask)[2,2,1]) && isnan(applymask(data, mask)[1, 1, 2]) && isnan(applymask(data, mask)[2, 2, 2]) && isnan(applymask(data, mask)[1,1,3]) && isnan(applymask(data, mask)[2, 2, 3])
 
 for i = 1:size(data, 1)
-    @test applymask(data, mask)[i, 2, 1] == data[i, 2, 1]
-    @test applymask(data, mask)[i, 1, 2] == data[i, 1, 2]
-    @test applymask(data, mask)[i, 3, 1] == data[i, 3, 1]
-    @test applymask(data, mask)[i, 3, 2] == data[i, 3, 2]
+    @test applymask(data, mask)[2,1,i] == data[2,1,i]
+    @test applymask(data, mask)[1,2,i] == data[1,2,i]
+    @test applymask(data, mask)[3,1,i] == data[3,1,i]
+    @test applymask(data, mask)[3,2,i] == data[3,2,i]
 end
 
 # 4-D data
-data = randn(3, 3, 2, 1)
+data = randn(3,2,1,3)
 mask = [[NaN; 1; 1] [1.; NaN;1.]]
-@test isnan(applymask(data, mask)[1, 1, 1, 1]) && isnan(applymask(data, mask)[1, 2, 2, 1]) && isnan(applymask(data, mask)[2, 1, 1, 1]) && isnan(applymask(data, mask)[2, 2, 2, 1]) && isnan(applymask(data, mask)[3, 1, 1, 1]) && isnan(applymask(data, mask)[3, 2, 2, 1])
+@test isnan(applymask(data, mask)[1, 1, 1, 1]) && isnan(applymask(data, mask)[2,2,1,1]) && isnan(applymask(data, mask)[1, 1, 1,2]) && isnan(applymask(data, mask)[2, 2, 1,2]) && isnan(applymask(data, mask)[1, 1, 1,3]) && isnan(applymask(data, mask)[2, 2, 1,3])
 
 for i = 1:size(data, 1)
-    @test applymask(data, mask)[i, 2, 1, 1] == data[i, 2, 1, 1]
-    @test applymask(data, mask)[i, 1, 2, 1] == data[i, 1, 2, 1]
-    @test applymask(data, mask)[i, 3, 1, 1] == data[i, 3, 1, 1]
-    @test applymask(data, mask)[i, 3, 2, 1] == data[i, 3, 2, 1]
+    @test applymask(data, mask)[2,1,1,i] == data[2,1,1,i]
+    @test applymask(data, mask)[1,2,1,i] == data[1,2,1,i]
+    @test applymask(data, mask)[3,1,1,i] == data[3,1,1,i]
+    @test applymask(data, mask)[3,2,1,i] == data[3,2,1,i]
 end
 
 # Test sumleapyear with StepRange{Date,Base.Dates.Day} type
