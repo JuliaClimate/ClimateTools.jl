@@ -283,7 +283,11 @@ function load(files::Array{String,1}, variable::String; poly = ([]), start_date:
 
     C = [] # initialize # TODO better initialization
 
-    for ifile = 1:length(files)
+    nfiles = length(files)
+
+    p = Progress(nfiles, 3)
+
+    for ifile = 1:nfiles
 
         datatmp = load(files[ifile], variable, poly = poly, start_date=start_date, end_date=end_date, data_units=data_units)
 
@@ -292,6 +296,7 @@ function load(files::Array{String,1}, variable::String; poly = ([]), start_date:
         else
             C = merge(C, datatmp)
         end
+        next!(p)
     end
     return C
 end
