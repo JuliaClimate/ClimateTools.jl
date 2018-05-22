@@ -1,9 +1,10 @@
 """
     vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)
 
-Calculation of the vapor pressure (Pa) based on the surface pressure (Pa) and the specific humidity.
+Calculation of the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).
 
-Let data[i,j] be the vapor pressure for day i in year j.
+``vp = \\frac{q * sp}{q+0.622}``
+
 """
 function vaporpressure(specific_humidity::ClimGrid, surface_pressure::ClimGrid)
   @argcheck surface_pressure[9] == "ps"
@@ -29,7 +30,6 @@ end
 
 Calculation of the vapor pressure (Pa) estimated with the specific humidity, the sea level pressure (Pa), the orography (m) and the daily temperature (K).
 
-Let data[i,j] be the vapor pressure for day i in year j.
 """
 function vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)
   @argcheck specific_humidity[9] == "huss"
@@ -52,7 +52,6 @@ end
 
 Calculation of the surface pressure (Pa) approximated from the sea level pressure (Pa), the orography (m), and the daily temperature (K).
 
-Let data[i,j] be the surface pressure for day i in year j
 """
 function approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)
   @argcheck sealevel_pressure[9] == "psl"
