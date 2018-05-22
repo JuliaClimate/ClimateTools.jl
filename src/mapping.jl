@@ -195,12 +195,12 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
 end
 
 """
-    plot(C::ClimGrid, titlefig::String, gridfig::Bool, label::String)
+    plot(C::ClimGrid, titlefig::String, gridfig::Bool, label::String, color, lw, linestyle)
 
 Plots the spatial average timeserie of ClimGrid `C`.
 """
 
-function PyPlot.plot(C::ClimGrid; titlestr::String="", gridfig::Bool=true, label::String="")
+function PyPlot.plot(C::ClimGrid; titlestr::String="", gridfig::Bool=true, label::String="", lw=1.5, linestyle="-")
 
     data = C[1].data
     timevec = C[1][Axis{:time}][:]
@@ -225,7 +225,8 @@ function PyPlot.plot(C::ClimGrid; titlestr::String="", gridfig::Bool=true, label
         label = C.model
     end
 
-    figh = plot(timevec, average, lw = 1.5, label=label)
+    # PLOTTING
+    figh = plot(timevec, average, lw=lw, label=label, linestyle=linestyle)
     xlabel("Time")
     ylabel(C.dataunits)
     legend()
@@ -237,9 +238,7 @@ function PyPlot.plot(C::ClimGrid; titlestr::String="", gridfig::Bool=true, label
         grid("on")
     end
 
-    status = true
-
-    return figh, status
+    return true, figh
 
 end
 
