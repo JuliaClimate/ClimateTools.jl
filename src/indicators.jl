@@ -34,7 +34,7 @@ Let data[i,j] be the vapor pressure for day i in year j.
 function vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)
   @argcheck specific_humidity[9] == "huss"
   @argcheck sealevel_pressure[9] == "psl"
-  @argcheck orography[9] == "oro"
+  @argcheck orography[9] == "orog"
   @argcheck daily_temperature[9] == "tas"
 
   # Calculate the estimated surface pressure
@@ -56,16 +56,16 @@ Let data[i,j] be the surface pressure for day i in year j
 """
 function approxim_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)
   @argcheck sealevel_pressure[9] == "psl"
-  @argcheck orography[9] == "oro"
+  @argcheck orography[9] == "orog"
   @argcheck daily_temperature[9] == "tas"
 
   # Calculate the estimated surface pressure
-  exponent = (-1*orography) ./ (18400*daily_temperature/273.15)
-  ps_arraytmp = sealevel_pressure .* (10.^exponent)
+  exponent = (-1*orography.data) ./ (18400*daily_temperature.data/273.15)
+  ps_arraytmp = sealevel_pressure.data .* (10.^exponent)
   ps_array = buildarrayinterface(ps_arraytmp, sealevel_pressure)
 
   # Build dictionary for the variable vp
-  ps_dict = surface_pressure.varattribs
+  ps_dict = sealevel_pressure.varattribs
   ps_dict["standard_name"] = "surface_pressure"
   ps_dict["units"] = "Pa"
   ps_dict["units"] = "Surface pressure estimated with the sealevel pressure, the orography and the daily temperature"
