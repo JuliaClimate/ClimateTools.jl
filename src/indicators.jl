@@ -10,7 +10,7 @@ function vaporpressure(specific_humidity::ClimGrid, surface_pressure::ClimGrid)
   @argcheck specific_humidity[9] == "huss"
 
   # Calculate vapor pressure
-  vp_arraytmp = (specific_humidity.data .* surface_pressure.data) ./ (specific_humidity.data + 0.622)
+  vp_arraytmp = (specific_humidity.data .* surface_pressure.data) ./ (specific_humidity.data .+ 0.622)
   vp_array = buildarrayinterface(vp_arraytmp, surface_pressure)
 
   # Build dictionary for the variable vp
@@ -54,13 +54,13 @@ Calculation of the surface pressure (Pa) approximated from the sea level pressur
 
 Let data[i,j] be the surface pressure for day i in year j
 """
-function approxim_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)
+function approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)
   @argcheck sealevel_pressure[9] == "psl"
   @argcheck orography[9] == "orog"
   @argcheck daily_temperature[9] == "tas"
 
   # Calculate the estimated surface pressure
-  exponent = (-1*orography.data) ./ (18400*daily_temperature.data/273.15)
+  exponent = (-1.0 .* orography.data) ./ (18400.0 .* daily_temperature.data ./ 273.15)
   ps_arraytmp = sealevel_pressure.data .* (10.^exponent)
   ps_array = buildarrayinterface(ps_arraytmp, sealevel_pressure)
 
