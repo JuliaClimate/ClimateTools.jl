@@ -1,4 +1,4 @@
-__precompile__()
+# __precompile__()
 
 module ClimateTools
 
@@ -120,7 +120,7 @@ export windnr, leftorright, inpoly, inpolygrid, meshgrid, prcp1
 export frostdays, summerdays, icingdays, tropicalnights
 export daysabove10 #, daysbelow0, degdaysabove, degdaysbelow
 export customthresover, customthresunder, annualmax, annualmin
-export annualmean, annualsum, load, sumleapyear, buildtimevec
+export annualmean, annualsum, load, load2D, sumleapyear, buildtimevec
 export mapclimgrid, regrid, ClimGrid, inpolyvec, applymask
 export shapefile_coords, shapefile_coords_poly, timeresolution
 export pr_timefactor, spatialsubset, temporalsubset

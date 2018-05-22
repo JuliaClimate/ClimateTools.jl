@@ -113,5 +113,5 @@ status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, center_cs=true);@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, center_cs=true, surfacetype=:pcolormesh);@test status == true; PyPlot.close()
 
-figh, status = plot(C); @test status == true; PyPlot.close()
-figh, status = plot(C, label = "dummy", titlestr="dummytest", gridfig=true); @test status == true; PyPlot.close()
+status, figh = plot(C); @test status == true; PyPlot.close()
+status, figh = plot(C, label = "dummy", titlestr="dummytest", gridfig=true); @test status == true; PyPlot.close()

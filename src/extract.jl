@@ -302,6 +302,248 @@ function load(files::Array{String,1}, variable::String; poly = ([]), start_date:
 end
 
 """
+    load2D(file::String, variable::String; poly=[], data_units::String="")
+
+Returns a 2D array. Should be used for *fixed* data, such as orography
+"""
+function load2D(file::String, variable::String; poly=[], data_units::String="")
+    # Get attributes
+    ncI = NetCDF.ncinfo(file);
+    attribs = NetCDF.ncinfo(file).gatts;
+    ds = NCDatasets.Dataset(file)
+    # ncI = NetCDF.ncinfo(file);
+    attribs_dataset = ds.attrib
+
+    project = project_id(attribs_dataset)
+    institute = institute_id(attribs_dataset)
+    model = model_id(attribs_dataset)
+    experiment = experiment_id(attribs_dataset)
+    frequency = frequency_var(attribs_dataset)
+    runsim = runsim_id(attribs_dataset)
+
+    dataunits = ds[variable].attrib["units"]
+    latunits = ds["lat"].attrib["units"]
+    lonunits = ds["lon"].attrib["units"]
+
+    # Get dimensions names
+    latname = getdim_lat(ds)
+    lonname = getdim_lon(ds)
+
+    # Create dict with latname and lonname
+    dimension_dict = Dict(["lon" => lonname, "lat" => latname])
+
+    lat_raw = NetCDF.ncread(file, latname)
+    lon_raw = NetCDF.ncread(file, lonname)
+
+    # Get variable attributes
+    varattrib = Dict(ds[variable].attrib)
+
+    if latname != "lat" && lonname != "lon" # means we don't have a "regular" grid
+        latgrid = NetCDF.ncread(file, "lat")
+        longrid = NetCDF.ncread(file, "lon")
+        if @isdefined varattrib["grid_mapping"]
+            map_dim = varattrib["grid_mapping"]
+            map_attrib = Dict(ds[map_dim].attrib)
+            map_attrib["grid_mapping"] = map_dim
+        else
+            error("File an issue on https://github.com/Balinus/ClimateTools.jl/issues to get the grid supported")
+        end
+    else # if no grid provided, create one
+        longrid, latgrid = ndgrid(lon_raw, lat_raw)
+        map_attrib = Dict(["grid_mapping_name" => "Regular_longitude_latitude"])
+    end
+
+    # =====================
+    # TIME
+
+    # ==================
+    # Spatial shift if grid is 0-360.
+    rotatedgrid = false
+    if sum(longrid .> 180) >= 1
+        rotatedgrid = true
+
+        # Shift 360 degrees grid to -180, +180 degrees
+        longrid_flip = ClimateTools.shiftgrid_180_west_east(longrid)
+
+        # Shift 360 degrees vector to -180, +180 degrees
+        lon_raw_flip = ClimateTools.shiftvector_180_west_east(lon_raw)
+
+    else
+        longrid_flip = longrid # grid is already "flipped" by design
+    end
+
+    # ===================
+    # GET DATA
+    # data = ds[variable]
+    data = NetCDF.open(file, variable)
+    if !isempty(poly)
+
+      # Test to see if the polygon crosses the meridian
+      meridian = ClimateTools.meridian_check(poly)
+
+      # Build mask based on provided polygon
+      msk = inpolygrid(longrid_flip, latgrid, poly)
+
+      if sum(isnan.(msk)) == length(msk) # no grid point insode polygon
+          throw(error("No grid points found inside the provided polygon"))
+      end
+
+      if rotatedgrid
+          # Regrid msk to original grid if the grid have been rotated to get proper index for data extraction
+          msk = ClimateTools.shiftarray_east_west(msk, longrid_flip)
+      end
+
+      #Extract data based on mask
+      data = ClimateTools.extractdata2D(data, msk)
+
+      #new mask (e.g. representing the region of the polygon)
+      idlon, idlat = findn(.!isnan.(msk))
+      minXgrid = minimum(idlon)
+      maxXgrid = maximum(idlon)
+      minYgrid = minimum(idlat)
+      maxYgrid = maximum(idlat)
+      msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
+      data = applymask(data, msk) # needed when polygon is not rectangular
+
+      if rotatedgrid
+          # Regrid msk to shifted grid if the grid have been rotated to get final mask
+          #shiftarray_west_east(msk, longrid)
+      end
+
+      # Get lon_raw and lat_raw for such region
+      lon_raw = lon_raw[minXgrid:maxXgrid]
+      lat_raw = lat_raw[minYgrid:maxYgrid]
+
+      if map_attrib["grid_mapping_name"] == "Regular_longitude_latitude"
+
+          lon_raw = ClimateTools.shiftvector_180_west_east(lon_raw)
+
+      end
+
+      # Idem for longrid and latgrid
+      if meridian
+          longrid = ClimateTools.shiftgrid_180_east_west(longrid)#grideast, gridwest)
+          longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
+          latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
+
+          # Re-translate to -180, 180 if 0, 360
+
+          if rotatedgrid
+
+              longrid_flip = ClimateTools.shiftgrid_180_west_east(longrid)
+
+              data = permute_west_east(data, longrid)#idxwest, idxeast)
+              msk = ClimateTools.permute_west_east(msk, longrid)
+
+              # TODO Try to trim padding when meridian is crossed and model was on a 0-360 coords
+              # idlon, idlat = findn(.!isnan.(msk))
+              # minXgrid = minimum(idlon)
+              # maxXgrid = maximum(idlon)
+              # minYgrid = minimum(idlat)
+              # maxYgrid = maximum(idlat)
+              #
+              # msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
+              # data = data[:, minXgrid:maxXgrid, minYgrid:maxYgrid]
+              # lon_raw_flip = lon_raw[minXgrid:maxXgrid]
+              #
+              # longrid_flip = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
+              # longrid_flip = ClimateTools.shiftgrid_180_west_east(longrid_flip)
+              # latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
+
+              #     data = applymask(data, msk)
+
+
+
+          end
+
+
+
+
+      else
+
+          if rotatedgrid # flip in original grid
+              longrid = shiftgrid_180_east_west(longrid) #grideast, gridwest)
+          end
+
+          longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
+          latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
+
+
+          if rotatedgrid
+
+              longrid_flip = shiftgrid_180_west_east(longrid)
+
+              lon_raw_flip = shiftvector_180_east_west(lon_raw)
+
+              data = permute_west_east(data, longrid)#idxwest, idxeast)
+              msk = ClimateTools.permute_west_east(msk, longrid)
+
+          end
+
+      end
+
+    elseif isempty(poly) # no polygon clipping
+        msk = Array{Float64}(ones((size(data, 1), size(data, 2))))
+      # if ndims(data) == 3
+        data = extractdata2D(data, msk)
+      # elseif ndims(data) == 4
+          # data = extractdata(data, msk, idxtimebeg, idxtimeend)
+      # end
+
+
+      if rotatedgrid
+          # Flip data "west-east"
+          data = permute_west_east(data, longrid)
+      end
+
+    end
+
+    # # Replace fillvalues with NaN
+    fillval = NetCDF.ncgetatt(file, variable, "_FillValue")
+    data[data .== fillval] = NaN
+
+    if rotatedgrid
+        longrid = longrid_flip
+        lon_raw = lon_raw_flip
+    end
+
+    # Convert units of optional argument data_units is provided
+    if data_units == "Celsius" && (variable == "tas" || variable == "tasmax" || variable == "tasmin") && dataunits == "K"
+      data = data - 273.15
+      dataunits = "Celsius"
+    end
+
+    if data_units == "mm" && variable == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")
+
+      rez = timeresolution(NetCDF.ncread(file, "time"))
+      factor = pr_timefactor(rez)
+      data = data .* factor
+      if rez != "N/A"
+          dataunits = string("mm/",rez)
+      else
+          dataunits = "mm"
+      end
+      varattrib["standard_name"] = "precipitation"
+    end
+
+    # Create AxisArray from variable "data"
+
+    # Convert data to AxisArray
+    dataOut = AxisArray(data, Axis{Symbol(lonname)}(lon_raw), Axis{Symbol(latname)}(lat_raw))
+
+
+    close(ds)
+    NetCDF.ncclose(file)
+
+    return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=variable, typeofvar=variable, typeofcal="fixed", varattribs=varattrib, globalattribs=attribs)
+
+
+
+
+end
+
+
+"""
     buildtimevec(str::String)Y
 
 Construct the time vector from the netCDF file str
@@ -745,8 +987,6 @@ end
 Returns the data contained in netCDF file, using the appropriate mask and time index. Used internally by `load`.
 
 """
-
-
 function extractdata(data, msk, idxtimebeg, idxtimeend)
 
     idlon, idlat = findn(.!isnan.(msk))
@@ -766,7 +1006,19 @@ function extractdata(data, msk, idxtimebeg, idxtimeend)
     end
 
     return data
+end
 
+function extractdata2D(data, msk)
+
+    idlon, idlat = findn(.!isnan.(msk))
+    minXgrid = minimum(idlon)
+    maxXgrid = maximum(idlon)
+    minYgrid = minimum(idlat)
+    maxYgrid = maximum(idlat)
+
+    data = data[minXgrid:maxXgrid, minYgrid:maxYgrid]
+
+    return data
 
 end
 

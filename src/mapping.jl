@@ -35,8 +35,10 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   nlat = maximum(C.latgrid)
 
   # Time limits
-  timeV = C[1][Axis{:time}][:]
-  timebeg, timeend = timeindex(timeV, start_date, end_date, C.frequency)
+  if ndims(C[1]) > 2
+      timeV = C[1][Axis{:time}][:]
+      timebeg, timeend = timeindex(timeV, start_date, end_date, C.frequency)
+  end
 
   # =============
   # Colorscale
@@ -76,7 +78,11 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   # =================
   # PLOT DATA
   # Time-average
-  data2 = timeavg(C, timebeg, timeend, mask, poly, level)
+  if ndims(C[1]) > 2
+      data2 = timeavg(C, timebeg, timeend, mask, poly, level)
+  elseif ndims(C[1]) == 2
+      data2 = C[1].data
+  end
 
   # Get colorscale limits
   vmin, vmax = getcslimits(caxis, data2, center_cs)
@@ -189,12 +195,12 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
 end
 
 """
-    plot(C::ClimGrid, titlefig::String, gridfig::Bool, label::String)
+    plot(C::ClimGrid, titlefig::String, gridfig::Bool, label::String, color, lw, linestyle)
 
 Plots the spatial average timeserie of ClimGrid `C`.
 """
 
-function PyPlot.plot(C::ClimGrid; titlestr::String="", gridfig::Bool=true, label::String="")
+function PyPlot.plot(C::ClimGrid; titlestr::String="", gridfig::Bool=true, label::String="", lw=1.5, linestyle="-")
 
     data = C[1].data
     timevec = C[1][Axis{:time}][:]
@@ -219,7 +225,8 @@ function PyPlot.plot(C::ClimGrid; titlestr::String="", gridfig::Bool=true, label
         label = C.model
     end
 
-    figh = plot(timevec, average, lw = 1.5, label=label)
+    # PLOTTING
+    figh = plot(timevec, average, lw=lw, label=label, linestyle=linestyle)
     xlabel("Time")
     ylabel(C.dataunits)
     legend()
@@ -231,9 +238,7 @@ function PyPlot.plot(C::ClimGrid; titlestr::String="", gridfig::Bool=true, label
         grid("on")
     end
 
-    status = true
-
-    return figh, status
+    return true, figh
 
 end
 
