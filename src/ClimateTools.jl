@@ -109,6 +109,7 @@ end
 # Included files
 include("functions.jl")
 include("indices.jl")
+include("indicators.jl")
 include("extract.jl")
 include("interface.jl")
 include("mapping.jl")
@@ -128,6 +129,6 @@ export qqmap, ndgrid, permute_west_east
 export project_id, model_id, institute_id, experiment_id, frequency_var, runsim_id, getdim_lat, getdim_lon, isdefined
 export @isdefined
 export buildarray, timeindex, plot, merge
-export minimum, maximum, std, var, mean
+export minimum, maximum, std, var, mean, vaporpressure, approx_surfacepressure
 
 end #module
