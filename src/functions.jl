@@ -202,9 +202,7 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
 
     # ------------------------
     # Interpolation
-    # p = Progress(length(timeorig), 5)
     interp!(OUT, timeorig, dataorig, points, londest, latdest, method, msk=B.msk)
-
 
     if !isempty(min)
         OUT[OUT.<=min] = min
@@ -227,10 +225,10 @@ end
 """
     C = regrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)A
 
-Interpolate `ClimGrid` A onto lat-lon grid defined by londest and latdest vector.
+Interpolate `ClimGrid` A onto lat-lon grid defined by londest and latdest vector or array. If an array is provided, it is assumed that the grid is curvilinear (not a regular lon-lat grid) and the user needs to provide the dimension vector ("x" and "y") for such a grid.
 
 """
-function regrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArray{N, 1} where N; method::String="linear", min=[], max=[])
+function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::AbstractArray{N, T} where N where T; dimx=[], dimy=[], method::String="linear", min=[], max=[])
 
     # Get lat-lon information from ClimGrid A
     lonorig, latorig = getgrids(A)
@@ -241,28 +239,30 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArra
     dataorig = A[1].data
     timeorig = A[1][Axis{:time}][:] # the function will need to loop over time
 
-    londest, latdest = ndgrid(lon, lat)
+    if ndims(lon) == 1
+        londest, latdest = ndgrid(lon, lat)
+        dimx = lon
+        dimy = lat
+    elseif ndims(lon) == 2
+        londest = lon
+        latdest = lat
+        @assert !isempty(dimx)
+        @assert !isempty(dimy)
+    else
+        throw(error("Grid should be a vector or a grid"))
+    end
 
     # ---------------------
     # Allocate output Array
-    OUT = zeros(Float64, (length(lon), length(lat), length(timeorig)))
+    if ndims(lon) == 1
+        OUT = zeros(Float64, (length(lon), length(lat), length(timeorig)))
+    elseif ndims(lon) == 2
+        OUT = zeros(Float64, (size(lon, 1), size(lon, 2), length(timeorig)))
+    end
 
     # ------------------------
     # Interpolation
-
     interp!(OUT, timeorig, dataorig, points, londest, latdest, method)
-    # for t = 1:length(timeorig)
-    #
-    #     datatmp = dataorig[t, :, :]
-    #     # Build points values
-    #     val = datatmp[:]
-    #
-    #     # Call scipy griddata
-    #     OUT[t, :, :] = scipy[:griddata](points, val, (londest, latdest), method=method)
-    #
-    #     next!(p)
-    #
-    # end
 
     if !isempty(min)
         OUT[OUT.<=min] = min
@@ -274,10 +274,16 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, 1} where N, lat::AbstractArra
 
     # -----------------------
     # Construct AxisArrays and ClimGrid struct from array OUT
-    dataOut = AxisArray(OUT, Axis{:lon}(lon), Axis{:lat}(lat), Axis{:time}(timeorig))
+    dataOut = AxisArray(OUT, Axis{:x}(dimx), Axis{:y}(dimy), Axis{:time}(timeorig))
     msk = Array{Float64}(ones((size(OUT, 1), size(OUT, 2))))
-    grid_mapping = Dict(["grid_mapping_name" => "Regular_longitude_latitude"])
-    dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
+    if ndims(lon) == 1
+        grid_mapping = Dict(["grid_mapping_name" => "Regular_longitude_latitude"])
+        dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
+    elseif ndims(lon) == 2
+        grid_mapping = Dict(["grid_mapping_name" => "Curvilinear_grid"])
+        dimension_dict = Dict(["lon" => "x", "lat" => "y"])
+
+    end
 
 
     C = ClimateTools.ClimGrid(dataOut, longrid=londest, latgrid=latdest, msk=msk, grid_mapping=grid_mapping, dimension_dict=dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits="degrees_north", lonunits="degrees_east", variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
