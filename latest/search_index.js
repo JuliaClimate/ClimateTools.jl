@@ -781,7 +781,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "PyPlot.plot",
     "category": "method",
-    "text": "plot(C::ClimGrid, titlefig::String, gridfig::Bool, label::String)\n\nPlots the spatial average timeserie of ClimGrid C.\n\n\n\n"
+    "text": "plot(C::ClimGrid, titlefig::String, gridfig::Bool, label::String, color, lw, linestyle)\n\nPlots the spatial average timeserie of ClimGrid C.\n\n\n\n"
 },
 
 {
