@@ -544,7 +544,7 @@ end
 
 
 """
-    buildtimevec(str::String)Y
+    buildtimevec(str::String)
 
 Construct the time vector from the netCDF file str
 

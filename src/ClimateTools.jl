@@ -117,18 +117,18 @@ include("biascorrect.jl")
 include("heatsum_indices.jl")
 
 # Exported functions
-export windnr, leftorright, inpoly, inpolygrid, meshgrid, prcp1
+export inpoly, inpolygrid, meshgrid, prcp1
 export frostdays, summerdays, icingdays, tropicalnights
 export daysabove10 #, daysbelow0, degdaysabove, degdaysbelow
 export customthresover, customthresunder, annualmax, annualmin
-export annualmean, annualsum, load, load2D, sumleapyear, buildtimevec
+export annualmean, annualsum, load, load2D
 export mapclimgrid, regrid, ClimGrid, inpolyvec, applymask
-export shapefile_coords, shapefile_coords_poly, timeresolution
-export pr_timefactor, spatialsubset, temporalsubset
+export shapefile_coords, shapefile_coords_poly
+export spatialsubset, temporalsubset
 export qqmap, ndgrid, permute_west_east
-export project_id, model_id, institute_id, experiment_id, frequency_var, runsim_id, getdim_lat, getdim_lon, isdefined
+export getdim_lat, getdim_lon, isdefined
 export @isdefined
-export buildarray, timeindex, plot, merge
-export minimum, maximum, std, var, mean, vaporpressure, approx_surfacepressure
+export plot, merge, vaporpressure, approx_surfacepressure
+export minimum, maximum, std, var, mean
 
 end #module

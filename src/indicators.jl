@@ -1,7 +1,7 @@
 """
     vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)
 
-Calculation of the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).
+Returnsthe vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).
 
 ``vp = \\frac{q * sp}{q+0.622}``
 
@@ -28,7 +28,9 @@ end
 """
     vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)
 
-Calculation of the vapor pressure (Pa) estimated with the specific humidity, the sea level pressure (Pa), the orography (m) and the daily temperature (K).
+Returns the vapor pressure (vp) (Pa) estimated with the specific humidity (q), the sea level pressure (psl) (Pa), the orography (orog) (m) and the daily mean temperature (tas) (K). An approximation of the surface pressure is first computed by using the sea level pressure, orography and the daily mean temperature (see [`approx_surfacepressure`](@ref)). Then, vapor pressure is calculated by:
+
+``vp = \\frac{q * sp}{q+0.622}``
 
 """
 function vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)
@@ -38,7 +40,7 @@ function vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid,
   @argcheck daily_temperature[9] == "tas"
 
   # Calculate the estimated surface pressure
-  surface_pressure = approxim_surfacepressure(sealevel_pressure, orography, daily_temperature)
+  surface_pressure = approx_surfacepressure(sealevel_pressure, orography, daily_temperature)
 
   # Calculate vapor pressure
   vapor_pressure = vaporpressure(specific_humidity, surface_pressure)
@@ -48,9 +50,13 @@ function vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid,
 end
 
   """
-      approxim_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)
+      approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)
 
-Calculation of the surface pressure (Pa) approximated from the sea level pressure (Pa), the orography (m), and the daily temperature (K).
+Returns the approximated surface pressure (*sp*) (Pa) using sea level pressure (*psl*) (Pa), orography (*orog*) (m), and daily mean temperature (*tas*) (K).
+
+``sp = psl * 10^{x}``
+
+where ``x = \\frac{-orog}{18400 * tas / 273.15} ``
 
 """
 function approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)
