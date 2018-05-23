@@ -138,6 +138,17 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
 
 end
 
+"""
+    qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0)
+
+Transfer function based on quantile-quantile mapping bias correction. For each julian day, a transfer function is estimated through an empirical quantile-quantile mapping for the entire obs' ClimGrid extent. The quantile-quantile transfer function between **ref** and **obs** is etimated on a julian day basis with a moving window around the julian day. The transfer function can then be used to correct another dataset.
+
+**Options**
+partition::Float64 = 1.0. The proportion of grid-points (chosen randomly) used for the estimation of the transfer function. A transfer function is estimated for every chosen grid-points (and julian day) and averaged for the entire obs ClimGrid extent.
+"""
+function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0)
+    return itp
+end
 
 function corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
 
