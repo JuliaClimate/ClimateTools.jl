@@ -529,11 +529,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.buildtimevec-Tuple{String}",
+    "location": "functions.html#ClimateTools.approx_surfacepressure-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
     "page": "Index",
-    "title": "ClimateTools.buildtimevec",
+    "title": "ClimateTools.approx_surfacepressure",
     "category": "method",
-    "text": "buildtimevec(str::String)Y\n\nConstruct the time vector from the netCDF file str\n\n\n\n"
+    "text": "  approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the approximated surface pressure (sp) (Pa) using sea level pressure (psl) (Pa), orography (orog) (m), and daily mean temperature (tas) (K).\n\nsp = psl * 10^x\n\nwhere x = frac-orog18400 * tas  27315\n\n\n\n"
 },
 
 {
@@ -649,14 +649,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.pr_timefactor-Tuple{String}",
-    "page": "Index",
-    "title": "ClimateTools.pr_timefactor",
-    "category": "method",
-    "text": "function pr_timefactor(rez::String)\n\nReturn the time factor that should be applied to precipitation to get accumulation for resolution \"rez\"\n\n\n\n"
-},
-
-{
     "location": "functions.html#ClimateTools.prcp1-Tuple{ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.prcp1",
@@ -721,14 +713,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.sumleapyear-Tuple{Date,Any}",
-    "page": "Index",
-    "title": "ClimateTools.sumleapyear",
-    "category": "method",
-    "text": "Number of leap years in date vector\n\nsumleapyear(dates::StepRange{Date,Base.Dates.Day})\n\nsumleapyear(initDate::Date, timeRaw)\n\n\n\n"
-},
-
-{
     "location": "functions.html#ClimateTools.summerdays-Tuple{ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.summerdays",
@@ -745,22 +729,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.timeindex-NTuple{4,Any}",
-    "page": "Index",
-    "title": "ClimateTools.timeindex",
-    "category": "method",
-    "text": "timeindex(timeVec, start_date, end_date, freq)\n\nReturn the index of time vector specified by start_date and end_date. Provide timestep \"freq\" to account for monthly timestep.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#ClimateTools.timeresolution-Tuple{Array{N,1} where N}",
-    "page": "Index",
-    "title": "ClimateTools.timeresolution",
-    "category": "method",
-    "text": "timeresolution(timevec::Array{N,1} where N)\n\nReturn the time resolution of the vector timevec.\n\n\n\n"
-},
-
-{
     "location": "functions.html#ClimateTools.tropicalnights-Tuple{ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.tropicalnights",
@@ -769,11 +737,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.windnr-Tuple{Any,Array{T,2} where T}",
+    "location": "functions.html#ClimateTools.vaporpressure-NTuple{4,ClimateTools.ClimGrid}",
     "page": "Index",
-    "title": "ClimateTools.windnr",
+    "title": "ClimateTools.vaporpressure",
     "category": "method",
-    "text": "windnr(p, poly::Matrix)\n\nDetermines the winding number of a point and a polygon, i.e. how many times a polygon winds around the point.\n\nIt follows Dan Sunday: http://geomalgorithms.com/a03-_inclusion.html.\n\n\n\n"
+    "text": "vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) estimated with the specific humidity (q), the sea level pressure (psl) (Pa), the orography (orog) (m) and the daily mean temperature (tas) (K). An approximation of the surface pressure is first computed by using the sea level pressure, orography and the daily mean temperature (see approx_surfacepressure). Then, vapor pressure is calculated by:\n\nvp = fracq * spq+0622\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.vaporpressure-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
+    "page": "Index",
+    "title": "ClimateTools.vaporpressure",
+    "category": "method",
+    "text": "vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)\n\nReturnsthe vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).\n\nvp = fracq * spq+0622\n\n\n\n"
 },
 
 {
