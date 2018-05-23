@@ -75,4 +75,4 @@ C_tas = ClimateTools.ClimGrid(axisdata_tas, variable = "tas")
 C_orog = ClimateTools.ClimGrid(axisdata_orog, variable = "orog")
 vp = vaporpressure(C_huss, C_psl, C_orog, C_tas)
 # Run the test
-@test round(vp.data.data, 10) == Results
+@test round.(vp.data.data, 10) == Results
