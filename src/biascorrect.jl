@@ -139,15 +139,33 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
 end
 
 """
-    qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0)
+    qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat()))
 
 Transfer function based on quantile-quantile mapping bias correction. For each julian day, a transfer function is estimated through an empirical quantile-quantile mapping for the entire obs' ClimGrid extent. The quantile-quantile transfer function between **ref** and **obs** is etimated on a julian day basis with a moving window around the julian day. The transfer function can then be used to correct another dataset.
 
 **Options**
 partition::Float64 = 1.0. The proportion of grid-points (chosen randomly) used for the estimation of the transfer function. A transfer function is estimated for every chosen grid-points (and julian day) and averaged for the entire obs ClimGrid extent.
+
+**window::Int = 15 (default)**. The size of the window used to extract the statistical characteristics around a given julian day.
+
+**rankn::Int = 50 (default)**. The number of bins used for the quantile estimations. The quantiles uses by default 50 bins between 0.01 and 0.99. The bahavior between the bins is controlled by the interp keyword argument. The behaviour of the quantile-quantile estimation outside the 0.01 and 0.99 range is controlled by the extrap keyword argument.
+
+**interp = Interpolations.Linear() (default)**. When the data to be corrected lies between 2 quantile bins, the value of the transfer function is linearly interpolated between the 2 closest quantile estimation. The argument is from Interpolations.jl package.
+
+**extrap = Interpolations.Flat() (default)**. The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no "inflation problem" with the bias correction. The argument is from Interpolation.jl package.
 """
-function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0)
-    return itp
+function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat()))
+    # Checking if obs and ref are the same size
+    @argcheck size(obs[1], 1) == size(ref[1], 1)
+    @argcheck size(obs[1], 2) == size(ref[1], 2)
+
+    #Get date vectors
+    datevec_obs = obs[1][Axis{:time}][:]
+    datevec_ref = ref[1][Axis{:time}][:]
+
+    # Randomly select points
+    n = round(partition * size(obs[1], 2) * size(obs[1], 1)) # Number of points
+    rand(n)
 end
 
 function corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
