@@ -9,7 +9,7 @@ C = load(filenc, "tas")
 @test load(filenc, "pr", data_units = "mm")[2] == "mm"
 @test typeof(load(filenc, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}},AxisArrays.Axis{:time,Array{Date,1}}}}}
 
-@test typeof(buildtimevec(filenc)) == Array{Date, 1}
+@test typeof(ClimateTools.buildtimevec(filenc)) == Array{Date, 1}
 
 # Time units
 units = NetCDF.ncgetatt(filenc, "time", "units") # get starting date
@@ -17,7 +17,7 @@ m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1) # match a date from string
 daysfrom = m.match # get only the date ()"yyyy-mm-dd" format)
 initDate = Date(daysfrom, "yyyy-mm-dd")
 timeRaw = floor.(NetCDF.ncread(filenc, "time"))
-@test sumleapyear(initDate::Date, timeRaw) == 485
+@test ClimateTools.sumleapyear(initDate::Date, timeRaw) == 485
 
 # INTERFACE
 # B = vcat(C, C)
@@ -100,15 +100,15 @@ B = load(filenc, "tas", start_date=Date(2000, 05, 15), end_date=Date(2000, 05, 1
 
 # Time resolution
 timevec = [1, 2, 3]
-@test timeresolution(timevec) == "24h"
+@test ClimateTools.timeresolution(timevec) == "24h"
 timevec = [1.0, 1.5, 2.0]
-@test timeresolution(timevec) == "12h"
+@test ClimateTools.timeresolution(timevec) == "12h"
 timevec = [1.25, 1.5, 1.75]
-@test timeresolution(timevec) == "6h"
+@test ClimateTools.timeresolution(timevec) == "6h"
 timevec = [1.125, 1.25, 1.375]
-@test timeresolution(timevec) == "3h"
+@test ClimateTools.timeresolution(timevec) == "3h"
 timevec = NetCDF.ncread(filenc, "time")
-@test timeresolution(timevec) == "N/A"
+@test ClimateTools.timeresolution(timevec) == "N/A"
 
 
 
@@ -118,9 +118,9 @@ XV = [1, 2, 3]
 @test meshgrid(XV, YV) == ([1 2 3; 1 2 3; 1 2 3], [1 1 1; 2 2 2; 3 3 3])
 
 ## INPOLY
-@test leftorright(0.5,0.5, 1,0,1,1) == -1
-@test leftorright(1.5,.5, 1,0,1,1) == 1
-@test leftorright(1,0.5, 1,0,1,1) == 0
+@test ClimateTools.leftorright(0.5,0.5, 1,0,1,1) == -1
+@test ClimateTools.leftorright(1.5,.5, 1,0,1,1) == 1
+@test ClimateTools.leftorright(1,0.5, 1,0,1,1) == 0
 
 poly = Float64[0 0
                0 1
@@ -332,13 +332,13 @@ end
 
 # Test sumleapyear with StepRange{Date,Base.Dates.Day} type
 d = Date(2003,1,1):Date(2008,12,31)
-@test sumleapyear(d) == 2
+@test ClimateTools.sumleapyear(d) == 2
 
 # Test timeresolution and pr_timefactor
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 timevec = NetCDF.ncread(filename, "time")
-@test pr_timefactor(timeresolution(timevec)) == 1.
-@test pr_timefactor("24h") == 86400.
-@test pr_timefactor("12h") == 43200.
-@test pr_timefactor("6h") == 21600.
-@test pr_timefactor("3h") == 10800.
+@test ClimateTools.pr_timefactor(ClimateTools.timeresolution(timevec)) == 1.
+@test ClimateTools.pr_timefactor("24h") == 86400.
+@test ClimateTools.pr_timefactor("12h") == 43200.
+@test ClimateTools.pr_timefactor("6h") == 21600.
+@test ClimateTools.pr_timefactor("3h") == 10800.
