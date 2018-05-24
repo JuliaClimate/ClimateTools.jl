@@ -160,7 +160,7 @@ partition::Float64 = 1.0. The proportion of grid-points (chosen randomly) used f
 
 **extrap = Interpolations.Flat() (default)**. The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no "inflation problem" with the bias correction. The argument is from Interpolation.jl package.
 """
-function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat()))
+function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat())
     # Checking if obs and ref are the same size
     @argcheck size(obs[1], 1) == size(ref[1], 1)
     @argcheck size(obs[1], 2) == size(ref[1], 2)
