@@ -37,7 +37,10 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     datevec_fut = fut[1][Axis{:time}][:]
 
     # Modify dates (e.g. 29th feb are dropped/lost by default)
-    obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2 = corrjuliandays(obs[1][1,1,:].data, ref[1][1,1,:].data, fut[1][1,1,:].data, datevec_obs, datevec_ref, datevec_fut)
+    obsvec2, obs_jul, datevec_obs2 = corrjuliandays(obs[1][1,1,:].data, datevec_obs)
+    refvec2, ref_jul, datevec_ref2 = corrjuliandays(ref[1][1,1,:].data, datevec_ref)
+    futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][1,1,:].data, datevec_fut)
+    # obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2 = corrjuliandays(obs[1][1,1,:].data, ref[1][1,1,:].data, fut[1][1,1,:].data, datevec_obs, datevec_ref, datevec_fut)
 
     # Prepare output array
     dataout = fill(NaN, (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{N, T} where N where T
@@ -81,7 +84,10 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
     P = linspace(0.01, 0.99, rankn)
 
     # Get correct julian days (e.g. we can't have a mismatch of calendars between observed and models ref/fut)
-    obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2 = corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
+    obsvec2, obs_jul, datevec_obs2 = corrjuliandays(obsvec, datevec_obs)
+    refvec2, ref_jul, datevec_ref2 = corrjuliandays(refvec, datevec_ref)
+    futvec2, fut_jul, datevec_fut2 = corrjuliandays(futvec, datevec_fut)
+    # obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2 = corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
 
     # Prepare output array
     dataout = similar(futvec2, (size(futvec2)))
@@ -164,145 +170,190 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, window:
     datevec_ref = ref[1][Axis{:time}][:]
 
     # Randomly select points
-    n = round(partition * size(obs[1], 2) * size(obs[1], 1)) # Number of points
-    rand(n)
+    n = round(Int,partition * size(obs[1], 1) * size(obs[1], 1)) # Number of points
+    if n == 0
+        n=1
+    else
+        n=n
+    end
+    point_index = ceil(Int,rand(n)*size(obs[1], 1) * size(obs[1], 1))
+
 end
 
-function corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
+# function corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
+#
+#     # Eliminate February 29th (small price to pay for simplicity and does not affect significantly quantile estimations)
+#
+#     obs29thfeb = (Dates.month.(datevec_obs) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(datevec_obs) .== Dates.day(29))
+#     ref29thfeb = (Dates.month.(datevec_ref) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(datevec_ref) .== Dates.day(29))
+#     fut29thfeb = (Dates.month.(datevec_fut) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(datevec_fut) .== Dates.day(29))
+#
+#     obs_jul = Dates.dayofyear.(datevec_obs)
+#     ref_jul = Dates.dayofyear.(datevec_ref)
+#     fut_jul = Dates.dayofyear.(datevec_fut)
+#
+#     # identify leap years
+#     leapyears_obs = leapyears(datevec_obs)
+#     leapyears_ref = leapyears(datevec_ref)
+#     leapyears_fut = leapyears(datevec_fut)
+#
+#
+#     if sum(obs29thfeb) >= 1 & sum(ref29thfeb) == 0 # obs leap year but not models
+#
+#         for iyear in leapyears_obs
+#             k = findfirst(Dates.year.(datevec_obs), iyear) + 59
+#             obs_jul[k:k+306] -= 1
+#         end
+#
+#         for iyear in leapyears_ref
+#             k = findfirst(Dates.year.(datevec_ref), iyear) + 59
+#             ref_jul[k:k+305] -= 1
+#         end
+#
+#         for iyear in leapyears_fut
+#             k = findfirst(Dates.year.(datevec_fut), iyear) + 59
+#             fut_jul[k:k+305] -= 1
+#         end
+#
+#         datevec_obs2 = datevec_obs[.!obs29thfeb]
+#         obsvec2 = obsvec[.!obs29thfeb]
+#         obs_jul = obs_jul[.!obs29thfeb]
+#
+#         refvec2 = refvec
+#         datevec_ref2 = datevec_ref
+#         futvec2 = futvec
+#         datevec_fut2 = datevec_fut
+#
+#
+#         # modify obs_jul to "-=1" for k:k+306 for leap years
+#         # modify models ref_jul/fut_jul to "-= 1" for k:k+305 for leap years
+#         # delete only obs 29th values
+#
+#     elseif sum(obs29thfeb) >=1 & sum(ref29thfeb) >=1 # leap years for obs & models
+#
+#         # modify models obs_jul/ref_jul/fut_jul to "-= 1" for k:k+306 for leap years
+#         # delete obs/ref/fut 29th values
+#         for iyear in leapyears_obs
+#             k = findfirst(Dates.year.(datevec_obs), iyear) + 59
+#             obs_jul[k:k+306] -= 1
+#         end
+#
+#         for iyear in leapyears_ref
+#             k = findfirst(Dates.year.(datevec_ref), iyear) + 59
+#             ref_jul[k:k+306] -= 1
+#         end
+#
+#         for iyear in leapyears_fut
+#             k = findfirst(Dates.year.(datevec_fut), iyear) + 59
+#             fut_jul[k:k+306] -= 1
+#         end
+#
+#         datevec_obs2 = datevec_obs[.!obs29thfeb]
+#         obsvec2 = obsvec[.!obs29thfeb]
+#         obs_jul = obs_jul[.!obs29thfeb]
+#
+#         datevec_ref2 = datevec_ref[.!ref29thfeb]
+#         refvec2 = refvec[.!ref29thfeb]
+#         ref_jul = ref_jul[.!ref29thfeb]
+#
+#         datevec_fut2 = datevec_fut[.!fut29thfeb]
+#         futvec2 = futvec[.!fut29thfeb]
+#         fut_jul = fut_jul[.!fut29thfeb]
+#
+#     elseif sum(obs29thfeb) == 0 & sum(ref29thfeb) >= 1
+#
+#         # modify obs_jul to "-=1" for k:k+305 for leap years
+#         # modify ref_jul/fut_jul to "-=1" for k:k+306 for leap years
+#         # delete ref/fut 29th values
+#
+#         for iyear in leapyears_obs
+#             k = findfirst(Dates.year.(datevec_obs), iyear) + 59
+#             obs_jul[k:k+305] -= 1
+#         end
+#
+#         for iyear in leapyears_ref
+#             k = findfirst(Dates.year.(datevec_ref), iyear) + 59
+#             ref_jul[k:k+306] -= 1
+#         end
+#
+#         for iyear in leapyears_fut
+#             k = findfirst(Dates.year.(datevec_fut), iyear) + 59
+#             fut_jul[k:k+306] -= 1
+#         end
+#
+#         datevec_obs2 = datevec_obs[.!obs29thfeb]
+#         obsvec2 = obsvec[.!obs29thfeb]
+#         # obs_jul = obs_jul[.!obs29thfeb]
+#
+#         datevec_ref2 = datevec_ref[.!ref29thfeb]
+#         refvec2 = refvec[.!ref29thfeb]
+#         ref_jul = ref_jul[.!ref29thfeb]
+#
+#         datevec_fut2 = datevec_fut[.!fut29thfeb]
+#         futvec2 = futvec[.!fut29thfeb]
+#         fut_jul = fut_jul[.!fut29thfeb]
+#
+#     elseif sum(obs29thfeb) == 0 & sum(ref29thfeb) == 0 # no leap years
+#
+#         # modify obs_jul/ref_jul/fut_jul to "-=1" for k:k+305 for leap years
+#         for iyear in leapyears_obs
+#             k = findfirst(Dates.year.(datevec_obs), iyear) + 59
+#             obs_jul[k:k+305] -= 1
+#         end
+#
+#         for iyear in leapyears_ref
+#             k = findfirst(Dates.year.(datevec_ref), iyear) + 59
+#             ref_jul[k:k+305] -= 1
+#         end
+#
+#         for iyear in leapyears_fut
+#             k = findfirst(Dates.year.(datevec_fut), iyear) + 59
+#             fut_jul[k:k+305] -= 1
+#         end
+#
+#
+#     end
+#
+#     return obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2
+#
+# end
+
+function corrjuliandays(data_vec, date_vec)
 
     # Eliminate February 29th (small price to pay for simplicity and does not affect significantly quantile estimations)
 
-    obs29thfeb = (Dates.month.(datevec_obs) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(datevec_obs) .== Dates.day(29))
-    ref29thfeb = (Dates.month.(datevec_ref) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(datevec_ref) .== Dates.day(29))
-    fut29thfeb = (Dates.month.(datevec_fut) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(datevec_fut) .== Dates.day(29))
+    feb29th = (Dates.month.(date_vec) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(date_vec) .== Dates.day(29))
 
-    obs_jul = Dates.dayofyear.(datevec_obs)
-    ref_jul = Dates.dayofyear.(datevec_ref)
-    fut_jul = Dates.dayofyear.(datevec_fut)
+    date_jul = Dates.dayofyear.(date_vec)
 
     # identify leap years
-    leapyears_obs = leapyears(datevec_obs)
-    leapyears_ref = leapyears(datevec_ref)
-    leapyears_fut = leapyears(datevec_fut)
+    leapyears = leapyears(date_vec)
 
+    if sum(feb29th) >= 1 # leapyears
 
-    if sum(obs29thfeb) >= 1 & sum(ref29thfeb) == 0 # obs leap year but not models
-
-        for iyear in leapyears_obs
-            k = findfirst(Dates.year.(datevec_obs), iyear) + 59
-            obs_jul[k:k+306] -= 1
+        for iyear in leapyears
+            k = findfirst(Dates.year.(date_vec), iyear) + 59
+            date_jul[k:k+306] -= 1
         end
 
-        for iyear in leapyears_ref
-            k = findfirst(Dates.year.(datevec_ref), iyear) + 59
-            ref_jul[k:k+305] -= 1
+        date_vec2 = date_vec[.!obs29thfeb]
+        data_vec2 = data_vec[.!obs29thfeb]
+        date_jul = date_jul[.!obs29thfeb]
+
+    elseif sum(obs29thfeb) == 0 # not a leapyears
+
+        for iyear in leapyears
+            k = findfirst(Dates.year.(date_vec), iyear) + 59
+            date_jul[k:k+305] -= 1
         end
 
-        for iyear in leapyears_fut
-            k = findfirst(Dates.year.(datevec_fut), iyear) + 59
-            fut_jul[k:k+305] -= 1
-        end
-
-        datevec_obs2 = datevec_obs[.!obs29thfeb]
-        obsvec2 = obsvec[.!obs29thfeb]
-        obs_jul = obs_jul[.!obs29thfeb]
-
-        refvec2 = refvec
-        datevec_ref2 = datevec_ref
-        futvec2 = futvec
-        datevec_fut2 = datevec_fut
-
-
-        # modify obs_jul to "-=1" for k:k+306 for leap years
-        # modify models ref_jul/fut_jul to "-= 1" for k:k+305 for leap years
-        # delete only obs 29th values
-
-    elseif sum(obs29thfeb) >=1 & sum(ref29thfeb) >=1 # leap years for obs & models
-
-        # modify models obs_jul/ref_jul/fut_jul to "-= 1" for k:k+306 for leap years
-        # delete obs/ref/fut 29th values
-        for iyear in leapyears_obs
-            k = findfirst(Dates.year.(datevec_obs), iyear) + 59
-            obs_jul[k:k+306] -= 1
-        end
-
-        for iyear in leapyears_ref
-            k = findfirst(Dates.year.(datevec_ref), iyear) + 59
-            ref_jul[k:k+306] -= 1
-        end
-
-        for iyear in leapyears_fut
-            k = findfirst(Dates.year.(datevec_fut), iyear) + 59
-            fut_jul[k:k+306] -= 1
-        end
-
-        datevec_obs2 = datevec_obs[.!obs29thfeb]
-        obsvec2 = obsvec[.!obs29thfeb]
-        obs_jul = obs_jul[.!obs29thfeb]
-
-        datevec_ref2 = datevec_ref[.!ref29thfeb]
-        refvec2 = refvec[.!ref29thfeb]
-        ref_jul = ref_jul[.!ref29thfeb]
-
-        datevec_fut2 = datevec_fut[.!fut29thfeb]
-        futvec2 = futvec[.!fut29thfeb]
-        fut_jul = fut_jul[.!fut29thfeb]
-
-    elseif sum(obs29thfeb) == 0 & sum(ref29thfeb) >= 1
-
-        # modify obs_jul to "-=1" for k:k+305 for leap years
-        # modify ref_jul/fut_jul to "-=1" for k:k+306 for leap years
-        # delete ref/fut 29th values
-
-        for iyear in leapyears_obs
-            k = findfirst(Dates.year.(datevec_obs), iyear) + 59
-            obs_jul[k:k+305] -= 1
-        end
-
-        for iyear in leapyears_ref
-            k = findfirst(Dates.year.(datevec_ref), iyear) + 59
-            ref_jul[k:k+306] -= 1
-        end
-
-        for iyear in leapyears_fut
-            k = findfirst(Dates.year.(datevec_fut), iyear) + 59
-            fut_jul[k:k+306] -= 1
-        end
-
-        datevec_obs2 = datevec_obs[.!obs29thfeb]
-        obsvec2 = obsvec[.!obs29thfeb]
-        # obs_jul = obs_jul[.!obs29thfeb]
-
-        datevec_ref2 = datevec_ref[.!ref29thfeb]
-        refvec2 = refvec[.!ref29thfeb]
-        ref_jul = ref_jul[.!ref29thfeb]
-
-        datevec_fut2 = datevec_fut[.!fut29thfeb]
-        futvec2 = futvec[.!fut29thfeb]
-        fut_jul = fut_jul[.!fut29thfeb]
-
-    elseif sum(obs29thfeb) == 0 & sum(ref29thfeb) == 0 # no leap years
-
-        # modify obs_jul/ref_jul/fut_jul to "-=1" for k:k+305 for leap years
-        for iyear in leapyears_obs
-            k = findfirst(Dates.year.(datevec_obs), iyear) + 59
-            obs_jul[k:k+305] -= 1
-        end
-
-        for iyear in leapyears_ref
-            k = findfirst(Dates.year.(datevec_ref), iyear) + 59
-            ref_jul[k:k+305] -= 1
-        end
-
-        for iyear in leapyears_fut
-            k = findfirst(Dates.year.(datevec_fut), iyear) + 59
-            fut_jul[k:k+305] -= 1
-        end
-
+        date_vec2 = date_vec[.!obs29thfeb]
+        data_vec2 = data_vec[.!obs29thfeb]
+        # date_jul = date_jul[.!obs29thfeb]
 
     end
 
-    return obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2
+    return data_vec2, date_jul, date_vec2
 
 end
 
