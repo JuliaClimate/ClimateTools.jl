@@ -327,28 +327,28 @@ function corrjuliandays(data_vec, date_vec)
     date_jul = Dates.dayofyear.(date_vec)
 
     # identify leap years
-    leapyears = leapyears(date_vec)
+    leap_years = leapyears(date_vec)
 
     if sum(feb29th) >= 1 # leapyears
 
-        for iyear in leapyears
+        for iyear in leap_years
             k = findfirst(Dates.year.(date_vec), iyear) + 59
             date_jul[k:k+306] -= 1
         end
 
-        date_vec2 = date_vec[.!obs29thfeb]
-        data_vec2 = data_vec[.!obs29thfeb]
-        date_jul = date_jul[.!obs29thfeb]
+        date_vec2 = date_vec[.!feb29th]
+        data_vec2 = data_vec[.!feb29th]
+        date_jul = date_jul[.!feb29th]
 
     elseif sum(obs29thfeb) == 0 # not a leapyears
 
-        for iyear in leapyears
+        for iyear in leap_years
             k = findfirst(Dates.year.(date_vec), iyear) + 59
             date_jul[k:k+305] -= 1
         end
 
-        date_vec2 = date_vec[.!obs29thfeb]
-        data_vec2 = data_vec[.!obs29thfeb]
+        date_vec2 = date_vec[.!feb29th]
+        data_vec2 = data_vec[.!feb29th]
         # date_jul = date_jul[.!obs29thfeb]
 
     end
