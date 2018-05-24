@@ -76,7 +76,7 @@ function load(file::String, variable::String; poly = ([]), start_date::Date = Da
   rez = timeresolution(NetCDF.ncread(file, "time"))
 
   # Construct time vector from info in netCDF file *str*
-  timeV = buildtimevec(file)
+  timeV = buildtimevec(file, rez)
   if frequency == "mon"
       timeV = corr_timevec(timeV, frequency)
   end
@@ -553,7 +553,7 @@ end
 Construct the time vector from the netCDF file str
 
 """
-function buildtimevec(str::String)
+function buildtimevec(str::String, rez)
 
   # Time units
   ncI = NetCDF.ncinfo(str); # seems to be necessary. Otherwise can an inconsistent error when trying to load attributes
