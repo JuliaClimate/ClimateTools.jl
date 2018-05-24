@@ -145,7 +145,7 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
 end
 
 """
-    qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat()))
+    qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())
 
 Transfer function based on quantile-quantile mapping bias correction. For each julian day, a transfer function is estimated through an empirical quantile-quantile mapping for the entire obs' ClimGrid extent. The quantile-quantile transfer function between **ref** and **obs** is etimated on a julian day basis with a moving window around the julian day. The transfer function can then be used to correct another dataset.
 
@@ -169,15 +169,57 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, window:
     datevec_obs = obs[1][Axis{:time}][:]
     datevec_ref = ref[1][Axis{:time}][:]
 
-    # Randomly select points
-    n = round(Int,partition * size(obs[1], 1) * size(obs[1], 1)) # Number of points
+    # Modify dates (e.g. 29th feb are dropped/lost by default)
+    obsvec2, obs_jul, datevec_obs2 = corrjuliandays(obs[1][1,1,:].data, datevec_obs)
+    refvec2, ref_jul, datevec_ref2 = corrjuliandays(ref[1][1,1,:].data, datevec_ref)
+
+    # Number of points to sample
+    n = round(Int,partition * size(obs[1], 1) * size(obs[1], 2)) # Number of points
     if n == 0
         n=1
     else
         n=n
     end
-    point_index = ceil(Int,rand(n)*size(obs[1], 1) * size(obs[1], 1))
 
+    ITP = zeros(n, rankn, 365)
+
+    # Loop over the sampled points
+    for isample = 1:n
+        # random x,y value
+        x = rand(1:size(obs[1], 1))
+        y = rand(1:size(obs[1], 2))
+        obsvec = obs[1][x, y, :].data
+        refvec = ref[1][x, y, :].data
+        ITP[isample,:,:] = qqmaptf(obsvec, refvec, window=window, rankn=rankn, interp=interp, extrap = extrap)
+    end
+
+end
+
+function qqmaptf(obsvec::Array{N, 1} where N, ref::Array{N, 1} where N; partition::Float64 = 1.0, window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat())
+    # range over which quantiles are estimated
+    P = linspace(0.01, 0.99, rankn)
+    # Get correct julian days (e.g. we can't have a mismatch of calendars between observed and models ref/fut)
+    obsvec2, obs_jul, datevec_obs2 = corrjuliandays(obsvec, datevec_obs)
+    refvec2, ref_jul, datevec_ref2 = corrjuliandays(refvec, datevec_ref)
+
+    # Loop over every julian days
+    Threads.@threads for ijulian = 1:365
+
+        # Find all index of moving window around ijulian day of year
+        idxobs = find_julianday_idx(obs_jul, ijulian, window)
+        idxref = find_julianday_idx(ref_jul, ijulian, window)
+
+        obsval = obsvec2[idxobs] # values to use as ground truth
+        refval = refvec2[idxref] # values to use as reference for sim
+
+        # Estimate quantiles for obs and ref for ijulian
+        obsP = quantile(obsval[.!isnan.(obsval)], P)
+        refP = quantile(refval[.!isnan.(refval)], P)
+
+        sf_refP = obsP - refP
+        itp = interpolate((refP,), sf_refP, Gridded(interp))
+        itp = extrapolate(itp, extrap)
+    end
 end
 
 # function corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
@@ -340,7 +382,7 @@ function corrjuliandays(data_vec, date_vec)
         data_vec2 = data_vec[.!feb29th]
         date_jul = date_jul[.!feb29th]
 
-    elseif sum(obs29thfeb) == 0 # not a leapyears
+    elseif sum(feb29th) == 0 # not a leapyears
 
         for iyear in leap_years
             k = findfirst(Dates.year.(date_vec), iyear) + 59
@@ -349,7 +391,7 @@ function corrjuliandays(data_vec, date_vec)
 
         date_vec2 = date_vec[.!feb29th]
         data_vec2 = data_vec[.!feb29th]
-        # date_jul = date_jul[.!obs29thfeb]
+        # date_jul = date_jul[.!feb29th]
 
     end
 
