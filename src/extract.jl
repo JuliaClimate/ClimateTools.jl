@@ -71,6 +71,10 @@ function load(file::String, variable::String; poly = ([]), start_date::Date = Da
   # =====================
   # TIME
 
+  # Get time resolution
+
+  rez = timeresolution(NetCDF.ncread(file, "time"))
+
   # Construct time vector from info in netCDF file *str*
   timeV = buildtimevec(file)
   if frequency == "mon"
@@ -727,12 +731,14 @@ function timeresolution(timevec::Array{N,1} where N)
         timediff = diff(timevec)[1]
         if timediff == 1. || timediff == 1
             return "24h"
-        elseif timediff == 0.5
+        elseif round(timediff, 5) == round(12/24, 5)
             return "12h"
-        elseif timediff == 0.25
+        elseif round(timediff, 5) == round(6/24, 5)
             return "6h"
-        elseif timediff == 0.125
+        elseif round(timediff, 5) == round(3/24, 5)
             return "3h"
+        elseif round(timediff, 5) == round(1/24, 5)
+            return "1h"
         end
     else
         return "N/A"
@@ -749,15 +755,17 @@ Return the time factor that should be applied to precipitation to get accumulati
 function pr_timefactor(rez::String)
 
     if rez == "24h"
-        return 86400.
+        return 86400.0
     elseif rez == "12h"
-        return 43200.
+        return 43200.0
     elseif rez == "6h"
-        return 21600.
+        return 21600.0
     elseif rez == "3h"
-        return 10800.
+        return 10800.0
+    elseif rez == "1h"
+        return 3600.0
     elseif rez == "N/A"
-        return 1.
+        return 1.0
     end
 
 end
