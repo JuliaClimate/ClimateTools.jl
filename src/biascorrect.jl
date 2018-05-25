@@ -165,6 +165,8 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, window:
     @argcheck size(obs[1], 1) == size(ref[1], 1)
     @argcheck size(obs[1], 2) == size(ref[1], 2)
 
+    P = linspace(0.01, 0.99, rankn)
+
     #Get date vectors
     datevec_obs = obs[1][Axis{:time}][:]
     datevec_ref = ref[1][Axis{:time}][:]
@@ -183,6 +185,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, window:
     x = rand(1:size(obs[1],1),n)
     y = rand(1:size(obs[1],2),n)
     # loop over every julian days
+    ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{Interpolations.Linear},Tuple{Array{Float64,1}},0},Interpolations.Gridded{Interpolations.Linear},Interpolations.OnGrid,Interpolations.Flat}}(365)
     Threads.@threads for ijulian = 1:365
         idxobs = find_julianday_idx(obs_jul, ijulian, window)
         idxref = find_julianday_idx(ref_jul, ijulian, window)
@@ -194,50 +197,17 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, window:
             obsval[sum(idxobs)*(ipoint-1)+1:sum(idxobs)*ipoint] = iobsvec2[idxobs]
             refval[sum(idxref)*(ipoint-1)+1:sum(idxref)*ipoint] = irefvec2[idxref]
         end
+
+        # Estimate quantiles for obs and ref for ijulian
+        obsP = quantile(obsval[.!isnan.(obsval)], P)
+        refP = quantile(refval[.!isnan.(refval)], P)
+        sf_refP = obsP - refP
+        itp = interpolate((refP,), sf_refP, Gridded(interp))
+        itp = extrapolate(itp, extrap) # add extrapolation
+        ITP[ijulian] = itp
     end
+    return ITP
 end
-#
-#     ITP = zeros(n, rankn, 365)
-#
-#     # Loop over the sampled points
-#     for isample = 1:n
-#         # random x,y value
-#         x = rand(1:size(obs[1], 1))
-#         y = rand(1:size(obs[1], 2))
-#         obsvec = obs[1][x, y, :].data
-#         refvec = ref[1][x, y, :].data
-#         ITP[isample,:,:] = qqmaptf(obsvec, refvec, datevec_obs, datevec_ref, window=window, rankn=rankn, interp=interp, extrap = extrap)
-#     end
-#
-# end
-#
-# function qqmaptf(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, datevec_obs, datevec_ref; partition::Float64 = 1.0, window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat())
-#     # range over which quantiles are estimated
-#     P = linspace(0.01, 0.99, rankn)
-#     # Get correct julian days (e.g. we can't have a mismatch of calendars between observed and models ref/fut)
-#     obsvec2, obs_jul, datevec_obs2 = corrjuliandays(obsvec, datevec_obs)
-#     refvec2, ref_jul, datevec_ref2 = corrjuliandays(refvec, datevec_ref)
-#
-#     # Loop over every julian days
-#     Threads.@threads for ijulian = 1:365
-#
-#         # Find all index of moving window around ijulian day of year
-#         idxobs = find_julianday_idx(obs_jul, ijulian, window)
-#         idxref = find_julianday_idx(ref_jul, ijulian, window)
-#
-#         obsval = obsvec2[idxobs] # values to use as ground truth
-#         refval = refvec2[idxref] # values to use as reference for sim
-#
-#         # Estimate quantiles for obs and ref for ijulian
-#         obsP = quantile(obsval[.!isnan.(obsval)], P)
-#         refP = quantile(refval[.!isnan.(refval)], P)
-#
-#         sf_refP = obsP - refP
-#         itp = interpolate((refP,), sf_refP, Gridded(interp))
-#         itp = extrapolate(itp, extrap)
-#     end
-#     return itp
-# end
 
 # function corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
 #
