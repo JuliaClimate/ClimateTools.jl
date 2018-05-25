@@ -16,14 +16,6 @@ mapclimgrid(C)
 
 ![BNU-ESM](assets/BNU_AnnMax.png)
 
-Climate Indices functions also accept other type of arguments. For example, `annualmax` can be called with the following type:
-
-```julia
-ind = annualmax(data::Array{Float64, 3}, dates::StepRange{Date, Base.Dates.Day})
-```
-
-Although, without metadata contained into a `ClimGrid`, no checks are done.
-
 
 ## Climate Indices
 

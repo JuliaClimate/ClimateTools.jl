@@ -39,7 +39,7 @@ The climate indices are coded to use **multiple threads**. To gain maximum perfo
 The entry point of `ClimateTools` is to load data with the `load` function. Optional polygon clipping feature is available. By providing such polygon, the `load` function  returns a `ClimGrid` with grid points contained in the polygon.
 
 ```julia
-C = load(filename::String, var::String; poly::Array, data_units::String, start_date::Date, end_date::Date)
+C = load(filename::String, var::String; poly::Array, data_units::String, start_date::Tuple, end_date::Tuple)
 ```
 
 `load` returns a `ClimGrid` type. Using the optional `poly` argument, the user can provide a polygon and the returned `ClimGrid` will only contains the grid points inside the provided polygon. For some variable, the optional keyword argument `data_units` can be provided. For example, precipitation in climate models are usually provided as `kg/m^2/s`. By specifying `data_units = mm`, the `load` function returns accumulation at the data time resolution. Similarly, the user can provide `Celsius` as `data_units` and `load` will return `Celsius` instead of `Kelvin`.
@@ -82,7 +82,7 @@ C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
 Temporal subset of the data is also possible with the `temporalsubset` function:
 
 ```julia
-C = temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
+C = temporalsubset(C::ClimGrid, startdate::Tuple, enddate::Tuple)
 ```
 
 ### Mapping the ClimGrid type
@@ -116,11 +116,6 @@ Which returns another `ClimGrid`. You can also map this `ClimGrid` with the `map
   <img src="https://cloud.githubusercontent.com/assets/3630311/23873133/59b85c08-0807-11e7-967b-7cc7d28aada0.png?raw=true" width="771" height="388" alt="Precipitation example"/>
 </p>
 
-Climate Indices functions also accept other type of argument. For example, `annualmax` can be called with the following type:
-
-```julia
-ind = annualmax(data::Array{Float64, 3}, dates::StepRange{Date, Base.Dates.Day})
-```
 
 ### Interpolation
 

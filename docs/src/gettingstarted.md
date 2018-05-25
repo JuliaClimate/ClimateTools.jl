@@ -33,14 +33,14 @@ Pkg.checkout("ClimateTools") # For latest master branch
 The entry point of `ClimateTools` is to load data with the `load` function. Optional polygon clipping feature is available. By providing such polygon, the `load` function  returns a `ClimGrid` with grid points contained in the polygon.
 
 ```julia
-C = load(filename::String, var::String; poly::Array, data_units::String, start_date::Date, end_date::Date)
+C = load(filename::String, var::String; poly::Array, data_units::String, start_date::Tuple, end_date::Tuple)
 ```
 
 `load` return a `ClimGrid` type. The `ClimGrid` is a in-memory representation of a CF-compliant netCDF file for a single variable.
 
 Using the optional `poly` argument, the user can provide a polygon and the returned `ClimGrid` will only contains the grid points inside the provided polygon. **The polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).**
 
-`start_date` and `end_date` can also be provided. It is useful when climate simulations file spans multiple decades/centuries and one only needs a temporal subset.
+`start_date` and `end_date` can also be provided. It is useful when climate simulations file spans multiple decades/centuries and one only needs a temporal subset. Dates should be provided as a `Tuple` of the form `(year, month, day, hour, minute, seconds)`, where only `year` is mandatory (e.g. `(2000,)`).
 
 For some variable, the optional keyword argument `data_units` can be provided. For example, precipitation in climate models are usually provided as `kg/m^2/s`. By specifying `data_units = mm`, the `load` function returns accumulation at the data time resolution. Similarly, the user can provide `Celsius` as `data_units` and `load` will return `Celsius` instead of `Kelvin`.
 
@@ -83,5 +83,5 @@ C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
 Temporal subset of the data is also possible with the `temporalsubset` function:
 
 ```julia
-C = temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
+C = temporalsubset(C::ClimGrid, startdate::Tuple, enddate::Tuple)
 ```
