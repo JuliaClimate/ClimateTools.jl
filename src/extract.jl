@@ -1,5 +1,5 @@
 """
-    load(file::String, variable::String; poly = Array{Float64}([]), start_date::Date, end_date::Date, data_units::String = "")
+    load(file::String, variable::String; poly = Array{Float64}([]), start_date::Tuple, end_date::Tuple, data_units::String = "")
 
 Returns a ClimGrid type with the data in **file** of variable **var** inside the polygon **poly**. Metadata is built-in the ClimGrid type, from the netCDF attributes.
 
@@ -9,10 +9,12 @@ The polygon provided should be in the -180, +180 longitude format. If the polygo
 
 Options for data_units are for precipitation : "mm", which converts the usual "kg m-2 s-1" unit found in netCDF files. For temperature : "Celsius", which converts the usual "Kelvin" unit.
 
+Temporal subsetting can be done by providing start_date and end-date Tuples of length 1 (year), length 3 (year, month, day) or 6 (hour, minute, second).
+
 **Note:** load uses [CF conventions](http://cfconventions.org/). If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in the [NetCDF.jl package](https://github.com/JuliaGeo/NetCDF.jl).
 """
 
-function load(file::String, variable::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = "")
+function load(file::String, variable::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
 
 
   # TODO this file is a complete mess, but it works. Clean it up!
@@ -28,12 +30,12 @@ function load(file::String, variable::String; poly = ([]), start_date::Date = Da
   # The following attributes should be set for netCDF files that follows CF conventions.
   # project, institute, model, experiment, frequency
 
-  project = project_id(attribs_dataset)
-  institute = institute_id(attribs_dataset)
-  model = model_id(attribs_dataset)
-  experiment = experiment_id(attribs_dataset)
-  frequency = frequency_var(attribs_dataset)
-  runsim = runsim_id(attribs_dataset)
+  project = ClimateTools.project_id(attribs_dataset)
+  institute = ClimateTools.institute_id(attribs_dataset)
+  model = ClimateTools.model_id(attribs_dataset)
+  experiment = ClimateTools.experiment_id(attribs_dataset)
+  frequency = ClimateTools.frequency_var(attribs_dataset)
+  runsim = ClimateTools.runsim_id(attribs_dataset)
 
   dataunits = ds[variable].attrib["units"]
   latunits = ds["lat"].attrib["units"]
@@ -71,8 +73,12 @@ function load(file::String, variable::String; poly = ([]), start_date::Date = Da
   # =====================
   # TIME
 
+  # Get time resolution
+
+  rez = ClimateTools.timeresolution(NetCDF.ncread(file, "time"))
+
   # Construct time vector from info in netCDF file *str*
-  timeV = buildtimevec(file)
+  timeV = buildtimevec(file, rez)
   if frequency == "mon"
       timeV = corr_timevec(timeV, frequency)
   end
@@ -279,7 +285,7 @@ Loads and merge the files contained in the arrar files.
 """
 
 
-function load(files::Array{String,1}, variable::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = "")
+function load(files::Array{String,1}, variable::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
 
     C = [] # initialize # TODO better initialization
 
@@ -549,27 +555,44 @@ end
 Construct the time vector from the netCDF file str
 
 """
-function buildtimevec(str::String)
+function buildtimevec(str::String, rez)
 
   # Time units
   ncI = NetCDF.ncinfo(str); # seems to be necessary. Otherwise can an inconsistent error when trying to load attributes
   units = NetCDF.ncgetatt(str, "time", "units") # get starting date
-  m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1) # match a date from string
-  daysfrom = m.match # get only the date ()"yyyy-mm-dd" format)
-  initDate = Date(daysfrom, "yyyy-mm-dd")
+  # m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1)
+  m = match(r"(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})", units, 1) # match a date from string
+  if isempty(fieldnames(m))#@isdefined m.captures
+      m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1)
+  end
+
+  arrdate = parse.(Int, m.captures)
+  if length(arrdate) == 6
+      initDate = DateTime(arrdate[1], arrdate[2], arrdate[3], arrdate[4], arrdate[5], arrdate[6])
+  elseif length(arrdate) == 3
+      initDate = DateTime(arrdate[1], arrdate[2], arrdate[3])
+  end
+  # daysfrom = m.match # get only the date ()"yyyy-mm-dd" format)
+  # initDate = Date(daysfrom, "yyyy-mm-dd")
+
+  period = getperiod(rez)
+  timeRaw = NetCDF.ncread(str, "time")
 
   # Calendar type
   calType = NetCDF.ncgetatt(str, "time", "calendar")
   if calType == "noleap" || calType == "365_day"
     nDays = 365
     # get time of netCDF file *str*
-    timeRaw = floor.(NetCDF.ncread(str, "time"))
+    # timeRaw = floor.(NetCDF.ncread(str, "time"))
+
     leapDaysPer = sumleapyear(initDate, timeRaw[1] - 1)
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
-    startDate = initDate + Base.Dates.Day(convert(Int64, round(timeRaw[1]))) + Base.Dates.Day(leapDaysPer)
-    endDate = initDate + Base.Dates.Day(convert(Int64, round(timeRaw[end]))) + Base.Dates.Day(leapDaysPer2)
+    startDate = initDate + Base.Dates.Day(convert(Int64, floor(timeRaw[1]))) + Base.Dates.Day(leapDaysPer)
+    endDate = initDate + Base.Dates.Day(convert(Int64, ceil(timeRaw[end]))) + Base.Dates.Day(leapDaysPer2) - period
 
-    dateTmp = Date(startDate):Date(endDate)
+    # period = getperiod(rez)
+
+    dateTmp = DateTime(startDate):period:DateTime(endDate)
 
     # REMOVE leap year (i.e. climate models use a no leap calendar)
     idx = (Dates.month.(dateTmp) .== 2) .&  (Dates.day.(dateTmp) .== 29)
@@ -580,29 +603,61 @@ function buildtimevec(str::String)
     end
 
 elseif calType == "gregorian" || calType == "standard" || calType == "proleptic_gregorian"
-    timeRaw = floor.(NetCDF.ncread(str, "time"))
+    # timeRaw = floor.(NetCDF.ncread(str, "time"))
     leapDaysPer = sumleapyear(initDate, timeRaw[1])
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
-    startDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
-    endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[end])))
-    dateTmp = Date(startDate):Date(endDate)
+
+    if typeof(timeRaw[1]) == Int8 || typeof(timeRaw[1]) == Int16 || typeof(timeRaw[1]) == Int32 || typeof(timeRaw[1]) == Int64
+
+        startDate = initDate + Base.Dates.Day(floor(timeRaw[1]))
+        endDate = initDate + Base.Dates.Day(ceil(timeRaw[end]))
+    else
+        startDate = initDate + Base.Dates.Day(convert(Int64,floor(timeRaw[1])))
+        endDate = initDate + Base.Dates.Day(convert(Int64,ceil(timeRaw[end]))) - period
+    end
+    dateTmp = DateTime(startDate):period:DateTime(endDate)
 
 elseif calType == "360_day"
+    throw(error("360_day yype of calendar not yet supported"))
 
-    timeRaw = floor.(NetCDF.ncread(str, "time"))
+    # timeRaw = floor.(NetCDF.ncread(str, "time"))
     leapDaysPer = sumleapyear(initDate, timeRaw[1] - 1)
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
 
     startDate = initDate + Base.Dates.Day(convert(Int64, round(timeRaw[1]))) + Base.Dates.Day(leapDaysPer)
     endDate = initDate + Base.Dates.Day(convert(Int64, round(timeRaw[end]))) + Base.Dates.Day(leapDaysPer2)
 
-    dateTmp = Date(startDate):Date(endDate)
+    dateTmp = DateTime(startDate):period:DateTime(endDate)
 
 
   end
   # output date vector
-  dateTmp = convert(Array{Date, 1}, dateTmp)
+  dateTmp = convert(Array{DateTime, 1}, dateTmp)
   return dateTmp
+end
+
+"""
+    getperiod(rez::String)
+
+Returns the Dates resolution (e.g. Dates.Hour(1) for hourly data, Dates.Hour(3) for 3-hours data, etc..).
+"""
+function getperiod(rez::String)
+
+    if rez == "1h"
+        period = Dates.Hour(1)
+    elseif rez == "3h"
+        period = Dates.Hour(3)
+    elseif rez == "6h"
+        period = Dates.Hour(6)
+    elseif rez == "12h"
+        period = Dates.Hour(12)
+    elseif rez == "24h"
+        period = Dates.Hour(24)
+    else
+        period = Dates.Hour(24)
+    end
+
+    return period
 end
 
 
@@ -613,7 +668,7 @@ Number of leap years in date vector
 
     sumleapyear(initDate::Date, timeRaw)
 """
-function sumleapyear(initDate::Date, timeRaw)
+function sumleapyear(initDate::Dates.TimeType, timeRaw)
 
   out = 0::Int
   endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
@@ -724,15 +779,17 @@ function timeresolution(timevec::Array{N,1} where N)
 
     # timevec = (NetCDF.ncread(str, "time"))
     if length(timevec) > 1
-        timediff = diff(timevec)[1]
+        timediff = diff(timevec)[2]
         if timediff == 1. || timediff == 1
             return "24h"
-        elseif timediff == 0.5
+        elseif round(timediff, 5) == round(12/24, 5)
             return "12h"
-        elseif timediff == 0.25
+        elseif round(timediff, 5) == round(6/24, 5)
             return "6h"
-        elseif timediff == 0.125
+        elseif round(timediff, 5) == round(3/24, 5)
             return "3h"
+        elseif round(timediff, 5) == round(1/24, 5)
+            return "1h"
         end
     else
         return "N/A"
@@ -749,15 +806,17 @@ Return the time factor that should be applied to precipitation to get accumulati
 function pr_timefactor(rez::String)
 
     if rez == "24h"
-        return 86400.
+        return 86400.0
     elseif rez == "12h"
-        return 43200.
+        return 43200.0
     elseif rez == "6h"
-        return 21600.
+        return 21600.0
     elseif rez == "3h"
-        return 10800.
+        return 10800.0
+    elseif rez == "1h"
+        return 3600.0
     elseif rez == "N/A"
-        return 1.
+        return 1.0
     end
 
 end
@@ -832,7 +891,10 @@ Returns the temporal subset of ClimGrid C. The temporal subset is defined by a s
 
 """
 
-function temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
+function temporalsubset(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
+
+    startdate = buildtimetype(datebeg)
+    enddate = buildtimetype(dateend)
 
     # some checkups
     @argcheck startdate <= enddate

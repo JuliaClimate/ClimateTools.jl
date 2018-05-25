@@ -50,7 +50,7 @@ status, figh = mapclimgrid(annualmax(C), region = "Europe");@test status == true
 # precip
 C = load(filename, "pr", data_units="mm") + 2.0
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
-status, figh = mapclimgrid(C, start_date=Date(2000, 05, 15), end_date=Date(2000, 05, 15));@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, start_date=(2000, 05, 15), end_date=(2000, 05, 15));@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "World");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "WorldAz");@test status == true; PyPlot.close()
 # status, figh = mapclimgrid(C, region = "WorldEck4");@test status == true; PyPlot.close()
@@ -98,7 +98,7 @@ status, figh = mapclimgrid(region = "Greenwich");@test status == true; PyPlot.cl
 lon = collect(-180.0:180.0)
 lat = collect(-90.0:90.0)
 longrid, latgrid = ndgrid(lon, lat)
-timeV = d = Date(2003,1,1):Date(2003,01,31)
+timeV = d = DateTime(2003,1,1):DateTime(2003,01,31)
 data = randn(361, 181, 31)
 dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
 varattribs = Dict(["standard_name" => "random noise"])
@@ -111,7 +111,7 @@ C = ClimateTools.ClimGrid(axisdata, variable = "dummy", longrid=longrid, latgrid
 
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, center_cs=true);@test status == true; PyPlot.close()
-status, figh = mapclimgrid(C, center_cs=true, surfacetype=:pcolormesh);@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, center_cs=true, surface=:pcolormesh);@test status == true; PyPlot.close()
 
 status, figh = plot(C); @test status == true; PyPlot.close()
 status, figh = plot(C, label = "dummy", titlestr="dummytest", gridfig=true); @test status == true; PyPlot.close()

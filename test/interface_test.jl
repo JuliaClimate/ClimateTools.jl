@@ -7,17 +7,17 @@ filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = load(filenc, "tas")
 @test load(filenc, "tas", data_units = "Celsius")[2] == "Celsius"
 @test load(filenc, "pr", data_units = "mm")[2] == "mm"
-@test typeof(load(filenc, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}},AxisArrays.Axis{:time,Array{Date,1}}}}}
+@test typeof(load(filenc, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}},AxisArrays.Axis{:time,Array{DateTime,1}}}}}
 
-@test typeof(ClimateTools.buildtimevec(filenc)) == Array{Date, 1}
+@test typeof(ClimateTools.buildtimevec(filenc, "24h")) == Array{DateTime, 1}
 
 # Time units
 units = NetCDF.ncgetatt(filenc, "time", "units") # get starting date
 m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1) # match a date from string
 daysfrom = m.match # get only the date ()"yyyy-mm-dd" format)
-initDate = Date(daysfrom, "yyyy-mm-dd")
+initDate = DateTime(daysfrom, "yyyy-mm-dd")
 timeRaw = floor.(NetCDF.ncread(filenc, "time"))
-@test ClimateTools.sumleapyear(initDate::Date, timeRaw) == 485
+@test ClimateTools.sumleapyear(initDate::DateTime, timeRaw) == 485
 
 # INTERFACE
 # B = vcat(C, C)
@@ -92,10 +92,10 @@ C = load(filenc, "tas", poly=poly)
 
 # Spatial subset
 C = load(filenc, "tas")
-Csub = temporalsubset(C, Date(2000, 05, 15), Date(2000, 05, 15))
+Csub = temporalsubset(C, (2000, 05, 15), (2000, 05, 15))
 @test Csub[1][1, 1, 1] == 219.22285f0
-@test Csub[1][Axis{:time}][1] == Date(2000, 05, 15)
-B = load(filenc, "tas", start_date=Date(2000, 05, 15), end_date=Date(2000, 05, 15))
+@test Csub[1][Axis{:time}][1] == DateTime(2000, 05, 15)
+B = load(filenc, "tas", start_date=(2000, 05, 15), end_date=(2000, 05, 15))
 @test B[1] == C[1]
 
 # Time resolution
@@ -338,7 +338,8 @@ d = Date(2003,1,1):Date(2008,12,31)
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 timevec = NetCDF.ncread(filename, "time")
 @test ClimateTools.pr_timefactor(ClimateTools.timeresolution(timevec)) == 1.
-@test ClimateTools.pr_timefactor("24h") == 86400.
-@test ClimateTools.pr_timefactor("12h") == 43200.
-@test ClimateTools.pr_timefactor("6h") == 21600.
-@test ClimateTools.pr_timefactor("3h") == 10800.
+@test ClimateTools.pr_timefactor("24h") == 86400.0
+@test ClimateTools.pr_timefactor("12h") == 43200.0
+@test ClimateTools.pr_timefactor("6h") == 21600.0
+@test ClimateTools.pr_timefactor("3h") == 10800.0
+@test ClimateTools.pr_timefactor("1h") == 3600.0

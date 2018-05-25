@@ -181,29 +181,80 @@ Base.show(io::IO, ::MIME"text/plain", C::ClimGrid) = print(io, "ClimGrid struct 
 "Global attributes: ", summary(C[12]), "\n",
 "Filename: ", C[8])
 
+
 """
     timeindex(timeVec, start_date, end_date, freq)
 
 Return the index of time vector specified by start_date and end_date. Provide timestep "freq" to account for monthly timestep.
 """
 
-function timeindex(timeV, start_date, end_date, frequency)
-    if start_date !== Date(-4000)
-        @argcheck start_date <= end_date
+function timeindex(timeV, datebeg::Tuple, dateend::Tuple, frequency)
+
+    # Start Date
+    if !isinf(datebeg[1])
+
+        # Build DateTime type
+        start_date = buildtimetype(datebeg)
+
+        # Check
         @argcheck start_date >= timeV[1]
+
+        if frequency != "mon"
+            idxtimebeg = findfirst(timeV .== start_date)[1]
+        elseif frequency == "mon"
+            idxtimebeg = findfirst(timeV .== start_date)[1]
+        end
+    else
+        idxtimebeg = 1
+
+    end
+
+    # End date
+    if !isinf(dateend[1])
+
+        # Build DateTime type
+        end_date = buildtimetype(dateend)
+
         @argcheck end_date <= timeV[end]
         if frequency != "mon"
-            idxtimebeg = find(timeV .== start_date)[1]
-            idxtimeend = find(timeV .== end_date)[1]
+            idxtimeend = findlast(timeV .== end_date)[1]
         elseif frequency == "mon"
-            idxtimebeg = find(timeV .== start_date)[1]
-            idxtimeend = find(timeV .== Date(Dates.year(end_date), Dates.month(end_date), Dates.day(1)))[1]
-
+            idxtimeend = findlast(timeV .== Date(Dates.year(end_date), Dates.month(end_date), Dates.day(1)))[1]
         end
-    else # no time specified
-        idxtimebeg = 1
+    else
         idxtimeend = length(timeV)
     end
 
+    if !isinf(datebeg[1]) && !isinf(dateend[1])
+        @argcheck start_date <= end_date
+    end
+
     return idxtimebeg, idxtimeend
+end
+
+"""
+    buildtimetype(datetuple)
+
+Returns the adequate DateTime for temporal subsetting.
+"""
+
+function buildtimetype(datetuple)
+
+    if length(datetuple) == 1
+        dateout = DateTime(datetuple[1], 01, 01)
+    elseif length(datetuple) == 2
+        dateout = DateTime(datetuple[1], datetuple[2], 01)
+    elseif length(datetuple) == 3
+        dateout = DateTime(datetuple[1], datetuple[2], datetuple[3])
+    elseif length(datetuple) == 4
+        dateout = DateTime(datetuple[1], datetuple[2], datetuple[3], datetuple[4], 00, 00)
+    elseif length(datetuple) == 5
+        dateout = DateTime(datetuple[1], datetuple[2], datetuple[3], datetuple[4], datetuple[5], 00)
+    elseif length(datetuple) == 6
+        dateout = DateTime(datetuple[1], datetuple[2], datetuple[3], datetuple[4], datetuple[5], datetuple[6])
+    end
+
+    return dateout
+
+
 end
