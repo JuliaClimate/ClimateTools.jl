@@ -1,5 +1,5 @@
 """
-    mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Date, end_date::Date, titlestr::String, surfacetype::Symbol, ncolors::Int, center_cs::Bool, filename::String, cs_label::String)
+    mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Tuple, end_date::Tuple, titlestr::String, surface::Symbol, ncolors::Int, center_cs::Bool, filename::String, cs_label::String)
 
 Maps the time-mean average of ClimGrid C. If a filename is provided, the figure is saved in a png format.
 
@@ -14,12 +14,12 @@ Optional keyworkd includes precribed regions (keyword *region*, see list below),
 - World, WorldAz, WorldEck4 ("W", "Waz", "Weck4")
 - Greenwich ("Gr")
 
-## Arguments for keyword *surfacetype*
+## Arguments for keyword *surface*
 - :contour
 - :contourf
 - :pcolormesh
 """
-function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Date=Date(-4000), end_date::Date=Date(-4000), titlestr::String="", surfacetype::Symbol=:contourf, ncolors::Int=12, center_cs::Bool=false, filename::String="", cs_label::String="")
+function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", surface::Symbol=:contourf, ncolors::Int=12, center_cs::Bool=false, filename::String="", cs_label::String="")
 
   # TODO Add options for custom region
 
@@ -65,9 +65,9 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
       cm = "RdBu_r"
   end
 
-  if surfacetype == :contourf || surfacetype == :contour
+  if surface == :contourf || surface == :contour
       N = 256
-  elseif surfacetype == :pcolormesh
+  elseif surface == :pcolormesh
       N = ncolors
   end
   cmap = mpl[:cm][:get_cmap](cm)
@@ -94,10 +94,10 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   status, fig, ax, m = mapclimgrid(region=region, states=states, llon=llon, rlon=rlon, slat=slat, nlat=nlat)
 
   x, y = m(C.longrid, C.latgrid) # convert longrid and latgrid to projected coordinates
-  if surfacetype == :contourf
-    cs = m[surfacetype](x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
+  if surface == :contourf
+    cs = m[surface](x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
   else
-    cs = m[surfacetype](x, y, data2, cmap = cm, vmin=vmin, vmax=vmax)
+    cs = m[surface](x, y, data2, cmap = cm, vmin=vmin, vmax=vmax)
   end
 
   # Colorbar
@@ -199,8 +199,14 @@ end
 
 Plots the spatial average timeserie of ClimGrid `C`.
 """
+function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", gridfig::Bool=true, label::String="", lw=1.5, linestyle="-")
 
-function PyPlot.plot(C::ClimGrid; titlestr::String="", gridfig::Bool=true, label::String="", lw=1.5, linestyle="-")
+    if !isempty(poly)
+        C = spatialsubset(C, poly)
+    end
+    if !isinf(start_date[1]) || !isinf(end_date[1])
+        C = temporalsubset(C, start_date, end_date)
+    end
 
     data = C[1].data
     timevec = C[1][Axis{:time}][:]
@@ -287,16 +293,6 @@ function timeavg(C, timebeg, timeend, mask, poly, level)
           data2 = data2 .* msk
       end
 
-      # TODO create 2D ClimGrid
-    # # 2D fields
-    # elseif ndims(C[1]) == 2
-    #     if isempty(poly)
-    #         cs = m[:contourf](x, y, convert(Array,C[1][:,:])', cmap = get_cmap(cm))
-    #     else
-    #         msk = inpolyvec(lon, lat, poly)'
-    #         cs = m[:contourf](x .* msk, y .* msk, convert(Array,C[1][:,:])' .* msk, cmap = get_cmap(cm))
-    #     end
-
     # 4D fields
   elseif ndims(C[1]) == 4 # 4D field
       data2 = squeeze(mean(C[1][:, :, level, timebeg:timeend], 4), 3) # time mean over "level"
@@ -321,7 +317,7 @@ Returns the title. Used internally by [`mapclimgrid`](@ref).
 function titledef(C::ClimGrid)
     if ndims(C[1]) > 2
 
-        if typeof((C[1][Axis{:time}][1])) == Date
+        if typeof((C[1][Axis{:time}][1])) == DateTime
             begYear = string(Base.Dates.year(C[1][Axis{:time}][1]))
             endYear = string(Base.Dates.year(C[1][Axis{:time}][end]))
         elseif typeof((C[1][Axis{:time}][1])) == Base.Dates.Year
