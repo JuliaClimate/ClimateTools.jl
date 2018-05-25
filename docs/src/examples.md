@@ -181,7 +181,7 @@ C = merge(C1, C2) # merge C1 with C2
 The `merge` function is useful when you have 2 or 3 files. However, a single simulation can sometimes be splitted into yearly files. Hence, extracting timeseries on climatological timescales can imply loading more than a hundred files just to get a complete timeserie for a given gridpoint. The function `load` has a method where the 1st positional argument is an Array of strings (as opposed to a single string).
 
 ```julia
-C = load(strarray::Array{String,1}, variable::String; poly, start_date::Date, end_date::Date, data_units::String))
+C = load(strarray::Array{String,1}, variable::String; poly, start_date::Tuple, end_date::Tuple, data_units::String))
 ```
 
 This is how the MIROC5 simulation has been loaded.
@@ -219,7 +219,7 @@ obs = load(obsfiles, "tasmax", poly=poly_reg)
 ```
 
 ```julia
-mapclimgrid(obs, region = "Quebec",titlestr="Gridded Obs, 1980-2009")
+mapclimgrid(obs, region = "Quebec", titlestr="Gridded Obs, 1980-2009")
 ```
 
 ![NRCAN](assets/NRCAN.png)
