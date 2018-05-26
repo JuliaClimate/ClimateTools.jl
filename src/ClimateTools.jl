@@ -122,7 +122,7 @@ export annualmean, annualsum, load, load2D
 export mapclimgrid, regrid, ClimGrid, inpolyvec, applymask
 export shapefile_coords, shapefile_coords_poly
 export spatialsubset, temporalsubset
-export qqmap, ndgrid, permute_west_east
+export qqmap, qqmaptf, ndgrid, permute_west_east
 export getdim_lat, getdim_lon, isdefined
 export @isdefined
 export plot, merge, vaporpressure, approx_surfacepressure
