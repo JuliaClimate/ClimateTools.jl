@@ -168,6 +168,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     @argcheck size(obs[1], 1) == size(ref[1], 1)
     @argcheck size(obs[1], 2) == size(ref[1], 2)
 
+    # range over which quantiles are estimated
     P = linspace(0.01, 0.99, rankn)
 
     #Get date vectors
@@ -185,13 +186,17 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     else
         n=n
     end
+    # Coordinates of the sampled points
     x = rand(1:size(obs[1],1),n)
     y = rand(1:size(obs[1],2),n)
-    # loop over every julian days
+    # Initialization of the output
     ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{Interpolations.Linear},Tuple{Array{Float64,1}},0},Interpolations.Gridded{Interpolations.Linear},Interpolations.OnGrid,Interpolations.Flat}}(365)
+    # Loop over every julian days
     Threads.@threads for ijulian = 1:365
+        # Index of ijulian ± window
         idxobs = find_julianday_idx(obs_jul, ijulian, window)
         idxref = find_julianday_idx(ref_jul, ijulian, window)
+        # Object containing observation/reference data of the n points on ijulian day
         obsval = fill(NaN, sum(idxobs) * n)
         refval = fill(NaN, sum(idxref) * n)
         for ipoint = 1:n
@@ -210,6 +215,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
             sf_refP = obsP ./ refP
             sf_refP[sf_refP .< 0] = 0.
         end
+        # transfert function for ijulian
         itp = interpolate((refP,), sf_refP, Gridded(interp))
         itp = extrapolate(itp, extrap) # add extrapolation
         ITP[ijulian] = itp
@@ -217,20 +223,38 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     return ITP
 end
 
+"""
+    qqmap(fut::ClimGrid, ITP; method::String="Additive")
+
+Quantile-Quantile mapping bias correction with a known transfert function. For each julian day of the year, use the right transfert function to correct model values.
+
+**Options**
+
+**method::String = "Additive" (default) or "Multiplicative"**. Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.
+
+"""
+
 function qqmap(fut::ClimGrid, ITP; method::String="Additive")
+    # Get date vectors
     datevec_fut = fut[1][Axis{:time}][:]
     futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][1,1,:].data, datevec_fut)
     # Prepare output array
     dataout = fill(NaN, (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{N, T} where N where T
+    # Progress meters
     p = Progress(size(obs[1], 3), 5)
+    # Loop over every points
     for k = 1:size(obs[1], 2)
         for j = 1:size(obs[1], 1)
             futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][j,k,:].data, datevec_fut)
             futvec_corr = similar(futvec2, (size(futvec2)))
+            # Loop over every julian day
             for ijulian = 1:365
                 idxfut = (fut_jul .== ijulian)
+                # Value to correct
                 futval = futvec2[idxfut]
+                # Transfert function for ijulian
                 itp = ITP[ijulian]
+                # Correct futval
                 if lowercase(method) == "additive" # used for temperature
                     futnew = itp[futval] + futval
                 elseif lowercase(method) == "multiplicative" # used for precipitation
