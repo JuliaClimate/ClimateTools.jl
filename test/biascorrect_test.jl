@@ -29,3 +29,7 @@ ref = obs - 3
 
 ITP = qqmaptf(obs, ref, partition=0.5)
 @test round(ITP[rand(1:365)][randn(1)][1],10) == 3.0
+
+fut = obs - 3
+D = qqmap(fut, ITP)
+@test D[1][1, 1, 1] == -0.5560268761463862

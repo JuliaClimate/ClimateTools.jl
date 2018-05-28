@@ -217,6 +217,41 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     return ITP
 end
 
+function qqmap(fut::ClimGrid, ITP; method::String="Additive")
+    datevec_fut = fut[1][Axis{:time}][:]
+    futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][1,1,:].data, datevec_fut)
+    # Prepare output array
+    dataout = fill(NaN, (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{N, T} where N where T
+    p = Progress(size(obs[1], 3), 5)
+    for k = 1:size(obs[1], 2)
+        for j = 1:size(obs[1], 1)
+            futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][j,k,:].data, datevec_fut)
+            futvec_corr = similar(futvec2, (size(futvec2)))
+            for ijulian = 1:365
+                idxfut = (fut_jul .== ijulian)
+                futval = futvec2[idxfut]
+                itp = ITP[ijulian]
+                if lowercase(method) == "additive" # used for temperature
+                    futnew = itp[futval] + futval
+                elseif lowercase(method) == "multiplicative" # used for precipitation
+                    futnew = itp[futval] .* futval
+                else
+                    error("Wrong method")
+                end
+                futvec_corr[idxfut] = futnew
+            end
+            dataout[j,k,:] = futvec_corr
+        end
+        next!(p)
+    end
+    lonsymbol = Symbol(fut.dimension_dict["lon"])
+    latsymbol = Symbol(fut.dimension_dict["lat"])
+
+    dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}][:]), Axis{latsymbol}(fut[1][Axis{latsymbol}][:]),Axis{:time}(datevec_fut2))
+
+    return ClimGrid(dataout2, longrid=fut.longrid, latgrid=fut.latgrid, model=fut.model, project=fut.project, institute=fut.institute, experiment=fut.experiment, run=fut.run, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal, varattribs=fut.varattribs, globalattribs=fut.varattribs)
+end
+
 # function corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
 #
 #     # Eliminate February 29th (small price to pay for simplicity and does not affect significantly quantile estimations)
