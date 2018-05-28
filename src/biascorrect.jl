@@ -241,10 +241,10 @@ function qqmap(fut::ClimGrid, ITP; method::String="Additive")
     # Prepare output array
     dataout = fill(NaN, (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{N, T} where N where T
     # Progress meters
-    p = Progress(size(obs[1], 3), 5)
+    p = Progress(size(fut[1], 3), 5)
     # Loop over every points
-    for k = 1:size(obs[1], 2)
-        for j = 1:size(obs[1], 1)
+    for k = 1:size(fut[1], 2)
+        for j = 1:size(fut[1], 1)
             futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][j,k,:].data, datevec_fut)
             futvec_corr = similar(futvec2, (size(futvec2)))
             # Loop over every julian day
