@@ -128,7 +128,7 @@ export spatialsubset, temporalsubset
 export qqmap, qqmaptf, ndgrid, permute_west_east
 export getdim_lat, getdim_lon, isdefined
 export @isdefined
-export plot, merge, vaporpressure, approx_surfacepressure
+export plot, merge, vaporpressure, approx_surfacepressure, wbgt
 export minimum, maximum, std, var, mean
 
 end #module

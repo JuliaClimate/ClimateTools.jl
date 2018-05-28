@@ -9,6 +9,7 @@ Returns the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and
 function vaporpressure(specific_humidity::ClimGrid, surface_pressure::ClimGrid)
   @argcheck surface_pressure[9] == "ps"
   @argcheck specific_humidity[9] == "huss"
+  @argcheck surface_pressure[2] == "Pa"
 
   # Calculate vapor pressure
   vp_arraytmp = (specific_humidity.data .* surface_pressure.data) ./ (specific_humidity.data .+ 0.622)
@@ -38,6 +39,14 @@ function vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid,
   @argcheck sealevel_pressure[9] == "psl"
   @argcheck orography[9] == "orog"
   @argcheck daily_temperature[9] == "tas"
+  @argcheck sealevel_pressure[2] == "Pa"
+  @argcheck orography[2] == "m"
+  @argcheck in(daily_temperature[2], ["Celsius", "K"])
+
+  # Convert to Kelvin if necessery
+  if daily_temperature[2] == "Celsius"
+    daily_temperature = daily_temperature .+ 273.15
+  end
 
   # Calculate the estimated surface pressure
   surface_pressure = approx_surfacepressure(sealevel_pressure, orography, daily_temperature)
@@ -90,6 +99,13 @@ Returns the simplified wet-bulb global temperature (*wbgt*) (Celsius) calculated
 function wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)
   @argcheck diurnal_temperature[9] == "tdiu"
   @argcheck vapor_pressure[9] == "vp"
+  @argcheck in(diurnal_temperature[2], ["Celsius", "K"])
+  @argcheck vapor_pressure[2] == "Pa"
+
+  # Convert to Celsius if necessery
+  if diurnal_temperature[2] == "K"
+    diurnal_temperature = diurnal_temperature .- 273.15
+  end
 
   # Calculate the wbgt
   wbgt_arraytmp = (0.567 .* diurnal_temperature.data) + (0.00393 .* vapor_pressure.data) .+ 3.94

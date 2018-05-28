@@ -28,7 +28,7 @@ Results[2,2,3] = data_huss[2,2,3]*data_ps[2,2,3]/(0.622+data_huss[2,2,3]);
 axisdata_huss = AxisArray(data_huss, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 axisdata_ps = AxisArray(data_ps, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 C_huss = ClimateTools.ClimGrid(axisdata_huss, variable = "huss")
-C_ps = ClimateTools.ClimGrid(axisdata_ps, variable = "ps")
+C_ps = ClimateTools.ClimGrid(axisdata_ps, dataunits="Pa", variable = "ps")
 vp = vaporpressure(C_huss, C_ps)
 # Run the test
 @test vp.data.data == Results
@@ -70,9 +70,44 @@ axisdata_tas = AxisArray(data_tas, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}
 axisdata_psl = AxisArray(data_psl, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 axisdata_orog = AxisArray(data_orog, Axis{:lon}(1:2), Axis{:lat}(1:2))
 C_huss = ClimateTools.ClimGrid(axisdata_huss, variable = "huss")
-C_psl = ClimateTools.ClimGrid(axisdata_psl, variable = "psl")
-C_tas = ClimateTools.ClimGrid(axisdata_tas, variable = "tas")
-C_orog = ClimateTools.ClimGrid(axisdata_orog, variable = "orog")
+C_psl = ClimateTools.ClimGrid(axisdata_psl, dataunits = "Pa", variable = "psl")
+C_tas = ClimateTools.ClimGrid(axisdata_tas, dataunits = "K", variable = "tas")
+C_orog = ClimateTools.ClimGrid(axisdata_orog, dataunits = "m", variable = "orog")
 vp = vaporpressure(C_huss, C_psl, C_orog, C_tas)
 # Run the test
-@test round.(vp.data.data, 10) == Results
+@test round(vp.data.data, 10) == Results
+
+# Test wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)
+d = Date(2003,1,1):Date(2003,1,3)
+# Dummy data
+data_tdiu = Array{Float64,3}(2,2,3)
+data_tdiu[1,1,:] = 250
+data_tdiu[1,2,:] = 275
+data_tdiu[2,1,:] = 300
+data_tdiu[2,2,:] = 325
+data_vp = Array{Float64,3}(2,2,3)
+data_vp[:,:,1] = 10
+data_vp[:,:,2] = 100
+data_vp[:,:,3] = 1000
+# Expected results
+Results[1,1,1] = -9.1467500
+Results[1,2,1] = 5.02825
+Results[2,1,1] = 19.20325
+Results[2,2,1] = 33.37825
+Results[1,1,2] = -8.7930500
+Results[1,2,2] = 5.38195
+Results[2,1,2] = 19.55695
+Results[2,2,2] = 33.73195
+Results[1,1,3] = -5.256050
+Results[1,2,3] = 8.91895
+Results[2,1,3] = 23.09395
+Results[2,2,3] = 37.26895
+# Creating climgrid
+axisdata_tdiu = AxisArray(data_tdiu, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
+axisdata_vp = AxisArray(data_vp, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
+C_tdiu = ClimateTools.ClimGrid(axisdata_tdiu, dataunits= "K", variable = "tdiu")
+C_vp = ClimateTools.ClimGrid(axisdata_vp, dataunits = "Pa", variable = "vp")
+# Use the function
+C_wbgt = wbgt(C_tdiu, C_vp)
+# Run the test
+@test round(C_wbgt.data.data,10) == Results
