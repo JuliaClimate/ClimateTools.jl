@@ -665,6 +665,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#ClimateTools.qqmap-Tuple{ClimateTools.ClimGrid,Any}",
+    "page": "Index",
+    "title": "ClimateTools.qqmap",
+    "category": "method",
+    "text": "qqmap(fut::ClimGrid, ITP; method::String=\"Additive\")\n\nQuantile-Quantile mapping bias correction with a known transfert function. For each julian day of the year, use the right transfert function to correct model values.\n\nOptions\n\nmethod::String = \"Additive\" (default) or \"Multiplicative\". Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.\n\n\n\n"
+},
+
+{
     "location": "functions.html#ClimateTools.qqmap-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.qqmap",
