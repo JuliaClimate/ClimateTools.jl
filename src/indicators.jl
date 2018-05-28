@@ -1,7 +1,7 @@
 """
     vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)
 
-Returnsthe vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).
+Returns the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).
 
 ``vp = \\frac{q * sp}{q+0.622}``
 
@@ -77,4 +77,30 @@ function approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid
 
   # Build ClimGrid object
   return ClimGrid(ps_array, longrid=sealevel_pressure.longrid, latgrid=sealevel_pressure.latgrid, msk=sealevel_pressure.msk, grid_mapping=sealevel_pressure.grid_mapping, dimension_dict=sealevel_pressure.dimension_dict, model=sealevel_pressure.model, frequency=sealevel_pressure.frequency, experiment=sealevel_pressure.experiment, run=sealevel_pressure.run, project=sealevel_pressure.project, institute=sealevel_pressure.institute, filename=sealevel_pressure.filename, dataunits="Pa", latunits=sealevel_pressure.latunits, lonunits=sealevel_pressure.lonunits, variable="ps", typeofvar="ps", typeofcal=sealevel_pressure.typeofcal, varattribs=ps_dict, globalattribs=sealevel_pressure.globalattribs)
+end
+
+"""
+    wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)
+
+Returns the simplified wet-bulb global temperature (*wbgt*) (Celsius) calculated using the vapor pressure (Pa) of the day and the estimated mean diurnal temperature (Celsius; temperature between 7:00 (7am) and 17:00 (5pm)).
+
+``wbgt = 0.567 * Tday + 0.00393 * vp + 3.94``
+
+"""
+function wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)
+  @argcheck diurnal_temperature[9] == "tdiu"
+  @argcheck vapor_pressure[9] == "vp"
+
+  # Calculate the wbgt
+  wbgt_arraytmp = (0.567 .* diurnal_temperature.data) + (0.00393 .* vapor_pressure.data) .+ 3.94
+  wbgt_array = buildarrayinterface(wbgt_arraytmp, diurnal_temperature)
+
+  # Build dictionary for the variable wbgt
+  wbgt_dict = diurnal_temperature.varattribs
+  wbgt_dict["standard_name"] = "simplified_wetbulb_globe_temperature"
+  wbgt_dict["units"] = "Celsius"
+  wbgt_dict["history"] = "Wet-bulb globe temperature estimated with the vapor pressure and the diurnal temperature"
+
+  # Build ClimGrid object
+  return ClimGrid(wbgt_array, longrid=diurnal_temperature.longrid, latgrid=diurnal_temperature.latgrid, msk=diurnal_temperature.msk, grid_mapping=diurnal_temperature.grid_mapping, dimension_dict=diurnal_temperature.dimension_dict, model=diurnal_temperature.model, frequency=diurnal_temperature.frequency, experiment=diurnal_temperature.experiment, run=diurnal_temperature.run, project=diurnal_temperature.project, institute=diurnal_temperature.institute, filename=diurnal_temperature.filename, dataunits="Celsius", latunits=diurnal_temperature.latunits, lonunits=diurnal_temperature.lonunits, variable="wbgt", typeofvar="wbgt", typeofcal=diurnal_temperature.typeofcal, varattribs=wbgt_dict, globalattribs=diurnal_temperature.globalattribs)
 end

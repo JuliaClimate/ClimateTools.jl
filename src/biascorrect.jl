@@ -191,6 +191,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     y = rand(1:size(obs[1],2),n)
     # Initialization of the output
     ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{Interpolations.Linear},Tuple{Array{Float64,1}},0},Interpolations.Gridded{Interpolations.Linear},Interpolations.OnGrid,Interpolations.Flat}}(365)
+    p = Progress(365, 1)
     # Loop over every julian days
     Threads.@threads for ijulian = 1:365
         # Index of ijulian ± window
@@ -219,6 +220,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         itp = interpolate((refP,), sf_refP, Gridded(interp))
         itp = extrapolate(itp, extrap) # add extrapolation
         ITP[ijulian] = itp
+        next!(p)
     end
     return ITP
 end
