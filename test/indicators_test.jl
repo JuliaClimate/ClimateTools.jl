@@ -63,7 +63,7 @@ Results[2,1,3] = round(445.6327985739750, 10)
 Results[2,2,1] = round(6.158207427095860, 10)
 Results[2,2,2] = round(61.58207427095860, 10)
 Results[2,2,3] = round(615.8207427095860, 10)
-# Using the function on dummy data
+# Create the Climgrids
 axisdata_huss = AxisArray(data_huss, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 axisdata_psl = AxisArray(data_psl, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 axisdata_tas = AxisArray(data_tas, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
@@ -73,6 +73,18 @@ C_huss = ClimateTools.ClimGrid(axisdata_huss, variable = "huss")
 C_psl = ClimateTools.ClimGrid(axisdata_psl, dataunits = "Pa", variable = "psl")
 C_tas = ClimateTools.ClimGrid(axisdata_tas, dataunits = "K", variable = "tas")
 C_orog = ClimateTools.ClimGrid(axisdata_orog, dataunits = "m", variable = "orog")
+# Using the function on dummy data
+vp = vaporpressure(C_huss, C_psl, C_orog, C_tas)
+# Run the test
+@test round(vp.data.data, 10) == Results
+
+# Test for tas in Celsius
+data_tas = Array{Float64,3}(2,2,3)
+data_tas[1,:,:] = 100-273.15
+data_tas[2,:,:] = 300-273.15
+axisdata_tas = AxisArray(data_tas, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
+C_tas = ClimateTools.ClimGrid(axisdata_tas, dataunits = "Celsius", variable = "tas")
+# Using the function on dummy data
 vp = vaporpressure(C_huss, C_psl, C_orog, C_tas)
 # Run the test
 @test round(vp.data.data, 10) == Results
@@ -107,6 +119,18 @@ axisdata_tdiu = AxisArray(data_tdiu, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:tim
 axisdata_vp = AxisArray(data_vp, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 C_tdiu = ClimateTools.ClimGrid(axisdata_tdiu, dataunits= "K", variable = "tdiu")
 C_vp = ClimateTools.ClimGrid(axisdata_vp, dataunits = "Pa", variable = "vp")
+# Use the function
+C_wbgt = wbgt(C_tdiu, C_vp)
+# Run the test
+@test round(C_wbgt.data.data,10) == Results
+
+# Test for tdiu in Celsius
+data_tdiu = Array{Float64,3}(2,2,3)
+data_tdiu[1,1,:] = 250-273.15
+data_tdiu[1,2,:] = 275-273.15
+data_tdiu[2,1,:] = 300-273.15
+data_tdiu[2,2,:] = 325-273.15
+C_tdiu = ClimateTools.ClimGrid(axisdata_tdiu, dataunits= "Celsius", variable = "tdiu")
 # Use the function
 C_wbgt = wbgt(C_tdiu, C_vp)
 # Run the test
