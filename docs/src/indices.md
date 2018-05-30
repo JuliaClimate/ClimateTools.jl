@@ -32,4 +32,6 @@ frostdays
 prcp1
 summerdays
 tropicalnights
+vaporpressure
+approx_surfacepressure
 ```
