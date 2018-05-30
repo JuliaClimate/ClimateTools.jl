@@ -243,17 +243,18 @@ function qqmap(fut::ClimGrid, ITP; method::String="Additive")
     # Prepare output array
     dataout = fill(NaN, (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{N, T} where N where T
     # Progress meters
-    p = Progress(size(fut[1], 3), 5)
+    p = Progress(365, 1)
     # Loop over every points
-    for k = 1:size(fut[1], 2)
-        for j = 1:size(fut[1], 1)
-            futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][j,k,:].data, datevec_fut)
-            futvec_corr = similar(futvec2, (size(futvec2)))
+    # for k = 1:size(fut[1], 2)
+    #     for j = 1:size(fut[1], 1)
+    #         futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][j,k,:].data, datevec_fut)
+            # futvec_corr = similar(futvec2, (size(futvec2)))
             # Loop over every julian day
             for ijulian = 1:365
                 idxfut = (fut_jul .== ijulian)
                 # Value to correct
-                futval = futvec2[idxfut]
+                # futval = futvec2[idxfut]
+                futval = fut[1][:,:,idxfut].data
                 # Transfert function for ijulian
                 itp = ITP[ijulian]
                 # Correct futval
@@ -264,12 +265,14 @@ function qqmap(fut::ClimGrid, ITP; method::String="Additive")
                 else
                     error("Wrong method")
                 end
-                futvec_corr[idxfut] = futnew
+                # futvec_corr[idxfut] = futnew
+                dataout[:,:,idxfut] = futnew
+                next!(p)
             end
-            dataout[j,k,:] = futvec_corr
-        end
-        next!(p)
-    end
+            # dataout[j,k,:] = futvec_corr
+    #     end
+    #     next!(p)
+    # end
     lonsymbol = Symbol(fut.dimension_dict["lon"])
     latsymbol = Symbol(fut.dimension_dict["lat"])
 
