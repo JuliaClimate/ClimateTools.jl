@@ -120,3 +120,31 @@ function wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)
   # Build ClimGrid object
   return ClimGrid(wbgt_array, longrid=diurnal_temperature.longrid, latgrid=diurnal_temperature.latgrid, msk=diurnal_temperature.msk, grid_mapping=diurnal_temperature.grid_mapping, dimension_dict=diurnal_temperature.dimension_dict, model=diurnal_temperature.model, frequency=diurnal_temperature.frequency, experiment=diurnal_temperature.experiment, run=diurnal_temperature.run, project=diurnal_temperature.project, institute=diurnal_temperature.institute, filename=diurnal_temperature.filename, dataunits="Celsius", latunits=diurnal_temperature.latunits, lonunits=diurnal_temperature.lonunits, variable="wbgt", typeofvar="wbgt", typeofcal=diurnal_temperature.typeofcal, varattribs=wbgt_dict, globalattribs=diurnal_temperature.globalattribs)
 end
+
+"""
+    diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid, α::Float64)
+
+Returns an estimation of the diurnal temperature (temperature between 7:00 (7am) and 17:00 (5pm)). The estimation is a linear combination of the daily minimum temperature (temperatureminimum) and daily maximum temperature (temperaturemaximum). The value of α has to be estimated seperatly from observations and depends on the location. The daily max and min must be in the same unit and in Celsius or Kelvin The diurnal temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.
+
+``Tdiu = α * Tmin + (1 - α) * Tmax``
+"""
+function diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid, α::Float64)
+  @argcheck temperatureminimum[9] == "tasmin"
+  @argcheck temperaturemaximum[9] == "tasmax"
+  @argcheck in(temperatureminimum[2], ["Celsius", "K"])
+  @argcheck in(temperaturemaximum[2], ["Celsius", "K"])
+  @argcheck temperatureminimum[2] == temperaturemaximum[2]
+
+  # Calculate the diurnal temperature
+  tdiu = α .*temperatureminimum.data + (1-α) .* temperaturemaximum.data
+  tdiu_array = buildarrayinterface(tdiu, temperatureminimum)
+
+  # Build dictionary for the variable wbgt
+  tdiu_dict = temperatureminimum.varattribs
+  tdiu_dict["standard_name"] = "diurnal_temperature"
+  tdiu_dict["units"] = temperatureminimum[2]
+  tdiu_dict["history"] = "Diurnal temperature (between 7:00 and 17:00) estimated using a linear combination of the daily minimum temperature and the daily maximum temperature"
+
+  # Build ClimGrid object
+  return ClimGrid(tdiu_array, longrid=temperatureminimum.longrid, latgrid=temperatureminimum.latgrid, msk=temperatureminimum.msk, grid_mapping=temperatureminimum.grid_mapping, dimension_dict=temperatureminimum.dimension_dict, model=temperatureminimum.model, frequency=temperatureminimum.frequency, experiment=temperatureminimum.experiment, run=temperatureminimum.run, project=temperatureminimum.project, institute=temperatureminimum.institute, filename=temperatureminimum.filename, dataunits=temperatureminimum.dataunits, latunits=temperatureminimum.latunits, lonunits=temperatureminimum.lonunits, variable="tdiu", typeofvar="tdiu", typeofcal=temperatureminimum.typeofcal, varattribs=tdiu_dict, globalattribs=temperatureminimum.globalattribs)
+end

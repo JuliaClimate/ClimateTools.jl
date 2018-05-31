@@ -114,7 +114,7 @@ Results[1,1,3] = -5.256050
 Results[1,2,3] = 8.91895
 Results[2,1,3] = 23.09395
 Results[2,2,3] = 37.26895
-# Creating climgrid
+# Creating climgrids
 axisdata_tdiu = AxisArray(data_tdiu, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 axisdata_vp = AxisArray(data_vp, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 C_tdiu = ClimateTools.ClimGrid(axisdata_tdiu, dataunits= "K", variable = "tdiu")
@@ -136,3 +136,39 @@ C_tdiu = ClimateTools.ClimGrid(axisdata_tdiu, dataunits= "Celsius", variable = "
 C_wbgt = wbgt(C_tdiu, C_vp)
 # Run the test
 @test round(C_wbgt.data.data,10) == Results
+
+# Test diurnaltemperature()
+d = Date(2003,1,1):Date(2003,1,3)
+# Dummy data
+data_tmax = Array{Float64,3}(2,2,3)
+data_tmax[1,1,:] = 0.0
+data_tmax[1,2,:] = 10.0
+data_tmax[2,1,:] = 20.0
+data_tmax[2,2,:] = 30.0
+data_tmin = Array{Float64,3}(2,2,3)
+data_tmin[:,:,1] = -10.0
+data_tmin[:,:,2] = 0.0
+data_tmin[:,:,3] = 10.0
+α = 0.4
+# Expected results
+Results[1,1,1] = -4.0
+Results[1,2,1] = 2.0
+Results[2,1,1] = 8.0
+Results[2,2,1] = 14.0
+Results[1,1,2] = 0.0
+Results[1,2,2] = 6.0
+Results[2,1,2] = 12.0
+Results[2,2,2] = 18.0
+Results[1,1,3] = 4.0
+Results[1,2,3] = 10.0
+Results[2,1,3] = 16.0
+Results[2,2,3] = 22.0
+# Creating climgrids
+axisdata_tmax = AxisArray(data_tmax, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
+axisdata_tmin = AxisArray(data_tmin, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
+C_tmax = ClimateTools.ClimGrid(axisdata_tmax, dataunits= "Celsius", variable = "tasmax")
+C_tmin = ClimateTools.ClimGrid(axisdata_tmin, dataunits = "Celsius", variable = "tasmin")
+# Using the function
+C_tdiu = diurnaltemperature(C_tmin, C_tmax, α)
+# Run the test
+@test C_tdiu.data.data == Results

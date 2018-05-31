@@ -190,7 +190,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     x = rand(1:size(obs[1],1),n)
     y = rand(1:size(obs[1],2),n)
     # Initialization of the output
-    ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{Interpolations.Linear},Tuple{Array{Float64,1}},0},Interpolations.Gridded{Interpolations.Linear},Interpolations.OnGrid,Interpolations.Flat}}(365)
+    ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{typeof(interp)},Tuple{Array{Float64,1}},0},Interpolations.Gridded{typeof(interp)},Interpolations.OnGrid,typeof(extrap)}}(365)
     p = Progress(365, 1)
     # Loop over every julian days
     for ijulian = 1:365
@@ -259,7 +259,7 @@ function qqmap(fut::ClimGrid, ITP; method::String="Additive")
                 itp = ITP[ijulian]
                 # Correct futval
                 if lowercase(method) == "additive" # used for temperature
-                    futnew = itp[futval] + futval
+                    futnew = itp[futval] .+ futval
                 elseif lowercase(method) == "multiplicative" # used for precipitation
                     futnew = itp[futval] .* futval
                 else
