@@ -561,6 +561,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#ClimateTools.diurnaltemperature-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid,Float64}",
+    "page": "Index",
+    "title": "ClimateTools.diurnaltemperature",
+    "category": "method",
+    "text": "diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid, α::Float64)\n\nReturns an estimation of the diurnal temperature (temperature between 7:00 (7am) and 17:00 (5pm)). The estimation is a linear combination of the daily minimum temperature (temperatureminimum) and daily maximum temperature (temperaturemaximum). The value of α has to be estimated seperatly from observations and depends on the location. The daily max and min must be in the same unit and in Celsius or Kelvin The diurnal temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.\n\nTdiu =  * Tmin + (1 - ) * Tmax\n\n\n\n"
+},
+
+{
     "location": "functions.html#ClimateTools.frostdays-Tuple{ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.frostdays",
@@ -765,7 +773,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.vaporpressure",
     "category": "method",
-    "text": "vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)\n\nReturnsthe vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).\n\nvp = fracq * spq+0622\n\n\n\n"
+    "text": "vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).\n\nvp = fracq * spq+0622\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.wbgt-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
+    "page": "Index",
+    "title": "ClimateTools.wbgt",
+    "category": "method",
+    "text": "wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)\n\nReturns the simplified wet-bulb global temperature (wbgt) (Celsius) calculated using the vapor pressure (Pa) of the day and the estimated mean diurnal temperature (Celsius; temperature between 7:00 (7am) and 17:00 (5pm)).\n\nwbgt = 0567 * Tday + 000393 * vp + 394\n\n\n\n"
 },
 
 {
