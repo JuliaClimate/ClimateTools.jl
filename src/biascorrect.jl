@@ -190,9 +190,10 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     x = rand(1:size(obs[1],1),n)
     y = rand(1:size(obs[1],2),n)
     # Initialization of the output
-    ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{Interpolations.Linear},Tuple{Array{Float64,1}},0},Interpolations.Gridded{Interpolations.Linear},Interpolations.OnGrid,Interpolations.Flat}}(365)
+    ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{typeof(interp)},Tuple{Array{Float64,1}},0},Interpolations.Gridded{typeof(interp)},Interpolations.OnGrid,typeof(extrap)}}(365)
+    p = Progress(365, 1)
     # Loop over every julian days
-    Threads.@threads for ijulian = 1:365
+    for ijulian = 1:365
         # Index of ijulian ± window
         idxobs = find_julianday_idx(obs_jul, ijulian, window)
         idxref = find_julianday_idx(ref_jul, ijulian, window)
@@ -219,6 +220,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         itp = interpolate((refP,), sf_refP, Gridded(interp))
         itp = extrapolate(itp, extrap) # add extrapolation
         ITP[ijulian] = itp
+        next!(p)
     end
     return ITP
 end
@@ -241,33 +243,36 @@ function qqmap(fut::ClimGrid, ITP; method::String="Additive")
     # Prepare output array
     dataout = fill(NaN, (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{N, T} where N where T
     # Progress meters
-    p = Progress(size(fut[1], 3), 5)
+    p = Progress(365, 1)
     # Loop over every points
-    for k = 1:size(fut[1], 2)
-        for j = 1:size(fut[1], 1)
-            futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][j,k,:].data, datevec_fut)
-            futvec_corr = similar(futvec2, (size(futvec2)))
+    # for k = 1:size(fut[1], 2)
+    #     for j = 1:size(fut[1], 1)
+    #         futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][j,k,:].data, datevec_fut)
+            # futvec_corr = similar(futvec2, (size(futvec2)))
             # Loop over every julian day
             for ijulian = 1:365
                 idxfut = (fut_jul .== ijulian)
                 # Value to correct
-                futval = futvec2[idxfut]
+                # futval = futvec2[idxfut]
+                futval = fut[1][:,:,idxfut].data
                 # Transfert function for ijulian
                 itp = ITP[ijulian]
                 # Correct futval
                 if lowercase(method) == "additive" # used for temperature
-                    futnew = itp[futval] + futval
+                    futnew = itp[futval] .+ futval
                 elseif lowercase(method) == "multiplicative" # used for precipitation
                     futnew = itp[futval] .* futval
                 else
                     error("Wrong method")
                 end
-                futvec_corr[idxfut] = futnew
+                # futvec_corr[idxfut] = futnew
+                dataout[:,:,idxfut] = futnew
+                next!(p)
             end
-            dataout[j,k,:] = futvec_corr
-        end
-        next!(p)
-    end
+            # dataout[j,k,:] = futvec_corr
+    #     end
+    #     next!(p)
+    # end
     lonsymbol = Symbol(fut.dimension_dict["lon"])
     latsymbol = Symbol(fut.dimension_dict["lat"])
 

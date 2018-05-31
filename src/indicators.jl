@@ -1,7 +1,7 @@
 """
     vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)
 
-Returnsthe vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).
+Returns the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).
 
 ``vp = \\frac{q * sp}{q+0.622}``
 
@@ -9,6 +9,7 @@ Returnsthe vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and 
 function vaporpressure(specific_humidity::ClimGrid, surface_pressure::ClimGrid)
   @argcheck surface_pressure[9] == "ps"
   @argcheck specific_humidity[9] == "huss"
+  @argcheck surface_pressure[2] == "Pa"
 
   # Calculate vapor pressure
   vp_arraytmp = (specific_humidity.data .* surface_pressure.data) ./ (specific_humidity.data .+ 0.622)
@@ -38,6 +39,14 @@ function vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid,
   @argcheck sealevel_pressure[9] == "psl"
   @argcheck orography[9] == "orog"
   @argcheck daily_temperature[9] == "tas"
+  @argcheck sealevel_pressure[2] == "Pa"
+  @argcheck orography[2] == "m"
+  @argcheck in(daily_temperature[2], ["Celsius", "K"])
+
+  # Convert to Kelvin if necessery
+  if daily_temperature[2] == "Celsius"
+    daily_temperature = daily_temperature .+ 273.15
+  end
 
   # Calculate the estimated surface pressure
   surface_pressure = approx_surfacepressure(sealevel_pressure, orography, daily_temperature)
@@ -77,4 +86,65 @@ function approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid
 
   # Build ClimGrid object
   return ClimGrid(ps_array, longrid=sealevel_pressure.longrid, latgrid=sealevel_pressure.latgrid, msk=sealevel_pressure.msk, grid_mapping=sealevel_pressure.grid_mapping, dimension_dict=sealevel_pressure.dimension_dict, model=sealevel_pressure.model, frequency=sealevel_pressure.frequency, experiment=sealevel_pressure.experiment, run=sealevel_pressure.run, project=sealevel_pressure.project, institute=sealevel_pressure.institute, filename=sealevel_pressure.filename, dataunits="Pa", latunits=sealevel_pressure.latunits, lonunits=sealevel_pressure.lonunits, variable="ps", typeofvar="ps", typeofcal=sealevel_pressure.typeofcal, varattribs=ps_dict, globalattribs=sealevel_pressure.globalattribs)
+end
+
+"""
+    wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)
+
+Returns the simplified wet-bulb global temperature (*wbgt*) (Celsius) calculated using the vapor pressure (Pa) of the day and the estimated mean diurnal temperature (Celsius; temperature between 7:00 (7am) and 17:00 (5pm)).
+
+``wbgt = 0.567 * Tday + 0.00393 * vp + 3.94``
+
+"""
+function wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)
+  @argcheck diurnal_temperature[9] == "tdiu"
+  @argcheck vapor_pressure[9] == "vp"
+  @argcheck in(diurnal_temperature[2], ["Celsius", "K"])
+  @argcheck vapor_pressure[2] == "Pa"
+
+  # Convert to Celsius if necessery
+  if diurnal_temperature[2] == "K"
+    diurnal_temperature = diurnal_temperature .- 273.15
+  end
+
+  # Calculate the wbgt
+  wbgt_arraytmp = (0.567 .* diurnal_temperature.data) + (0.00393 .* vapor_pressure.data) .+ 3.94
+  wbgt_array = buildarrayinterface(wbgt_arraytmp, diurnal_temperature)
+
+  # Build dictionary for the variable wbgt
+  wbgt_dict = diurnal_temperature.varattribs
+  wbgt_dict["standard_name"] = "simplified_wetbulb_globe_temperature"
+  wbgt_dict["units"] = "Celsius"
+  wbgt_dict["history"] = "Wet-bulb globe temperature estimated with the vapor pressure and the diurnal temperature"
+
+  # Build ClimGrid object
+  return ClimGrid(wbgt_array, longrid=diurnal_temperature.longrid, latgrid=diurnal_temperature.latgrid, msk=diurnal_temperature.msk, grid_mapping=diurnal_temperature.grid_mapping, dimension_dict=diurnal_temperature.dimension_dict, model=diurnal_temperature.model, frequency=diurnal_temperature.frequency, experiment=diurnal_temperature.experiment, run=diurnal_temperature.run, project=diurnal_temperature.project, institute=diurnal_temperature.institute, filename=diurnal_temperature.filename, dataunits="Celsius", latunits=diurnal_temperature.latunits, lonunits=diurnal_temperature.lonunits, variable="wbgt", typeofvar="wbgt", typeofcal=diurnal_temperature.typeofcal, varattribs=wbgt_dict, globalattribs=diurnal_temperature.globalattribs)
+end
+
+"""
+    diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid, α::Float64)
+
+Returns an estimation of the diurnal temperature (temperature between 7:00 (7am) and 17:00 (5pm)). The estimation is a linear combination of the daily minimum temperature (temperatureminimum) and daily maximum temperature (temperaturemaximum). The value of α has to be estimated seperatly from observations and depends on the location. The daily max and min must be in the same unit and in Celsius or Kelvin The diurnal temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.
+
+``Tdiu = α * Tmin + (1 - α) * Tmax``
+"""
+function diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid, α::Float64)
+  @argcheck temperatureminimum[9] == "tasmin"
+  @argcheck temperaturemaximum[9] == "tasmax"
+  @argcheck in(temperatureminimum[2], ["Celsius", "K"])
+  @argcheck in(temperaturemaximum[2], ["Celsius", "K"])
+  @argcheck temperatureminimum[2] == temperaturemaximum[2]
+
+  # Calculate the diurnal temperature
+  tdiu = α .*temperatureminimum.data + (1-α) .* temperaturemaximum.data
+  tdiu_array = buildarrayinterface(tdiu, temperatureminimum)
+
+  # Build dictionary for the variable wbgt
+  tdiu_dict = temperatureminimum.varattribs
+  tdiu_dict["standard_name"] = "diurnal_temperature"
+  tdiu_dict["units"] = temperatureminimum[2]
+  tdiu_dict["history"] = "Diurnal temperature (between 7:00 and 17:00) estimated using a linear combination of the daily minimum temperature and the daily maximum temperature"
+
+  # Build ClimGrid object
+  return ClimGrid(tdiu_array, longrid=temperatureminimum.longrid, latgrid=temperatureminimum.latgrid, msk=temperatureminimum.msk, grid_mapping=temperatureminimum.grid_mapping, dimension_dict=temperatureminimum.dimension_dict, model=temperatureminimum.model, frequency=temperatureminimum.frequency, experiment=temperatureminimum.experiment, run=temperatureminimum.run, project=temperatureminimum.project, institute=temperatureminimum.institute, filename=temperatureminimum.filename, dataunits=temperatureminimum.dataunits, latunits=temperatureminimum.latunits, lonunits=temperatureminimum.lonunits, variable="tdiu", typeofvar="tdiu", typeofcal=temperatureminimum.typeofcal, varattribs=tdiu_dict, globalattribs=temperatureminimum.globalattribs)
 end

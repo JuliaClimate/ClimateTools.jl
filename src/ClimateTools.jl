@@ -123,9 +123,9 @@ export mapclimgrid, regrid, ClimGrid, inpolyvec, applymask
 export shapefile_coords, shapefile_coords_poly
 export spatialsubset, temporalsubset
 export qqmap, qqmaptf, ndgrid, permute_west_east
-export getdim_lat, getdim_lon, isdefined
-export @isdefined, extractpoly
-export plot, merge, vaporpressure, approx_surfacepressure
+export getdim_lat, getdim_lon, isdefined, extractpoly
+export @isdefined
+export plot, merge, vaporpressure, approx_surfacepressure, wbgt, diurnaltemperature
 export minimum, maximum, std, var, mean
 
 end #module
