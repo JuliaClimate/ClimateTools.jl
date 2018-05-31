@@ -21,7 +21,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Overview",
     "category": "section",
-    "text": "ClimateTools.jl is a collection of commonly-used tools in Climate Science. Basics of climate field analysis will be covered, with some forays into exploratory techniques. The package is aimed to ease the typical steps of analysis climate models outputs from netCDF files that follows Climate Forecast conventions.This package is registered on METADATA.jl and can be added with Pkg.add(\"ClimateTools\") and used with using ClimateTools."
+    "text": "ClimateTools.jl is a collection of commonly-used tools in Climate science. Basics of climate field analysis will be covered, with some forays into exploratory techniques. The package is aimed to ease the typical steps of analysis climate models outputs from netCDF files that follows Climate Forecast conventions and the creation of climate scenarios.The package is registered on METADATA.jl and can be added with Pkg.add(\"ClimateTools\") and used with using ClimateTools."
 },
 
 {
@@ -37,7 +37,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Features",
     "category": "section",
-    "text": "Extraction and visualization of CF-compliant netCDF datasets\nCustom user-provided polygons and start and end date for localized studies\nClimate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices\nRegridding of a datasets onto another grid\nPost-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)"
+    "text": "Climate scenarios creation\nExtraction and visualization of CF-compliant netCDF datasets\nCustom user-provided polygons and start and end date for localized studies\nClimate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices\nRegridding of a datasets onto another grid\nPost-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)"
 },
 
 {
@@ -54,14 +54,6 @@ var documenterSearchIndex = {"docs": [
     "title": "TO-DO",
     "category": "section",
     "text": "Dashboard tool. This will return the main characteristics of a ClimGrid: maps of minimum, maximum and mean climatological values, seasonal cycle, timeseries of annual maximum, minimum and mean values, etc...\nExport ClimGrid to netCDF file.\nAdd a more complex quantile-quantile mapping technique, combining extreme value theory and quantile-quantile standard technique"
-},
-
-{
-    "location": "index.html#Notes-2",
-    "page": "Home",
-    "title": "Notes",
-    "category": "section",
-    "text": "N.B. version 0.1.2 is compatible with Julia 0.5 and version >0.2.0 is for Julia 0.6. To use a specific version of the package, you can use in Julia the following command:Pkg.pin(\"ClimateTools\",v\"0.1.2\") # if using Julia 0.5"
 },
 
 {
@@ -93,7 +85,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Getting started",
     "title": "Required dependencies",
     "category": "section",
-    "text": "In theory, launching the command using ClimateTools should install all required dependencies. However, sometimes it\'s just better to do it manually to ensure that all steps are properly done. If the installation fails when launching ùsing ClimateTools, here are the steps to do it manually.Note. ClimateTools is developed using the Python distribution in the Conda package by default. PyCall should be built with the ENV[\"PYTHON\"] = \"\" environment and then re-build PyCall with Pkg.build(\"PyCall\"). However, it should work with python 2.7.x without modifications. Work is in progress to fully support Python 3.4+ENV[\"PYTHON\"] = \"\" # tells PyCall to use Julia\'s Conda python environment\nPkg.add(\"Conda\")\nusing Conda\nConda.update()\nConda.add(\"matplotlib\")\nConda.add(\"basemap\")\nConda.add(\"scipy\")\nConda.add(\"numpy\")\nPkg.add(\"PyCall\")\nPkg.build(\"PyCall\")\nPkg.add(\"Pyplot\")"
+    "text": "In theory, installing the package with Pkg.add(\"ClimateTools\") and launching the command using ClimateTools should install all required dependencies. However, sometimes it\'s just better to do it manually to ensure that all steps are properly done. If the installation fails when launching ùsing ClimateTools, below are the steps to do it manually.Note ClimateTools is developed using the Python distribution in the Conda package by default. PyCall should be built with the ENV[\"PYTHON\"] = \"\" environment and then re-build PyCall with Pkg.build(\"PyCall\"). It should work with python 2.7.x and Python 3.4+ without modifications, but since Python configurations varies widely from system to system, it is not supported.ENV[\"PYTHON\"] = \"\" # tells PyCall to use Julia\'s Conda python environment\nPkg.add(\"Conda\")\nusing Conda\nConda.update()\nConda.add(\"matplotlib\")\nConda.add(\"basemap\")\nConda.add(\"scipy\")\nConda.add(\"numpy\")\nPkg.add(\"PyCall\")\nPkg.build(\"PyCall\")\nPkg.add(\"Pyplot\")"
 },
 
 {
@@ -109,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Getting started",
     "title": "Reading a NetCDF file",
     "category": "section",
-    "text": "The entry point of ClimateTools is to load data with the load function. Optional polygon clipping feature is available. By providing such polygon, the load function  returns a ClimGrid with grid points contained in the polygon.C = load(filename::String, var::String; poly::Array, data_units::String, start_date::Tuple, end_date::Tuple)load return a ClimGrid type. The ClimGrid is a in-memory representation of a CF-compliant netCDF file for a single variable.Using the optional poly argument, the user can provide a polygon and the returned ClimGrid will only contains the grid points inside the provided polygon. The polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).start_date and end_date can also be provided. It is useful when climate simulations file spans multiple decades/centuries and one only needs a temporal subset. Dates should be provided as a Tuple of the form (year, month, day, hour, minute, seconds), where only year is mandatory (e.g. (2000,)).For some variable, the optional keyword argument data_units can be provided. For example, precipitation in climate models are usually provided as kg/m^2/s. By specifying data_units = mm, the load function returns accumulation at the data time resolution. Similarly, the user can provide Celsius as data_units and load will return Celsius instead of Kelvin.struct ClimGrid\n  data::AxisArray # Data\n  longrid::AbstractArray{N,2} where N # the longitude grid\n  latgrid::AbstractArray{N,2} where N # the latitude grid\n  msk::Array{N, 2} where N # Data mask (NaNs and 1.0)\n  grid_mapping::Dict#{String, Any} # bindings for native grid\n  dimension_dict::Dict\n  model::String\n  frequency::String # Day, month, years\n  experiment::String # Historical, RCP4.5, RCP8.5, etc.\n  run::String\n  project::String # CORDEX, CMIP5, etc.\n  institute::String # UQAM, DMI, etc.\n  filename::String # Path of the original file\n  dataunits::String # Celsius, kelvin, etc.\n  latunits::String # latitude coordinate unit\n  lonunits::String # longitude coordinate unit\n  variable::String # Type of variable (i.e. can be the same as \"typeofvar\", but it is changed when calculating indices)\n  typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)\n  typeofcal::String # Calendar type\n  varattribs::Dict # Variable attributes dictionary\n  globalattribs::Dict # Global attributes dictionary\nend"
+    "text": "The entry point of ClimateTools is to load data with the load function. The return structure of the load function is an in-memory representation of the dataset contained in the netCDF file.C = load(filename::String, var::String; poly::Array, data_units::String, start_date::Tuple, end_date::Tuple)load return a ClimGrid type. The ClimGrid is a in-memory representation of a CF-compliant netCDF file for a single variable.Using the optional poly argument, the user can provide a polygon and the returned ClimGrid will only contains the grid points inside the provided polygon. The polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).start_date and end_date can also be provided. It is useful when climate simulations file spans multiple decades/centuries and one only needs a temporal subset. Dates should be provided as a Tuple of the form (year, month, day, hour, minute, seconds), where only year is mandatory (e.g. (2000,) can be provided and will defaults to (2000, 01, 01)).For some variable, the optional keyword argument data_units can be provided. For example, precipitation in climate models are usually provided as kg/m^2/s. By specifying data_units = mm, the load function returns accumulation at the data time resolution. Similarly, the user can provide Celsius as data_units and load will return Celsius instead of Kelvin.struct ClimGrid\n  data::AxisArray # Data\n  longrid::AbstractArray{N,2} where N # the longitude grid\n  latgrid::AbstractArray{N,2} where N # the latitude grid\n  msk::Array{N, 2} where N # Data mask (NaNs and 1.0)\n  grid_mapping::Dict#{String, Any} # bindings for native grid\n  dimension_dict::Dict\n  model::String\n  frequency::String # Day, month, years\n  experiment::String # Historical, RCP4.5, RCP8.5, etc.\n  run::String\n  project::String # CORDEX, CMIP5, etc.\n  institute::String # UQAM, DMI, etc.\n  filename::String # Path of the original file\n  dataunits::String # Celsius, kelvin, etc.\n  latunits::String # latitude coordinate unit\n  lonunits::String # longitude coordinate unit\n  variable::String # Type of variable (i.e. can be the same as \"typeofvar\", but it is changed when calculating indices)\n  typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)\n  typeofcal::String # Calendar type\n  varattribs::Dict # Variable attributes dictionary\n  globalattribs::Dict # Global attributes dictionary\nend"
 },
 
 {
@@ -117,7 +109,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Getting started",
     "title": "Subsetting",
     "category": "section",
-    "text": "Once the data is loaded in a ClimGrid, options to further subset the data are available.There is a spatialsubset function which acts on ClimGrid type and further subset the data through a spatial subset using a provided polygon. The function returns a ClimGrid. Polygons needs to be on a -180, +180 longitude coordinates, as data coordinates defaults to such grid. For instance, global models are often on a 0-360 degrees grid.C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)Temporal subset of the data is also possible with the temporalsubset function:C = temporalsubset(C::ClimGrid, startdate::Tuple, enddate::Tuple)"
+    "text": "Once the data is loaded in a ClimGrid struct, options to further subset the data are available.There is a spatialsubset function which acts on ClimGrid type and further subset the data through a spatial subset using a provided polygon. The function returns a ClimGrid. Polygons needs to be on a -180, +180 longitude coordinates, as data coordinates defaults to such grid. For instance, global models are often on a 0-360 degrees grid but the load function shift the data onto a -180,+180 coordinates.C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)Temporal subset of the data is also possible with the temporalsubset function:C = temporalsubset(C::ClimGrid, startdate::Tuple, enddate::Tuple)"
 },
 
 {
@@ -177,6 +169,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "indices.html#ClimateTools.approx_surfacepressure",
+    "page": "Climate Indices",
+    "title": "ClimateTools.approx_surfacepressure",
+    "category": "function",
+    "text": "  approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the approximated surface pressure (sp) (Pa) using sea level pressure (psl) (Pa), orography (orog) (m), and daily mean temperature (tas) (K).\n\nsp = psl * 10^x\n\nwhere x = frac-orog18400 * tas  27315\n\n\n\n"
+},
+
+{
     "location": "indices.html#ClimateTools.customthresover",
     "page": "Climate Indices",
     "title": "ClimateTools.customthresover",
@@ -198,6 +198,14 @@ var documenterSearchIndex = {"docs": [
     "title": "ClimateTools.daysabove10",
     "category": "function",
     "text": "daysabove10(C::ClimGrid)\n\nAnnual number of days with temperature >= 10 Celsius. This function returns a ClimGrid.\n\n\n\n"
+},
+
+{
+    "location": "indices.html#ClimateTools.diurnaltemperature",
+    "page": "Climate Indices",
+    "title": "ClimateTools.diurnaltemperature",
+    "category": "function",
+    "text": "diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid, α::Float64)\n\nReturns an estimation of the diurnal temperature (temperature between 7:00 (7am) and 17:00 (5pm)). The estimation is a linear combination of the daily minimum temperature (temperatureminimum) and daily maximum temperature (temperaturemaximum). The value of α has to be estimated seperatly from observations and depends on the location. The daily max and min must be in the same unit and in Celsius or Kelvin The diurnal temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.\n\nTdiu =  * Tmin + (1 - ) * Tmax\n\n\n\n"
 },
 
 {
@@ -241,11 +249,27 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "indices.html#ClimateTools.vaporpressure",
+    "page": "Climate Indices",
+    "title": "ClimateTools.vaporpressure",
+    "category": "function",
+    "text": "vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).\n\nvp = fracq * spq+0622\n\n\n\nvaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) estimated with the specific humidity (q), the sea level pressure (psl) (Pa), the orography (orog) (m) and the daily mean temperature (tas) (K). An approximation of the surface pressure is first computed by using the sea level pressure, orography and the daily mean temperature (see approx_surfacepressure). Then, vapor pressure is calculated by:\n\nvp = fracq * spq+0622\n\n\n\n"
+},
+
+{
+    "location": "indices.html#ClimateTools.wbgt",
+    "page": "Climate Indices",
+    "title": "ClimateTools.wbgt",
+    "category": "function",
+    "text": "wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)\n\nReturns the simplified wet-bulb global temperature (wbgt) (Celsius) calculated using the vapor pressure (Pa) of the day and the estimated mean diurnal temperature (Celsius; temperature between 7:00 (7am) and 17:00 (5pm)).\n\nwbgt = 0567 * Tday + 000393 * vp + 394\n\n\n\n"
+},
+
+{
     "location": "indices.html#Climate-Indices-2",
     "page": "Climate Indices",
     "title": "Climate Indices",
     "category": "section",
-    "text": "annualmax\nannualmean\nannualmin\nannualsum\ncustomthresover\ncustomthresunder\ndaysabove10\nicingdays\nfrostdays\nprcp1\nsummerdays\ntropicalnights"
+    "text": "Here\'s a list of climate indices currently provided by ClimateTools.annualmax\nannualmean\nannualmin\nannualsum\napprox_surfacepressure\ncustomthresover\ncustomthresunder\ndaysabove10\ndiurnaltemperature\nicingdays\nfrostdays\nprcp1\nsummerdays\ntropicalnights\nvaporpressure\nwbgt"
 },
 
 {
@@ -261,7 +285,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Interpolation",
     "title": "Interpolation",
     "category": "section",
-    "text": "A typical step in climate analysis is to interpolate a given grid onto another grid. ClimateTools provides such a tool by wrapping Scipy griddata function. It is intended for visualization or as a 1st step before bias-correcting the ClimGrid dataset.regrid function will interpolate the data contained in ClimGrid A into the coordinates of ClimGrid B and returns a new ClimGrid C which contains the interpolated data of A into the grid of B.C = regrid(A::ClimGrid, B::ClimGrid)It is also possible to interpolate a ClimGrid onto specified longitude and latitude vectors.C = regrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N, 1})"
+    "text": "A typical step in climate analysis is to interpolate a given grid onto another grid. ClimateTools provides such a tool by wrapping Scipy griddata function. It is intended for visualization or as a 1st step before bias-correcting the ClimGrid dataset.regrid function will interpolate the data contained in ClimGrid A into the coordinates of ClimGrid B and returns a new ClimGrid C which contains the interpolated data of A into the grid of B.C = regrid(A::ClimGrid, B::ClimGrid)It is also possible to interpolate a ClimGrid onto specified longitude and latitude vectors and arrays.C = regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::AbstractArray{N, T} where N where T; dimx=[], dimy=[], method::String=\"linear\", min=[], max=[])In the case a longitude and latitude 2D array is provided, the user needs to provide the dimension vectors for x and y."
 },
 
 {
@@ -277,47 +301,47 @@ var documenterSearchIndex = {"docs": [
     "page": "Bias correction",
     "title": "Bias correction",
     "category": "section",
-    "text": "Quantile-quantile mapping (Themeßl et al. 2012, Grenier et al. 2015) is provided with ClimateTools.jl through the function qqmap.qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String=\"Additive\", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())More information can be found in these references.Themeßl, Matthias Jakob, Andreas Gobiet, and Georg Heinrich. 2012. “Empirical-Statistical Downscaling and Error Correction of Regional Climate Models and Its Impact on the Climate Change Signal.” Climatic Change 112 (2). Springer: 449–68.Grenier, Patrick, Ramón de Elía, and Diane Chaumont. 2015. “Chances of Short-Term Cooling Estimated from a Selection of CMIP5-Based Climate Scenarios during 2006-2035 over Canada.” Journal of Climate, January 2015. American Meteorological Society. doi:10.1175/JCLI-D-14-00224.1."
+    "text": "Quantile-quantile mapping (Themeßl et al. 2012, Grenier et al. 2015) is provided with ClimateTools.jl through the function qqmap.qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String=\"Additive\", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())Quantile-quantile mapping is a computational costly function. An alternative is to build a single transfer function over a domain.qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method::String=\"Additive\", window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat())where partition is the fraction of grid points that will be considered in the construction of the transfer function. qmaptf returns ITP an Interpolation type. ITP then can be provided to the following qqmap method, which apply the transfer function ITP to values in ClimGrid fut.qqmap(fut::ClimGrid, ITP; method::String=\"Additive\")More information can be found in these references.Themeßl, Matthias Jakob, Andreas Gobiet, and Georg Heinrich. 2012. “Empirical-Statistical Downscaling and Error Correction of Regional Climate Models and Its Impact on the Climate Change Signal.” Climatic Change 112 (2). Springer: 449–68.Grenier, Patrick, Ramón de Elía, and Diane Chaumont. 2015. “Chances of Short-Term Cooling Estimated from a Selection of CMIP5-Based Climate Scenarios during 2006-2035 over Canada.” Journal of Climate, January 2015. American Meteorological Society. doi:10.1175/JCLI-D-14-00224.1."
 },
 
 {
     "location": "maps.html#",
-    "page": "Maps",
-    "title": "Maps",
+    "page": "Visualization",
+    "title": "Visualization",
     "category": "page",
     "text": "CurrentModule = ClimateTools"
 },
 
 {
-    "location": "maps.html#Maps-1",
-    "page": "Maps",
-    "title": "Maps",
+    "location": "maps.html#Visualization-1",
+    "page": "Visualization",
+    "title": "Visualization",
     "category": "section",
     "text": ""
 },
 
 {
     "location": "maps.html#ClimateTools.mapclimgrid",
-    "page": "Maps",
+    "page": "Visualization",
     "title": "ClimateTools.mapclimgrid",
     "category": "function",
     "text": "mapclimgrid(C::ClimGrid; region::String=\"auto\", poly, level, mask, caxis, start_date::Tuple, end_date::Tuple, titlestr::String, surface::Symbol, ncolors::Int, center_cs::Bool, filename::String, cs_label::String)\n\nMaps the time-mean average of ClimGrid C. If a filename is provided, the figure is saved in a png format.\n\nOptional keyworkd includes precribed regions (keyword region, see list below), spatial clipping by polygon (keyword poly) or mask (keyword mask, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword level is used to map a given level (defaults to 1). caxis is used to limit the colorscale. ncolors is used to set the number of color classes (defaults to 12). Set center_cs to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature). cs_label is used for custom colorscale label.\n\nArguments for keyword region (and shortcuts)\n\nEurope (\"EU\")\nNorthAmerica (\"NA\")\nCanada (\"CA\")\nQuebec, QuebecNSP (\"QC\", \"QCNSP\")\nAmericas (\"Ams\")\nWorld, WorldAz, WorldEck4 (\"W\", \"Waz\", \"Weck4\")\nGreenwich (\"Gr\")\n\nArguments for keyword surface\n\n:contour\n:contourf\n:pcolormesh\n\n\n\nmapclimgrid(; region::String=\"auto\", poly, level, mask, caxis, start_date::Date, end_date::Date)\n\nEmpty map generator, when called without a ClimGrid as the positional argument.\n\n\n\n"
 },
 
 {
-    "location": "maps.html#Mapping-the-ClimGrid-type-1",
-    "page": "Maps",
-    "title": "Mapping the ClimGrid type",
+    "location": "maps.html#Maps-1",
+    "page": "Visualization",
+    "title": "Maps",
     "category": "section",
-    "text": "Mapping climate information can be done by using mapclimgrid.(Image: BNU-ESM)mapclimgridNote that the function plots the climatological mean of the provided ClimGrid. Multiple options are available for region: World, Canada, Quebec, WorldAz, WorldEck4, ..., and the default auto which use the maximum and minimum of the lat-long coordinates inside the ClimGrid structure. The user can also provide a polygon(s) and the mapclimgrid function will clip the grid points outside the specified polygon. Another option is to provide a mask (with dimensions identical to the spatial dimension of the ClimGrid data) which contains NaN and 1.0 and the data inside the ClimGrid struct will be clipped with the mask. Other regions will be added in the future, as well as the option to send a custom region defined by a lat-lon box."
+    "text": "Mapping a ClimGrid is done by using the mapclimgrid function.(Image: BNU-ESM)mapclimgridNote that the function plots the climatological mean of the provided ClimGrid. Multiple options are available for region: World, Canada, Quebec, WorldAz, WorldEck4, ..., and the default auto which use the maximum and minimum of the lat-long coordinates inside the ClimGrid structure (see the documentation of mapclimgrid for all region options).The user can also provide a polygon(s) and the mapclimgrid function will clip the grid points outside the specified polygon. Another option is to provide a mask (with dimensions identical to the spatial dimension of the ClimGrid data) which contains NaN and 1.0 and the data inside the ClimGrid struct will be clipped with the mask."
 },
 
 {
     "location": "maps.html#Timeseries-1",
-    "page": "Maps",
+    "page": "Visualization",
     "title": "Timeseries",
     "category": "section",
-    "text": "Plotting timeseries of a given ClimGrid C is simply done by calling plot.using ClimateTools\npoly_reg = [[NaN -65 -80 -80 -65 -65];[NaN 42 42 52 52 42]]\n# Extract tasmax variable over specified polygon, between January 1st 1950 and December 31st 2005\nC_hist = load(\"historical.nc\", \"tasmax\", data_units=\"Celsius\", poly=poly_reg, start_date=Date(1950, 01, 01), end_date=Date(2005, 12, 31)))\n# Extract tasmax variable over specified polygon, between January 1st 2006 and December 31st 2090 for emission scenario RCP8.5\nC_future85 = load(\"futureRCP85.nc\", \"tasmax\", data_units=\"Celsius\", poly=poly_reg, start_date=Date(2006, 01, 01), end_date=Date(2090, 12, 31)))\nC = merge(C_hist, C_future)\nind = annualmax(C) # compute annual maximum\nplot(ind)(Image: annualmaxtasmax)Note. Time labels ticks should be improved!The timeserie represent the spatial average of the annual maximum temperature over the following region.mapclimgrid(ind, region = \"QuebecNSP\")(Image: annualmaxtasmax_maps)The map represent the time average over 1950-2090 of the annual maximum temperature."
+    "text": "Plotting timeseries of a given ClimGrid C is simply done by calling plot. This returns the spatial average throughout the time dimension.using ClimateTools\npoly_reg = [[NaN -65 -80 -80 -65 -65];[NaN 42 42 52 52 42]]\n# Extract tasmax variable over specified polygon, between January 1st 1950 and December 31st 2005\nC_hist = load(\"historical.nc\", \"tasmax\", data_units=\"Celsius\", poly=poly_reg, start_date=Date(1950, 01, 01), end_date=Date(2005, 12, 31)))\n# Extract tasmax variable over specified polygon, between January 1st 2006 and December 31st 2090 for emission scenario RCP8.5\nC_future85 = load(\"futureRCP85.nc\", \"tasmax\", data_units=\"Celsius\", poly=poly_reg, start_date=Date(2006, 01, 01), end_date=Date(2090, 12, 31)))\nC = merge(C_hist, C_future)\nind = annualmax(C) # compute annual maximum\nplot(ind)(Image: annualmaxtasmax)Note. Time labels ticks should be improved!The timeserie represent the spatial average of the annual maximum temperature over the following region.mapclimgrid(ind, region = \"QuebecNSP\")(Image: annualmaxtasmax_maps)The map represent the time average over 1950-2090 of the annual maximum temperature."
 },
 
 {
@@ -341,7 +365,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Merging ClimGrid type",
     "category": "section",
-    "text": "Sometimes, the timeseries are split among multiple files (e.g. climate models outputs). To obtain the complete timeseries, you can merge 2 ClimGrid. The method is based on the merging of 2 AxisArrays and is overloaded for the ClimGrid type.C = merge(C1::ClimGrid, C2::ClimGrid)To merge multiple ClimGrid form an array of files, load has a method that accepts an array of files to merge."
+    "text": "Sometimes, the timeseries are split among multiple files (e.g. climate models outputs). To obtain the complete timeseries, you can merge 2 ClimGrid. The method is based on AxisArrays merging method and is overloaded for the ClimGrid type.C = merge(C1::ClimGrid, C2::ClimGrid)To merge multiple ClimGrid form an array of files, load has a method that accepts an array of files to merge."
 },
 
 {
@@ -389,7 +413,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Examples",
     "title": "Extraction",
     "category": "section",
-    "text": "Now, say you need to create a climate scenario, using a given simulation, over a region defined by the following polygon.poly_reg = [[NaN -65 -80 -80 -65 -65];[NaN 42 42 52 52 42]]\n2×6 Array{Float64,2}:\n NaN  -65.0  -80.0  -80.0  -65.0  -65.0\n NaN   42.0   42.0   52.0   52.0   42.0The extraction of the desired variable can be done with the load function, by providing the polygon.gcmfiles =[\"tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc\",\n\"tasmax_day_MIROC5_historical_r1i1p1_19900101-19991231.nc\",\n\"tasmax_day_MIROC5_historical_r1i1p1_20000101-20091231.nc\"]\n\nmodel = load(gcm_files, \"tasmax\", poly=poly_reg)\nClimGrid struct with data:\n   3-dimensional AxisArray{Float32,3,...} with axes:\n    :time, Date[1980-01-01, 1980-01-02, 1980-01-03, 1980-01-04, 1980-01-05, 1980-01-06, 1980-01-07, 1980-01-08, 1980-01-09, 1980-01-10  …  2009-12-22, 2009-12-23, 2009-12-24, 2009-12-25, 2009-12-26, 2009-12-27, 2009-12-28, 2009-12-29, 2009-12-30, 2009-12-31]\n    :lon, [-78.75, -77.3438, -75.9375, -74.5313, -73.125, -71.7188, -70.3125, -68.9063, -67.5, -66.0938]\n    :lat, [42.7233, 44.1241, 45.5249, 46.9256, 48.3264, 49.7271, 51.1279]\nAnd data, a 10950×10×7 Array{Float32,3}\nProject: CMIP5\nInstitute: MIROC\nModel: MIROC5\nExperiment: historical\nRun: r1i1p1\nVariable: tasmax\nData units: K\nFrequency: day\nGlobal attributes: Dict{Any,Any} with 27 entries\nFilename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.ncOne possible verification of the extracted data is to map the time-mean data with the mapclimgrid function to see if there is something wrong.mapclimgrid(model, region = \"Quebec\")Which should return the following map.(Image: MIROC5)"
+    "text": "Now, say you need to create a climate scenario, using a given simulation, over a region defined by the following polygon.poly_reg = [[NaN -65 -80 -80 -65 -65];[NaN 42 42 52 52 42]]\n2×6 Array{Float64,2}:\n NaN  -65.0  -80.0  -80.0  -65.0  -65.0\n NaN   42.0   42.0   52.0   52.0   42.0The extraction of the desired variable can be done with the load function, by providing the polygon.gcmfiles =[\"tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.nc\",\n\"tasmax_day_MIROC5_historical_r1i1p1_19900101-19991231.nc\",\n\"tasmax_day_MIROC5_historical_r1i1p1_20000101-20091231.nc\"]\n\nmodel = load(gcm_files, \"tasmax\", poly=poly_reg)\nClimGrid struct with data:\n   3-dimensional AxisArray{Float32,3,...} with axes:    \n    :lon, [-78.75, -77.3438, -75.9375, -74.5313, -73.125, -71.7188, -70.3125, -68.9063, -67.5, -66.0938]\n    :lat, [42.7233, 44.1241, 45.5249, 46.9256, 48.3264, 49.7271, 51.1279]\n    :time, Date[1980-01-01, 1980-01-02, 1980-01-03, 1980-01-04, 1980-01-05, 1980-01-06, 1980-01-07, 1980-01-08, 1980-01-09, 1980-01-10  …  2009-12-22, 2009-12-23, 2009-12-24, 2009-12-25, 2009-12-26, 2009-12-27, 2009-12-28, 2009-12-29, 2009-12-30, 2009-12-31]\nAnd data, a 10×7×10950 Array{Float32,3}\nProject: CMIP5\nInstitute: MIROC\nModel: MIROC5\nExperiment: historical\nRun: r1i1p1\nVariable: tasmax\nData units: K\nFrequency: day\nGlobal attributes: Dict{Any,Any} with 27 entries\nFilename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.ncOne possible verification of the extracted data is to map the time-mean data with the mapclimgrid function to see if there is something wrong.mapclimgrid(model, region = \"Quebec\")Which should return the following map.(Image: MIROC5)"
 },
 
 {
@@ -413,7 +437,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Examples",
     "title": "Interpolation / Regridding",
     "category": "section",
-    "text": "The interpolation is done with the regrid function. The following command interpolate the values of ClimGrid model onto the grid of ClimGrid obs.modelinterp = regrid(model, obs)\nProgress: 100%|█████████████████████████████████████████| Time: 0:00:38\nClimGrid struct with data:\n   3-dimensional AxisArray{Float64,3,...} with axes:\n    :time, Date[1980-01-01, 1980-01-02, 1980-01-03, 1980-01-04, 1980-01-05, 1980-01-06, 1980-01-07, 1980-01-08, 1980-01-09, 1980-01-10  …  2009-12-22, 2009-12-23, 2009-12-24, 2009-12-25, 2009-12-26, 2009-12-27, 2009-12-28, 2009-12-29, 2009-12-30, 2009-12-31]\n    :lon, Float32[-79.9583, -79.875, -79.7917, -79.7083, -79.625, -79.5417, -79.4583, -79.375, -79.2917, -79.2083  …  -65.7917, -65.7083, -65.625, -65.5417, -65.4583, -65.375, -65.2917, -65.2083, -65.125, -65.0417]\n    :lat, Float32[51.9583, 51.875, 51.7917, 51.7083, 51.625, 51.5417, 51.4583, 51.375, 51.2917, 51.2083  …  42.7917, 42.7083, 42.625, 42.5417, 42.4583, 42.375, 42.2917, 42.2083, 42.125, 42.0417]\nAnd data, a 10950×180×120 Array{Float64,3}\nProject: CMIP5\nInstitute: MIROC\nModel: MIROC5\nExperiment: historical\nRun: r1i1p1\nVariable: tasmax\nData units: K\nFrequency: day\nGlobal attributes: Dict{Any,Any} with 27 entries\nFilename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.ncjulia> mapclimgrid(modelinterp, region = \"Quebec\", titlestr=\"MIROC5 - Interpolated - 1980-2009\")(Image: MIROC5_INTERP)Notice that there is no new information created here. The interpolation is using Scipy\'s griddata under the hood and is simply a linear interpolation onto the obs grid."
+    "text": "The interpolation is done with the regrid function. The following command interpolate the values of ClimGrid model onto the grid of ClimGrid obs.modelinterp = regrid(model, obs)\nProgress: 100%|█████████████████████████████████████████| Time: 0:00:38\nClimGrid struct with data:\n   3-dimensional AxisArray{Float64,3,...} with axes:    \n    :lon, Float32[-79.9583, -79.875, -79.7917, -79.7083, -79.625, -79.5417, -79.4583, -79.375, -79.2917, -79.2083  …  -65.7917, -65.7083, -65.625, -65.5417, -65.4583, -65.375, -65.2917, -65.2083, -65.125, -65.0417]\n    :lat, Float32[51.9583, 51.875, 51.7917, 51.7083, 51.625, 51.5417, 51.4583, 51.375, 51.2917, 51.2083  …  42.7917, 42.7083, 42.625, 42.5417, 42.4583, 42.375, 42.2917, 42.2083, 42.125, 42.0417]\n    :time, Date[1980-01-01, 1980-01-02, 1980-01-03, 1980-01-04, 1980-01-05, 1980-01-06, 1980-01-07, 1980-01-08, 1980-01-09, 1980-01-10  …  2009-12-22, 2009-12-23, 2009-12-24, 2009-12-25, 2009-12-26, 2009-12-27, 2009-12-28, 2009-12-29, 2009-12-30, 2009-12-31]\nAnd data, a 180×120×10950 Array{Float64,3}\nProject: CMIP5\nInstitute: MIROC\nModel: MIROC5\nExperiment: historical\nRun: r1i1p1\nVariable: tasmax\nData units: K\nFrequency: day\nGlobal attributes: Dict{Any,Any} with 27 entries\nFilename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.ncjulia> mapclimgrid(modelinterp, region = \"Quebec\", titlestr=\"MIROC5 - Interpolated - 1980-2009\")(Image: MIROC5_INTERP)Notice that there is no new information created here. The interpolation is using Scipy\'s griddata under the hood and is simply a linear interpolation onto the obs grid."
 },
 
 {
@@ -421,7 +445,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Examples",
     "title": "Quantile-quantile mapping",
     "category": "section",
-    "text": "The high-resolution local information is integrated into ClimGrid modelinterp at the bias correction step. There is a daily transfer function applied on a quantile basis.The call signature is qqmap(obs, ref, fut) where the transfer function is estimated between obs and ref and applied on fut. Note that ref and fut can be the same, as in this example. A typical use-case would be obs and ref covering the same (historical, e.g. 1961-2010) temporal window and fut being a simulation covering a future climatological period (which could be a mix of historic and future, such as 1961-2090). This step is computationally intensive (uses of multiple threads can help here if set by the user).model_qqmap = qqmap(obs, modelinterp, modelinterp)\nProgress: 100%|█████████████████████████████████████████| Time: 0:11:20\nClimGrid struct with data:\n   3-dimensional AxisArray{Float64,3,...} with axes:\n    :time, Date[1980-01-01, 1980-01-02, 1980-01-03, 1980-01-04, 1980-01-05, 1980-01-06, 1980-01-07, 1980-01-08, 1980-01-09, 1980-01-10  …  2009-12-22, 2009-12-23, 2009-12-24, 2009-12-25, 2009-12-26, 2009-12-27, 2009-12-28, 2009-12-29, 2009-12-30, 2009-12-31]\n    :lon, Float32[-79.9583, -79.875, -79.7917, -79.7083, -79.625, -79.5417, -79.4583, -79.375, -79.2917, -79.2083  …  -65.7917, -65.7083, -65.625, -65.5417, -65.4583, -65.375, -65.2917, -65.2083, -65.125, -65.0417]\n    :lat, Float32[51.9583, 51.875, 51.7917, 51.7083, 51.625, 51.5417, 51.4583, 51.375, 51.2917, 51.2083  …  42.7917, 42.7083, 42.625, 42.5417, 42.4583, 42.375, 42.2917, 42.2083, 42.125, 42.0417]\nAnd data, a 10950×180×120 Array{Float64,3}\nProject: CMIP5\nInstitute: MIROC\nModel: MIROC5\nExperiment: historical\nRun: r1i1p1\nVariable: tasmax\nData units: K\nFrequency: NA\nGlobal attributes: Dict{Any,Any} with 0 entries\nFilename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.ncMapping the results show that the local information is integrated into the model, and that the natural \"mask\" of the observation grid is applied naturally.mapclimgrid(model_qqmap, region = \"Quebec\", titlestr=\"MIROC5 - Interpolated and Quantile-Quantile corrected - 1980-2009\")(Image: MIROC5_QQMAP)Proper assessment of future climate conditions over the specified region would involve replicating these steps for minimally a dozen simulations from multiple models and different emission scenarios (e.g. RCP4.5, RCP8.5, etc.).We can show the effect of bias correction by simply subtracting model_qqmap from modelinterp.mapclimgrid(modelinterp-model_qqmap, region = \"qc\", titlestr=\"MIROC5 - bias correction effect - 1980-2009\", center_cs=true)(Image: MIROC5_effect)"
+    "text": "The high-resolution local information is integrated into ClimGrid modelinterp at the bias correction step. There is a daily transfer function applied on a quantile basis.The call signature is qqmap(obs, ref, fut) where the transfer function is estimated between obs and ref and applied on fut. Note that ref and fut can be the same, as in this example. A typical use-case would be obs and ref covering the same (historical, e.g. 1961-2010) temporal window and fut being a simulation covering a future climatological period (which could be a mix of historic and future, such as 1961-2090). This step is computationally intensive (uses of multiple threads can help here if set by the user).model_qqmap = qqmap(obs, modelinterp, modelinterp)\nProgress: 100%|█████████████████████████████████████████| Time: 0:11:20\nClimGrid struct with data:\n   3-dimensional AxisArray{Float64,3,...} with axes:    \n    :lon, Float32[-79.9583, -79.875, -79.7917, -79.7083, -79.625, -79.5417, -79.4583, -79.375, -79.2917, -79.2083  …  -65.7917, -65.7083, -65.625, -65.5417, -65.4583, -65.375, -65.2917, -65.2083, -65.125, -65.0417]\n    :lat, Float32[51.9583, 51.875, 51.7917, 51.7083, 51.625, 51.5417, 51.4583, 51.375, 51.2917, 51.2083  …  42.7917, 42.7083, 42.625, 42.5417, 42.4583, 42.375, 42.2917, 42.2083, 42.125, 42.0417]\n    :time, Date[1980-01-01, 1980-01-02, 1980-01-03, 1980-01-04, 1980-01-05, 1980-01-06, 1980-01-07, 1980-01-08, 1980-01-09, 1980-01-10  …  2009-12-22, 2009-12-23, 2009-12-24, 2009-12-25, 2009-12-26, 2009-12-27, 2009-12-28, 2009-12-29, 2009-12-30, 2009-12-31]\nAnd data, a 180×120×10950 Array{Float64,3}\nProject: CMIP5\nInstitute: MIROC\nModel: MIROC5\nExperiment: historical\nRun: r1i1p1\nVariable: tasmax\nData units: K\nFrequency: NA\nGlobal attributes: Dict{Any,Any} with 0 entries\nFilename: tasmax_day_MIROC5_historical_r1i1p1_19800101-19891231.ncMapping the results show that the local information is integrated into the model, and that the natural \"mask\" of the observation grid is applied naturally.mapclimgrid(model_qqmap, region = \"Quebec\", titlestr=\"MIROC5 - Interpolated and Quantile-Quantile corrected - 1980-2009\")(Image: MIROC5_QQMAP)Proper assessment of future climate conditions over the specified region would involve replicating these steps for minimally a dozen simulations from multiple models and different emission scenarios (e.g. RCP4.5, RCP8.5, etc.).We can show the effect of bias correction by simply subtracting model_qqmap from modelinterp.mapclimgrid(modelinterp-model_qqmap, region = \"qc\", titlestr=\"MIROC5 - bias correction effect - 1980-2009\", center_cs=true)(Image: MIROC5_effect)"
 },
 
 {
@@ -566,6 +590,14 @@ var documenterSearchIndex = {"docs": [
     "title": "ClimateTools.diurnaltemperature",
     "category": "method",
     "text": "diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid, α::Float64)\n\nReturns an estimation of the diurnal temperature (temperature between 7:00 (7am) and 17:00 (5pm)). The estimation is a linear combination of the daily minimum temperature (temperatureminimum) and daily maximum temperature (temperaturemaximum). The value of α has to be estimated seperatly from observations and depends on the location. The daily max and min must be in the same unit and in Celsius or Kelvin The diurnal temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.\n\nTdiu =  * Tmin + (1 - ) * Tmax\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.extractpoly-Tuple{String,Int64}",
+    "page": "Index",
+    "title": "ClimateTools.extractpoly",
+    "category": "method",
+    "text": "extractpoly(file::String, n::Int)\n\nReturns the n-th polygon contained in file.\n\n\n\n"
 },
 
 {
