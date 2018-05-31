@@ -8,8 +8,10 @@ A typical step in climate analysis is to interpolate a given grid onto another g
 C = regrid(A::ClimGrid, B::ClimGrid)
 ```
 
-It is also possible to interpolate a `ClimGrid` onto specified longitude and latitude vectors.
+It is also possible to interpolate a `ClimGrid` onto specified longitude and latitude vectors and arrays.
 
 ```julia
-C = regrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N, 1})
+C = regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::AbstractArray{N, T} where N where T; dimx=[], dimy=[], method::String="linear", min=[], max=[])
 ```
+
+In the case a longitude and latitude 2D array is provided, the user needs to provide the dimension vectors for `x` and `y`.
