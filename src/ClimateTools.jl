@@ -45,7 +45,7 @@ function __init__()
   copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
   copy!(np, pyimport_conda("numpy", "numpy"))
   copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
-  copy!(scipy, pyimport_conda("scipy.interpolate", "scipy"))  
+  copy!(scipy, pyimport_conda("scipy.interpolate", "scipy"))
 end
 
 # TYPES
@@ -123,7 +123,7 @@ export mapclimgrid, regrid, ClimGrid, inpolyvec, applymask
 export shapefile_coords, shapefile_coords_poly
 export spatialsubset, temporalsubset
 export qqmap, qqmaptf, ndgrid, permute_west_east
-export getdim_lat, getdim_lon, isdefined
+export getdim_lat, getdim_lon, isdefined, extractpoly
 export @isdefined
 export plot, merge, vaporpressure, approx_surfacepressure, wbgt, diurnaltemperature
 export minimum, maximum, std, var, mean

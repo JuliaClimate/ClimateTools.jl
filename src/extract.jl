@@ -738,6 +738,22 @@ function shapefile_coords_poly(poly::Shapefile.Polygon)
     return [x y]'
 end
 
+"""
+    extractpoly(file::String, n::Int)
+
+Returns the n-th polygon contained in *file*.
+"""
+function extractpoly(file::String, n::Int)
+
+    shp = open(file) do fd
+        read(fd, Shapefile.Handle)
+    end
+
+    poly = shapefile_coords_poly(shp.shapes[n])
+    return poly
+end
+
+
 function corr_timevec(timeV, timefreq)
 
     if timefreq == "mon"

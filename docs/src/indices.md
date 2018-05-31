@@ -19,17 +19,23 @@ mapclimgrid(C)
 
 ## Climate Indices
 
+Here's a list of climate indices currently provided by ClimateTools.
+
 ```@docs
 annualmax
 annualmean
 annualmin
 annualsum
+approx_surfacepressure
 customthresover
 customthresunder
 daysabove10
+diurnaltemperature
 icingdays
 frostdays
 prcp1
 summerdays
 tropicalnights
+vaporpressure
+wbgt
 ```
