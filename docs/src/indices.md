@@ -24,6 +24,7 @@ annualmax
 annualmean
 annualmin
 annualsum
+approx_surfacepressure
 customthresover
 customthresunder
 daysabove10
@@ -33,5 +34,5 @@ prcp1
 summerdays
 tropicalnights
 vaporpressure
-approx_surfacepressure
+wbgt
 ```
