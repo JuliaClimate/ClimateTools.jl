@@ -76,7 +76,7 @@ C_orog = ClimateTools.ClimGrid(axisdata_orog, dataunits = "m", variable = "orog"
 # Using the function on dummy data
 vp = vaporpressure(C_huss, C_psl, C_orog, C_tas)
 # Run the test
-@test round(vp.data.data, 10) == Results
+@test round.(vp.data.data, 10) == Results
 
 # Test for tas in Celsius
 data_tas = Array{Float64,3}(2,2,3)
@@ -87,7 +87,7 @@ C_tas = ClimateTools.ClimGrid(axisdata_tas, dataunits = "Celsius", variable = "t
 # Using the function on dummy data
 vp = vaporpressure(C_huss, C_psl, C_orog, C_tas)
 # Run the test
-@test round(vp.data.data, 10) == Results
+@test round.(vp.data.data, 10) == Results
 
 # Test wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)
 d = Date(2003,1,1):Date(2003,1,3)
@@ -122,7 +122,7 @@ C_vp = ClimateTools.ClimGrid(axisdata_vp, dataunits = "Pa", variable = "vp")
 # Use the function
 C_wbgt = wbgt(C_tdiu, C_vp)
 # Run the test
-@test round(C_wbgt.data.data,10) == Results
+@test round.(C_wbgt.data.data,10) == Results
 
 # Test for tdiu in Celsius
 data_tdiu = Array{Float64,3}(2,2,3)
@@ -135,7 +135,7 @@ C_tdiu = ClimateTools.ClimGrid(axisdata_tdiu, dataunits= "Celsius", variable = "
 # Use the function
 C_wbgt = wbgt(C_tdiu, C_vp)
 # Run the test
-@test round(C_wbgt.data.data,10) == Results
+@test round.(C_wbgt.data.data,10) == Results
 
 # Test diurnaltemperature()
 d = Date(2003,1,1):Date(2003,1,3)
