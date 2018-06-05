@@ -222,11 +222,12 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         ITP[ijulian] = itp
         next!(p)
     end
-    return ITP
+    ITPout = TransferFunction(ITP, method)
+    return ITPout
 end
 
 """
-    qqmap(fut::ClimGrid, ITP; method::String="Additive")
+    qqmap(fut::ClimGrid, ITP::TransferFunction)
 
 Quantile-Quantile mapping bias correction with a known transfert function. For each julian day of the year, use the right transfert function to correct model values.
 
@@ -236,7 +237,7 @@ Quantile-Quantile mapping bias correction with a known transfert function. For e
 
 """
 
-function qqmap(fut::ClimGrid, ITP; method::String="Additive")
+function qqmap(fut::ClimGrid, ITP::TransferFunction)
     # Get date vectors
     datevec_fut = fut[1][Axis{:time}][:]
     futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][1,1,:].data, datevec_fut)
@@ -256,11 +257,11 @@ function qqmap(fut::ClimGrid, ITP; method::String="Additive")
                 # futval = futvec2[idxfut]
                 futval = fut[1][:,:,idxfut].data
                 # Transfert function for ijulian
-                itp = ITP[ijulian]
+                itp = ITP.itp[ijulian]
                 # Correct futval
-                if lowercase(method) == "additive" # used for temperature
+                if lowercase(ITP.method) == "additive" # used for temperature
                     futnew = itp[futval] .+ futval
-                elseif lowercase(method) == "multiplicative" # used for precipitation
+                elseif lowercase(ITP.method) == "multiplicative" # used for precipitation
                     futnew = itp[futval] .* futval
                 else
                     error("Wrong method")

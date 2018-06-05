@@ -28,7 +28,7 @@ obs = ClimateTools.ClimGrid(axisdata, variable = "tasmax", dimension_dict=dimens
 ref = obs - 3
 
 ITP = qqmaptf(obs, ref, partition=0.5)
-@test round(ITP[rand(1:365)][randn(1)][1],10) == 3.0
+@test round(ITP.itp[rand(1:365)][randn(1)][1],10) == 3.0
 
 fut = obs - 3
 D = qqmap(fut, ITP)

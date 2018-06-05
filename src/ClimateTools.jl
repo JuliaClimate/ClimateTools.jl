@@ -97,6 +97,25 @@ function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dim
 
 end
 
+"""
+    TransferFunction
+
+In-memory representation of the transfer function used during quantile-quantile mapping bias correction.
+"""
+struct TransferFunction
+    itp::Array
+    method::String
+end
+
+"""
+    TransferFunction(itp, method)
+
+Create a TransferFunction used during quantile-quantile mapping bias correction. Contains the ITP function and the methode used (either Additive or Multiplicative)
+"""
+function TransferFunction(itp, method)
+    TransferFunction(itp, method)
+end
+
 # function ClimGrid(data; climgrid::ClimGrid=C)
 #
 #     ClimGrid(data, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
@@ -119,7 +138,7 @@ export frostdays, summerdays, icingdays, tropicalnights
 export daysabove10 #, daysbelow0, degdaysabove, degdaysbelow
 export customthresover, customthresunder, annualmax, annualmin
 export annualmean, annualsum, load, load2D
-export mapclimgrid, regrid, ClimGrid, inpolyvec, applymask
+export mapclimgrid, regrid, ClimGrid, inpolyvec, applymask, TransferFunction
 export shapefile_coords, shapefile_coords_poly
 export spatialsubset, temporalsubset
 export qqmap, qqmaptf, ndgrid, permute_west_east
