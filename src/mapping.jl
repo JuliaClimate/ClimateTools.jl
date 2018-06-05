@@ -345,11 +345,11 @@ Return verbose label for colorbar. Used internally by [`mapclimgrid`](@ref).
 
 function getunitslabel(C::ClimGrid)
 
-    # try
+    try
         standardname = C.varattribs["standard_name"]
-    # catch
-    #     standardname = C.varattribs["long_name"]
-    # end
+    catch
+        standardname = C.varattribs["long_name"]
+    end
 
     units = Dict(["air_temperature" => "Air temperature",
     "specific_humidity" => "Specific humidity (%)",
