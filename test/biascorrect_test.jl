@@ -20,6 +20,7 @@ fut = obs * 1.05
 D = qqmap(obs, ref, fut, method = "Multiplicative")
 @test D[1][1, 1, 1] == 3.7814413533272675
 
+dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
 d = Date(1961,1,1):Date(1990,12,31)
 srand(42)
 data = randn(6, 6, 10957)
