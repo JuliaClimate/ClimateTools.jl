@@ -705,19 +705,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.qqmap-Tuple{ClimateTools.ClimGrid,Any}",
-    "page": "Index",
-    "title": "ClimateTools.qqmap",
-    "category": "method",
-    "text": "qqmap(fut::ClimGrid, ITP; method::String=\"Additive\")\n\nQuantile-Quantile mapping bias correction with a known transfert function. For each julian day of the year, use the right transfert function to correct model values.\n\nOptions\n\nmethod::String = \"Additive\" (default) or \"Multiplicative\". Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.\n\n\n\n"
-},
-
-{
     "location": "functions.html#ClimateTools.qqmap-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.qqmap",
     "category": "method",
     "text": "qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method=\"Additive\", detrend=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp::Function = Linear(), extrap::Function = Flat())\n\nQuantile-Quantile mapping bias correction. For each julian day of the year (+/- window size), a transfer function is estimated through an empirical quantile-quantile mapping.\n\nThe quantile-quantile transfer function between ref and obs is etimated on a julian day (and grid-point) basis with a moving window around the julian day. Hence, for a given julian day, the transfer function is then applied to the fut dataset for a given julian day.\n\nOptions\n\nmethod::String = \"Additive\" (default) or \"Multiplicative\". Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.\n\ndetrend::Bool = true (default). A 4th order polynomial is adjusted to the time series and the residuals are corrected with the quantile-quantile mapping.\n\nwindow::Int = 15 (default). The size of the window used to extract the statistical characteristics around a given julian day.\n\nrankn::Int = 50 (default). The number of bins used for the quantile estimations. The quantiles uses by default 50 bins between 0.01 and 0.99. The bahavior between the bins is controlled by the interp keyword argument. The behaviour of the quantile-quantile estimation outside the 0.01 and 0.99 range is controlled by the extrap keyword argument.\n\nthresnan::Float64 = 0.1 (default). The fraction is missing values authorized for the estimation of the quantile-quantile mapping for a given julian days. If there is more than treshnan missing values, the output for this given julian days returns NaNs.\n\nkeep_original::Bool = false (default). If keep_original is set to true, the values are set to the original values in presence of too many NaNs.\n\ninterp = Interpolations.Linear() (default). When the data to be corrected lies between 2 quantile bins, the value of the transfer function is linearly interpolated between the 2 closest quantile estimation. The argument is from Interpolations.jl package.\n\nextrap = Interpolations.Flat() (default). The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no \"inflation problem\" with the bias correction. The argument is from Interpolation.jl package.\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.qqmap-Tuple{ClimateTools.ClimGrid,ClimateTools.TransferFunction}",
+    "page": "Index",
+    "title": "ClimateTools.qqmap",
+    "category": "method",
+    "text": "qqmap(fut::ClimGrid, ITP::TransferFunction)\n\nQuantile-Quantile mapping bias correction with a known transfert function. For each julian day of the year, use the right transfert function to correct model values.\n\nOptions\n\nmethod::String = \"Additive\" (default) or \"Multiplicative\". Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.\n\n\n\n"
 },
 
 {
@@ -838,6 +838,22 @@ var documenterSearchIndex = {"docs": [
     "title": "ClimateTools.ClimGrid",
     "category": "method",
     "text": "ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), model=\"NA\", frequency=\"NA\", experiment=\"NA\", run=\"NA\", project=\"NA\", institute=\"NA\", filename=\"NA\", dataunits=\"NA\", latunits=\"NA\", lonunits=\"NA\", variable=\"NA\", typeofvar=\"NA\", typeofcal=\"NA\", varattribs=Dict(), globalattribs=Dict())\n\nConstructor of the ClimGrid function. Data is an AxisArray. Everything else is optional, but usually needed for further processing (mapping, interpolation, etc...).\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.TransferFunction",
+    "page": "Index",
+    "title": "ClimateTools.TransferFunction",
+    "category": "type",
+    "text": "TransferFunction\n\nIn-memory representation of the transfer function used during quantile-quantile mapping bias correction.\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.TransferFunction-Tuple{Any,Any}",
+    "page": "Index",
+    "title": "ClimateTools.TransferFunction",
+    "category": "method",
+    "text": "TransferFunction(itp, method)\n\nCreate a TransferFunction used during quantile-quantile mapping bias correction. Contains the ITP function and the methode used (either Additive or Multiplicative)\n\n\n\n"
 },
 
 {
