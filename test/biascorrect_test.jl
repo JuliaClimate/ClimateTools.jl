@@ -24,7 +24,7 @@ d = Date(1961,1,1):Date(1990,12,31)
 srand(42)
 data = randn(6, 6, 10957)
 axisdata = AxisArray(data, Axis{:lon}(1:6), Axis{:lat}(1:6), Axis{:time}(d))
-obs = ClimateTools.ClimGrid(axisdata, variable = "tasmax", dimension_dict=dimension_dict)
+obs = ClimGrid(axisdata, variable = "tasmax", dimension_dict=dimension_dict)
 ref = obs - 3
 
 ITP = qqmaptf(obs, ref, partition=0.5)
