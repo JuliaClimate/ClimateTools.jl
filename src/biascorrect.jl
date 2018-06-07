@@ -200,7 +200,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         # Object containing observation/reference data of the n points on ijulian day
         obsval = fill(NaN, sum(idxobs) * n)
         refval = fill(NaN, sum(idxref) * n)
-        for ipoint = 1:n
+        Threads.@threads for ipoint = 1:n
             iobsvec2, iobs_jul, idatevec_obs2 = corrjuliandays(obs[1][x[ipoint],y[ipoint],:].data, datevec_obs)
             irefvec2, iref_jul, idatevec_ref2 = corrjuliandays(ref[1][x[ipoint],y[ipoint],:].data, datevec_ref)
             obsval[sum(idxobs)*(ipoint-1)+1:sum(idxobs)*ipoint] = iobsvec2[idxobs]
@@ -244,14 +244,13 @@ function qqmap(fut::ClimGrid, ITP::TransferFunction)
     # Prepare output array
     dataout = fill(NaN, (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{N, T} where N where T
     # Progress meters
-    p = Progress(365, 1)
     # Loop over every points
     # for k = 1:size(fut[1], 2)
     #     for j = 1:size(fut[1], 1)
     #         futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][j,k,:].data, datevec_fut)
             # futvec_corr = similar(futvec2, (size(futvec2)))
             # Loop over every julian day
-            for ijulian = 1:365
+            Threads.@threads for ijulian = 1:365
                 idxfut = (fut_jul .== ijulian)
                 # Value to correct
                 # futval = futvec2[idxfut]
@@ -268,7 +267,6 @@ function qqmap(fut::ClimGrid, ITP::TransferFunction)
                 end
                 # futvec_corr[idxfut] = futnew
                 dataout[:,:,idxfut] = futnew
-                next!(p)
             end
             # dataout[j,k,:] = futvec_corr
     #     end
