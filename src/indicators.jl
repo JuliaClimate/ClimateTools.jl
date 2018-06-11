@@ -148,3 +148,31 @@ function diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::Cl
   # Build ClimGrid object
   return ClimGrid(tdiu_array, longrid=temperatureminimum.longrid, latgrid=temperatureminimum.latgrid, msk=temperatureminimum.msk, grid_mapping=temperatureminimum.grid_mapping, dimension_dict=temperatureminimum.dimension_dict, model=temperatureminimum.model, frequency=temperatureminimum.frequency, experiment=temperatureminimum.experiment, run=temperatureminimum.run, project=temperatureminimum.project, institute=temperatureminimum.institute, filename=temperatureminimum.filename, dataunits=temperatureminimum.dataunits, latunits=temperatureminimum.latunits, lonunits=temperatureminimum.lonunits, variable="tdiu", typeofvar="tdiu", typeofcal=temperatureminimum.typeofcal, varattribs=tdiu_dict, globalattribs=temperatureminimum.globalattribs)
 end
+
+"""
+    meantemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid)
+
+Returns the daily mean temperature calculated from the maximum and minimum temperature. Daily maximum and minimum temperature must be in the same units. The mean temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.
+
+``Tmean = \\frac{Tmax + Tmin}{2}``
+"""
+function meantemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid)
+  @argcheck temperatureminimum[9] == "tasmin"
+  @argcheck temperaturemaximum[9] == "tasmax"
+  @argcheck in(temperatureminimum[2], ["Celsius", "K"])
+  @argcheck in(temperaturemaximum[2], ["Celsius", "K"])
+  @argcheck temperatureminimum[2] == temperaturemaximum[2]
+
+  # Calculate the diurnal temperature
+  tmean = (temperatureminimum.data .+ temperaturemaximum.data) ./ 2
+  tmean_array = buildarrayinterface(tmean, temperatureminimum)
+
+  # Build dictionary for the variable wbgt
+  tmean_dict = temperatureminimum.varattribs
+  tmean_dict["standard_name"] = "mean_temperature"
+  tmean_dict["units"] = temperatureminimum[2]
+  tmean_dict["history"] = "Mean temperature calculated from the daily minimum and maximum temperature"
+
+  # Build ClimGrid object
+  return ClimGrid(tmean_array, longrid=temperatureminimum.longrid, latgrid=temperatureminimum.latgrid, msk=temperatureminimum.msk, grid_mapping=temperatureminimum.grid_mapping, dimension_dict=temperatureminimum.dimension_dict, model=temperatureminimum.model, frequency=temperatureminimum.frequency, experiment=temperatureminimum.experiment, run=temperatureminimum.run, project=temperatureminimum.project, institute=temperatureminimum.institute, filename=temperatureminimum.filename, dataunits=temperatureminimum.dataunits, latunits=temperatureminimum.latunits, lonunits=temperatureminimum.lonunits, variable="tmean", typeofvar="tmean", typeofcal=temperatureminimum.typeofcal, varattribs=tmean_dict, globalattribs=temperatureminimum.globalattribs)
+end
