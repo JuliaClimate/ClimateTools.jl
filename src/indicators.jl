@@ -96,29 +96,29 @@ Returns the simplified wet-bulb global temperature (*wbgt*) (Celsius) calculated
 ``wbgt = 0.567 * Tday + 0.00393 * vp + 3.94``
 
 """
-function wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)
-  @argcheck diurnal_temperature[9] == "tdiu"
+function wbgt(mean_temperature::ClimGrid, vapor_pressure::ClimGrid)
+  @argcheck mean_temperature[9] == "tmean"
   @argcheck vapor_pressure[9] == "vp"
-  @argcheck in(diurnal_temperature[2], ["Celsius", "K"])
+  @argcheck in(mean_temperature[2], ["Celsius", "K"])
   @argcheck vapor_pressure[2] == "Pa"
 
   # Convert to Celsius if necessery
-  if diurnal_temperature[2] == "K"
-    diurnal_temperature = diurnal_temperature .- 273.15
+  if mean_temperature[2] == "K"
+    mean_temperature = mean_temperature .- 273.15
   end
 
   # Calculate the wbgt
-  wbgt_arraytmp = (0.567 .* diurnal_temperature.data) + (0.00393 .* vapor_pressure.data) .+ 3.94
-  wbgt_array = buildarrayinterface(wbgt_arraytmp, diurnal_temperature)
+  wbgt_arraytmp = (0.567 .* mean_temperature.data) + (0.00393 .* vapor_pressure.data) .+ 3.94
+  wbgt_array = buildarrayinterface(wbgt_arraytmp, mean_temperature)
 
   # Build dictionary for the variable wbgt
-  wbgt_dict = diurnal_temperature.varattribs
+  wbgt_dict = mean_temperature.varattribs
   wbgt_dict["standard_name"] = "simplified_wetbulb_globe_temperature"
   wbgt_dict["units"] = "Celsius"
-  wbgt_dict["history"] = "Wet-bulb globe temperature estimated with the vapor pressure and the diurnal temperature"
+  wbgt_dict["history"] = "Wet-bulb globe temperature estimated with the vapor pressure and the mean temperature"
 
   # Build ClimGrid object
-  return ClimGrid(wbgt_array, longrid=diurnal_temperature.longrid, latgrid=diurnal_temperature.latgrid, msk=diurnal_temperature.msk, grid_mapping=diurnal_temperature.grid_mapping, dimension_dict=diurnal_temperature.dimension_dict, model=diurnal_temperature.model, frequency=diurnal_temperature.frequency, experiment=diurnal_temperature.experiment, run=diurnal_temperature.run, project=diurnal_temperature.project, institute=diurnal_temperature.institute, filename=diurnal_temperature.filename, dataunits="Celsius", latunits=diurnal_temperature.latunits, lonunits=diurnal_temperature.lonunits, variable="wbgt", typeofvar="wbgt", typeofcal=diurnal_temperature.typeofcal, varattribs=wbgt_dict, globalattribs=diurnal_temperature.globalattribs)
+  return ClimGrid(wbgt_array, longrid=mean_temperature.longrid, latgrid=mean_temperature.latgrid, msk=mean_temperature.msk, grid_mapping=mean_temperature.grid_mapping, dimension_dict=mean_temperature.dimension_dict, model=mean_temperature.model, frequency=mean_temperature.frequency, experiment=mean_temperature.experiment, run=mean_temperature.run, project=mean_temperature.project, institute=mean_temperature.institute, filename=mean_temperature.filename, dataunits="Celsius", latunits=mean_temperature.latunits, lonunits=mean_temperature.lonunits, variable="wbgt", typeofvar="wbgt", typeofcal=mean_temperature.typeofcal, varattribs=wbgt_dict, globalattribs=mean_temperature.globalattribs)
 end
 
 """
