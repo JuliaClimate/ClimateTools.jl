@@ -169,7 +169,8 @@ function meantemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimG
 
   # Build dictionary for the variable wbgt
   tmean_dict = temperatureminimum.varattribs
-  tmean_dict["standard_name"] = "mean_temperature"
+  tmean_dict["standard_name"] = "air_temperature"
+  tmean_dict["long_name"] = "mean_daily_temperature"
   tmean_dict["units"] = temperatureminimum[2]
   tmean_dict["history"] = "Mean temperature calculated from the daily minimum and maximum temperature"
 

@@ -98,9 +98,10 @@ function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dim
 end
 
 """
-    TransferFunction
+    TransferFunction(itp::Array, method::String)
 
-In-memory representation of the transfer function used during quantile-quantile mapping bias correction.
+
+Transfer function used during quantile-quantile mapping bias correction.
 """
 struct TransferFunction
     itp::Array
