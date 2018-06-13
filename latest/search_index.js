@@ -673,6 +673,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#ClimateTools.meantemperature-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
+    "page": "Index",
+    "title": "ClimateTools.meantemperature",
+    "category": "method",
+    "text": "meantemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid)\n\nReturns the daily mean temperature calculated from the maximum and minimum temperature. Daily maximum and minimum temperature must be in the same units. The mean temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.\n\nTmean = fracTmax + Tmin2\n\n\n\n"
+},
+
+{
     "location": "functions.html#ClimateTools.meshgrid-Union{Tuple{AbstractArray{T,1},AbstractArray{T,1}}, Tuple{T}} where T",
     "page": "Index",
     "title": "ClimateTools.meshgrid",
@@ -845,15 +853,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.TransferFunction",
     "category": "type",
-    "text": "TransferFunction\n\nIn-memory representation of the transfer function used during quantile-quantile mapping bias correction.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#ClimateTools.TransferFunction-Tuple{Any,Any}",
-    "page": "Index",
-    "title": "ClimateTools.TransferFunction",
-    "category": "method",
-    "text": "TransferFunction(itp, method)\n\nCreate a TransferFunction used during quantile-quantile mapping bias correction. Contains the ITP function and the methode used (either Additive or Multiplicative)\n\n\n\n"
+    "text": "TransferFunction(itp::Array, method::String)\n\nTransfer function used during quantile-quantile mapping bias correction.\n\n\n\n"
 },
 
 {
