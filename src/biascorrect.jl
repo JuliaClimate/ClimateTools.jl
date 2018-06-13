@@ -178,7 +178,14 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     # Modify dates (e.g. 29th feb are dropped/lost by default)
     obsvec2, obs_jul, datevec_obs2 = corrjuliandays(obs[1][1,1,:].data, datevec_obs)
     refvec2, ref_jul, datevec_ref2 = corrjuliandays(ref[1][1,1,:].data, datevec_ref)
-    days = minimum(ref_jul+15):maximum(ref_jul-15)
+    if minimum(ref_jul) == 1 && maximum(ref_jul) ==365
+        days = 1:365
+    else
+        days = minimum(ref_jul)+15:maximum(ref_jul)-15
+        start = Dates.monthday(minimum(date_vec))
+        finish = Dates.monthnameday(maximum(date_vec))
+        warn(string("The reference ClimGrid doesn't cover all the year. The transfer function has been calculated from the ", minimum(ref_jul)+15, "th to the ", maximum(ref_jul)-15, "th julian day"))
+    end
 
     # Number of points to sample
     n = round(Int,partition * size(obs[1], 1) * size(obs[1], 2)) # Number of points
@@ -457,8 +464,8 @@ function corrjuliandays(data_vec, date_vec)
             else
                 k1 = findfirst(Dates.year.(date_vec), iyear) + 60 - days[1] # else k1 (60-first_julian_day) of the year
             end
-            k2 = findfirst(Dates.year.(date_vec), iyear) + length(days) - 1 #the end of the year is idx of the first day + number of days in the year - 1
-            k = findfirst(Dates.year.(date_vec), iyear) + 59
+            k2 = findlast(Dates.year.(date_vec), iyear) #+ length(days) - 1 #the end of the year is idx of the first day + number of days in the year - 1
+            # k = findfirst(Dates.year.(date_vec), iyear) + 59
             date_jul[k1:k2] -= 1
         end
 
