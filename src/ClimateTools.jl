@@ -107,14 +107,14 @@ struct TransferFunction
     method::String
 end
 
-"""
-    TransferFunction(itp, method)
+# """
+#     TransferFunction(itp, method)
 
-Create a TransferFunction used during quantile-quantile mapping bias correction. Contains the ITP function and the methode used (either Additive or Multiplicative)
-"""
-function TransferFunction(itp, method)
-    TransferFunction(itp, method)
-end
+# Create a TransferFunction used during quantile-quantile mapping bias correction. Contains the ITP function and the methode used (either Additive or Multiplicative)
+# """
+# function TransferFunction(itp, method)
+#     TransferFunction(itp, method)
+# end
 
 # function ClimGrid(data; climgrid::ClimGrid=C)
 #
