@@ -98,23 +98,24 @@ function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dim
 end
 
 """
-    TransferFunction
+    TransferFunction(itp::Array, method::String)
 
-In-memory representation of the transfer function used during quantile-quantile mapping bias correction.
+
+Transfer function used during quantile-quantile mapping bias correction.
 """
 struct TransferFunction
     itp::Array
     method::String
 end
 
-"""
-    TransferFunction(itp, method)
+# """
+#     TransferFunction(itp, method)
 
-Create a TransferFunction used during quantile-quantile mapping bias correction. Contains the ITP function and the methode used (either Additive or Multiplicative)
-"""
-function TransferFunction(itp, method)
-    TransferFunction(itp, method)
-end
+# Create a TransferFunction used during quantile-quantile mapping bias correction. Contains the ITP function and the methode used (either Additive or Multiplicative)
+# """
+# function TransferFunction(itp, method)
+#     TransferFunction(itp, method)
+# end
 
 # function ClimGrid(data; climgrid::ClimGrid=C)
 #
@@ -144,7 +145,7 @@ export spatialsubset, temporalsubset
 export qqmap, qqmaptf, ndgrid, permute_west_east
 export getdim_lat, getdim_lon, isdefined, extractpoly
 export @isdefined
-export plot, merge, vaporpressure, approx_surfacepressure, wbgt, diurnaltemperature
+export plot, merge, vaporpressure, approx_surfacepressure, wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
 
 end #module

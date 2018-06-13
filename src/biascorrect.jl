@@ -178,6 +178,14 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     # Modify dates (e.g. 29th feb are dropped/lost by default)
     obsvec2, obs_jul, datevec_obs2 = corrjuliandays(obs[1][1,1,:].data, datevec_obs)
     refvec2, ref_jul, datevec_ref2 = corrjuliandays(ref[1][1,1,:].data, datevec_ref)
+    if minimum(ref_jul) == 1 && maximum(ref_jul) ==365
+        days = 1:365
+    else
+        days = minimum(ref_jul)+15:maximum(ref_jul)-15
+        start = Dates.monthday(minimum(date_vec))
+        finish = Dates.monthnameday(maximum(date_vec))
+        warn(string("The reference ClimGrid doesn't cover all the year. The transfer function has been calculated from the ", minimum(ref_jul)+15, "th to the ", maximum(ref_jul)-15, "th julian day"))
+    end
 
     # Number of points to sample
     n = round(Int,partition * size(obs[1], 1) * size(obs[1], 2)) # Number of points
@@ -189,11 +197,16 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     # Coordinates of the sampled points
     x = rand(1:size(obs[1],1),n)
     y = rand(1:size(obs[1],2),n)
+    # Make sure at least one point is not NaN
+    while isnan(obs[1][x[1],y[1],:].data[1])
+        x = rand(1:size(obs[1],1),n)
+        y = rand(1:size(obs[1],2),n)
+    end
     # Initialization of the output
     ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{typeof(interp)},Tuple{Array{Float64,1}},0},Interpolations.Gridded{typeof(interp)},Interpolations.OnGrid,typeof(extrap)}}(365)
-    p = Progress(365, 1)
+    p = Progress(length(days), 1)
     # Loop over every julian days
-    for ijulian = 1:365
+    for ijulian in days
         # Index of ijulian ± window
         idxobs = find_julianday_idx(obs_jul, ijulian, window)
         idxref = find_julianday_idx(ref_jul, ijulian, window)
@@ -241,6 +254,7 @@ function qqmap(fut::ClimGrid, ITP::TransferFunction)
     # Get date vectors
     datevec_fut = fut[1][Axis{:time}][:]
     futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][1,1,:].data, datevec_fut)
+    days = minimum(fut_jul):maximum(fut_jul)
     # Prepare output array
     dataout = fill(NaN, (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{N, T} where N where T
     # Progress meters
@@ -250,7 +264,7 @@ function qqmap(fut::ClimGrid, ITP::TransferFunction)
     #         futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][j,k,:].data, datevec_fut)
             # futvec_corr = similar(futvec2, (size(futvec2)))
             # Loop over every julian day
-            Threads.@threads for ijulian = 1:365
+            Threads.@threads for ijulian in days
                 idxfut = (fut_jul .== ijulian)
                 # Value to correct
                 # futval = futvec2[idxfut]
@@ -444,8 +458,15 @@ function corrjuliandays(data_vec, date_vec)
     elseif sum(feb29th) == 0 # not a leapyears
 
         for iyear in leap_years
-            k = findfirst(Dates.year.(date_vec), iyear) + 59
-            date_jul[k:k+305] -= 1
+            days = date_jul[Dates.year.(date_vec).== iyear] # days for iyear
+            if days[1] >=60 # if the year starts after Feb 29th
+                k1 = findfirst(Dates.year.(date_vec), iyear) # k1 is the first day
+            else
+                k1 = findfirst(Dates.year.(date_vec), iyear) + 60 - days[1] # else k1 (60-first_julian_day) of the year
+            end
+            k2 = findlast(Dates.year.(date_vec), iyear) #+ length(days) - 1 #the end of the year is idx of the first day + number of days in the year - 1
+            # k = findfirst(Dates.year.(date_vec), iyear) + 59
+            date_jul[k1:k2] -= 1
         end
 
         date_vec2 = date_vec[.!feb29th]
