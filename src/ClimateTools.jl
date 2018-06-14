@@ -106,6 +106,7 @@ In-memory representation of the transfer function used during quantile-quantile 
 struct TransferFunction
     itp::Array
     method::String
+    detrend::Bool
 end
 
 """
@@ -113,8 +114,8 @@ end
 
 Create a TransferFunction used during quantile-quantile mapping bias correction. Contains the ITP function and the methode used (either Additive or Multiplicative)
 """
-function TransferFunction(itp, method)
-    TransferFunction(itp, method)
+function TransferFunction(itp, method,detrend)
+    TransferFunction(itp, method,detrend)
 end
 
 # function ClimGrid(data; climgrid::ClimGrid=C)
