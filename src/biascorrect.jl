@@ -154,6 +154,8 @@ partition::Float64 = 1.0. The proportion of grid-points (chosen randomly) used f
 
 **method::String = "Additive" (default) or "Multiplicative"**. Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.
 
+**detrend::Bool = true (default)**. A 4th order polynomial is adjusted to the time series and the residuals are corrected with the quantile-quantile mapping.
+
 **window::Int = 15 (default)**. The size of the window used to extract the statistical characteristics around a given julian day.
 
 **rankn::Int = 50 (default)**. The number of bins used for the quantile estimations. The quantiles uses by default 50 bins between 0.01 and 0.99. The bahavior between the bins is controlled by the interp keyword argument. The behaviour of the quantile-quantile estimation outside the 0.01 and 0.99 range is controlled by the extrap keyword argument.
@@ -163,7 +165,13 @@ partition::Float64 = 1.0. The proportion of grid-points (chosen randomly) used f
 **extrap = Interpolations.Flat() (default)**. The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no "inflation problem" with the bias correction. The argument is from Interpolation.jl package.
 """
 # TODO what happen when there is a lot of NaNs.
-function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method::String="Additive", window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat())
+function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method::String="Additive", detrend::Bool = true, window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat())
+    if detrend == true
+        obs_polynomials = ClimGridpolyfit(obs)
+        obs = obs - ClimGridpolyval(obs, obs_polynomials)
+        ref_polynomials = ClimGridpolyfit(ref)
+        ref = ref - ClimGridpolyval(ref, ref_polynomials)
+    end
     # Checking if obs and ref are the same size
     @argcheck size(obs[1], 1) == size(ref[1], 1)
     @argcheck size(obs[1], 2) == size(ref[1], 2)
@@ -235,7 +243,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         ITP[ijulian] = itp
         next!(p)
     end
-    ITPout = TransferFunction(ITP, method)
+    ITPout = TransferFunction(ITP, method, detrend)
     return ITPout
 end
 
@@ -251,6 +259,11 @@ Quantile-Quantile mapping bias correction with a known transfert function. For e
 """
 
 function qqmap(fut::ClimGrid, ITP::TransferFunction)
+    if ITP.detrend == true
+        fut_polynomials = ClimGridpolyfit(fut)
+        poly_values = ClimGridpolyval(fut, fut_polynomials)
+        fut = fut - polyvalues
+    end
     # Get date vectors
     datevec_fut = fut[1][Axis{:time}][:]
     futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][1,1,:].data, datevec_fut)
@@ -291,7 +304,13 @@ function qqmap(fut::ClimGrid, ITP::TransferFunction)
 
     dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}][:]), Axis{latsymbol}(fut[1][Axis{latsymbol}][:]),Axis{:time}(datevec_fut2))
 
-    return ClimGrid(dataout2; longrid=fut.longrid, latgrid=fut.latgrid, msk=fut.msk, grid_mapping=fut.grid_mapping, dimension_dict=fut.dimension_dict, model=fut.model, frequency=fut.frequency, experiment=fut.experiment, run=fut.run, project=fut.project, institute=fut.institute, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal, varattribs=fut.varattribs, globalattribs=fut.globalattribs)
+    C = ClimGrid(dataout2; longrid=fut.longrid, latgrid=fut.latgrid, msk=fut.msk, grid_mapping=fut.grid_mapping, dimension_dict=fut.dimension_dict, model=fut.model, frequency=fut.frequency, experiment=fut.experiment, run=fut.run, project=fut.project, institute=fut.institute, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal, varattribs=fut.varattribs, globalattribs=fut.globalattribs)
+
+    if ITP.detrend == true
+        C = C + poly_values
+    end
+
+    return C
 end
 
 # function corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
