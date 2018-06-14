@@ -262,7 +262,7 @@ function qqmap(fut::ClimGrid, ITP::TransferFunction)
     if ITP.detrend == true
         fut_polynomials = ClimGridpolyfit(fut)
         poly_values = ClimGridpolyval(fut, fut_polynomials)
-        fut = fut - polyvalues
+        fut = fut - poly_values
     end
     # Get date vectors
     datevec_fut = fut[1][Axis{:time}][:]
@@ -528,7 +528,7 @@ end
     ClimGridpolyfit(C::ClimGrid)
 """
 function ClimGridpolyfit(C::ClimGrid)
-    x = Dates.value.(C[1][Axis{:time}][:] - C[1][Axis{:time}][1])
+    x = Dates.value.(C[1][Axis{:time}][:] - C[1][Axis{:time}][1])+1
     dataout = Array{Polynomials.Poly{Float64}}(size(C[1], 1),size(C[1], 2))
     for k = 1:size(C[1], 2)
         for j = 1:size(C[1], 1)
