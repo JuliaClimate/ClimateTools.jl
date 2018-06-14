@@ -504,3 +504,36 @@ function find_julianday_idx(julnb, ijulian, window)
 
 
 end
+
+"""
+    ClimGridpolyfit(C::ClimGrid)
+"""
+function ClimGridpolyfit(C::ClimGrid)
+    x = Dates.value.(C[1][Axis{:time}][:] - C[1][Axis{:time}][1])
+    dataout = Array{Polynomials.Poly{Float64}}(size(C[1], 1),size(C[1], 2))
+    for k = 1:size(C[1], 2)
+        for j = 1:size(C[1], 1)
+            y = C[1][j , k, :].data
+            dataout[j,k] = polyfit(x, y, 4)
+        end
+    end
+    return dataout
+end
+
+"""
+    ClimGridpolyval(C::ClimGrid)
+"""
+function ClimGridpolyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
+    datain = C[1].data
+    dataout = fill(NaN, (size(C[1], 1), size(C[1],2), size(C[1], 3)))::Array{N, T} where N where T
+    for k = 1:size(C[1], 2)
+        for j = 1:size(C[1], 1)
+            val = polynomial[j,k](datain[j,k,:])
+            dataout[j,k,:] = val
+        end
+    end
+
+    dataout2 = buildarrayinterface(dataout, C)
+
+    return ClimGrid(dataout2; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+end
