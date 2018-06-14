@@ -14,6 +14,7 @@ using PyCall
 using PyPlot
 using Interpolations
 using ProgressMeter
+using Polynomials
 import Base.vcat
 import Base.getindex
 import Base.show
