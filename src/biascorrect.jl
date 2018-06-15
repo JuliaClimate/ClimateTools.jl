@@ -169,12 +169,12 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
 
     # Remove trend if specified
     if detrend == true
-        obs = correctdate(obs) # Removes 29th February
-        obs_polynomials = ClimGridpolyfit(obs)
-        obs = obs - ClimGridpolyval(obs, obs_polynomials)
-        ref = correctdate(ref) # Removes 29th February
-        ref_polynomials = ClimGridpolyfit(ref)
-        ref = ref - ClimGridpolyval(ref, ref_polynomials)
+        obs = ClimateTools.correctdate(obs) # Removes 29th February
+        obs_polynomials = ClimateTools.ClimGridpolyfit(obs)
+        obs = obs - ClimateTools.ClimGridpolyval(obs, obs_polynomials)
+        ref = ClimateTools.correctdate(ref) # Removes 29th February
+        ref_polynomials = ClimateTools.ClimGridpolyfit(ref)
+        ref = ref - ClimateTools.ClimGridpolyval(ref, ref_polynomials)
     end
 
     # Checking if obs and ref are the same size
@@ -189,8 +189,8 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     datevec_ref = ref[1][Axis{:time}][:]
 
     # Modify dates (e.g. 29th feb are dropped/lost by default)
-    obsvec2, obs_jul, datevec_obs2 = corrjuliandays(obs[1][1,1,:].data, datevec_obs)
-    refvec2, ref_jul, datevec_ref2 = corrjuliandays(ref[1][1,1,:].data, datevec_ref)
+    obsvec2, obs_jul, datevec_obs2 = ClimateTools.corrjuliandays(obs[1][1,1,:].data, datevec_obs)
+    refvec2, ref_jul, datevec_ref2 = ClimateTools.corrjuliandays(ref[1][1,1,:].data, datevec_ref)
     if minimum(ref_jul) == 1 && maximum(ref_jul) ==365
         days = 1:365
     else
@@ -210,12 +210,12 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         ny = 1
     end
     # Coordinates of the sampled points     
-    x = randperm(size(obs[1],1))[1:nx]    
-    y = randperm(size(obs[1],2))[1:ny]
+    x = sort(randperm(size(obs[1],1))[1:nx])
+    y = sort(randperm(size(obs[1],2))[1:ny])
     # Make sure at least one point is not NaN
     while isnan(obs[1][x[1],y[1],:].data[1])
-        x = randperm(size(obs[1],1))[1:nx]    
-        y = randperm(size(obs[1],2))[1:ny]
+        x = sort(randperm(size(obs[1],1))[1:nx])
+        y = sort(randperm(size(obs[1],2))[1:ny])
     end
     # Initialization of the output
     ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{typeof(interp)},Tuple{Array{Float64,1}},0},Interpolations.Gridded{typeof(interp)},Interpolations.OnGrid,typeof(extrap)}}(365)
@@ -233,8 +233,8 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         ipoint = 1
         for ix in x
             for iy in y
-                iobsvec2, iobs_jul, idatevec_obs2 = ClimateTools.corrjuliandays(obs[1][x[ix],y[iy],:].data, datevec_obs)
-                irefvec2, iref_jul, idatevec_ref2 = ClimateTools.corrjuliandays(ref[1][x[ix],y[iy],:].data, datevec_ref)
+                iobsvec2, iobs_jul, idatevec_obs2 = ClimateTools.corrjuliandays(obs[1][ix,iy,:].data, datevec_obs)
+                irefvec2, iref_jul, idatevec_ref2 = ClimateTools.corrjuliandays(ref[1][ix,iy,:].data, datevec_ref)
                 obsval[sum(idxobs)*(ipoint-1)+1:sum(idxobs)*ipoint] = iobsvec2[idxobs]
                 refval[sum(idxref)*(ipoint-1)+1:sum(idxref)*ipoint] = irefvec2[idxref]
                 ipoint += 1
