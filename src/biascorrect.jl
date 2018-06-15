@@ -167,8 +167,10 @@ partition::Float64 = 1.0. The proportion of grid-points (chosen randomly) used f
 # TODO what happen when there is a lot of NaNs.
 function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method::String="Additive", detrend::Bool = true, window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat())
     if detrend == true
+        obs = correctdate(obs) # Removes 29th February
         obs_polynomials = ClimGridpolyfit(obs)
         obs = obs - ClimGridpolyval(obs, obs_polynomials)
+        ref = correctdate(ref) # Removes 29th February
         ref_polynomials = ClimGridpolyfit(ref)
         ref = ref - ClimGridpolyval(ref, ref_polynomials)
     end
@@ -260,6 +262,7 @@ Quantile-Quantile mapping bias correction with a known transfert function. For e
 
 function qqmap(fut::ClimGrid, ITP::TransferFunction)
     if ITP.detrend == true
+        fut = correctdate(fut) # Removes 29th February
         fut_polynomials = ClimGridpolyfit(fut)
         poly_values = ClimGridpolyval(fut, fut_polynomials)
         fut = fut - poly_values
@@ -555,4 +558,15 @@ function ClimGridpolyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
     dataout2 = buildarrayinterface(dataout, C)
 
     return ClimGrid(dataout2; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+end
+
+"""
+    correctdate(C::ClimGrid)
+
+Correct the dates of the ClimGrid. For leapyears, removes february 29th.
+"""
+function correctdate(C::ClimGrid)
+    feb29th = (Dates.month.(date_vec) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(date_vec) .== Dates.day(29))
+    dataout = C[1][:,:,!feb29th]
+    return ClimGrid(dataout; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
