@@ -166,6 +166,8 @@ partition::Float64 = 1.0. The proportion of grid-points (chosen randomly) used f
 """
 # TODO what happen when there is a lot of NaNs.
 function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method::String="Additive", detrend::Bool = true, window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat())
+
+    # Remove trend if specified
     if detrend == true
         obs = correctdate(obs) # Removes 29th February
         obs_polynomials = ClimGridpolyfit(obs)
@@ -174,6 +176,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         ref_polynomials = ClimGridpolyfit(ref)
         ref = ref - ClimGridpolyval(ref, ref_polynomials)
     end
+
     # Checking if obs and ref are the same size
     @argcheck size(obs[1], 1) == size(ref[1], 1)
     @argcheck size(obs[1], 2) == size(ref[1], 2)
@@ -198,36 +201,44 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     end
 
     # Number of points to sample
-    n = round(Int,partition * size(obs[1], 1) * size(obs[1], 2)) # Number of points
-    if n == 0
-        n=1
-    else
-        n=n
+    nx = round(Int, partition * size(obs[1], 1)) # Number of points in x coordinate
+    ny = round(Int, partition * size(obs[1], 2)) # Number of points in y coordinate
+    if nx == 0
+        nx = 1 
     end
-    # Coordinates of the sampled points
-    x = rand(1:size(obs[1],1),n)
-    y = rand(1:size(obs[1],2),n)
+    if ny ==0
+        ny = 1
+    end
+    # Coordinates of the sampled points     
+    x = randperm(size(obs[1],1))[1:nx]    
+    y = randperm(size(obs[1],2))[1:ny]
     # Make sure at least one point is not NaN
     while isnan(obs[1][x[1],y[1],:].data[1])
-        x = rand(1:size(obs[1],1),n)
-        y = rand(1:size(obs[1],2),n)
+        x = randperm(size(obs[1],1))[1:nx]    
+        y = randperm(size(obs[1],2))[1:ny]
     end
     # Initialization of the output
     ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{typeof(interp)},Tuple{Array{Float64,1}},0},Interpolations.Gridded{typeof(interp)},Interpolations.OnGrid,typeof(extrap)}}(365)
-    p = Progress(length(days), 1)
+
     # Loop over every julian days
+    p = Progress(length(days), 1)
     for ijulian in days
         # Index of ijulian ± window
-        idxobs = find_julianday_idx(obs_jul, ijulian, window)
-        idxref = find_julianday_idx(ref_jul, ijulian, window)
+        idxobs = ClimateTools.find_julianday_idx(obs_jul, ijulian, window)
+        idxref = ClimateTools.find_julianday_idx(ref_jul, ijulian, window)
         # Object containing observation/reference data of the n points on ijulian day
-        obsval = fill(NaN, sum(idxobs) * n)
-        refval = fill(NaN, sum(idxref) * n)
-        Threads.@threads for ipoint = 1:n
-            iobsvec2, iobs_jul, idatevec_obs2 = corrjuliandays(obs[1][x[ipoint],y[ipoint],:].data, datevec_obs)
-            irefvec2, iref_jul, idatevec_ref2 = corrjuliandays(ref[1][x[ipoint],y[ipoint],:].data, datevec_ref)
-            obsval[sum(idxobs)*(ipoint-1)+1:sum(idxobs)*ipoint] = iobsvec2[idxobs]
-            refval[sum(idxref)*(ipoint-1)+1:sum(idxref)*ipoint] = irefvec2[idxref]
+        obsval = fill(NaN, sum(idxobs) * nx * ny)
+        refval = fill(NaN, sum(idxref) * nx * ny)
+        # Threads.@threads for ipoint = 1:n
+        ipoint = 1
+        for ix in x
+            for iy in y
+                iobsvec2, iobs_jul, idatevec_obs2 = ClimateTools.corrjuliandays(obs[1][x[ix],y[iy],:].data, datevec_obs)
+                irefvec2, iref_jul, idatevec_ref2 = ClimateTools.corrjuliandays(ref[1][x[ix],y[iy],:].data, datevec_ref)
+                obsval[sum(idxobs)*(ipoint-1)+1:sum(idxobs)*ipoint] = iobsvec2[idxobs]
+                refval[sum(idxref)*(ipoint-1)+1:sum(idxref)*ipoint] = irefvec2[idxref]
+                ipoint += 1
+            end
         end
 
         # Estimate quantiles for obs and ref for ijulian
@@ -531,7 +542,8 @@ end
     ClimGridpolyfit(C::ClimGrid)
 """
 function ClimGridpolyfit(C::ClimGrid)
-    x = Dates.value.(C[1][Axis{:time}][:] - C[1][Axis{:time}][1])+1
+    x = 1:length(C[1][Axis{:time}][:])
+    # x = Dates.value.(C[1][Axis{:time}][:] - C[1][Axis{:time}][1])+1
     dataout = Array{Polynomials.Poly{Float64}}(size(C[1], 1),size(C[1], 2))
     for k = 1:size(C[1], 2)
         for j = 1:size(C[1], 1)
@@ -566,7 +578,8 @@ end
 Correct the dates of the ClimGrid. For leapyears, removes february 29th.
 """
 function correctdate(C::ClimGrid)
+    date_vec = C[1][Axis{:time}][:]
     feb29th = (Dates.month.(date_vec) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(date_vec) .== Dates.day(29))
-    dataout = C[1][:,:,!feb29th]
+    dataout = C[1][:, :, .!feb29th]
     return ClimGrid(dataout; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
