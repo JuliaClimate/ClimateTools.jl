@@ -99,7 +99,7 @@ function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dim
 end
 
 """
-    TransferFunction
+    TransferFunction(itp::Array, method::String, detrend::Bool)
 
 In-memory representation of the transfer function used during quantile-quantile mapping bias correction.
 """
@@ -109,14 +109,14 @@ struct TransferFunction
     detrend::Bool
 end
 
-"""
-    TransferFunction(itp, method)
+# """
+#     TransferFunction(itp, method)
 
-Create a TransferFunction used during quantile-quantile mapping bias correction. Contains the ITP function and the methode used (either Additive or Multiplicative)
-"""
-function TransferFunction(itp, method,detrend)
-    TransferFunction(itp, method,detrend)
-end
+# Create a TransferFunction used during quantile-quantile mapping bias correction. Contains the ITP function and the methode used (either Additive or Multiplicative)
+# """
+# function TransferFunction(itp, method,detrend)
+#     TransferFunction(itp, method,detrend)
+# end
 
 # function ClimGrid(data; climgrid::ClimGrid=C)
 #
