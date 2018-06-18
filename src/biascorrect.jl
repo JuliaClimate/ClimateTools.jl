@@ -170,11 +170,11 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     # Remove trend if specified
     if detrend == true
         obs = ClimateTools.correctdate(obs) # Removes 29th February
-        obs_polynomials = ClimateTools.ClimGridpolyfit(obs)
-        obs = obs - ClimateTools.ClimGridpolyval(obs, obs_polynomials)
+        obs_polynomials = ClimateTools.polyfit(obs)
+        obs = obs - ClimateTools.polyval(obs, obs_polynomials)
         ref = ClimateTools.correctdate(ref) # Removes 29th February
-        ref_polynomials = ClimateTools.ClimGridpolyfit(ref)
-        ref = ref - ClimateTools.ClimGridpolyval(ref, ref_polynomials)
+        ref_polynomials = ClimateTools.polyfit(ref)
+        ref = ref - ClimateTools.polyval(ref, ref_polynomials)
     end
 
     # Checking if obs and ref are the same size
@@ -221,8 +221,9 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{typeof(interp)},Tuple{Array{Float64,1}},0},Interpolations.Gridded{typeof(interp)},Interpolations.OnGrid,typeof(extrap)}}(365)
 
     # Loop over every julian days
-    p = Progress(length(days), 1)
-    for ijulian in days
+    println("Estimating transfer funtions...This can take a while.")
+    # p = Progress(length(days), 1)
+    Threads.@threads for ijulian in days
         # Index of ijulian ± window
         idxobs = ClimateTools.find_julianday_idx(obs_jul, ijulian, window)
         idxref = ClimateTools.find_julianday_idx(ref_jul, ijulian, window)
@@ -254,7 +255,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         itp = interpolate((refP,), sf_refP, Gridded(interp))
         itp = extrapolate(itp, extrap) # add extrapolation
         ITP[ijulian] = itp
-        next!(p)
+        # next!(p)
     end
     ITPout = TransferFunction(ITP, method, detrend)
     return ITPout
@@ -274,8 +275,8 @@ Quantile-Quantile mapping bias correction with a known transfert function. For e
 function qqmap(fut::ClimGrid, ITP::TransferFunction)
     if ITP.detrend == true
         fut = correctdate(fut) # Removes 29th February
-        fut_polynomials = ClimGridpolyfit(fut)
-        poly_values = ClimGridpolyval(fut, fut_polynomials)
+        fut_polynomials = polyfit(fut)
+        poly_values = polyval(fut, fut_polynomials)
         fut = fut - poly_values
     end
     # Get date vectors
@@ -546,9 +547,9 @@ function find_julianday_idx(julnb, ijulian, window)
 end
 
 """
-    ClimGridpolyfit(C::ClimGrid)
+    polyfit(C::ClimGrid)
 """
-function ClimGridpolyfit(C::ClimGrid)
+function polyfit(C::ClimGrid)
     x = 1:length(C[1][Axis{:time}][:])
     # x = Dates.value.(C[1][Axis{:time}][:] - C[1][Axis{:time}][1])+1
     dataout = Array{Polynomials.Poly{Float64}}(size(C[1], 1),size(C[1], 2))
@@ -564,9 +565,9 @@ function ClimGridpolyfit(C::ClimGrid)
 end
 
 """
-    ClimGridpolyval(C::ClimGrid)
+    polyval(C::ClimGrid)
 """
-function ClimGridpolyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
+function polyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
     datain = C[1].data
     dataout = fill(NaN, (size(C[1], 1), size(C[1],2), size(C[1], 3)))::Array{N, T} where N where T
     for k = 1:size(C[1], 2)
