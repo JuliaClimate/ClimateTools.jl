@@ -195,8 +195,8 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         days = 1:365
     else
         days = minimum(ref_jul)+15:maximum(ref_jul)-15
-        start = Dates.monthday(minimum(date_vec))
-        finish = Dates.monthnameday(maximum(date_vec))
+        start = Dates.monthday(minimum(datevec_obs2))
+        finish = Dates.monthday(maximum(datevec_obs2))
         warn(string("The reference ClimGrid doesn't cover all the year. The transfer function has been calculated from the ", minimum(ref_jul)+15, "th to the ", maximum(ref_jul)-15, "th julian day"))
     end
 
@@ -204,12 +204,12 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     nx = round(Int, partition * size(obs[1], 1)) # Number of points in x coordinate
     ny = round(Int, partition * size(obs[1], 2)) # Number of points in y coordinate
     if nx == 0
-        nx = 1 
+        nx = 1
     end
     if ny ==0
         ny = 1
     end
-    # Coordinates of the sampled points     
+    # Coordinates of the sampled points
     x = sort(randperm(size(obs[1],1))[1:nx])
     y = sort(randperm(size(obs[1],2))[1:ny])
     # Make sure at least one point is not NaN
@@ -480,8 +480,15 @@ function corrjuliandays(data_vec, date_vec)
     if sum(feb29th) >= 1 # leapyears
 
         for iyear in leap_years
-            k = findfirst(Dates.year.(date_vec), iyear) + 59
-            date_jul[k:k+306] -= 1
+            days = date_jul[Dates.year.(date_vec).== iyear] # days for iyear
+            if days[1] >=60 # if the year starts after Feb 29th
+                k1 = findfirst(Dates.year.(date_vec), iyear) # k1 is the first day
+            else
+                k1 = findfirst(Dates.year.(date_vec), iyear) + 60 - days[1] # else k1 (60-first_julian_day) of the year
+            end
+            k2 = findlast(Dates.year.(date_vec), iyear) #+ length(days) - 1 #the end of the year is idx of the first day + number of days in the year - 1
+            # k = findfirst(Dates.year.(date_vec), iyear) + 59
+            date_jul[k1:k2] -= 1
         end
 
         date_vec2 = date_vec[.!feb29th]
