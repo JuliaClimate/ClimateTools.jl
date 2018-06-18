@@ -555,7 +555,9 @@ function ClimGridpolyfit(C::ClimGrid)
     for k = 1:size(C[1], 2)
         for j = 1:size(C[1], 1)
             y = C[1][j , k, :].data
-            dataout[j,k] = polyfit(x, y, 4)
+            polynomial = polyfit(x, y, 4)
+            polynomial[0] = 0.0
+            dataout[j,k] = polynomial
         end
     end
     return dataout
