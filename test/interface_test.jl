@@ -11,6 +11,12 @@ C = load(filenc, "tas")
 
 @test typeof(ClimateTools.buildtimevec(filenc, "24h")) == Array{DateTime, 1}
 
+fileorog = joinpath(dirname(@__FILE__), "data", "orog_fx_GFDL-ESM2G_historicalMisc_r0i0p0.nc")
+orog = load2D(fileorog, "orog")
+@test size(orog[1]) == (144, 90)
+@test orog.typeofvar == "orog"
+status, figh = mapclimgrid(orog); @test status == true; PyPlot.close();
+
 # Time units
 units = NetCDF.ncgetatt(filenc, "time", "units") # get starting date
 m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1) # match a date from string
@@ -114,8 +120,34 @@ timevec = NetCDF.ncread(filenc, "time")
 
 # MESHGRID
 YV = [1, 2, 3]
-XV = [1, 2, 3]
-@test meshgrid(XV, YV) == ([1 2 3; 1 2 3; 1 2 3], [1 1 1; 2 2 2; 3 3 3])
+XV = [4, 5, 6]
+@test meshgrid(XV, YV) == ([4 5 6; 4 5 6; 4 5 6], [1 1 1; 2 2 2; 3 3 3])
+@test meshgrid(XV) == ([4 5 6; 4 5 6; 4 5 6], [4 4 4; 5 5 5; 6 6 6])
+Q = Array{Int64, 3}(3, 3, 3)
+R = Array{Int64, 3}(3, 3, 3)
+S = Array{Int64, 3}(3, 3, 3)
+Q[:, :, 1] = [4 5 6; 4 5 6; 4 5 6]
+Q[:, :, 2] = [4 5 6; 4 5 6; 4 5 6]
+Q[:, :, 3] = [4 5 6; 4 5 6; 4 5 6]
+R[:, :, 1] = [1 1 1; 2 2 2; 3 3 3]
+R[:, :, 2] = [1 1 1; 2 2 2; 3 3 3]
+R[:, :, 3] = [1 1 1; 2 2 2; 3 3 3]
+S[:, :, 1] = [4 4 4; 4 4 4; 4 4 4]
+S[:, :, 2] = [5 5 5; 5 5 5; 5 5 5]
+S[:, :, 3] = [6 6 6; 6 6 6; 6 6 6]
+
+@test meshgrid(XV, YV, XV) == (Q, R, S)
+
+
+@test ndgrid(XV, YV) == ([4 4 4; 5 5 5; 6 6 6], [1 2 3; 1 2 3; 1 2 3])
+@test ndgrid([XV, YV, XV]) ==   [[4, 5, 6], [1, 2, 3], [4, 5, 6]]
+@test ndgrid(XV) == [4, 5, 6]
+
+# isdefined
+C = 1
+@test @isdefined C
+@test (@isdefined T) == false
+
 
 ## INPOLY
 @test ClimateTools.leftorright(0.5,0.5, 1,0,1,1) == -1
