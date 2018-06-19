@@ -217,6 +217,10 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         x = sort(randperm(size(obs[1],1))[1:nx])
         y = sort(randperm(size(obs[1],2))[1:ny])
     end
+    
+    # Create matrix of indices
+    X, Y = meshgrid(x, y)
+
     # Initialization of the output
     ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{typeof(interp)},Tuple{Array{Float64,1}},0},Interpolations.Gridded{typeof(interp)},Interpolations.OnGrid,typeof(extrap)}}(365)
 
@@ -230,16 +234,16 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         # Object containing observation/reference data of the n points on ijulian day
         obsval = fill(NaN, sum(idxobs) * nx * ny)
         refval = fill(NaN, sum(idxref) * nx * ny)
-        # Threads.@threads for ipoint = 1:n
+        
         ipoint = 1
-        for ix in x
-            for iy in y
+        for (ix, iy) in zip(X, Y)
+            # for iy in y
                 iobsvec2, iobs_jul, idatevec_obs2 = ClimateTools.corrjuliandays(obs[1][ix,iy,:].data, datevec_obs)
                 irefvec2, iref_jul, idatevec_ref2 = ClimateTools.corrjuliandays(ref[1][ix,iy,:].data, datevec_ref)
                 obsval[sum(idxobs)*(ipoint-1)+1:sum(idxobs)*ipoint] = iobsvec2[idxobs]
                 refval[sum(idxref)*(ipoint-1)+1:sum(idxref)*ipoint] = irefvec2[idxref]
                 ipoint += 1
-            end
+            # end
         end
 
         # Estimate quantiles for obs and ref for ijulian
@@ -556,7 +560,7 @@ function polyfit(C::ClimGrid)
     for k = 1:size(C[1], 2)
         for j = 1:size(C[1], 1)
             y = C[1][j , k, :].data
-            polynomial = polyfit(x, y, 4)
+            polynomial = Polynomials.polyfit(x, y, 4)
             polynomial[0] = 0.0
             dataout[j,k] = polynomial
         end
