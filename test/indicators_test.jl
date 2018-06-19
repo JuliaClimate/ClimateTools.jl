@@ -117,7 +117,7 @@ Results[2,2,3] = 37.26895
 # Creating climgrids
 axisdata_tdiu = AxisArray(data_tdiu, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 axisdata_vp = AxisArray(data_vp, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
-C_tdiu = ClimateTools.ClimGrid(axisdata_tdiu, dataunits= "K", variable = "tdiu")
+C_tdiu = ClimateTools.ClimGrid(axisdata_tdiu, dataunits= "K", variable = "tmean")
 C_vp = ClimateTools.ClimGrid(axisdata_vp, dataunits = "Pa", variable = "vp")
 # Use the function
 C_wbgt = wbgt(C_tdiu, C_vp)
@@ -131,7 +131,7 @@ data_tdiu[1,2,:] = 275-273.15
 data_tdiu[2,1,:] = 300-273.15
 data_tdiu[2,2,:] = 325-273.15
 axisdata_tdiu = AxisArray(data_tdiu, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
-C_tdiu = ClimateTools.ClimGrid(axisdata_tdiu, dataunits= "Celsius", variable = "tdiu")
+C_tdiu = ClimateTools.ClimGrid(axisdata_tdiu, dataunits= "Celsius", variable = "tmean")
 # Use the function
 C_wbgt = wbgt(C_tdiu, C_vp)
 # Run the test
