@@ -181,6 +181,11 @@ Base.show(io::IO, ::MIME"text/plain", C::ClimGrid) = print(io, "ClimGrid struct 
 "Global attributes: ", summary(C[12]), "\n",
 "Filename: ", C[8])
 
+Base.show(io::IO, ::MIME"text/plain", ITP::TransferFunction) = print(io, "TransferFunction type with fields *itp*, *method* and *detrend*", "\n",
+    "Interpolation array: ", size(ITP.itp), " transfer functions", "\n",
+    "Method: ", ITP.method, "\n",
+    "Detrended: ", ITP.detrend)
+
 
 """
     timeindex(timeVec, start_date, end_date, freq)

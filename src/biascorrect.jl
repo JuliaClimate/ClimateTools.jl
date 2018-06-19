@@ -27,6 +27,23 @@ The quantile-quantile transfer function between **ref** and **obs** is etimated 
 
 function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())
 
+        # Remove trend if specified
+    if detrend == true
+        # Obs
+        obs = ClimateTools.correctdate(obs) # Removes 29th February
+        obs_polynomials = ClimateTools.polyfit(obs)
+        obs = obs - ClimateTools.polyval(obs, obs_polynomials)
+        # Ref
+        ref = ClimateTools.correctdate(ref) # Removes 29th February
+        ref_polynomials = ClimateTools.polyfit(ref)
+        ref = ref - ClimateTools.polyval(ref, ref_polynomials)
+        # Fut
+        fut = ClimateTools.correctdate(fut) # Removes 29th February
+        fut_polynomials = ClimateTools.polyfit(fut)
+        poly_values = ClimateTools.polyval(fut, fut_polynomials)
+        fut = fut - poly_values
+    end
+
     # Consistency checks # TODO add more checks for grid definition
     @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
     @argcheck size(obs[1], 2) == size(ref[1], 2) == size(fut[1], 2)
@@ -66,7 +83,13 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
 
     dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}][:]), Axis{latsymbol}(fut[1][Axis{latsymbol}][:]),Axis{:time}(datevec_fut2))
 
-    return ClimGrid(dataout2, longrid=fut.longrid, latgrid=fut.latgrid, model=fut.model, project=fut.project, institute=fut.institute, experiment=fut.experiment, run=fut.run, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal, varattribs=fut.varattribs, globalattribs=fut.varattribs)
+    C = ClimGrid(dataout2; longrid=fut.longrid, latgrid=fut.latgrid, msk=fut.msk, grid_mapping=fut.grid_mapping, dimension_dict=fut.dimension_dict, model=fut.model, frequency=fut.frequency, experiment=fut.experiment, run=fut.run, project=fut.project, institute=fut.institute, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal, varattribs=fut.varattribs, globalattribs=fut.globalattribs)
+
+    if detrend == true
+        C = C + poly_values
+    end
+
+    return C
 
 end
 
@@ -154,6 +177,8 @@ partition::Float64 = 1.0. The proportion of grid-points (chosen randomly) used f
 
 **method::String = "Additive" (default) or "Multiplicative"**. Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.
 
+**detrend::Bool = true (default)**. A 4th order polynomial is adjusted to the time series and the residuals are corrected with the quantile-quantile mapping.
+
 **window::Int = 15 (default)**. The size of the window used to extract the statistical characteristics around a given julian day.
 
 **rankn::Int = 50 (default)**. The number of bins used for the quantile estimations. The quantiles uses by default 50 bins between 0.01 and 0.99. The bahavior between the bins is controlled by the interp keyword argument. The behaviour of the quantile-quantile estimation outside the 0.01 and 0.99 range is controlled by the extrap keyword argument.
@@ -163,7 +188,18 @@ partition::Float64 = 1.0. The proportion of grid-points (chosen randomly) used f
 **extrap = Interpolations.Flat() (default)**. The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no "inflation problem" with the bias correction. The argument is from Interpolation.jl package.
 """
 # TODO what happen when there is a lot of NaNs.
-function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method::String="Additive", window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat())
+function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method::String="Additive", detrend::Bool = true, window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat())
+
+    # Remove trend if specified
+    if detrend == true
+        obs = ClimateTools.correctdate(obs) # Removes 29th February
+        obs_polynomials = ClimateTools.polyfit(obs)
+        obs = obs - ClimateTools.polyval(obs, obs_polynomials)
+        ref = ClimateTools.correctdate(ref) # Removes 29th February
+        ref_polynomials = ClimateTools.polyfit(ref)
+        ref = ref - ClimateTools.polyval(ref, ref_polynomials)
+    end
+
     # Checking if obs and ref are the same size
     @argcheck size(obs[1], 1) == size(ref[1], 1)
     @argcheck size(obs[1], 2) == size(ref[1], 2)
@@ -176,48 +212,61 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     datevec_ref = ref[1][Axis{:time}][:]
 
     # Modify dates (e.g. 29th feb are dropped/lost by default)
-    obsvec2, obs_jul, datevec_obs2 = corrjuliandays(obs[1][1,1,:].data, datevec_obs)
-    refvec2, ref_jul, datevec_ref2 = corrjuliandays(ref[1][1,1,:].data, datevec_ref)
+    obsvec2, obs_jul, datevec_obs2 = ClimateTools.corrjuliandays(obs[1][1,1,:].data, datevec_obs)
+    refvec2, ref_jul, datevec_ref2 = ClimateTools.corrjuliandays(ref[1][1,1,:].data, datevec_ref)
     if minimum(ref_jul) == 1 && maximum(ref_jul) ==365
         days = 1:365
     else
         days = minimum(ref_jul)+15:maximum(ref_jul)-15
-        start = Dates.monthday(minimum(date_vec))
-        finish = Dates.monthnameday(maximum(date_vec))
+        start = Dates.monthday(minimum(datevec_obs2))
+        finish = Dates.monthday(maximum(datevec_obs2))
         warn(string("The reference ClimGrid doesn't cover all the year. The transfer function has been calculated from the ", minimum(ref_jul)+15, "th to the ", maximum(ref_jul)-15, "th julian day"))
     end
 
     # Number of points to sample
-    n = round(Int,partition * size(obs[1], 1) * size(obs[1], 2)) # Number of points
-    if n == 0
-        n=1
-    else
-        n=n
+    nx = round(Int, partition * size(obs[1], 1)) # Number of points in x coordinate
+    ny = round(Int, partition * size(obs[1], 2)) # Number of points in y coordinate
+    if nx == 0
+        nx = 1
+    end
+    if ny ==0
+        ny = 1
     end
     # Coordinates of the sampled points
-    x = rand(1:size(obs[1],1),n)
-    y = rand(1:size(obs[1],2),n)
+    x = sort(randperm(size(obs[1],1))[1:nx])
+    y = sort(randperm(size(obs[1],2))[1:ny])
     # Make sure at least one point is not NaN
     while isnan(obs[1][x[1],y[1],:].data[1])
-        x = rand(1:size(obs[1],1),n)
-        y = rand(1:size(obs[1],2),n)
+        x = sort(randperm(size(obs[1],1))[1:nx])
+        y = sort(randperm(size(obs[1],2))[1:ny])
     end
+    
+    # Create matrix of indices
+    X, Y = meshgrid(x, y)
+
     # Initialization of the output
     ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{typeof(interp)},Tuple{Array{Float64,1}},0},Interpolations.Gridded{typeof(interp)},Interpolations.OnGrid,typeof(extrap)}}(365)
-    p = Progress(length(days), 1)
+
     # Loop over every julian days
-    for ijulian in days
+    println("Estimating transfer funtions...This can take a while.")
+    # p = Progress(length(days), 1)
+    Threads.@threads for ijulian in days
         # Index of ijulian ± window
-        idxobs = find_julianday_idx(obs_jul, ijulian, window)
-        idxref = find_julianday_idx(ref_jul, ijulian, window)
+        idxobs = ClimateTools.find_julianday_idx(obs_jul, ijulian, window)
+        idxref = ClimateTools.find_julianday_idx(ref_jul, ijulian, window)
         # Object containing observation/reference data of the n points on ijulian day
-        obsval = fill(NaN, sum(idxobs) * n)
-        refval = fill(NaN, sum(idxref) * n)
-        Threads.@threads for ipoint = 1:n
-            iobsvec2, iobs_jul, idatevec_obs2 = corrjuliandays(obs[1][x[ipoint],y[ipoint],:].data, datevec_obs)
-            irefvec2, iref_jul, idatevec_ref2 = corrjuliandays(ref[1][x[ipoint],y[ipoint],:].data, datevec_ref)
-            obsval[sum(idxobs)*(ipoint-1)+1:sum(idxobs)*ipoint] = iobsvec2[idxobs]
-            refval[sum(idxref)*(ipoint-1)+1:sum(idxref)*ipoint] = irefvec2[idxref]
+        obsval = fill(NaN, sum(idxobs) * nx * ny)
+        refval = fill(NaN, sum(idxref) * nx * ny)
+        
+        ipoint = 1
+        for (ix, iy) in zip(X, Y)
+            # for iy in y
+                iobsvec2, iobs_jul, idatevec_obs2 = ClimateTools.corrjuliandays(obs[1][ix,iy,:].data, datevec_obs)
+                irefvec2, iref_jul, idatevec_ref2 = ClimateTools.corrjuliandays(ref[1][ix,iy,:].data, datevec_ref)
+                obsval[sum(idxobs)*(ipoint-1)+1:sum(idxobs)*ipoint] = iobsvec2[idxobs]
+                refval[sum(idxref)*(ipoint-1)+1:sum(idxref)*ipoint] = irefvec2[idxref]
+                ipoint += 1
+            # end
         end
 
         # Estimate quantiles for obs and ref for ijulian
@@ -233,24 +282,26 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         itp = interpolate((refP,), sf_refP, Gridded(interp))
         itp = extrapolate(itp, extrap) # add extrapolation
         ITP[ijulian] = itp
-        next!(p)
+        # next!(p)
     end
-    ITPout = TransferFunction(ITP, method)
+    ITPout = TransferFunction(ITP, method, detrend)
     return ITPout
 end
 
 """
     qqmap(fut::ClimGrid, ITP::TransferFunction)
 
-Quantile-Quantile mapping bias correction with a known transfert function. For each julian day of the year, use the right transfert function to correct model values.
-
-**Options**
-
-**method::String = "Additive" (default) or "Multiplicative"**. Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.
+Quantile-Quantile mapping bias correction with a known transfer function. For each julian day of the year, use the right transfert function to correct *fut* values.
 
 """
 
 function qqmap(fut::ClimGrid, ITP::TransferFunction)
+    if ITP.detrend == true
+        fut = correctdate(fut) # Removes 29th February
+        fut_polynomials = polyfit(fut)
+        poly_values = polyval(fut, fut_polynomials)
+        fut = fut - poly_values
+    end
     # Get date vectors
     datevec_fut = fut[1][Axis{:time}][:]
     futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][1,1,:].data, datevec_fut)
@@ -291,148 +342,21 @@ function qqmap(fut::ClimGrid, ITP::TransferFunction)
 
     dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}][:]), Axis{latsymbol}(fut[1][Axis{latsymbol}][:]),Axis{:time}(datevec_fut2))
 
-    return ClimGrid(dataout2, longrid=fut.longrid, latgrid=fut.latgrid, model=fut.model, project=fut.project, institute=fut.institute, experiment=fut.experiment, run=fut.run, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal, varattribs=fut.varattribs, globalattribs=fut.varattribs)
+    C = ClimGrid(dataout2; longrid=fut.longrid, latgrid=fut.latgrid, msk=fut.msk, grid_mapping=fut.grid_mapping, dimension_dict=fut.dimension_dict, model=fut.model, frequency=fut.frequency, experiment=fut.experiment, run=fut.run, project=fut.project, institute=fut.institute, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal, varattribs=fut.varattribs, globalattribs=fut.globalattribs)
+
+    if ITP.detrend == true
+        C = C + poly_values
+    end
+
+    return C
 end
 
-# function corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
-#
-#     # Eliminate February 29th (small price to pay for simplicity and does not affect significantly quantile estimations)
-#
-#     obs29thfeb = (Dates.month.(datevec_obs) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(datevec_obs) .== Dates.day(29))
-#     ref29thfeb = (Dates.month.(datevec_ref) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(datevec_ref) .== Dates.day(29))
-#     fut29thfeb = (Dates.month.(datevec_fut) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(datevec_fut) .== Dates.day(29))
-#
-#     obs_jul = Dates.dayofyear.(datevec_obs)
-#     ref_jul = Dates.dayofyear.(datevec_ref)
-#     fut_jul = Dates.dayofyear.(datevec_fut)
-#
-#     # identify leap years
-#     leapyears_obs = leapyears(datevec_obs)
-#     leapyears_ref = leapyears(datevec_ref)
-#     leapyears_fut = leapyears(datevec_fut)
-#
-#
-#     if sum(obs29thfeb) >= 1 & sum(ref29thfeb) == 0 # obs leap year but not models
-#
-#         for iyear in leapyears_obs
-#             k = findfirst(Dates.year.(datevec_obs), iyear) + 59
-#             obs_jul[k:k+306] -= 1
-#         end
-#
-#         for iyear in leapyears_ref
-#             k = findfirst(Dates.year.(datevec_ref), iyear) + 59
-#             ref_jul[k:k+305] -= 1
-#         end
-#
-#         for iyear in leapyears_fut
-#             k = findfirst(Dates.year.(datevec_fut), iyear) + 59
-#             fut_jul[k:k+305] -= 1
-#         end
-#
-#         datevec_obs2 = datevec_obs[.!obs29thfeb]
-#         obsvec2 = obsvec[.!obs29thfeb]
-#         obs_jul = obs_jul[.!obs29thfeb]
-#
-#         refvec2 = refvec
-#         datevec_ref2 = datevec_ref
-#         futvec2 = futvec
-#         datevec_fut2 = datevec_fut
-#
-#
-#         # modify obs_jul to "-=1" for k:k+306 for leap years
-#         # modify models ref_jul/fut_jul to "-= 1" for k:k+305 for leap years
-#         # delete only obs 29th values
-#
-#     elseif sum(obs29thfeb) >=1 & sum(ref29thfeb) >=1 # leap years for obs & models
-#
-#         # modify models obs_jul/ref_jul/fut_jul to "-= 1" for k:k+306 for leap years
-#         # delete obs/ref/fut 29th values
-#         for iyear in leapyears_obs
-#             k = findfirst(Dates.year.(datevec_obs), iyear) + 59
-#             obs_jul[k:k+306] -= 1
-#         end
-#
-#         for iyear in leapyears_ref
-#             k = findfirst(Dates.year.(datevec_ref), iyear) + 59
-#             ref_jul[k:k+306] -= 1
-#         end
-#
-#         for iyear in leapyears_fut
-#             k = findfirst(Dates.year.(datevec_fut), iyear) + 59
-#             fut_jul[k:k+306] -= 1
-#         end
-#
-#         datevec_obs2 = datevec_obs[.!obs29thfeb]
-#         obsvec2 = obsvec[.!obs29thfeb]
-#         obs_jul = obs_jul[.!obs29thfeb]
-#
-#         datevec_ref2 = datevec_ref[.!ref29thfeb]
-#         refvec2 = refvec[.!ref29thfeb]
-#         ref_jul = ref_jul[.!ref29thfeb]
-#
-#         datevec_fut2 = datevec_fut[.!fut29thfeb]
-#         futvec2 = futvec[.!fut29thfeb]
-#         fut_jul = fut_jul[.!fut29thfeb]
-#
-#     elseif sum(obs29thfeb) == 0 & sum(ref29thfeb) >= 1
-#
-#         # modify obs_jul to "-=1" for k:k+305 for leap years
-#         # modify ref_jul/fut_jul to "-=1" for k:k+306 for leap years
-#         # delete ref/fut 29th values
-#
-#         for iyear in leapyears_obs
-#             k = findfirst(Dates.year.(datevec_obs), iyear) + 59
-#             obs_jul[k:k+305] -= 1
-#         end
-#
-#         for iyear in leapyears_ref
-#             k = findfirst(Dates.year.(datevec_ref), iyear) + 59
-#             ref_jul[k:k+306] -= 1
-#         end
-#
-#         for iyear in leapyears_fut
-#             k = findfirst(Dates.year.(datevec_fut), iyear) + 59
-#             fut_jul[k:k+306] -= 1
-#         end
-#
-#         datevec_obs2 = datevec_obs[.!obs29thfeb]
-#         obsvec2 = obsvec[.!obs29thfeb]
-#         # obs_jul = obs_jul[.!obs29thfeb]
-#
-#         datevec_ref2 = datevec_ref[.!ref29thfeb]
-#         refvec2 = refvec[.!ref29thfeb]
-#         ref_jul = ref_jul[.!ref29thfeb]
-#
-#         datevec_fut2 = datevec_fut[.!fut29thfeb]
-#         futvec2 = futvec[.!fut29thfeb]
-#         fut_jul = fut_jul[.!fut29thfeb]
-#
-#     elseif sum(obs29thfeb) == 0 & sum(ref29thfeb) == 0 # no leap years
-#
-#         # modify obs_jul/ref_jul/fut_jul to "-=1" for k:k+305 for leap years
-#         for iyear in leapyears_obs
-#             k = findfirst(Dates.year.(datevec_obs), iyear) + 59
-#             obs_jul[k:k+305] -= 1
-#         end
-#
-#         for iyear in leapyears_ref
-#             k = findfirst(Dates.year.(datevec_ref), iyear) + 59
-#             ref_jul[k:k+305] -= 1
-#         end
-#
-#         for iyear in leapyears_fut
-#             k = findfirst(Dates.year.(datevec_fut), iyear) + 59
-#             fut_jul[k:k+305] -= 1
-#         end
-#
-#
-#     end
-#
-#     return obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2
-#
-# end
 
+"""
+    corrjuliandays(data_vec, date_vec)
 
+Removes 29th february and correct the associated julian days.
+"""
 function corrjuliandays(data_vec, date_vec)
 
     # Eliminate February 29th (small price to pay for simplicity and does not affect significantly quantile estimations)
@@ -447,7 +371,9 @@ function corrjuliandays(data_vec, date_vec)
     if sum(feb29th) >= 1 # leapyears
 
         for iyear in leap_years
+      
             days = date_jul[Dates.year.(date_vec) .== iyear] # days for iyear
+      
             if days[1] >=60 # if the year starts after Feb 29th
                 k1 = findfirst(Dates.year.(date_vec), iyear) # k1 is the first day
             else
@@ -486,6 +412,12 @@ function corrjuliandays(data_vec, date_vec)
 
 end
 
+"""
+    leapyears(datevec)
+
+Returns the leap years contained into datevec.
+"""
+
 function leapyears(datevec)
 
     years = unique(Dates.year.(datevec))
@@ -510,4 +442,56 @@ function find_julianday_idx(julnb, ijulian, window)
     return idx
 
 
+end
+
+"""
+    polyfit(C::ClimGrid)
+
+Returns an array of the polynomials functions of each grid points contained in ClimGrid C.
+"""
+function polyfit(C::ClimGrid)
+    x = 1:length(C[1][Axis{:time}][:])
+    # x = Dates.value.(C[1][Axis{:time}][:] - C[1][Axis{:time}][1])+1
+    dataout = Array{Polynomials.Poly{Float64}}(size(C[1], 1),size(C[1], 2))
+    for k = 1:size(C[1], 2)
+        for j = 1:size(C[1], 1)
+            y = C[1][j , k, :].data
+            polynomial = Polynomials.polyfit(x, y, 4)
+            polynomial[0] = 0.0
+            dataout[j,k] = polynomial
+        end
+    end
+    return dataout
+end
+
+"""
+    polyval(C::ClimGrid, polynomial::Array{Poly{Float64}})
+
+    Returns a ClimGrid containing the values, as estimated from polynomial function polyn.
+"""
+function polyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
+    datain = C[1].data
+    dataout = fill(NaN, (size(C[1], 1), size(C[1],2), size(C[1], 3)))::Array{N, T} where N where T
+    for k = 1:size(C[1], 2)
+        for j = 1:size(C[1], 1)
+            val = polynomial[j,k](datain[j,k,:])
+            dataout[j,k,:] = val
+        end
+    end
+
+    dataout2 = buildarrayinterface(dataout, C)
+
+    return ClimGrid(dataout2; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+end
+
+"""
+    correctdate(C::ClimGrid)
+
+Removes february 29th. Needed for bias correction.
+"""
+function correctdate(C::ClimGrid)
+    date_vec = C[1][Axis{:time}][:]
+    feb29th = (Dates.month.(date_vec) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(date_vec) .== Dates.day(29))
+    dataout = C[1][:, :, .!feb29th]
+    return ClimGrid(dataout; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end

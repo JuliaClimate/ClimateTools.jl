@@ -14,6 +14,7 @@ using PyCall
 using PyPlot
 using Interpolations
 using ProgressMeter
+using Polynomials
 import Base.vcat
 import Base.getindex
 import Base.show
@@ -98,30 +99,15 @@ function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dim
 end
 
 """
-    TransferFunction(itp::Array, method::String)
-
+    TransferFunction(itp::Array, method::String, detrend::Bool)
 
 Transfer function used during quantile-quantile mapping bias correction.
 """
 struct TransferFunction
     itp::Array
     method::String
+    detrend::Bool
 end
-
-# """
-#     TransferFunction(itp, method)
-
-# Create a TransferFunction used during quantile-quantile mapping bias correction. Contains the ITP function and the methode used (either Additive or Multiplicative)
-# """
-# function TransferFunction(itp, method)
-#     TransferFunction(itp, method)
-# end
-
-# function ClimGrid(data; climgrid::ClimGrid=C)
-#
-#     ClimGrid(data, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
-#
-# end
 
 # Included files
 include("functions.jl")
@@ -144,6 +130,7 @@ export shapefile_coords, shapefile_coords_poly
 export spatialsubset, temporalsubset
 export qqmap, qqmaptf, ndgrid, permute_west_east
 export getdim_lat, getdim_lon, isdefined, extractpoly
+export polyfit, polyval
 export @isdefined
 export plot, merge, vaporpressure, approx_surfacepressure, wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
