@@ -697,6 +697,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#ClimateTools.polyfit-Tuple{ClimateTools.ClimGrid}",
+    "page": "Index",
+    "title": "ClimateTools.polyfit",
+    "category": "method",
+    "text": "polyfit(C::ClimGrid)\n\nReturns an array of the polynomials functions of each grid points contained in ClimGrid C.\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.polyval-Tuple{ClimateTools.ClimGrid,Array{Polynomials.Poly{Float64},2}}",
+    "page": "Index",
+    "title": "ClimateTools.polyval",
+    "category": "method",
+    "text": "polyval(C::ClimGrid, polynomial::Array{Poly{Float64}})\n\nReturns a ClimGrid containing the values, as estimated from polynomial function polyn.\n\n\n\n"
+},
+
+{
     "location": "functions.html#ClimateTools.prcp1-Tuple{ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.prcp1",
@@ -725,7 +741,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.qqmap",
     "category": "method",
-    "text": "qqmap(fut::ClimGrid, ITP::TransferFunction)\n\nQuantile-Quantile mapping bias correction with a known transfert function. For each julian day of the year, use the right transfert function to correct model values.\n\nOptions\n\nmethod::String = \"Additive\" (default) or \"Multiplicative\". Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.\n\n\n\n"
+    "text": "qqmap(fut::ClimGrid, ITP::TransferFunction)\n\nQuantile-Quantile mapping bias correction with a known transfer function. For each julian day of the year, use the right transfert function to correct fut values.\n\n\n\n"
 },
 
 {
@@ -733,7 +749,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.qqmaptf",
     "category": "method",
-    "text": "qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())\n\nTransfer function based on quantile-quantile mapping bias correction. For each julian day, a transfer function is estimated through an empirical quantile-quantile mapping for the entire obs\' ClimGrid extent. The quantile-quantile transfer function between ref and obs is etimated on a julian day basis with a moving window around the julian day. The transfer function can then be used to correct another dataset.\n\nOptions partition::Float64 = 1.0. The proportion of grid-points (chosen randomly) used for the estimation of the transfer function. A transfer function is estimated for every chosen grid-points (and julian day) and averaged for the entire obs ClimGrid extent.\n\nmethod::String = \"Additive\" (default) or \"Multiplicative\". Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.\n\nwindow::Int = 15 (default). The size of the window used to extract the statistical characteristics around a given julian day.\n\nrankn::Int = 50 (default). The number of bins used for the quantile estimations. The quantiles uses by default 50 bins between 0.01 and 0.99. The bahavior between the bins is controlled by the interp keyword argument. The behaviour of the quantile-quantile estimation outside the 0.01 and 0.99 range is controlled by the extrap keyword argument.\n\ninterp = Interpolations.Linear() (default). When the data to be corrected lies between 2 quantile bins, the value of the transfer function is linearly interpolated between the 2 closest quantile estimation. The argument is from Interpolations.jl package.\n\nextrap = Interpolations.Flat() (default). The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no \"inflation problem\" with the bias correction. The argument is from Interpolation.jl package.\n\n\n\n"
+    "text": "qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())\n\nTransfer function based on quantile-quantile mapping bias correction. For each julian day, a transfer function is estimated through an empirical quantile-quantile mapping for the entire obs\' ClimGrid extent. The quantile-quantile transfer function between ref and obs is etimated on a julian day basis with a moving window around the julian day. The transfer function can then be used to correct another dataset.\n\nOptions partition::Float64 = 1.0. The proportion of grid-points (chosen randomly) used for the estimation of the transfer function. A transfer function is estimated for every chosen grid-points (and julian day) and averaged for the entire obs ClimGrid extent.\n\nmethod::String = \"Additive\" (default) or \"Multiplicative\". Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.\n\ndetrend::Bool = true (default). A 4th order polynomial is adjusted to the time series and the residuals are corrected with the quantile-quantile mapping.\n\nwindow::Int = 15 (default). The size of the window used to extract the statistical characteristics around a given julian day.\n\nrankn::Int = 50 (default). The number of bins used for the quantile estimations. The quantiles uses by default 50 bins between 0.01 and 0.99. The bahavior between the bins is controlled by the interp keyword argument. The behaviour of the quantile-quantile estimation outside the 0.01 and 0.99 range is controlled by the extrap keyword argument.\n\ninterp = Interpolations.Linear() (default). When the data to be corrected lies between 2 quantile bins, the value of the transfer function is linearly interpolated between the 2 closest quantile estimation. The argument is from Interpolations.jl package.\n\nextrap = Interpolations.Flat() (default). The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no \"inflation problem\" with the bias correction. The argument is from Interpolation.jl package.\n\n\n\n"
 },
 
 {
@@ -853,7 +869,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.TransferFunction",
     "category": "type",
-    "text": "TransferFunction(itp::Array, method::String)\n\nTransfer function used during quantile-quantile mapping bias correction.\n\n\n\n"
+    "text": "TransferFunction(itp::Array, method::String, detrend::Bool)\n\nTransfer function used during quantile-quantile mapping bias correction.\n\n\n\n"
 },
 
 {
