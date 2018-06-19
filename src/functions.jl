@@ -378,6 +378,63 @@ macro isdefined(var)
 end
 
 
+function permute_west_east(data::AbstractArray{N,T} where N where T, longrid)#iwest, ieast)
+
+    dataout = similar(data)
+    ieast = longrid .>= 0.0
+    iwest = longrid .< 0.0
+
+
+    if ndims(data) == 2
+
+        datatmp = data[:, :]
+        # datawest = reshape(datatmp[iwest], :, size(datatmp, 2))
+        # dataeast = reshape(datatmp[ieast], :, size(datatmp, 2))
+        dataout[:, :] = permute_west_east2D(datatmp, iwest, ieast)
+
+
+    elseif ndims(data) == 3
+
+        for t = 1:size(data, 3)
+            datatmp = data[:, :, t]
+            # datawest = reshape(datatmp[iwest], :, size(datatmp, 2))
+            # dataeast = reshape(datatmp[ieast], :, size(datatmp, 2))
+            dataout[:, :, t] = permute_west_east2D(datatmp, iwest, ieast) #vcat(datawest, dataeast)
+        end
+
+    elseif ndims(data) == 4
+
+        for t = 1:size(data, 4)
+            for l = 1:size(data, 3)
+                datatmp = data[:, :, l, t]
+                # datawest = reshape(datatmp[iwest], :, size(datatmp, 2))
+                # dataeast = reshape(datatmp[ieast], :, size(datatmp, 2))
+                dataout[:, :, l, t] = permute_west_east2D(datatmp, iwest, ieast) #vcat(datawest, dataeast)
+            end
+        end
+
+    end
+
+    return dataout
+
+end
+
+function permute_west_east2D(data::AbstractArray{N,2} where N, iwest, ieast)
+
+    datawest = reshape(data[iwest], :, size(data, 2))
+    dataeast = reshape(data[ieast], :, size(data, 2))
+    return vcat(datawest, dataeast)
+
+end
+
+function permute_east_west2D(data::AbstractArray{N,2} where N, iwest, ieast)
+
+    datawest = reshape(data[iwest], :, size(data, 2))
+    dataeast = reshape(data[ieast], :, size(data, 2))
+    return vcat(dataeast, datawest)
+
+end
+
 
 # function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)
 #
@@ -461,59 +518,4 @@ end
 # grid_in = [[12; 12; 12] [55; 54; 53]]
 # rot2lonlat(grid_in[:, 1], grid_in[:, 2], SP_lon2, SP_lat2, northpole=false)
 
-function permute_west_east(data::AbstractArray{N,T} where N where T, longrid)#iwest, ieast)
 
-    dataout = similar(data)
-    ieast = longrid .>= 0.0
-    iwest = longrid .< 0.0
-
-
-    if ndims(data) == 2
-
-        datatmp = data[:, :]
-        # datawest = reshape(datatmp[iwest], :, size(datatmp, 2))
-        # dataeast = reshape(datatmp[ieast], :, size(datatmp, 2))
-        dataout[:, :] = permute_west_east2D(datatmp, iwest, ieast)
-
-
-    elseif ndims(data) == 3
-
-        for t = 1:size(data, 3)
-            datatmp = data[:, :, t]
-            # datawest = reshape(datatmp[iwest], :, size(datatmp, 2))
-            # dataeast = reshape(datatmp[ieast], :, size(datatmp, 2))
-            dataout[:, :, t] = permute_west_east2D(datatmp, iwest, ieast) #vcat(datawest, dataeast)
-        end
-
-    elseif ndims(data) == 4
-
-        for t = 1:size(data, 4)
-            for l = 1:size(data, 3)
-                datatmp = data[:, :, l, t]
-                # datawest = reshape(datatmp[iwest], :, size(datatmp, 2))
-                # dataeast = reshape(datatmp[ieast], :, size(datatmp, 2))
-                dataout[:, :, l, t] = permute_west_east2D(datatmp, iwest, ieast) #vcat(datawest, dataeast)
-            end
-        end
-
-    end
-
-    return dataout
-
-end
-
-function permute_west_east2D(data::AbstractArray{N,2} where N, iwest, ieast)
-
-    datawest = reshape(data[iwest], :, size(data, 2))
-    dataeast = reshape(data[ieast], :, size(data, 2))
-    return vcat(datawest, dataeast)
-
-end
-
-function permute_east_west2D(data::AbstractArray{N,2} where N, iwest, ieast)
-
-    datawest = reshape(data[iwest], :, size(data, 2))
-    dataeast = reshape(data[ieast], :, size(data, 2))
-    return vcat(dataeast, datawest)
-
-end
