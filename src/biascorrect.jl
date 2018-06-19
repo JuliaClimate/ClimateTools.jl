@@ -27,6 +27,23 @@ The quantile-quantile transfer function between **ref** and **obs** is etimated 
 
 function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())
 
+        # Remove trend if specified
+    if detrend == true
+        # Obs
+        obs = ClimateTools.correctdate(obs) # Removes 29th February
+        obs_polynomials = ClimateTools.polyfit(obs)
+        obs = obs - ClimateTools.polyval(obs, obs_polynomials)
+        # Ref
+        ref = ClimateTools.correctdate(ref) # Removes 29th February
+        ref_polynomials = ClimateTools.polyfit(ref)
+        ref = ref - ClimateTools.polyval(ref, ref_polynomials)
+        # Fut
+        fut = ClimateTools.correctdate(fut) # Removes 29th February
+        fut_polynomials = ClimateTools.polyfit(fut)
+        poly_values = ClimateTools.polyval(fut, fut_polynomials)
+        fut = fut - poly_values
+    end
+
     # Consistency checks # TODO add more checks for grid definition
     @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
     @argcheck size(obs[1], 2) == size(ref[1], 2) == size(fut[1], 2)
@@ -66,7 +83,13 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
 
     dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}][:]), Axis{latsymbol}(fut[1][Axis{latsymbol}][:]),Axis{:time}(datevec_fut2))
 
-    return ClimGrid(dataout2; longrid=fut.longrid, latgrid=fut.latgrid, msk=fut.msk, grid_mapping=fut.grid_mapping, dimension_dict=fut.dimension_dict, model=fut.model, frequency=fut.frequency, experiment=fut.experiment, run=fut.run, project=fut.project, institute=fut.institute, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal, varattribs=fut.varattribs, globalattribs=fut.globalattribs)
+    C = ClimGrid(dataout2; longrid=fut.longrid, latgrid=fut.latgrid, msk=fut.msk, grid_mapping=fut.grid_mapping, dimension_dict=fut.dimension_dict, model=fut.model, frequency=fut.frequency, experiment=fut.experiment, run=fut.run, project=fut.project, institute=fut.institute, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal, varattribs=fut.varattribs, globalattribs=fut.globalattribs)
+
+    if detrend == true
+        C = C + poly_values
+    end
+
+    return C
 
 end
 

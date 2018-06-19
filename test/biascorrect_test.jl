@@ -7,7 +7,7 @@ obs = ClimateTools.ClimGrid(axisdata, variable = "tasmax", dimension_dict=dimens
 ref = obs * 1.05
 fut = obs * 1.05
 
-D = qqmap(obs, ref, fut, method = "Additive")
+D = qqmap(obs, ref, fut, method = "Additive", detrend=false)
 @test D[1][1, 1, 1] == -0.5560268761463861
 
 srand(42)
@@ -17,7 +17,7 @@ obs = ClimateTools.ClimGrid(axisdata, variable = "tasmax", dimension_dict=dimens
 ref = obs * 1.05
 fut = obs * 1.05
 
-D = qqmap(obs, ref, fut, method = "Multiplicative")
+D = qqmap(obs, ref, fut, method = "Multiplicative", detrend=false)
 @test D[1][1, 1, 1] == 3.7814413533272675
 
 dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
