@@ -371,7 +371,9 @@ function corrjuliandays(data_vec, date_vec)
     if sum(feb29th) >= 1 # leapyears
 
         for iyear in leap_years
-            days = date_jul[Dates.year.(date_vec).== iyear] # days for iyear
+      
+            days = date_jul[Dates.year.(date_vec) .== iyear] # days for iyear
+      
             if days[1] >=60 # if the year starts after Feb 29th
                 k1 = findfirst(Dates.year.(date_vec), iyear) # k1 is the first day
             else
@@ -384,12 +386,12 @@ function corrjuliandays(data_vec, date_vec)
 
         date_vec2 = date_vec[.!feb29th]
         data_vec2 = data_vec[.!feb29th]
-        date_jul = date_jul[.!feb29th]
+        date_jul2 = date_jul[.!feb29th]
 
     elseif sum(feb29th) == 0 # not a leapyears
 
         for iyear in leap_years
-            days = date_jul[Dates.year.(date_vec).== iyear] # days for iyear
+            days = date_jul[Dates.year.(date_vec) .== iyear] # days for iyear
             if days[1] >=60 # if the year starts after Feb 29th
                 k1 = findfirst(Dates.year.(date_vec), iyear) # k1 is the first day
             else
@@ -402,11 +404,11 @@ function corrjuliandays(data_vec, date_vec)
 
         date_vec2 = date_vec[.!feb29th]
         data_vec2 = data_vec[.!feb29th]
-        # date_jul = date_jul[.!feb29th]
+        date_jul2 = date_jul[.!feb29th]
 
     end
 
-    return data_vec2, date_jul, date_vec2
+    return data_vec2, date_jul2, date_vec2
 
 end
 

@@ -101,28 +101,13 @@ end
 """
     TransferFunction(itp::Array, method::String, detrend::Bool)
 
-In-memory representation of the transfer function used during quantile-quantile mapping bias correction.
+Transfer function used during quantile-quantile mapping bias correction.
 """
 struct TransferFunction
     itp::Array
     method::String
     detrend::Bool
 end
-
-# """
-#     TransferFunction(itp, method)
-
-# Create a TransferFunction used during quantile-quantile mapping bias correction. Contains the ITP function and the methode used (either Additive or Multiplicative)
-# """
-# function TransferFunction(itp, method,detrend)
-#     TransferFunction(itp, method,detrend)
-# end
-
-# function ClimGrid(data; climgrid::ClimGrid=C)
-#
-#     ClimGrid(data, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
-#
-# end
 
 # Included files
 include("functions.jl")
