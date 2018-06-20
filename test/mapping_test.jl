@@ -101,7 +101,7 @@ status, figh = mapclimgrid(region = "Greenwich");@test status == true; PyPlot.cl
 lon = collect(-180.0:180.0)
 lat = collect(-90.0:90.0)
 longrid, latgrid = ndgrid(lon, lat)
-timeV = d = DateTime(2003,1,1):DateTime(2003,01,31)
+timeV = DateTime(2003,1,1):DateTime(2003,01,31)
 data = randn(361, 181, 31)
 dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
 varattribs = Dict(["standard_name" => "random noise"])
@@ -109,12 +109,22 @@ axisdata = AxisArray(data, Axis{:lon}(lon), Axis{:lat}(lat), Axis{:time}(timeV))
 C = ClimateTools.ClimGrid(axisdata, variable = "psl", typeofvar="psl", longrid=longrid, latgrid=latgrid, dimension_dict=dimension_dict, varattribs=varattribs)
 
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
-
-C = ClimateTools.ClimGrid(axisdata, variable = "dummy", longrid=longrid, latgrid=latgrid, dimension_dict=dimension_dict, varattribs=varattribs)
-
-status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
-status, figh = mapclimgrid(C, center_cs=true);@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, center_cs=true, caxis=[200, 250]);@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, center_cs=true, surface=:pcolormesh);@test status == true; PyPlot.close()
 
 status, figh = plot(C); @test status == true; PyPlot.close()
+status, figh = plot(C, poly=P); @test status == true; PyPlot.close()
+status, figh = plot(C, start_date=(2003, 01, 10), end_date=(2003, 01, 12)); @test status==true;PyPlot.close()
 status, figh = plot(C, label = "dummy", titlestr="dummytest", gridfig=true); @test status == true; PyPlot.close()
+
+lon = collect(-180.0:180.0)
+lat = collect(-90.0:90.0)
+longrid, latgrid = ndgrid(lon, lat)
+timeV = Dates.year(DateTime(2003, 01, 01)):Dates.year(1):Dates.year(DateTime(2004, 01, 01))
+data = randn(361, 181, 2)
+dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
+varattribs = Dict(["standard_name" => "random noise"])
+axisdata = AxisArray(data, Axis{:lon}(lon), Axis{:lat}(lat), Axis{:time}(timeV))
+C = ClimateTools.ClimGrid(axisdata, variable = "psl", typeofvar="psl", longrid=longrid, latgrid=latgrid, dimension_dict=dimension_dict, varattribs=varattribs)
+
+status, figh = mapclimgrid(C);@test status == true; PyPlot.close()

@@ -8,7 +8,7 @@ The package is registered on METADATA.jl and can be added with `Pkg.add("Climate
 
 ## Notes
 
-The climate indices are coded to use **multiple threads**. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.CPU_CORES`.
+When possible, functions are coded to use **multiple threads**. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.CPU_CORES`. This is especially useful for climate indices, bias correction and regridding.
 
 ## Features
 
