@@ -29,7 +29,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Notes",
     "category": "section",
-    "text": "The climate indices are coded to use multiple threads. To gain maximum performance, use (bash shell) export JULIA_NUM_THREADS=n, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) Sys.CPU_CORES."
+    "text": "When possible, functions are coded to use multiple threads. To gain maximum performance, use (bash shell) export JULIA_NUM_THREADS=n, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) Sys.CPU_CORES. This is especially useful for climate indices, bias correction and regridding."
 },
 
 {
