@@ -97,7 +97,7 @@ Returns the simplified wet-bulb global temperature (*wbgt*) (Celsius) calculated
 
 """
 function wbgt(mean_temperature::ClimGrid, vapor_pressure::ClimGrid)
-  @argcheck mean_temperature[9] == "tmean"
+  @argcheck in(mean_temperature[9], ["tmean", "tasmax", "tasmin"])
   @argcheck vapor_pressure[9] == "vp"
   @argcheck in(mean_temperature[2], ["Celsius", "K"])
   @argcheck vapor_pressure[2] == "Pa"
