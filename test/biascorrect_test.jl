@@ -1,3 +1,6 @@
+replstr(x) = sprint((io,x) -> show(IOContext(io, :limit => true, :displaysize => (24, 80)), MIME("text/plain"), x), x)
+showstr(x) = sprint((io,x) -> show(IOContext(io, :limit => true, :displaysize => (24, 80)), x), x)
+
 d = Date(1961,1,1):Date(1990,12,31)
 srand(42)
 data = randn(2, 2, 10957)
