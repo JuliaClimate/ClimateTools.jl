@@ -968,20 +968,22 @@ end
 """
     periodsubset(C::ClimGrid, season::String)
 
-Return the temporal subset of ClimGrid C for a given season. Season options are : "djf" (December-February; Winter), "mam" (March-May; Spring), "jja" (June-August; Summer), "son" (September-November; Fall)
+Return the temporal subset of ClimGrid C for a given season. Season options are : "DJF" (December-February; Winter), "MAM" (March-May; Spring), "JJA" (June-August; Summer), "SON" (September-November; Fall)
 """
 function periodsubset(C::ClimGrid, season::String)
-    if season == "djf"
+    if season == "DJF"
       D = periodsubset(C, 12, 2)
-    elseif season == "mam"
+    elseif season == "MAM"
       D = periodsubset(C, 3, 5)
-    elseif season == "jja"
+    elseif season == "JJA"
       C = periodsubset(C, 6, 8)
-    elseif season == "son"
+    elseif season == "SON"
       D = periodsubset(C, 9, 11)
     else
-      error("Wrong season name. Options are djf (December-February; Winter), mam (March-May; Spring), jja (June-August; Summer) and son (September-November; Fall)")
+      error("Wrong season name. Options are DJF (December-February; Winter), MAM (March-May; Spring), JJA (June-August; Summer) and SON (September-November; Fall)")
     end
+
+    return D
 end
 
 model_id(attrib::NCDatasets.Attributes) = get(attrib,"model_id",get(attrib,"model","N/A"))
