@@ -949,6 +949,24 @@ function periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)
     return ClimGrid(axisout, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping,dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project,institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable,typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
+"""
+    periodsubset(C::ClimGrid, season::String)
+
+Return the temporal subset of ClimGrid C for a given season. Season options are : "djf" (December-February; Winter), "mam" (March-May; Spring), "jja" (June-August; Summer), "son" (September-November; Fall)
+"""
+function periodsubset(C::ClimGrid, season::String)
+    if season == "djf"
+      D = periodsubset(C, 12, 2)
+    elseif season == "mam"
+      D = periodsubset(C, 3, 5)
+    elseif season == "jja"
+      C = periodsubset(C, 6, 8)
+    elseif season == "son"
+      D = periodsubset(C, 9, 11)
+    else
+      error("Wrong season name. Options are "djf" (December-February; Winter), "mam" (March-May; Spring), "jja" (June-August; Summer), "son" (September-November; Fall)")
+end
+
 model_id(attrib::NCDatasets.Attributes) = get(attrib,"model_id",get(attrib,"model","N/A"))
 
 experiment_id(attrib::NCDatasets.Attributes) = get(attrib,"experiment_id",get(attrib,"experiment","N/A"))
