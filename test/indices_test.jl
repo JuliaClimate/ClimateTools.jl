@@ -316,3 +316,18 @@ axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 C = ClimateTools.ClimGrid(axisdata, variable = "tas")
 ind = daysabove10(C)
 @test ind.data.data == Results
+
+# Period mean
+data = Array{Float64, 3}(2, 2, 1826)
+data[1,1,:] = collect(1.0:1826.0); data[1,2,:] = collect(-10.0:1815.0); data[2,1,:] = collect(0.0:1825.0); data[2,2,:] = collect(-1725.0:100);
+Results = Array{Float64, 3}(2, 2, 1);
+Results[1, 1, 1]= 746.0;
+Results[1, 2, 1] = 735.0;
+Results[2, 1, 1] = 745.0;
+Results[2, 2, 1] = -980.0;
+
+# ClimGrid based tests
+axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
+C = ClimateTools.ClimGrid(axisdata)
+ind = periodmean(C, (2004, 06, 01), (2005, 08, 31)) #mean between June 1st 2004 and August 31st 2005
+@test ind.data.data == Results
