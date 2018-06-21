@@ -930,22 +930,38 @@ end
 Return the temporal subset of ClimGrid C based on months.
 """
 function periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)
-    @argcheck startmonth <= endmonth
     @argcheck startmonth >= minimum(Dates.month.(C[1][Axis{:time}][:]))
     @argcheck startmonth <= maximum(Dates.month(C[1][Axis{:time}][:]))
-    # Each matrix [:,:,i] represent data for a day
-    datain = C.data.data
-    # Date vector
-    datevecin = C[1][Axis{:time}][:]
-    # Where are the data between startmonth and endmonth
-    index = (Dates.month.(datevecin) .<= endmonth) .&  (Dates.month.(datevecin) .>= startmonth)
-    # Keep only data between startmonth and endmonth
-    dataout = datain[:,:,index]
-    datevecout = datevecin[index]
-    # Create the ClimGrid output
-    lonsymbol = Symbol(C.dimension_dict["lon"])
-    latsymbol = Symbol(C.dimension_dict["lat"])
-    axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(datevecout))
+    if startmonth <= endmonth
+        # Each matrix [:,:,i] represent data for a day
+        datain = C.data.data
+        # Date vector
+        datevecin = C[1][Axis{:time}][:]
+        # Where are the data between startmonth and endmonth
+        index = (Dates.month.(datevecin) .<= endmonth) .&  (Dates.month.(datevecin) .>= startmonth)
+        # Keep only data between startmonth and endmonth
+        dataout = datain[:,:,index]
+        datevecout = datevecin[index]
+        # Create the ClimGrid output
+        lonsymbol = Symbol(C.dimension_dict["lon"])
+        latsymbol = Symbol(C.dimension_dict["lat"])
+        axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]),    Axis{:time}(datevecout))
+    elseif endmonth < startmonth
+        # Each matrix [:,:,i] represent data for a day
+        datain = C.data.data
+        # Date vector
+        datevecin = C[1][Axis{:time}][:]
+        # Where are the data between startmonth and endmonth
+        index = (Dates.month.(datevecin) .>= endmonth) .&  (Dates.month.(datevecin) .<= startmonth)
+        # Keep only data between startmonth and endmonth
+        dataout = datain[:,:,index]
+        datevecout = datevecin[index]
+        # Create the ClimGrid output
+        lonsymbol = Symbol(C.dimension_dict["lon"])
+        latsymbol = Symbol(C.dimension_dict["lat"])
+        axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:])   Axis{:time}(datevecout))
+    end
+
     return ClimGrid(axisout, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping,dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project,institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable,typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
