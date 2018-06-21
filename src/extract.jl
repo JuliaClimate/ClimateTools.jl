@@ -952,14 +952,14 @@ function periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)
         # Date vector
         datevecin = C[1][Axis{:time}][:]
         # Where are the data between startmonth and endmonth
-        index = (Dates.month.(datevecin) .>= endmonth) .&  (Dates.month.(datevecin) .<= startmonth)
+        index = (Dates.month.(datevecin) .<= endmonth) .|  (Dates.month.(datevecin) .>= startmonth)
         # Keep only data between startmonth and endmonth
         dataout = datain[:,:,index]
         datevecout = datevecin[index]
         # Create the ClimGrid output
         lonsymbol = Symbol(C.dimension_dict["lon"])
         latsymbol = Symbol(C.dimension_dict["lat"])
-        axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:])   Axis{:time}(datevecout))
+        axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(datevecout))
     end
 
     return ClimGrid(axisout, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping,dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project,institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable,typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
@@ -980,7 +980,8 @@ function periodsubset(C::ClimGrid, season::String)
     elseif season == "son"
       D = periodsubset(C, 9, 11)
     else
-      error("Wrong season name. Options are "djf" (December-February; Winter), "mam" (March-May; Spring), "jja" (June-August; Summer), "son" (September-November; Fall)")
+      error("Wrong season name. Options are djf (December-February; Winter), mam (March-May; Spring), jja (June-August; Summer) and son (September-November; Fall)")
+    end
 end
 
 model_id(attrib::NCDatasets.Attributes) = get(attrib,"model_id",get(attrib,"model","N/A"))
