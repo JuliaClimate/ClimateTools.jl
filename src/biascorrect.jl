@@ -240,7 +240,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         x = sort(randperm(size(obs[1],1))[1:nx])
         y = sort(randperm(size(obs[1],2))[1:ny])
     end
-    
+
     # Create matrix of indices
     X, Y = meshgrid(x, y)
 
@@ -257,7 +257,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
         # Object containing observation/reference data of the n points on ijulian day
         obsval = fill(NaN, sum(idxobs) * nx * ny)
         refval = fill(NaN, sum(idxref) * nx * ny)
-        
+
         ipoint = 1
         for (ix, iy) in zip(X, Y)
             # for iy in y
@@ -371,9 +371,9 @@ function corrjuliandays(data_vec, date_vec)
     if sum(feb29th) >= 1 # leapyears
 
         for iyear in leap_years
-      
+
             days = date_jul[Dates.year.(date_vec) .== iyear] # days for iyear
-      
+
             if days[1] >=60 # if the year starts after Feb 29th
                 k1 = findfirst(Dates.year.(date_vec), iyear) # k1 is the first day
             else
@@ -454,7 +454,7 @@ function polyfit(C::ClimGrid)
     # x = Dates.value.(C[1][Axis{:time}][:] - C[1][Axis{:time}][1])+1
     dataout = Array{Polynomials.Poly{Float64}}(size(C[1], 1),size(C[1], 2))
     for k = 1:size(C[1], 2)
-        for j = 1:size(C[1], 1)
+        Threads.@threads for j = 1:size(C[1], 1)
             y = C[1][j , k, :].data
             polynomial = Polynomials.polyfit(x, y, 4)
             polynomial[0] = 0.0
@@ -473,7 +473,7 @@ function polyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
     datain = C[1].data
     dataout = fill(NaN, (size(C[1], 1), size(C[1],2), size(C[1], 3)))::Array{N, T} where N where T
     for k = 1:size(C[1], 2)
-        for j = 1:size(C[1], 1)
+        Threads.@threads for j = 1:size(C[1], 1)
             val = polynomial[j,k](datain[j,k,:])
             dataout[j,k,:] = val
         end
