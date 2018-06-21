@@ -127,7 +127,7 @@ export customthresover, customthresunder, annualmax, annualmin, periodmean
 export annualmean, annualsum, load, load2D
 export mapclimgrid, regrid, ClimGrid, inpolyvec, applymask, TransferFunction
 export shapefile_coords, shapefile_coords_poly
-export spatialsubset, temporalsubset
+export spatialsubset, temporalsubset, periodsubset
 export qqmap, qqmaptf, ndgrid, permute_west_east
 export getdim_lat, getdim_lon, isdefined, extractpoly
 export polyfit, polyval
