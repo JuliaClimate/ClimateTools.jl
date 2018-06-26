@@ -697,6 +697,30 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#ClimateTools.periodmean-Tuple{ClimateTools.ClimGrid,Tuple,Tuple}",
+    "page": "Index",
+    "title": "ClimateTools.periodmean",
+    "category": "method",
+    "text": "periodmean(C::ClimGrid, startdate::Tuple, enddate::Tuple)\n\nMean of array data over a given period.\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.periodsubset-Tuple{ClimateTools.ClimGrid,Int64,Int64}",
+    "page": "Index",
+    "title": "ClimateTools.periodsubset",
+    "category": "method",
+    "text": "periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)\n\nReturn the temporal subset of ClimGrid C based on months.\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.periodsubset-Tuple{ClimateTools.ClimGrid,String}",
+    "page": "Index",
+    "title": "ClimateTools.periodsubset",
+    "category": "method",
+    "text": "periodsubset(C::ClimGrid, season::String)\n\nReturn the temporal subset of ClimGrid C for a given season. Season options are : \"DJF\" (December-February; Winter), \"MAM\" (March-May; Spring), \"JJA\" (June-August; Summer), \"SON\" (September-November; Fall)\n\n\n\n"
+},
+
+{
     "location": "functions.html#ClimateTools.polyfit-Tuple{ClimateTools.ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.polyfit",
