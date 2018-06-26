@@ -810,7 +810,7 @@ end
 # end
 
 """
-    periodmean(C::ClimGrid, start_year::Int64, end_year::Int64)
+    periodmean(C::ClimGrid, startdate::Tuple, enddate::Tuple)
 
 Mean of array data over a given period.
 """

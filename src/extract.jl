@@ -971,13 +971,13 @@ end
 Return the temporal subset of ClimGrid C for a given season. Season options are : "DJF" (December-February; Winter), "MAM" (March-May; Spring), "JJA" (June-August; Summer), "SON" (September-November; Fall)
 """
 function periodsubset(C::ClimGrid, season::String)
-    if season == "DJF"
+    if lowercase(season) == "djf"
       D = periodsubset(C, 12, 2)
-    elseif season == "MAM"
+    elseif lowercase(season) == "mam"
       D = periodsubset(C, 3, 5)
-    elseif season == "JJA"
+    elseif lowercase(season) == "jja"
       C = periodsubset(C, 6, 8)
-    elseif season == "SON"
+    elseif lowercase(season) == "son"
       D = periodsubset(C, 9, 11)
     else
       error("Wrong season name. Options are DJF (December-February; Winter), MAM (March-May; Spring), JJA (June-August; Summer) and SON (September-November; Fall)")
