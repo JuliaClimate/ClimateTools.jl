@@ -123,11 +123,11 @@ include("heatsum_indices.jl")
 export inpoly, inpolygrid, meshgrid, prcp1
 export frostdays, summerdays, icingdays, tropicalnights
 export daysabove10 #, daysbelow0, degdaysabove, degdaysbelow
-export customthresover, customthresunder, annualmax, annualmin
+export customthresover, customthresunder, annualmax, annualmin, periodmean
 export annualmean, annualsum, load, load2D
 export mapclimgrid, regrid, ClimGrid, inpolyvec, applymask, TransferFunction
 export shapefile_coords, shapefile_coords_poly
-export spatialsubset, temporalsubset
+export spatialsubset, temporalsubset, periodsubset
 export qqmap, qqmaptf, ndgrid, permute_west_east
 export getdim_lat, getdim_lon, isdefined, extractpoly
 export polyfit, polyval

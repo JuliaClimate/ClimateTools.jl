@@ -808,3 +808,21 @@ end
 #   end
 #   return FD
 # end
+
+"""
+    periodmean(C::ClimGrid, startdate::Tuple, enddate::Tuple)
+
+Mean of array data over a given period.
+"""
+function periodmean(C::ClimGrid, startdate::Tuple, enddate::Tuple)
+    Csubset = temporalsubset(C, startdate, enddate)
+    datain   = Csubset.data.data
+
+    dataout = Base.mean(datain, 3)
+
+    # Build output AxisArray
+    FD = buildarray(C, dataout, [1])
+
+    # Return climGrid type containing the indice
+    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+end

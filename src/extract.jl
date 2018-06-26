@@ -924,6 +924,68 @@ function temporalsubset(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
 
 end
 
+"""
+    periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)
+
+Return the temporal subset of ClimGrid C based on months.
+"""
+function periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)
+    @argcheck startmonth >= minimum(Dates.month.(C[1][Axis{:time}][:]))
+    @argcheck startmonth <= maximum(Dates.month(C[1][Axis{:time}][:]))
+    if startmonth <= endmonth
+        # Each matrix [:,:,i] represent data for a day
+        datain = C.data.data
+        # Date vector
+        datevecin = C[1][Axis{:time}][:]
+        # Where are the data between startmonth and endmonth
+        index = (Dates.month.(datevecin) .<= endmonth) .&  (Dates.month.(datevecin) .>= startmonth)
+        # Keep only data between startmonth and endmonth
+        dataout = datain[:,:,index]
+        datevecout = datevecin[index]
+        # Create the ClimGrid output
+        lonsymbol = Symbol(C.dimension_dict["lon"])
+        latsymbol = Symbol(C.dimension_dict["lat"])
+        axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]),    Axis{:time}(datevecout))
+    elseif endmonth < startmonth
+        # Each matrix [:,:,i] represent data for a day
+        datain = C.data.data
+        # Date vector
+        datevecin = C[1][Axis{:time}][:]
+        # Where are the data between startmonth and endmonth
+        index = (Dates.month.(datevecin) .<= endmonth) .|  (Dates.month.(datevecin) .>= startmonth)
+        # Keep only data between startmonth and endmonth
+        dataout = datain[:,:,index]
+        datevecout = datevecin[index]
+        # Create the ClimGrid output
+        lonsymbol = Symbol(C.dimension_dict["lon"])
+        latsymbol = Symbol(C.dimension_dict["lat"])
+        axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(datevecout))
+    end
+
+    return ClimGrid(axisout, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping,dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project,institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable,typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+end
+
+"""
+    periodsubset(C::ClimGrid, season::String)
+
+Return the temporal subset of ClimGrid C for a given season. Season options are : "DJF" (December-February; Winter), "MAM" (March-May; Spring), "JJA" (June-August; Summer), "SON" (September-November; Fall)
+"""
+function periodsubset(C::ClimGrid, season::String)
+    if lowercase(season) == "djf"
+      D = periodsubset(C, 12, 2)
+    elseif lowercase(season) == "mam"
+      D = periodsubset(C, 3, 5)
+    elseif lowercase(season) == "jja"
+      C = periodsubset(C, 6, 8)
+    elseif lowercase(season) == "son"
+      D = periodsubset(C, 9, 11)
+    else
+      error("Wrong season name. Options are DJF (December-February; Winter), MAM (March-May; Spring), JJA (June-August; Summer) and SON (September-November; Fall)")
+    end
+
+    return D
+end
+
 model_id(attrib::NCDatasets.Attributes) = get(attrib,"model_id",get(attrib,"model","N/A"))
 
 experiment_id(attrib::NCDatasets.Attributes) = get(attrib,"experiment_id",get(attrib,"experiment","N/A"))
