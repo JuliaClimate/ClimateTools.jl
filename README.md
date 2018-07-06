@@ -31,7 +31,7 @@ The climate indices are coded to use **multiple threads**. To gain maximum perfo
 * Regridding of a datasets onto another grid
 * Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)
 
-## Getting started
+## Getting started (in-depth documentation is provided in the official documentation)
 
 `using ClimateTools`
 
