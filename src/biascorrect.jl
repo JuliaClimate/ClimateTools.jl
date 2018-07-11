@@ -63,8 +63,15 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     # dataout = fill(NaN, (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{typeof(fut[1].data)}# where N where T
     # dataout = fill(NaN, size(futvec2))::Array{N, T} where N where T
 
-    # p = Progress(size(obs[1], 3), 5)   
-    
+    # p = Progress(size(obs[1], 3), 5)
+    if minimum(ref_jul) == 1 && maximum(ref_jul) ==365
+        days = 1:365
+    else
+        days = minimum(ref_jul)+15:maximum(ref_jul)-15
+        start = Dates.monthday(minimum(datevec_obs2))
+        finish = Dates.monthday(maximum(datevec_obs2))
+    end
+
 
     obsin = reshape(obs[1].data, (size(obs[1].data, 1)*size(obs[1].data, 2), size(obs[1].data, 3)))
     refin = reshape(ref[1].data, (size(ref[1].data, 1)*size(ref[1].data, 2), size(ref[1].data, 3)))
@@ -77,7 +84,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
         refvec = refin[k,:]
         futvec = futin[k,:]
 
-        dataoutin[k, :] = qqmap(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap = extrap)
+        dataoutin[k, :] = qqmap(obsvec, refvec, futvec, days, datevec_obs, datevec_ref, datevec_fut, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap = extrap)
 
 
     end
@@ -118,7 +125,7 @@ Quantile-Quantile mapping bias correction for single vector. This is a low level
 
 """
 
-function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec::Array{N, 1} where N, datevec_obs, datevec_ref, datevec_fut; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())
+function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec::Array{N, 1} where N, days, datevec_obs, datevec_ref, datevec_fut; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())
 
     # range over which quantiles are estimated
     P = linspace(0.01, 0.99, rankn)
@@ -134,7 +141,7 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
 
     # LOOP OVER ALL DAYS OF THE YEAR
     # TODO Define "days" instead of 1:365
-    for ijulian = 1:365
+    for ijulian in days
 
         # idx for values we want to correct
         idxfut = (fut_jul .== ijulian)

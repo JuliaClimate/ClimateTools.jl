@@ -976,7 +976,7 @@ function periodsubset(C::ClimGrid, season::String)
     elseif lowercase(season) == "mam"
       D = periodsubset(C, 3, 5)
     elseif lowercase(season) == "jja"
-      C = periodsubset(C, 6, 8)
+      D = periodsubset(C, 6, 8)
     elseif lowercase(season) == "son"
       D = periodsubset(C, 9, 11)
     else
