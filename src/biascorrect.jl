@@ -71,7 +71,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     futin = reshape(fut[1].data, (size(fut[1].data, 1)*size(fut[1].data, 2), size(fut[1].data, 3)))
     dataoutin = reshape(dataout, (size(dataout, 1)*size(dataout, 2), size(dataout, 3)))
 
-    for k = 1:size(obsin, 1)
+    Threads.@threads for k = 1:size(obsin, 1)
 
         obsvec = obsin[k,:]
         refvec = refin[k,:]
@@ -134,7 +134,7 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
 
     # LOOP OVER ALL DAYS OF THE YEAR
     # TODO Define "days" instead of 1:365
-    Threads.@threads for ijulian = 1:365
+    for ijulian = 1:365
 
         # idx for values we want to correct
         idxfut = (fut_jul .== ijulian)
