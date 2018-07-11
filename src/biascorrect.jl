@@ -62,8 +62,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{typeof(fut[1].data[1]), T} where T
     # dataout = fill(NaN, (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{typeof(fut[1].data)}# where N where T
     # dataout = fill(NaN, size(futvec2))::Array{N, T} where N where T
-
-    # p = Progress(size(obs[1], 3), 5)
+    
     if minimum(ref_jul) == 1 && maximum(ref_jul) == 365
         days = 1:365
     else
@@ -88,19 +87,6 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
 
 
     end
-
-    # for k = 1:size(obs[1], 2)
-    #     for j = 1:size(obs[1], 1)
-
-    #         obsvec = obs[1][j,k,:].data
-    #         refvec = ref[1][j,k,:].data
-    #         futvec = fut[1][j,k,:].data
-
-    #         dataout[j,k,:] = qqmap(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap = extrap)
-
-    #     end
-    #     # next!(p)
-    # end
 
     lonsymbol = Symbol(fut.dimension_dict["lon"])
     latsymbol = Symbol(fut.dimension_dict["lat"])
