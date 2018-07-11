@@ -54,29 +54,46 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     datevec_fut = fut[1][Axis{:time}][:]
 
     # Modify dates (e.g. 29th feb are dropped/lost by default)
-    obsvec2, obs_jul, datevec_obs2 = corrjuliandays(obs[1][1,1,:].data, datevec_obs)
-    refvec2, ref_jul, datevec_ref2 = corrjuliandays(ref[1][1,1,:].data, datevec_ref)
-    futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][1,1,:].data, datevec_fut)
-    # obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2 = corrjuliandays(obs[1][1,1,:].data, ref[1][1,1,:].data, fut[1][1,1,:].data, datevec_obs, datevec_ref, datevec_fut)
+    obsvec2, obs_jul, datevec_obs2 = ClimateTools.corrjuliandays(obs[1][1,1,:].data, datevec_obs)
+    refvec2, ref_jul, datevec_ref2 = ClimateTools.corrjuliandays(ref[1][1,1,:].data, datevec_ref)
+    futvec2, fut_jul, datevec_fut2 = ClimateTools.corrjuliandays(fut[1][1,1,:].data, datevec_fut)
 
-    # Prepare output array
-    dataout = fill(NaN, (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{N, T} where N where T
+    # Prepare output array (replicating data type of fut ClimGrid)
+    dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{typeof(fut[1].data[1]), T} where T
+    # dataout = fill(NaN, (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{typeof(fut[1].data)}# where N where T
     # dataout = fill(NaN, size(futvec2))::Array{N, T} where N where T
 
-    p = Progress(size(obs[1], 3), 5)
+    # p = Progress(size(obs[1], 3), 5)   
+    
 
-    for k = 1:size(obs[1], 2)
-        for j = 1:size(obs[1], 1)
+    obsin = reshape(obs[1].data, (size(obs[1].data, 1)*size(obs[1].data, 2), size(obs[1].data, 3)))
+    refin = reshape(ref[1].data, (size(ref[1].data, 1)*size(ref[1].data, 2), size(ref[1].data, 3)))
+    futin = reshape(fut[1].data, (size(fut[1].data, 1)*size(fut[1].data, 2), size(fut[1].data, 3)))
+    dataoutin = reshape(dataout, (size(dataout, 1)*size(dataout, 2), size(dataout, 3)))
 
-            obsvec = obs[1][j,k,:].data
-            refvec = ref[1][j,k,:].data
-            futvec = fut[1][j,k,:].data
+    for k = 1:size(obsin, 1)
 
-            dataout[j,k,:] = qqmap(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap = extrap)
+        obsvec = obsin[k,:]
+        refvec = refin[k,:]
+        futvec = futin[k,:]
 
-        end
-        next!(p)
+        dataoutin[k, :] = qqmap(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap = extrap)
+
+
     end
+
+    # for k = 1:size(obs[1], 2)
+    #     for j = 1:size(obs[1], 1)
+
+    #         obsvec = obs[1][j,k,:].data
+    #         refvec = ref[1][j,k,:].data
+    #         futvec = fut[1][j,k,:].data
+
+    #         dataout[j,k,:] = qqmap(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap = extrap)
+
+    #     end
+    #     # next!(p)
+    # end
 
     lonsymbol = Symbol(fut.dimension_dict["lon"])
     latsymbol = Symbol(fut.dimension_dict["lat"])
@@ -116,6 +133,7 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
     dataout = similar(futvec2, (size(futvec2)))
 
     # LOOP OVER ALL DAYS OF THE YEAR
+    # TODO Define "days" instead of 1:365
     Threads.@threads for ijulian = 1:365
 
         # idx for values we want to correct
