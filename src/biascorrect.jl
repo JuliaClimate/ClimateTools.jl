@@ -64,10 +64,10 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     # dataout = fill(NaN, size(futvec2))::Array{N, T} where N where T
 
     # p = Progress(size(obs[1], 3), 5)
-    if minimum(ref_jul) == 1 && maximum(ref_jul) ==365
+    if minimum(ref_jul) == 1 && maximum(ref_jul) == 365
         days = 1:365
     else
-        days = minimum(ref_jul)+15:maximum(ref_jul)-15
+        days = minimum(ref_jul)+window:maximum(ref_jul)-window
         start = Dates.monthday(minimum(datevec_obs2))
         finish = Dates.monthday(maximum(datevec_obs2))
     end
@@ -239,10 +239,10 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     # Modify dates (e.g. 29th feb are dropped/lost by default)
     obsvec2, obs_jul, datevec_obs2 = ClimateTools.corrjuliandays(obs[1][1,1,:].data, datevec_obs)
     refvec2, ref_jul, datevec_ref2 = ClimateTools.corrjuliandays(ref[1][1,1,:].data, datevec_ref)
-    if minimum(ref_jul) == 1 && maximum(ref_jul) ==365
+    if minimum(ref_jul) == 1 && maximum(ref_jul) == 365
         days = 1:365
     else
-        days = minimum(ref_jul)+15:maximum(ref_jul)-15
+        days = minimum(ref_jul)+window:maximum(ref_jul)-window
         start = Dates.monthday(minimum(datevec_obs2))
         finish = Dates.monthday(maximum(datevec_obs2))
         warn(string("The reference ClimGrid doesn't cover all the year. The transfer function has been calculated from the ", minimum(ref_jul)+15, "th to the ", maximum(ref_jul)-15, "th julian day"))
