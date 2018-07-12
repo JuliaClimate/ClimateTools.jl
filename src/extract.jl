@@ -291,7 +291,7 @@ function load(files::Array{String,1}, variable::String; poly = ([]), start_date:
 
     nfiles = length(files)
 
-    p = Progress(nfiles, 3)
+    p = Progress(nfiles, 3, "Loading files: ")
 
     for ifile = 1:nfiles
 
