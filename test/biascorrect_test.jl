@@ -59,7 +59,7 @@ ITP = qqmaptf(obs, ref, partition=0.5, detrend = true)
 
 fut = obs - 3
 D = qqmap(fut, ITP)
-@test round(D[1][1, 1, 1], 5) == -0.55599#11004056662
+@test round(D[1][1, 1, 1], 2) == -0.56#5599#11004056662
 
 ITP = qqmaptf(obs, ref, partition=0.5, detrend = true, method="multiplicative")
 @test round(ITP.itp[rand(1:365)][randn(1)][1],1) == 0.0
