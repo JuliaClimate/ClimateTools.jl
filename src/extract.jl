@@ -931,7 +931,7 @@ Return the temporal subset of ClimGrid C based on months.
 """
 function periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)
     @argcheck startmonth >= minimum(Dates.month.(C[1][Axis{:time}][:]))
-    @argcheck startmonth <= maximum(Dates.month(C[1][Axis{:time}][:]))
+    @argcheck startmonth <= maximum(Dates.month.(C[1][Axis{:time}][:]))
     if startmonth <= endmonth
         # Each matrix [:,:,i] represent data for a day
         datain = C.data.data
