@@ -65,7 +65,7 @@ ITP = qqmaptf(obs, ref, partition=0.5, detrend = true, method="multiplicative")
 @test round(ITP.itp[rand(1:365)][randn(1)][1],1) == 0.0
 fut = obs - 3
 D = qqmap(fut, ITP)
-@test round(D[1][1, 1, 1], 5) == -0.55599#75611239462
+@test round(D[1][1, 1, 1], 5) == -0.55603#75611239462
 
 
 # Create a ClimGrid with a clear trend
