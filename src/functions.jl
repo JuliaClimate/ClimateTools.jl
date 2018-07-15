@@ -298,7 +298,7 @@ Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `lat
 
 function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk=[])
 
-    p = Progress(length(timeorig), 5)
+    p = Progress(length(timeorig), 5, "Regridding: ")
     for t = 1:length(timeorig)
 
         # Points values

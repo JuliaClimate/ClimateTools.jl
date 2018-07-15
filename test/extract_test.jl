@@ -14,4 +14,4 @@ D = periodsubset(C, 3, 6)
 # When startmonth > endmonth
 D = periodsubset(C, 10, 2)
 @test D[1].data[:,:,1] == C[1].data[:,:,1] && D[1].data[:,:,60] == C[1].data[:,:,274]
-@test length(D[1][Axis{:time}]) == 4537 && Dates.month(D[1][Axis{:time}][end]) == 12 && Dates.month(D[1][Axis{:time}][1]) == 1
+@test length(D[1][Axis{:time}]) == 4537 && Dates.month.(D[1][Axis{:time}][end]) == 12 && Dates.month.(D[1][Axis{:time}][1]) == 1

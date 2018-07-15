@@ -291,7 +291,7 @@ function load(files::Array{String,1}, variable::String; poly = ([]), start_date:
 
     nfiles = length(files)
 
-    p = Progress(nfiles, 3)
+    p = Progress(nfiles, 3, "Loading files: ")
 
     for ifile = 1:nfiles
 
@@ -931,7 +931,7 @@ Return the temporal subset of ClimGrid C based on months.
 """
 function periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)
     @argcheck startmonth >= minimum(Dates.month.(C[1][Axis{:time}][:]))
-    @argcheck startmonth <= maximum(Dates.month(C[1][Axis{:time}][:]))
+    @argcheck startmonth <= maximum(Dates.month.(C[1][Axis{:time}][:]))
     if startmonth <= endmonth
         # Each matrix [:,:,i] represent data for a day
         datain = C.data.data
@@ -976,7 +976,7 @@ function periodsubset(C::ClimGrid, season::String)
     elseif lowercase(season) == "mam"
       D = periodsubset(C, 3, 5)
     elseif lowercase(season) == "jja"
-      C = periodsubset(C, 6, 8)
+      D = periodsubset(C, 6, 8)
     elseif lowercase(season) == "son"
       D = periodsubset(C, 9, 11)
     else
