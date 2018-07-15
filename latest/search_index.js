@@ -745,7 +745,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#ClimateTools.qqmap-Tuple{Array{N,1} where N,Array{N,1} where N,Array{N,1} where N,Any,Any,Any}",
+    "location": "functions.html#ClimateTools.qqmap-Tuple{Array{N,1} where N,Array{N,1} where N,Array{N,1} where N,Any,Any,Any,Any}",
     "page": "Index",
     "title": "ClimateTools.qqmap",
     "category": "method",
