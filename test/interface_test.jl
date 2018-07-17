@@ -377,9 +377,10 @@ d = Date(2003,1,1):Date(2008,12,31)
 # Test timeresolution and pr_timefactor
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 timevec = NetCDF.ncread(filename, "time")
-@test ClimateTools.pr_timefactor(ClimateTools.timeresolution(timevec)) == 1.
+@test ClimateTools.pr_timefactor(ClimateTools.timeresolution(timevec)) == 1.0
 @test ClimateTools.pr_timefactor("24h") == 86400.0
 @test ClimateTools.pr_timefactor("12h") == 43200.0
 @test ClimateTools.pr_timefactor("6h") == 21600.0
 @test ClimateTools.pr_timefactor("3h") == 10800.0
 @test ClimateTools.pr_timefactor("1h") == 3600.0
+
