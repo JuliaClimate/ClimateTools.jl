@@ -82,3 +82,5 @@ C = ClimGrid(axisdata)
 poly = polyfit(C)
 val = polyval(C, poly)
 D = C - val
+@test D[1] == (C - val)[1]
+
