@@ -653,6 +653,8 @@ function getperiod(rez::String)
         period = Dates.Hour(12)
     elseif rez == "24h"
         period = Dates.Hour(24)
+    elseif rez == "Yearly"
+        period = Dates.Year(1)
     else
         period = Dates.Hour(24)
     end
@@ -806,6 +808,8 @@ function timeresolution(timevec::Array{N,1} where N)
             return "3h"
         elseif round(timediff, 5) == round(1/24, 5)
             return "1h"
+        elseif round(timediff, 5) == 365.0 || round(timediff, 5) == 366.0 || round(timediff, 5) == 360.0
+            return "Yearly"
         end
     else
         return "N/A"
