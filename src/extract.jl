@@ -613,7 +613,7 @@ elseif calType == "gregorian" || calType == "standard" || calType == "proleptic_
         endDate = initDate + Base.Dates.Day(ceil(timeRaw[end]))
     else
         startDate = initDate + Base.Dates.Day(convert(Int64,floor(timeRaw[1])))
-        endDate = initDate + Base.Dates.Day(convert(Int64,ceil(timeRaw[end]))) - period
+        endDate = initDate + Base.Dates.Day(convert(Int64,ceil(timeRaw[end])))# - period
     end
     dateTmp = DateTime(startDate):period:DateTime(endDate)
 
