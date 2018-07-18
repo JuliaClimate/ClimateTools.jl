@@ -33,9 +33,11 @@ The climate indices are coded to use **multiple threads**. To gain maximum perfo
 
 ## Getting started 
 
-*Note. More in-depth documentation is provided in the official documentation.*
+*Note. More in-depth documentation is provided in the official documentation (Links: [stable](https://balinus.github.io/ClimateTools.jl/stable/)/[latest](https://balinus.github.io/ClimateTools.jl/latest/)).*
 
-`using ClimateTools`
+```julia
+using ClimateTools
+```
 
 ### Reading a NetCDF file
 
