@@ -259,7 +259,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{typeof(interp)},Tuple{Array{Float64,1}},0},Interpolations.Gridded{typeof(interp)},Interpolations.OnGrid,typeof(extrap)}}(365)
 
     # Loop over every julian days
-    println("Estimating transfer funtions...This can take a while.")
+    println("Estimating transfer functions...This can take a while.")
     # p = Progress(length(days), 1)
     Threads.@threads for ijulian in days
         # Index of ijulian ± window
