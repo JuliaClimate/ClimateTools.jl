@@ -11,7 +11,7 @@ Options for data_units are for precipitation : "mm", which converts the usual "k
 
 Temporal subsetting can be done by providing start_date and end-date Tuples of length 1 (year), length 3 (year, month, day) or 6 (hour, minute, second).
 
-**Note:** load uses [CF conventions](http://cfconventions.org/). If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in the [NetCDF.jl package](https://github.com/JuliaGeo/NetCDF.jl).
+**Note:** load uses [CF conventions](http://cfconventions.org/). If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in [NetCDF.jl package](https://github.com/JuliaGeo/NetCDF.jl) or [NCDatasets.jl](https://github.com/Alexander-Barth/NCDatasets.jl) or re-create standartized netCDF files.
 """
 
 function load(file::String, variable::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
@@ -934,8 +934,10 @@ end
 Return the temporal subset of ClimGrid C based on months.
 """
 function periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)
+
     @argcheck startmonth >= minimum(Dates.month.(C[1][Axis{:time}][:]))
     @argcheck startmonth <= maximum(Dates.month.(C[1][Axis{:time}][:]))
+
     if startmonth <= endmonth
         # Each matrix [:,:,i] represent data for a day
         datain = C.data.data
@@ -950,6 +952,7 @@ function periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)
         lonsymbol = Symbol(C.dimension_dict["lon"])
         latsymbol = Symbol(C.dimension_dict["lat"])
         axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]),    Axis{:time}(datevecout))
+
     elseif endmonth < startmonth
         # Each matrix [:,:,i] represent data for a day
         datain = C.data.data
@@ -972,7 +975,7 @@ end
 """
     periodsubset(C::ClimGrid, season::String)
 
-Return the temporal subset of ClimGrid C for a given season. Season options are : "DJF" (December-February; Winter), "MAM" (March-May; Spring), "JJA" (June-August; Summer), "SON" (September-November; Fall)
+Return the temporal subset of ClimGrid C for a given season. Season options are: "DJF" (December-February), "MAM" (March-May), "JJA" (June-August), "SON" (September-November)
 """
 function periodsubset(C::ClimGrid, season::String)
     if lowercase(season) == "djf"
@@ -1001,7 +1004,6 @@ institute_id(attrib::NCDatasets.Attributes) = get(attrib,"institute_id",get(attr
 frequency_var(attrib::NCDatasets.Attributes) = get(attrib,"frequency","N/A")
 
 runsim_id(attrib::NCDatasets.Attributes) = get(attrib, "parent_experiment_rip", get(attrib,"driving_model_ensemble_member","N/A"))
-
 
 
 function getdim_lat(ds::NCDatasets.Dataset)

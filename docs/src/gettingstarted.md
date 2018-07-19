@@ -70,7 +70,9 @@ struct ClimGrid
 end
 ```
 
-### Subsetting
+## Subsetting
+
+### Spatial
 
 Once the data is loaded in a `ClimGrid` struct, options to further subset the data are available.
 
@@ -80,8 +82,20 @@ There is a `spatialsubset` function which acts on `ClimGrid` type and further su
 C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
 ```
 
+### Temporal
+
 Temporal subset of the data is also possible with the `temporalsubset` function:
 
 ```julia
 C = temporalsubset(C::ClimGrid, startdate::Tuple, enddate::Tuple)
+```
+
+### Discontinuous temporal
+
+It is also possible to only keep a given non-continuous period for a given timeframe. For example, we might be interested in keeping only northern summer months (June-July-August) from a continuous ClimGrid covering 1961-2100. `periodsubset` returns such a subsetted ClimGrid.
+
+```julia
+Csub = periodsubset(C, "JJA") # hardcoded ClimateTools's season
+Csub = periodsubset(C, 6, 8) # custom subset example for June-July-August
+Csub = periodsubset(C, 1, 2) # custom subset example for January-February
 ```
