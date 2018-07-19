@@ -109,7 +109,31 @@ var documenterSearchIndex = {"docs": [
     "page": "Getting started",
     "title": "Subsetting",
     "category": "section",
-    "text": "Once the data is loaded in a ClimGrid struct, options to further subset the data are available.There is a spatialsubset function which acts on ClimGrid type and further subset the data through a spatial subset using a provided polygon. The function returns a ClimGrid. Polygons needs to be on a -180, +180 longitude coordinates, as data coordinates defaults to such grid. For instance, global models are often on a 0-360 degrees grid but the load function shift the data onto a -180,+180 coordinates.C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)Temporal subset of the data is also possible with the temporalsubset function:C = temporalsubset(C::ClimGrid, startdate::Tuple, enddate::Tuple)"
+    "text": ""
+},
+
+{
+    "location": "gettingstarted.html#Spatial-1",
+    "page": "Getting started",
+    "title": "Spatial",
+    "category": "section",
+    "text": "Once the data is loaded in a ClimGrid struct, options to further subset the data are available.There is a spatialsubset function which acts on ClimGrid type and further subset the data through a spatial subset using a provided polygon. The function returns a ClimGrid. Polygons needs to be on a -180, +180 longitude coordinates, as data coordinates defaults to such grid. For instance, global models are often on a 0-360 degrees grid but the load function shift the data onto a -180,+180 coordinates.C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)"
+},
+
+{
+    "location": "gettingstarted.html#Temporal-1",
+    "page": "Getting started",
+    "title": "Temporal",
+    "category": "section",
+    "text": "Temporal subset of the data is also possible with the temporalsubset function:C = temporalsubset(C::ClimGrid, startdate::Tuple, enddate::Tuple)"
+},
+
+{
+    "location": "gettingstarted.html#Discontinuous-temporal-1",
+    "page": "Getting started",
+    "title": "Discontinuous temporal",
+    "category": "section",
+    "text": "It is also possible to only keep a given non-continuous period for a given timeframe. For example, we might be interested in keeping only northern summer months (June-July-August) from a continuous ClimGrid covering 1961-2100. periodsubset returns such a subsetted ClimGrid.Csub = periodsubset(C, \"JJA\") # hardcoded ClimateTools\'s season\nCsub = periodsubset(C, 6, 8) # custom subset example for June-July-August\nCsub = periodsubset(C, 1, 2) # custom subset example for January-February"
 },
 
 {
@@ -645,7 +669,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.load",
     "category": "method",
-    "text": "load(file::String, variable::String; poly = Array{Float64}([]), start_date::Tuple, end_date::Tuple, data_units::String = \"\")\n\nReturns a ClimGrid type with the data in file of variable var inside the polygon poly. Metadata is built-in the ClimGrid type, from the netCDF attributes.\n\nInside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude/x and latitude/y dimensions.\n\nThe polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).\n\nOptions for data_units are for precipitation : \"mm\", which converts the usual \"kg m-2 s-1\" unit found in netCDF files. For temperature : \"Celsius\", which converts the usual \"Kelvin\" unit.\n\nTemporal subsetting can be done by providing start_date and end-date Tuples of length 1 (year), length 3 (year, month, day) or 6 (hour, minute, second).\n\nNote: load uses CF conventions. If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in the NetCDF.jl package.\n\n\n\n"
+    "text": "load(file::String, variable::String; poly = Array{Float64}([]), start_date::Tuple, end_date::Tuple, data_units::String = \"\")\n\nReturns a ClimGrid type with the data in file of variable var inside the polygon poly. Metadata is built-in the ClimGrid type, from the netCDF attributes.\n\nInside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude/x and latitude/y dimensions.\n\nThe polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).\n\nOptions for data_units are for precipitation : \"mm\", which converts the usual \"kg m-2 s-1\" unit found in netCDF files. For temperature : \"Celsius\", which converts the usual \"Kelvin\" unit.\n\nTemporal subsetting can be done by providing start_date and end-date Tuples of length 1 (year), length 3 (year, month, day) or 6 (hour, minute, second).\n\nNote: load uses CF conventions. If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in NetCDF.jl package or NCDatasets.jl or re-create standartized netCDF files.\n\n\n\n"
 },
 
 {
@@ -717,7 +741,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.periodsubset",
     "category": "method",
-    "text": "periodsubset(C::ClimGrid, season::String)\n\nReturn the temporal subset of ClimGrid C for a given season. Season options are : \"DJF\" (December-February; Winter), \"MAM\" (March-May; Spring), \"JJA\" (June-August; Summer), \"SON\" (September-November; Fall)\n\n\n\n"
+    "text": "periodsubset(C::ClimGrid, season::String)\n\nReturn the temporal subset of ClimGrid C for a given season. Season options are: \"DJF\" (December-February), \"MAM\" (March-May), \"JJA\" (June-August), \"SON\" (September-November)\n\n\n\n"
 },
 
 {
