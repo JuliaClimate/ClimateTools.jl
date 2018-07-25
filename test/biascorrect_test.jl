@@ -13,7 +13,7 @@ fut = obs * 1.05
 D = qqmap(obs, ref, fut, method = "Additive", detrend=false)
 @test D[1][1, 1, 1] == -0.5560268761463861
 D = qqmap(obs, ref, fut, method = "Additive", detrend=true)
-@test round(D[1][1, 1, 1], 5) == -0.55603#74620422795
+@test round(D[1][1, 1, 1], 2) == -0.56#5603#74620422795
 
 srand(42)
 data = randn(2, 2, 10957)
