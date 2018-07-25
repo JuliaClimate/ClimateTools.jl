@@ -3,7 +3,7 @@
 
 Maps the time-mean average of ClimGrid C. If a filename is provided, the figure is saved in a png format.
 
-Optional keyworkd includes precribed regions (keyword *region*, see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword *level* is used to map a given level (defaults to 1). *caxis* is used to limit the colorscale. *ncolors* is used to set the number of color classes (defaults to 12). Set *center_cs* to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature). *cs_label* is used for custom colorscale label.
+Optional keyworkd includes precribed regions (keyword *region*, see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword *level* is used to map a given level (defaults to 1). *caxis* is used to limit the colorscale. *cm* is used to manually set the colorscale, *ncolors* is used to set the number of color classes (defaults to 12). Set *center_cs* to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature). *cs_label* is used for custom colorscale label.
 
 ## Arguments for keyword *region* (and shortcuts)
 - Europe ("EU")
@@ -19,7 +19,7 @@ Optional keyworkd includes precribed regions (keyword *region*, see list below),
 - :contourf
 - :pcolormesh
 """
-function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", surface::Symbol=:contourf, ncolors::Int=12, center_cs::Bool=false, filename::String="", cs_label::String="")
+function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", surface::Symbol=:contourf, cm::String="", ncolors::Int=12, center_cs::Bool=false, filename::String="", cs_label::String="")
 
   # TODO Add options for custom region
 
@@ -43,20 +43,20 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   # =============
   # Colorscale
   # TODO replace C[10] comparison with C.varattribs["standard_name"]
-
-  if C[10] == "pr" || C[10]=="huss"
+  if isempty(cm)
+    if C[10] == "pr" || C[10]=="huss"
       # cm = "YlGnBu"
       cm = cmocean[:cm][:deep]
-  elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin"
+    elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin" || C[10] == "wbgtmean" || C[10] == "wbgtmax"
+      cm = "RdYlBu_r"
 
-    cm = "RdYlBu_r"
-
-  elseif C[10]=="psl" # pressure
+    elseif C[10]=="psl" || C[10]=="vp" # pressure
       cm = cmocean[:cm][:deep_r]
-  elseif C[10]=="ua" # wind
+    elseif C[10]=="ua" # wind
       cm = cmocean[:cm][:balance]
-  else
+    else
       cm = "viridis"
+    end
   end
 
   # overide colorscale if we want to center scale
