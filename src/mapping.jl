@@ -1,9 +1,9 @@
 """
-    mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Tuple, end_date::Tuple, titlestr::String, surface::Symbol, ncolors::Int, center_cs::Bool, filename::String, cs_label::String)
+    mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Tuple, end_date::Tuple, titlestr::String, surface::Symbol, cm::String="", ncolors::Int, center_cs::Bool, filename::String, cs_label::String)
 
 Maps the time-mean average of ClimGrid C. If a filename is provided, the figure is saved in a png format.
 
-Optional keyworkd includes precribed regions (keyword *region*, see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword *level* is used to map a given level (defaults to 1). *caxis* is used to limit the colorscale. *cm* is used to manually set the colorscale, *ncolors* is used to set the number of color classes (defaults to 12). Set *center_cs* to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature). *cs_label* is used for custom colorscale label.
+Optional keyworkd includes precribed regions (keyword *region*, see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword *level* is used to map a given level (defaults to 1). *caxis* is used to limit the colorscale. *cm* is used to manually set the colorscale (see Python documentation for native colorscale keyword), *ncolors* is used to set the number of color classes (defaults to 12). Set *center_cs* to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature). *cs_label* is used for custom colorscale label.
 
 ## Arguments for keyword *region* (and shortcuts)
 - Europe ("EU")
@@ -49,7 +49,6 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
       cm = cmocean[:cm][:deep]
     elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin" || C[10] == "wbgtmean" || C[10] == "wbgtmax"
       cm = "RdYlBu_r"
-
     elseif C[10]=="psl" || C[10]=="vp" # pressure
       cm = cmocean[:cm][:deep_r]
     elseif C[10]=="ua" # wind
@@ -59,8 +58,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
     end
   end
 
-  # overide colorscale if we want to center scale
-
+  # overide colorscale if the user specify to center the colorscale
   if center_cs
       cm = "RdBu_r"
   end
