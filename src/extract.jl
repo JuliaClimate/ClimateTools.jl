@@ -610,10 +610,10 @@ elseif calType == "gregorian" || calType == "standard" || calType == "proleptic_
     if typeof(timeRaw[1]) == Int8 || typeof(timeRaw[1]) == Int16 || typeof(timeRaw[1]) == Int32 || typeof(timeRaw[1]) == Int64
 
         startDate = initDate + Base.Dates.Day(floor(timeRaw[1]))
-        endDate = initDate + Base.Dates.Day(ceil(timeRaw[end]))
+        endDate = initDate + Base.Dates.Day(floor(timeRaw[end]))
     else
         startDate = initDate + Base.Dates.Day(convert(Int64,floor(timeRaw[1])))
-        endDate = initDate + Base.Dates.Day(convert(Int64,ceil(timeRaw[end])))# - period
+        endDate = initDate + Base.Dates.Day(convert(Int64,floor(timeRaw[end])))# - period
     end
     dateTmp = DateTime(startDate):period:DateTime(endDate)
 
