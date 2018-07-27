@@ -618,7 +618,7 @@ elseif calType == "gregorian" || calType == "standard" || calType == "proleptic_
     dateTmp = DateTime(startDate):period:DateTime(endDate)
 
 elseif calType == "360_day"
-    throw(error("360_day yype of calendar not yet supported"))
+    throw(error("360_day type of calendar not yet supported"))
 
     # timeRaw = floor.(NetCDF.ncread(str, "time"))
     leapDaysPer = sumleapyear(initDate, timeRaw[1] - 1)
