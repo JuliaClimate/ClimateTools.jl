@@ -251,7 +251,6 @@ end
 
 Returns minimum and maximum values of the colorscale axis. Used internally by [`mapclimgrid`](@ref).
 """
-
 function getcslimits(caxis, data, center_cs)
 
     if !isempty(caxis)
@@ -276,7 +275,6 @@ end
 
 Returns an array for mapping purpose. Used internally by [`mapclimgrid`](@ref).
 """
-
 function timeavg(C, timebeg, timeend, mask, poly, level)
     data2 = Array{Float64}(size(C[1], 2), size(C[1], 3))
     if ndims(C[1]) == 3
@@ -311,7 +309,6 @@ end
 
 Returns the title. Used internally by [`mapclimgrid`](@ref).
 """
-
 function titledef(C::ClimGrid)
     if ndims(C[1]) > 2
 
@@ -340,7 +337,6 @@ end
 
 Return verbose label for colorbar. Used internally by [`mapclimgrid`](@ref).
 """
-
 function getunitslabel(C::ClimGrid)
 
     try

@@ -70,17 +70,16 @@ end
 
 This function creates a 2-D mesh-grid in a format consistent with Matlab's function ndgrid(). XV and YV are vectors.
 """
-
 ndgrid(v::AbstractVector) = copy(v)
 
-function ndgrid{T}(v1::AbstractVector{T}, v2::AbstractVector{T})
+function ndgrid(v1::AbstractVector{T}, v2::AbstractVector{T}) where T
     m, n = length(v1), length(v2)
     v1 = reshape(v1, m, 1)
     v2 = reshape(v2, 1, n)
     (repmat(v1, 1, n), repmat(v2, m, 1))
 end
 
-function ndgrid{T}(vs::AbstractVector{T}...)
+function ndgrid(vs::AbstractVector{T}...) where T
     n = length(vs)
     sz = map(length, vs)
     out = ntuple(i->Array{T}(sz), n)
@@ -102,15 +101,15 @@ meshgrid(v::AbstractVector) = meshgrid(v, v)
 
 This function creates a 2-D mesh-grid in a format consistent with Matlab's function meshgrid(). XV and YV are vectors.
 """
-function meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T})
+function meshgrid(vx::AbstractVector{T}, vy::AbstractVector{T}) where T
     m, n = length(vy), length(vx)
     vx = reshape(vx, 1, n)
     vy = reshape(vy, m, 1)
     (repmat(vx, m, 1), repmat(vy, 1, n))
 end
 
-function meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T},
-    vz::AbstractVector{T})
+function meshgrid(vx::AbstractVector{T}, vy::AbstractVector{T},
+    vz::AbstractVector{T}) where T
     m, n, o = length(vy), length(vx), length(vz)
     vx = reshape(vx, 1, n, 1)
     vy = reshape(vy, m, 1, 1)
@@ -170,6 +169,7 @@ function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} wh
 
 end
 
+# TODO define interpolation for 4D grid
 
 """
     C = regrid(A::ClimGrid, B::ClimGrid; method="linear", min=[], max=[])
@@ -180,7 +180,6 @@ where A and B are `ClimGrid`. Available methods for interpolation are "linear" (
 Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.
 
 """
-# TODO define interpolation for 4D grid
 function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[])
 
     # ---------------------------------------
@@ -295,7 +294,6 @@ end
 
 Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `regrid`.
 """
-
 function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk=[])
 
     p = Progress(length(timeorig), 5, "Regridding: ")
@@ -333,7 +331,7 @@ end
 """
     applymask(A::AbstractArray{N, n}, mask::AbstractArray{N, n})
 
-This function applies a mask on the array A. Return an AbstractArray{N, n}.
+Applies a mask on the array A. Return an AbstractArray{N, n}.
 
 """
 function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} where N)

@@ -11,9 +11,6 @@ end
 
 Annual number with preciptation >= 1 mm. This function returns a ClimGrid.
 """
-
-# TODO add check for units. important for threshold indices
-
 function prcp1(C::ClimGrid)
   @argcheck C[9] == "pr"
   years    = Dates.year.(C.data[Axis{:time}][:])
@@ -91,7 +88,6 @@ Let TN[i,j] be daily minimum temperature on day i in year j. Count the number of
 
   TN[i,j] < 0 Celsius.
 """
-
 function frostdays(C::ClimGrid)
   @argcheck C[9] == "tasmin"
   years    = Dates.year.(C.data[Axis{:time}][:])
@@ -167,7 +163,6 @@ Let TX[i,j] be daily maximum temperature on day i in year j. Count the number of
 
   TX[i,j] > 25 Celsius.
 """
-
 function summerdays(C::ClimGrid)
   @argcheck C[9] == "tasmax"
   years    = Dates.year.(C.data[Axis{:time}][:])
@@ -244,7 +239,6 @@ Let TX[i,j] be daily maximum temperature on day i in year j. Count the number of
 
   TX[i,j] < 0 Celsius.
 """
-
 function icingdays(C::ClimGrid)
   @argcheck C[9] == "tasmax"
   years    = Dates.year.(C.data[Axis{:time}][:])
@@ -297,7 +291,6 @@ Let TN[i,j] be daily minimum temperature on day i in year j. Count the number of
 
   TN[i,j] > 20 Celsius.
 """
-
 function tropicalnights(C::ClimGrid)
   @argcheck C[9] == "tasmin"
   years    = Dates.year.(C.data[Axis{:time}][:])
@@ -373,7 +366,6 @@ Let TS[i,j] be a daily time serie value on day i in year j. Count the number of 
 
   TS[i,j] > thres.
 """
-
 function customthresover(C::ClimGrid, thres)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
@@ -448,7 +440,6 @@ Let TS[i,j] be a daily time serie value on day i in year j. Count the number of 
 
   TS[i,j] < thres.
 """
-
 function customthresunder(C::ClimGrid, thres)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
@@ -522,7 +513,6 @@ Annual maximum of array data.
 
 Let data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.
 """
-
 function annualmax(C::ClimGrid)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
@@ -605,7 +595,6 @@ Annual minimum of array data.
 
 Let data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.
 """
-
 function annualmin(C::ClimGrid)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)

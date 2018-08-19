@@ -13,9 +13,7 @@ Temporal subsetting can be done by providing start_date and end-date Tuples of l
 
 **Note:** load uses [CF conventions](http://cfconventions.org/). If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in [NetCDF.jl package](https://github.com/JuliaGeo/NetCDF.jl) or [NCDatasets.jl](https://github.com/Alexander-Barth/NCDatasets.jl) or re-create standartized netCDF files.
 """
-
 function load(file::String, variable::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
-
 
   # TODO this file is a complete mess, but it works. Clean it up!
   # TODO create another function for orography extraction (2D dataset)
@@ -283,12 +281,9 @@ end
 
 Loads and merge the files contained in the arrar files.
 """
-
-
 function load(files::Array{String,1}, variable::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
 
     C = [] # initialize # TODO better initialization
-
     nfiles = length(files)
 
     p = Progress(nfiles, 3, "Loading files: ")
@@ -306,6 +301,7 @@ function load(files::Array{String,1}, variable::String; poly = ([]), start_date:
     end
     return C
 end
+
 
 """
     load2D(file::String, variable::String; poly=[], data_units::String="")
@@ -790,9 +786,7 @@ end
 
 Return the time resolution of the vector timevec.
 
-
 """
-
 function timeresolution(timevec::Array{N,1} where N)
 
     # timevec = (NetCDF.ncread(str, "time"))
@@ -822,7 +816,6 @@ end
 Return the time factor that should be applied to precipitation to get accumulation for resolution "rez"
 
 """
-
 function pr_timefactor(rez::String)
 
     if rez == "24h"
@@ -848,7 +841,6 @@ end
 Returns the spatial subset of ClimGrid C. The spatial subset is defined by the polygon poly, defined on a -180, +180 longitude reference.
 
 """
-
 function spatialsubset(C::ClimGrid, poly::Array{N, 2} where N)
 
     # Some checks for polygon poly
@@ -910,7 +902,6 @@ end
 Returns the temporal subset of ClimGrid C. The temporal subset is defined by a start and end date.
 
 """
-
 function temporalsubset(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
 
     startdate = buildtimetype(datebeg)

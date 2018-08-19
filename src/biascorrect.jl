@@ -24,10 +24,8 @@ The quantile-quantile transfer function between **ref** and **obs** is etimated 
 **extrap = Interpolations.Flat() (default)**. The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no "inflation problem" with the bias correction. The argument is from Interpolation.jl package.
 
 """
-
 function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())
-
-        # Remove trend if specified
+    # Remove trend if specified
     if detrend == true
         # Obs
         obs = ClimateTools.correctdate(obs) # Removes 29th February
@@ -85,7 +83,6 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
 
         dataoutin[k, :] = qqmap(obsvec, refvec, futvec, days, datevec_obs, datevec_ref, datevec_fut, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap = extrap)
 
-
     end
 
     lonsymbol = Symbol(fut.dimension_dict["lon"])
@@ -103,19 +100,16 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
 
 end
 
-
 """
     qqmap(obs::Array{N, 1} where N, ref::Array{N, 1} where N, fut::Array{N, 1} where N; method="Additive", detrend=true, window=15, rankn=50, thresnan=0.1, keep_original=false, interp::Function = Linear(), extrap::Function = Flat())
 
 Quantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.
 
 """
-
 function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec::Array{N, 1} where N, days, datevec_obs, datevec_ref, datevec_fut; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())
 
     # range over which quantiles are estimated
     P = linspace(0.01, 0.99, rankn)
-
     # Get correct julian days (e.g. we can't have a mismatch of calendars between observed and models ref/fut)
     obsvec2, obs_jul, datevec_obs2 = corrjuliandays(obsvec, datevec_obs)
     refvec2, ref_jul, datevec_ref2 = corrjuliandays(refvec, datevec_ref)
@@ -197,10 +191,9 @@ partition::Float64 = 1.0. The proportion of grid-points (chosen randomly) used f
 **interp = Interpolations.Linear() (default)**. When the data to be corrected lies between 2 quantile bins, the value of the transfer function is linearly interpolated between the 2 closest quantile estimation. The argument is from Interpolations.jl package.
 
 **extrap = Interpolations.Flat() (default)**. The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no "inflation problem" with the bias correction. The argument is from Interpolation.jl package.
-"""
-# TODO what happen when there is a lot of NaNs.
-function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method::String="Additive", detrend::Bool = true, window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat())
 
+"""
+function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method::String="Additive", detrend::Bool = true, window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat())
     # Remove trend if specified
     if detrend == true
         obs = ClimateTools.correctdate(obs) # Removes 29th February
@@ -305,7 +298,6 @@ end
 Quantile-Quantile mapping bias correction with a known transfer function. For each julian day of the year, use the right transfert function to correct *fut* values.
 
 """
-
 function qqmap(fut::ClimGrid, ITP::TransferFunction)
     if ITP.detrend == true
         fut = correctdate(fut) # Removes 29th February
@@ -319,35 +311,26 @@ function qqmap(fut::ClimGrid, ITP::TransferFunction)
     days = minimum(fut_jul):maximum(fut_jul)
     # Prepare output array
     dataout = fill(NaN, (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{N, T} where N where T
-    # Progress meters
-    # Loop over every points
-    # for k = 1:size(fut[1], 2)
-    #     for j = 1:size(fut[1], 1)
-    #         futvec2, fut_jul, datevec_fut2 = corrjuliandays(fut[1][j,k,:].data, datevec_fut)
-            # futvec_corr = similar(futvec2, (size(futvec2)))
-            # Loop over every julian day
-            Threads.@threads for ijulian in days
-                idxfut = (fut_jul .== ijulian)
-                # Value to correct
-                # futval = futvec2[idxfut]
-                futval = fut[1][:,:,idxfut].data
-                # Transfert function for ijulian
-                itp = ITP.itp[ijulian]
-                # Correct futval
-                if lowercase(ITP.method) == "additive" # used for temperature
-                    futnew = itp[futval] .+ futval
-                elseif lowercase(ITP.method) == "multiplicative" # used for precipitation
-                    futnew = itp[futval] .* futval
-                else
-                    error("Wrong method")
-                end
-                # futvec_corr[idxfut] = futnew
-                dataout[:,:,idxfut] = futnew
-            end
-            # dataout[j,k,:] = futvec_corr
-    #     end
-    #     next!(p)
-    # end
+
+    Threads.@threads for ijulian in days
+        idxfut = (fut_jul .== ijulian)
+        # Value to correct
+        # futval = futvec2[idxfut]
+        futval = fut[1][:,:,idxfut].data
+        # Transfert function for ijulian
+        itp = ITP.itp[ijulian]
+        # Correct futval
+        if lowercase(ITP.method) == "additive" # used for temperature
+            futnew = itp[futval] .+ futval
+        elseif lowercase(ITP.method) == "multiplicative" # used for precipitation
+            futnew = itp[futval] .* futval
+        else
+            error("Wrong method")
+        end
+        # futvec_corr[idxfut] = futnew
+        dataout[:,:,idxfut] = futnew
+    end
+
     lonsymbol = Symbol(fut.dimension_dict["lon"])
     latsymbol = Symbol(fut.dimension_dict["lat"])
 
@@ -428,7 +411,6 @@ end
 
 Returns the leap years contained into datevec.
 """
-
 function leapyears(datevec)
 
     years = unique(Dates.year.(datevec))
@@ -439,20 +421,14 @@ function leapyears(datevec)
 end
 
 function find_julianday_idx(julnb, ijulian, window)
-
     if ijulian <= window
         idx = @. (julnb >= 1) & (julnb <= (ijulian + window)) | (julnb >= (365 - (window - ijulian))) & (julnb <= 365)
-
     elseif ijulian > 365 - window
         idx = @. (julnb >= 1) & (julnb <= ((window-(365-ijulian)))) | (julnb >= (ijulian-window)) & (julnb <= 365)
-
     else
         idx = @. (julnb <= (ijulian + window)) & (julnb >= (ijulian - window))
     end
-
     return idx
-
-
 end
 
 """

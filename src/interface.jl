@@ -24,7 +24,6 @@ end
 
 Combines two ClimGrid. Based on the AxisArrays method.
 """
-
 function Base.merge(A::ClimGrid, B::ClimGrid)
     axisArray = merge(A.data, B.data)
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
@@ -192,7 +191,6 @@ Base.show(io::IO, ::MIME"text/plain", ITP::TransferFunction) = print(io, "Transf
 
 Return the index of time vector specified by start_date and end_date. Provide timestep "freq" to account for monthly timestep.
 """
-
 function timeindex(timeV, datebeg::Tuple, dateend::Tuple, frequency)
 
     # Start Date
@@ -242,7 +240,6 @@ end
 
 Returns the adequate DateTime for temporal subsetting.
 """
-
 function buildtimetype(datetuple)
 
     if length(datetuple) == 1

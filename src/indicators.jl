@@ -75,7 +75,7 @@ function approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid
 
   # Calculate the estimated surface pressure
   exponent = (-1.0 .* orography.data) ./ (18400.0 .* daily_temperature.data ./ 273.15)
-  ps_arraytmp = sealevel_pressure.data .* (10.^exponent)
+  ps_arraytmp = sealevel_pressure.data .* (10.0^exponent)
   ps_array = buildarrayinterface(ps_arraytmp, sealevel_pressure)
 
   # Build dictionary for the variable vp
