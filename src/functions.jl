@@ -70,7 +70,6 @@ end
 
 This function creates a 2-D mesh-grid in a format consistent with Matlab's function ndgrid(). XV and YV are vectors.
 """
-
 ndgrid(v::AbstractVector) = copy(v)
 
 function ndgrid{T}(v1::AbstractVector{T}, v2::AbstractVector{T})
@@ -170,6 +169,7 @@ function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} wh
 
 end
 
+# TODO define interpolation for 4D grid
 
 """
     C = regrid(A::ClimGrid, B::ClimGrid; method="linear", min=[], max=[])
@@ -180,7 +180,6 @@ where A and B are `ClimGrid`. Available methods for interpolation are "linear" (
 Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.
 
 """
-# TODO define interpolation for 4D grid
 function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[])
 
     # ---------------------------------------
@@ -295,7 +294,6 @@ end
 
 Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `regrid`.
 """
-
 function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk=[])
 
     p = Progress(length(timeorig), 5, "Regridding: ")
@@ -333,7 +331,7 @@ end
 """
     applymask(A::AbstractArray{N, n}, mask::AbstractArray{N, n})
 
-This function applies a mask on the array A. Return an AbstractArray{N, n}.
+Applies a mask on the array A. Return an AbstractArray{N, n}.
 
 """
 function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} where N)

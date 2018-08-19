@@ -15,6 +15,7 @@ using PyPlot
 using Interpolations
 using ProgressMeter
 using Polynomials
+using Statistics
 import Base.vcat
 import Base.getindex
 import Base.show
@@ -50,13 +51,12 @@ function __init__()
 end
 
 # TYPES
-# TODO Less stringent grid type in AxisArrays. Conform more closely to CF conventions. Add information on grid type.
+
 """
     ClimGrid{A <: AxisArray}
 
 In-memory representation of Climate Forecast netCDF files.
 """
-
 struct ClimGrid{A <: AxisArray}
   data::A
   longrid::Array{N,T} where N where T
@@ -74,7 +74,7 @@ struct ClimGrid{A <: AxisArray}
   dataunits::String
   latunits::String # of the coordinate variable
   lonunits::String # of the coordinate variable
-  variable::String # Type of variable (i.e. can be the same as "var", but it is changed when calculating indices)
+  variable::String # Type of variable 
   typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
   typeofcal::String # Calendar type
   varattribs::Dict # Variable attributes
@@ -87,7 +87,6 @@ end
 
 Constructor of the ClimGrid function. Data is an AxisArray. Everything else is optional, but usually needed for further processing (mapping, interpolation, etc...).
 """
-
 function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), model="NA", frequency="NA", experiment="NA", run="NA", project="NA", institute="NA", filename="NA", dataunits="NA", latunits="NA", lonunits="NA", variable="NA", typeofvar="NA", typeofcal="NA", varattribs=Dict(), globalattribs=Dict())
 
     if isempty(dimension_dict)
