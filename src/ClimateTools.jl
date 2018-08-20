@@ -26,9 +26,9 @@ import Base.setindex!
 import Base.similar
 import Base.minimum
 import Base.maximum
-import Base.std
-import Base.var
-import Base.mean
+# import Base.std
+# import Base.var
+# import Base.mean
 import Base: +
 import Base: -
 import Base: *
