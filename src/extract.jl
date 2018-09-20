@@ -558,7 +558,7 @@ function buildtimevec(str::String, rez)
   units = NetCDF.ncgetatt(str, "time", "units") # get starting date
   # m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1)
   m = match(r"(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})", units, 1) # match a date from string
-  if isempty(fieldnames(m))#@isdefined m.captures
+  if isempty(fieldnames(typeof(m)))#@isdefined m.captures
       m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1)
   end
 
@@ -583,8 +583,8 @@ function buildtimevec(str::String, rez)
 
     leapDaysPer = sumleapyear(initDate, timeRaw[1] - 1)
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
-    startDate = initDate + Base.Dates.Day(convert(Int64, floor(timeRaw[1]))) + Base.Dates.Day(leapDaysPer)
-    endDate = initDate + Base.Dates.Day(convert(Int64, ceil(timeRaw[end]))) + Base.Dates.Day(leapDaysPer2) - period
+    startDate = initDate + Dates.Day(convert(Int64, floor(timeRaw[1]))) + Dates.Day(leapDaysPer)
+    endDate = initDate + Dates.Day(convert(Int64, ceil(timeRaw[end]))) + Dates.Day(leapDaysPer2) - period
 
     # period = getperiod(rez)
 
@@ -605,11 +605,11 @@ elseif calType == "gregorian" || calType == "standard" || calType == "proleptic_
 
     if typeof(timeRaw[1]) == Int8 || typeof(timeRaw[1]) == Int16 || typeof(timeRaw[1]) == Int32 || typeof(timeRaw[1]) == Int64
 
-        startDate = initDate + Base.Dates.Day(floor(timeRaw[1]))
-        endDate = initDate + Base.Dates.Day(floor(timeRaw[end]))
+        startDate = initDate + Dates.Day(floor(timeRaw[1]))
+        endDate = initDate + Dates.Day(floor(timeRaw[end]))
     else
-        startDate = initDate + Base.Dates.Day(convert(Int64,floor(timeRaw[1])))
-        endDate = initDate + Base.Dates.Day(convert(Int64,floor(timeRaw[end])))# - period
+        startDate = initDate + Dates.Day(convert(Int64,floor(timeRaw[1])))
+        endDate = initDate + Dates.Day(convert(Int64,floor(timeRaw[end])))# - period
     end
     dateTmp = DateTime(startDate):period:DateTime(endDate)
 
@@ -620,8 +620,8 @@ elseif calType == "360_day"
     leapDaysPer = sumleapyear(initDate, timeRaw[1] - 1)
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
 
-    startDate = initDate + Base.Dates.Day(convert(Int64, round(timeRaw[1]))) + Base.Dates.Day(leapDaysPer)
-    endDate = initDate + Base.Dates.Day(convert(Int64, round(timeRaw[end]))) + Base.Dates.Day(leapDaysPer2)
+    startDate = initDate + Dates.Day(convert(Int64, round(timeRaw[1]))) + Dates.Day(leapDaysPer)
+    endDate = initDate + Dates.Day(convert(Int64, round(timeRaw[end]))) + Dates.Day(leapDaysPer2)
 
     dateTmp = DateTime(startDate):period:DateTime(endDate)
 
@@ -662,15 +662,15 @@ end
 """
 Number of leap years in date vector
 
-    sumleapyear(dates::StepRange{Date,Base.Dates.Day})
+    sumleapyear(dates::StepRange{Date, Dates.Day})
 
     sumleapyear(initDate::Date, timeRaw)
 """
 function sumleapyear(initDate::Dates.TimeType, timeRaw)
 
   out = 0::Int
-  endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
-  years = unique(Dates.year.(initDate:endDate))
+  endDate = initDate + Dates.Day(convert(Int64,round(timeRaw[1])))
+  years = unique(Dates.year.(initDate:Day(1):endDate))
   # Sum over time vector
   for idx = 1:length(years)
     if Dates.isleapyear(years[idx])
@@ -683,10 +683,10 @@ function sumleapyear(initDate::Dates.TimeType, timeRaw)
 
 end
 
-function sumleapyear(dates::StepRange{Date,Base.Dates.Day})
+function sumleapyear(dates::StepRange{Date, Dates.Day})
 
   out = 0::Int
-  endDate = dates[end]#initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
+  endDate = dates[end]#initDate + Dates.Day(convert(Int64,round(timeRaw[1])))
   years = unique(Dates.year.(dates))
   # Sum over time vector
   for idx = 1:length(years)
@@ -1126,7 +1126,11 @@ Returns the data contained in netCDF file, using the appropriate mask and time i
 """
 function extractdata(data, msk, idxtimebeg, idxtimeend)
 
-    idlon, idlat = findn(.!isnan.(msk))
+    # idlon, idlat = findn(.!isnan.(msk))
+    begin
+        I = findall(!isnan, msk)
+        idlon, idlat = (getindex.(I, 1), getindex.(I, 2))
+    end
     minXgrid = minimum(idlon)
     maxXgrid = maximum(idlon)
     minYgrid = minimum(idlat)

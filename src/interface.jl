@@ -98,7 +98,7 @@ end
 
 Compute the mean of `ClimGrid` A
 """
-Base.mean(A::ClimGrid) = mean(A[1])
+mean(A::ClimGrid) = mean(A[1])
 
 """
     minimum(A::ClimGrid)
@@ -119,14 +119,14 @@ Base.maximum(A::ClimGrid) = maximum(A[1])
 
 Compute the standard deviation of `ClimGrid` A
 """
-Base.std(A::ClimGrid) = std(A[1])
+std(A::ClimGrid) = std(A[1])
 
 """
     var(A::ClimGrid)
 
 Compute the variance of `ClimGrid` A
 """
-Base.var(A::ClimGrid) = var(A[1])
+var(A::ClimGrid) = var(A[1])
 
 
 function getindex(C::ClimGrid,i::Int)
