@@ -13,7 +13,7 @@ fut = obs * 1.05
 D = qqmap(obs, ref, fut, method = "Additive", detrend=false)
 @test D[1][1, 1, 1] == -0.5560268761463861
 D = qqmap(obs, ref, fut, method = "Additive", detrend=true)
-@test round(D[1][1, 1, 1], 2) == -0.56#5603#74620422795
+@test round(D[1][1, 1, 1], digits=2) == -0.56#5603#74620422795
 
 srand(42)
 data = randn(2, 2, 10957)
@@ -34,7 +34,7 @@ obs = ClimGrid(axisdata, variable = "tasmax", dimension_dict=dimension_dict)
 ref = obs - 3
 
 ITP = qqmaptf(obs, ref, partition=0.5, detrend = false)
-@test round(ITP.itp[rand(1:365)][randn(1)][1],10) == 3.0
+@test round(ITP.itp[rand(1:365)][randn(1)][1], digits=10) == 3.0
 
 # interface
 @test replstr(ITP) == "TransferFunction type with fields *itp*, *method* and *detrend*\nInterpolation array: (365,) transfer functions\nMethod: Additive\nDetrended: false"
@@ -55,17 +55,17 @@ obs = ClimGrid(axisdata, variable = "tasmax", dimension_dict=dimension_dict)
 ref = obs - 3
 
 ITP = qqmaptf(obs, ref, partition=0.5, detrend = true)
-@test round(ITP.itp[rand(1:365)][randn(1)][1],1) == 3.0
+@test round(ITP.itp[rand(1:365)][randn(1)][1], digits=1) == 3.0
 
 fut = obs - 3
 D = qqmap(fut, ITP)
-@test round(D[1][1, 1, 1], 2) == -0.56#5599#11004056662
+@test round(D[1][1, 1, 1], digits=2) == -0.56#5599#11004056662
 
 ITP = qqmaptf(obs, ref, partition=0.5, detrend = true, method="multiplicative")
-@test round(ITP.itp[rand(1:365)][randn(1)][1],1) == 0.0
+@test round(ITP.itp[rand(1:365)][randn(1)][1], digits=1) == 0.0
 fut = obs - 3
 D = qqmap(fut, ITP)
-@test round(D[1][1, 1, 1], 2) == -0.56#603#75611239462
+@test round(D[1][1, 1, 1], digits=2) == -0.56#603#75611239462
 
 
 # Create a ClimGrid with a clear trend
