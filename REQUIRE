@@ -1,4 +1,4 @@
-julia 0.7-alpha
+julia 0.7
 NetCDF 0.4.1
 Shapefile 0.2.0
 AxisArrays 0.1.3
