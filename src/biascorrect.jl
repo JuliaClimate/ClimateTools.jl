@@ -109,7 +109,7 @@ Quantile-Quantile mapping bias correction for single vector. This is a low level
 function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec::Array{N, 1} where N, days, datevec_obs, datevec_ref, datevec_fut; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())
 
     # range over which quantiles are estimated
-    P = linspace(0.01, 0.99, rankn)
+    P = range(0.01, stop=0.99, length=rankn)
     # Get correct julian days (e.g. we can't have a mismatch of calendars between observed and models ref/fut)
     obsvec2, obs_jul, datevec_obs2 = corrjuliandays(obsvec, datevec_obs)
     refvec2, ref_jul, datevec_ref2 = corrjuliandays(refvec, datevec_ref)
@@ -209,7 +209,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     @argcheck size(obs[1], 2) == size(ref[1], 2)
 
     # range over which quantiles are estimated
-    P = linspace(0.01, 0.99, rankn)
+    P = range(0.01, stop=0.99, length=rankn)
 
     #Get date vectors
     datevec_obs = obs[1][Axis{:time}][:]
@@ -249,7 +249,7 @@ function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method:
     X, Y = meshgrid(x, y)
 
     # Initialization of the output
-    ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{typeof(interp)},Tuple{Array{Float64,1}},0},Interpolations.Gridded{typeof(interp)},Interpolations.OnGrid,typeof(extrap)}}(365)
+    ITP = Array{Interpolations.Extrapolation{Float64,1,Interpolations.GriddedInterpolation{Float64,1,Float64,Interpolations.Gridded{typeof(interp)},Tuple{Array{Float64,1}},0},Interpolations.Gridded{typeof(interp)},Interpolations.OnGrid,typeof(extrap)}}(undef, 365)
 
     # Loop over every julian days
     println("Estimating transfer functions...This can take a while.")

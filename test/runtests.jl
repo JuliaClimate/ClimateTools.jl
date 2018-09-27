@@ -1,7 +1,7 @@
 using ClimateTools
 using AxisArrays
 # using Lint
-using Base.Test
+using Test
 
 include("interface_test.jl")
 include("indices_test.jl")

@@ -54,7 +54,7 @@ B = C * 2.2; @test B[1].data[1, 1, 1] == 482.2902801513672
 @test maximum(C) == 309.09613f0
 @test minimum(C) == 205.24321f0
 @test std(C) == 21.92836f0
-@test round(var(C), 3) == 480.853f0
+@test round(var(C), digits=3) == 480.853f0
 
 # @test typeof(show(C)) == Dict{Any, Any}
 @test typeof(C[1].data) == Array{Float64,3} || typeof(C[1].data) == Array{Float32,3}
@@ -131,9 +131,9 @@ YV = [1, 2, 3]
 XV = [4, 5, 6]
 @test meshgrid(XV, YV) == ([4 5 6; 4 5 6; 4 5 6], [1 1 1; 2 2 2; 3 3 3])
 @test meshgrid(XV) == ([4 5 6; 4 5 6; 4 5 6], [4 4 4; 5 5 5; 6 6 6])
-Q = Array{Int64, 3}(3, 3, 3)
-R = Array{Int64, 3}(3, 3, 3)
-S = Array{Int64, 3}(3, 3, 3)
+Q = Array{Int64, 3}(undef, 3, 3, 3)
+R = Array{Int64, 3}(undef, 3, 3, 3)
+S = Array{Int64, 3}(undef, 3, 3, 3)
 Q[:, :, 1] = [4 5 6; 4 5 6; 4 5 6]
 Q[:, :, 2] = [4 5 6; 4 5 6; 4 5 6]
 Q[:, :, 3] = [4 5 6; 4 5 6; 4 5 6]
@@ -205,9 +205,7 @@ poly = Float64[0 0
                0 1
                1 1
                0 0]'
-if VERSION >= v"0.5-"
-    eval(:(@test_broken inpoly(p1, poly) )) # should be true
-end
+eval(:(@test_broken inpoly(p1, poly) )) # should be true
 @test inpoly(p2, poly)
 @test inpoly(p22, poly)
 @test inpoly(p23, poly)

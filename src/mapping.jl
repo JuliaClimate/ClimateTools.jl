@@ -69,7 +69,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
       N = ncolors
   end
   cmap = mpl[:cm][:get_cmap](cm)
-  colorlist = cmap(linspace(0, 1, N))
+  colorlist = cmap(range(0, stop=1, length=N))
   # #
   cm = mpl[:colors][:LinearSegmentedColormap][:from_list]("cm_custom", colorlist, N)
 

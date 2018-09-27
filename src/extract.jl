@@ -794,15 +794,15 @@ function timeresolution(timevec::Array{N,1} where N)
         timediff = diff(timevec)[2]
         if timediff == 1. || timediff == 1
             return "24h"
-        elseif round(timediff, 5) == round(12/24, 5)
+        elseif round(timediff, digits=5) == round(12/24, digits=5)
             return "12h"
-        elseif round(timediff, 5) == round(6/24, 5)
+        elseif round(timediff, digits=5) == round(6/24, digits=5)
             return "6h"
-        elseif round(timediff, 5) == round(3/24, 5)
+        elseif round(timediff, digits=5) == round(3/24, digits=5)
             return "3h"
-        elseif round(timediff, 5) == round(1/24, 5)
+        elseif round(timediff, digits=5) == round(1/24, digits=5)
             return "1h"
-        elseif round(timediff, 5) == 365.0 || round(timediff, 5) == 366.0 || round(timediff, 5) == 360.0
+        elseif round(timediff, digits=5) == 365.0 || round(timediff, digits=5) == 366.0 || round(timediff, digits=5) == 360.0
             return "Yearly"
         end
     else
