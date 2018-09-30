@@ -232,8 +232,8 @@ function load(file::String, variable::String; poly = ([]), start_date::Tuple=(In
   data[data .== fillval] = NaN
 
   if rotatedgrid
-      longrid = longrid_flip
-      lon_raw = lon_raw_flip
+      longrid .= longrid_flip
+      lon_raw .= lon_raw_flip
   end
 
   # Convert units of optional argument data_units is provided
@@ -1151,7 +1151,11 @@ end
 
 function extractdata2D(data, msk)
 
-    idlon, idlat = findn(.!isnan.(msk))
+    # idlon, idlat = findn(.!isnan.(msk))
+    begin
+        I = findall(!isnan, msk)
+        idlon, idlat = (getindex.(I, 1), getindex.(I, 2))
+    end
     minXgrid = minimum(idlon)
     maxXgrid = maximum(idlon)
     minYgrid = minimum(idlat)

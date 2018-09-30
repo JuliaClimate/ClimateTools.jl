@@ -8,9 +8,9 @@ C = load(filenc, "tas")
 
 @test load(filenc, "tas", data_units = "Celsius")[2] == "Celsius"
 @test load(filenc, "pr", data_units = "mm")[2] == "mm"
-@test typeof(load(filenc, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}},AxisArrays.Axis{:time,Array{DateTime,1}}}}}
+@test typeof(load(filenc, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}},AxisArrays.Axis{:time,Array{Dates.DateTime,1}}}}}
 
-@test typeof(ClimateTools.buildtimevec(filenc, "24h")) == Array{DateTime, 1}
+@test typeof(ClimateTools.buildtimevec(filenc, "24h")) == Array{Dates.DateTime, 1}
 
 fileorog = joinpath(dirname(@__FILE__), "data", "orog_fx_GFDL-ESM2G_historicalMisc_r0i0p0.nc")
 orog = load2D(fileorog, "orog")
