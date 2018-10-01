@@ -1,5 +1,7 @@
 using ClimateTools
 using AxisArrays
+using PyPlot
+using Shapefile
 # using Lint
 using Test
 
