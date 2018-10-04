@@ -238,7 +238,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   # Convert units of optional argument data_units is provided
   if data_units == "Celsius" && (vari == "tas" || vari == "tasmax" || vari == "tasmin") && dataunits == "K"
-    data = data - 273.15
+    data = data .- 273.15
     dataunits = "Celsius"
   end
 
