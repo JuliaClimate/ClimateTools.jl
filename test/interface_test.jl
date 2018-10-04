@@ -153,7 +153,7 @@ S[:, :, 3] = [6 6 6; 6 6 6; 6 6 6]
 
 # isdefined
 C = 1
-@test ClimateTest.@isdefined C
+@test ClimateTools.@isdefined C
 @test (ClimateTools.@isdefined T) == false
 
 
