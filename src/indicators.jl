@@ -35,6 +35,7 @@ Returns the vapor pressure (vp) (Pa) estimated with the specific humidity (q), t
 
 """
 function vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)
+
   @argcheck specific_humidity[9] == "huss"
   @argcheck sealevel_pressure[9] == "psl"
   @argcheck orography[9] == "orog"
@@ -75,7 +76,7 @@ function approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid
 
   # Calculate the estimated surface pressure
   exponent = (-1.0 .* orography.data) ./ (18400.0 .* daily_temperature.data ./ 273.15)
-  ps_arraytmp = sealevel_pressure.data .* (10.0^exponent)
+  ps_arraytmp = sealevel_pressure.data .* (10.0.^exponent)
   ps_array = buildarrayinterface(ps_arraytmp, sealevel_pressure)
 
   # Build dictionary for the variable vp

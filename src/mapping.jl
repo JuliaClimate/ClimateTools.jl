@@ -291,7 +291,7 @@ function timeavg(C, timebeg, timeend, mask, poly, level)
 
     # 4D fields
   elseif ndims(C[1]) == 4 # 4D field
-      data2 = squeeze(Statistics.mean(C[1][:, :, level, timebeg:timeend], 4), 3) # time mean over "level"
+      data2 = squeeze(Statistics.mean(C[1][:, :, level, timebeg:timeend], dims=4), dims=3) # time mean over "level"
 
       if !isempty(poly)
           msk = inpolygrid(C.longrid, C.latgrid, poly)

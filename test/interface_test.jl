@@ -50,11 +50,11 @@ B = C / 2.2; @test B[1].data[1, 1, 1] == 99.6467520973899
 B = C * 2; @test B[1].data[1, 1, 1] == 438.4457f0
 B = C * 2.2; @test B[1].data[1, 1, 1] == 482.2902801513672
 
-@test mean(C) == 278.6421f0
-@test maximum(C) == 309.09613f0
-@test minimum(C) == 205.24321f0
-@test std(C) == 21.92836f0
-@test round(var(C), digits=3) == 480.853f0
+@test ClimateTools.mean(C) == 278.6421f0
+@test ClimateTools.maximum(C) == 309.09613f0
+@test ClimateTools.minimum(C) == 205.24321f0
+@test ClimateTools.std(C) == 21.92836f0
+@test round(ClimateTools.var(C), digits=3) == 480.853f0
 
 # @test typeof(show(C)) == Dict{Any, Any}
 @test typeof(C[1].data) == Array{Float64,3} || typeof(C[1].data) == Array{Float32,3}
@@ -134,15 +134,15 @@ XV = [4, 5, 6]
 Q = Array{Int64, 3}(undef, 3, 3, 3)
 R = Array{Int64, 3}(undef, 3, 3, 3)
 S = Array{Int64, 3}(undef, 3, 3, 3)
-Q[:, :, 1] = [4 5 6; 4 5 6; 4 5 6]
-Q[:, :, 2] = [4 5 6; 4 5 6; 4 5 6]
-Q[:, :, 3] = [4 5 6; 4 5 6; 4 5 6]
-R[:, :, 1] = [1 1 1; 2 2 2; 3 3 3]
-R[:, :, 2] = [1 1 1; 2 2 2; 3 3 3]
-R[:, :, 3] = [1 1 1; 2 2 2; 3 3 3]
-S[:, :, 1] = [4 4 4; 4 4 4; 4 4 4]
-S[:, :, 2] = [5 5 5; 5 5 5; 5 5 5]
-S[:, :, 3] = [6 6 6; 6 6 6; 6 6 6]
+Q[:, :, 1] .= [4 5 6; 4 5 6; 4 5 6]
+Q[:, :, 2] .= [4 5 6; 4 5 6; 4 5 6]
+Q[:, :, 3] .= [4 5 6; 4 5 6; 4 5 6]
+R[:, :, 1] .= [1 1 1; 2 2 2; 3 3 3]
+R[:, :, 2] .= [1 1 1; 2 2 2; 3 3 3]
+R[:, :, 3] .= [1 1 1; 2 2 2; 3 3 3]
+S[:, :, 1] .= [4 4 4; 4 4 4; 4 4 4]
+S[:, :, 2] .= [5 5 5; 5 5 5; 5 5 5]
+S[:, :, 3] .= [6 6 6; 6 6 6; 6 6 6]
 
 @test meshgrid(XV, YV, XV) == (Q, R, S)
 
@@ -369,7 +369,7 @@ for i = 1:size(data, 1)
 end
 
 # Test sumleapyear with StepRange{Date,Base.Dates.Day} type
-d = Date(2003,1,1):Date(2008,12,31)
+d = Date(2003,1,1):Day(1):Date(2008,12,31)
 @test ClimateTools.sumleapyear(d) == 2
 
 # Test timeresolution and pr_timefactor

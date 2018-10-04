@@ -1,5 +1,5 @@
 # Test vaporpressure(specific_humidity::ClimGrid, surface_pressure::ClimGrid)
-d = Date(2003,1,1):Date(2003,1,3)
+d = Date(2003,1,1):Day(1):Date(2003,1,3)
 # Dummy data
 data_huss = Array{Float64,3}(undef, 2,2,3)
 data_huss[1,1,:] = 0
@@ -37,20 +37,20 @@ vp = vaporpressure(C_huss, C_ps)
 # Test  vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)
 # Dummy data
 data_huss = Array{Float64,3}(undef, 2,2,3)
-data_huss[1,1,:] = 0
-data_huss[1,2,:] = 0.1
-data_huss[2,1,:] = 0.5
-data_huss[2,2,:] = 1
+data_huss[1,1,:] .= 0
+data_huss[1,2,:] .= 0.1
+data_huss[2,1,:] .= 0.5
+data_huss[2,2,:] .= 1
 data_psl = Array{Float64,3}(undef, 2,2,3)
-data_psl[:,:,1] = 10
-data_psl[:,:,2] = 100
-data_psl[:,:,3] = 1000
+data_psl[:,:,1] .= 10
+data_psl[:,:,2] .= 100
+data_psl[:,:,3] .= 1000
 data_orog = Array{Float64,2}(undef, 2,2)
-data_orog[:,1] = 0
-data_orog[:,2] = 10
+data_orog[:,1] .= 0
+data_orog[:,2] .= 10
 data_tas = Array{Float64,3}(undef, 2,2,3)
-data_tas[1,:,:] = 100
-data_tas[2,:,:] = 300
+data_tas[1,:,:] .= 100
+data_tas[2,:,:] .= 300
 # Expected results
 Results = Array{Float64,3}(undef, 2,2,3)
 Results[1,1,:] = round(0.0, digits=10)
@@ -90,7 +90,7 @@ vp = vaporpressure(C_huss, C_psl, C_orog, C_tas)
 @test round.(vp.data.data, 10) == Results
 
 # Test wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)
-d = Date(2003,1,1):Date(2003,1,3)
+d = Date(2003,1,1):Day(1):Date(2003,1,3)
 # Dummy data
 data_tdiu = Array{Float64,3}(undef, 2,2,3)
 data_tdiu[1,1,:] = 250
@@ -138,7 +138,7 @@ C_wbgt = wbgt(C_tdiu, C_vp)
 @test round.(C_wbgt.data.data,10) == Results
 
 # Test diurnaltemperature()
-d = Date(2003,1,1):Date(2003,1,3)
+d = Date(2003,1,1):Day(1):Date(2003,1,3)
 # Dummy data
 data_tmax = Array{Float64,3}(undef, 2,2,3)
 data_tmax[1,1,:] = 0.0
@@ -174,7 +174,7 @@ C_tdiu = diurnaltemperature(C_tmin, C_tmax, α)
 @test C_tdiu.data.data == Results
 
 # Test meantemperature()
-d = Date(2003,1,1):Date(2003,1,3)
+d = Date(2003,1,1):Day(1):Date(2003,1,3)
 # Dummy data
 data_tmax = Array{Float64,3}(undef, 2,2,3)
 data_tmax[1,1,:] = 0.0

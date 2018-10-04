@@ -208,11 +208,11 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
     interp!(OUT, timeorig, dataorig, points, londest, latdest, method, msk=B.msk)
 
     if !isempty(min)
-        OUT[OUT.<=min] = min
+        OUT[OUT .<= min] .= min
     end
 
     if !isempty(max)
-        OUT[OUT.>=max] = max
+        OUT[OUT .>= max] .= max
     end
 
     # -----------------------
@@ -268,11 +268,11 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
     interp!(OUT, timeorig, dataorig, points, londest, latdest, method)
 
     if !isempty(min)
-        OUT[OUT.<=min] = min
+        OUT[OUT .<= min] .= min
     end
 
     if !isempty(max)
-        OUT[OUT.>=max] = max
+        OUT[OUT .>= max] .= max
     end
 
     # -----------------------

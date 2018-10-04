@@ -101,7 +101,7 @@ status, figh = mapclimgrid(region = "Greenwich");@test status == true; PyPlot.cl
 lon = collect(-180.0:180.0)
 lat = collect(-90.0:90.0)
 longrid, latgrid = ndgrid(lon, lat)
-timeV = DateTime(2003,1,1):DateTime(2003,01,31)
+timeV = DateTime(2003,1,1):Day(1):DateTime(2003,01,31)
 data = randn(361, 181, 31)
 dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
 varattribs = Dict(["standard_name" => "random noise"])

@@ -9,6 +9,7 @@ using Reexport
 # using NCDatasets
 using Shapefile
 using AxisArrays
+const axes = Base.axes
 using ArgCheck
 using PyCall
 using PyPlot
@@ -24,11 +25,11 @@ import Base.size
 import Base.endof
 import Base.setindex!
 import Base.similar
-import Base.minimum
-import Base.maximum
-# import Base.std
-# import Base.var
-# import Base.mean
+import Statistics.minimum
+import Statistics.maximum
+import Statistics.std
+import Statistics.var
+import Statistics.mean
 import Base: +
 import Base: -
 import Base: *

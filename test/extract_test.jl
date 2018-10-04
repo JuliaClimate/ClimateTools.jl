@@ -1,5 +1,5 @@
 # Period subset
-d = Date(1961,1,1):Date(1990,12,31)
+d = Date(1961,1,1):Day(1):Date(1990,12,31)
 Random.seed!(42)
 data = randn(2, 2, 10957)
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))

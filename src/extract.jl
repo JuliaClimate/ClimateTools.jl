@@ -113,7 +113,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     # Build mask based on provided polygon
     msk = inpolygrid(longrid_flip, latgrid, poly)
 
-    if sum(isnan.(msk)) == length(msk) # no grid point insode polygon
+    if sum(isnan.(msk)) == length(msk) # no grid point inside polygon
         throw(error("No grid points found inside the provided polygon"))
     end
 
