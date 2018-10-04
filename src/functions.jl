@@ -60,7 +60,7 @@ points as exterior which are inside outcrops.  See test for a test.
 
 Author: Github "Mauro3" / "Mauro"
 """
-function inpoly(p, poly::Matrix)
+function inpoly(p, poly)
   return isodd(windnr(p, poly))
 end
 # inpoly(p, poly::Matrix) = isodd(windnr(p,poly))
