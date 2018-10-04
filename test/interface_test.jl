@@ -77,7 +77,7 @@ B = C * 2.2; @test B[1].data[1, 1, 1] == 482.2902801513672
 @test size(C, 1) == 21
 @test length(C) == 21
 @test endof(C) == 21
-@test_throws ErrorException C[end]
+@test_throws MethodError C[end]
 @test ndims(C) == 1
 
 
@@ -153,8 +153,8 @@ S[:, :, 3] = [6 6 6; 6 6 6; 6 6 6]
 
 # isdefined
 C = 1
-@test @isdefined C
-@test (@isdefined T) == false
+@test ClimateTest.@isdefined C
+@test (ClimateTools.@isdefined T) == false
 
 
 ## INPOLY

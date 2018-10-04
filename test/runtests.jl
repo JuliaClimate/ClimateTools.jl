@@ -2,6 +2,7 @@ using ClimateTools
 using AxisArrays
 using PyPlot
 using Shapefile
+using NetCDF
 # using Lint
 using Test
 

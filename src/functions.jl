@@ -136,7 +136,8 @@ function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} wh
     # lon[lon .< 0] += 360
 
     # Find number of polygons (separated by NaN values)
-    polyidx = findn(isnan.(poly[1, :])) #poly start index
+    # polyidx = findn(isnan.(poly[1, :])) #poly start index DEPRECATED IN Julia 0.7
+    polyidx = Base.findall(isnan, poly[1,:])
     npoly = length(polyidx) # number of polygons
 
     for p = 1:npoly # loop over each polygon
@@ -152,10 +153,13 @@ function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} wh
         maxlon = maximum(polyn[1, :])
         minlat = minimum(polyn[2, :])
         maxlat = maximum(polyn[2, :])
-
-        # TODO Should be revisited. Right now it tries every single grid point
-        # perhaps the following line
-        idx, idy = findn((lon .<= maxlon) .& (lon .>= minlon) .& (lat .>= minlat) .& (lat .<= maxlat))
+        
+        # DEPRECATED. SEE NEXT "begin ... end"
+        # idx, idy = findn((lon .<= maxlon) .& (lon .>= minlon) .& (lat .>= minlat) .& (lat .<= maxlat))
+        begin
+            I = Base.findall((lon .<= maxlon) .& (lon .>= minlon) .& (lat .>= minlat) .& (lat .<= maxlat))
+            idx, idy = (getindex.(I, 1), getindex.(I, 2))
+        end
 
         for (ix, iy) in zip(idx, idy)
             # @show lon[ix, iy], lat[ix, iy]
