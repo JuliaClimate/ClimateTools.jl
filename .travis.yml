@@ -9,8 +9,8 @@ julia:
   - nightly
 matrix:
   #- PYTHON=python  # python 2.7
-  - PYTHON=python3 # python 3.5
-  #- PYTHON=Conda-python
+  #- PYTHON=python3 # python 3.5
+  - PYTHON=Conda-python
 matrix:
   allow_failures:
     - julia: nightly
@@ -23,10 +23,10 @@ script:
   #- export LD_LIBRARY_PATH=$HOME/.julia/v0.6/Conda/deps/usr/lib; LD_PRELOAD=${HOME}/.julia/v0.6/Conda/deps/usr/lib/libz.so julia -e 'Pkg.clone(pwd());Pkg.test("ClimateTools"; coverage=true);'
   #- julia -e 'Pkg.test("ClimateTools"; coverage=true)'
 before_install:
-  - test "x$TRAVIS_OS_NAME" = xosx -o "x$PYTHON" = xConda-python || (sudo apt-get -qq update && sudo apt-get install -y $PYTHON)
-  - (sudo apt-get -qq update && sudo apt-get install -y python python-pip && sudo pip install matplotlib pyproj && sudo pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz)
-  #- julia -e 'ENV["PYTHON"]=""; using Pkg; Pkg.add("Conda"); using Conda; Conda.update(); Conda.add("matplotlib"); Conda.add("basemap"); Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.add("PyPlot");'
-  - julia -e 'ENV["PYTHON"]="python3"; using Pkg; Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.add("PyPlot");'
+  #- test "x$TRAVIS_OS_NAME" = xosx -o "x$PYTHON" = xConda-python || (sudo apt-get -qq update && sudo apt-get install -y $PYTHON)
+  #- (sudo apt-get -qq update && sudo apt-get install -y python python-pip && sudo pip install matplotlib pyproj && sudo pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz)
+  - julia -e 'ENV["PYTHON"]=""; using Pkg; Pkg.add("Conda"); using Conda; Conda.update(); Conda.add("matplotlib"); Conda.add("pyproj"); Conda.add("basemap"); Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.add("PyPlot");'
+  #- julia -e 'ENV["PYTHON"]="python3"; using Pkg; Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.add("PyPlot");'
 after_success:
   - julia -e 'using Pkg; Pkg.add("Documenter");ENV["DOCUMENTER_DEBUG"]="true"; cd(Pkg.dir("ClimateTools")); include(joinpath("docs", "make.jl"))'
   # - julia -e 'cd(Pkg.dir("ClimateTools")); include(joinpath("docs", "make.jl"))'
