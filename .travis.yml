@@ -9,7 +9,7 @@ julia:
   - nightly
 matrix:
   #- PYTHON=python  # python 2.7
-  - PYTHON=python3.4 # python 3.4
+  - PYTHON=python3 # python 3.5
   #- PYTHON=Conda-python
 matrix:
   allow_failures:
@@ -24,7 +24,7 @@ script:
   #- julia -e 'Pkg.test("ClimateTools"; coverage=true)'
 before_install:
   - test "x$TRAVIS_OS_NAME" = xosx -o "x$PYTHON" = xConda-python || (sudo apt-get -qq update && sudo apt-get install -y $PYTHON)
-  - (sudo apt-get -qq update && sudo apt-get install -y python python-pip && sudo pip install matplotlib pyproj && sudo pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz)
+  - (sudo apt-get -qq update && sudo apt-get install -y python3 python-pip && sudo pip3 install matplotlib pyproj && sudo pip3 install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz)
   #- julia -e 'ENV["PYTHON"]=""; using Pkg; Pkg.add("Conda"); using Conda; Conda.update(); Conda.add("matplotlib"); Conda.add("basemap"); Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.add("PyPlot");'
   - julia -e 'ENV["PYTHON"]="python3"; using Pkg; Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.add("PyPlot");'
 after_success:
