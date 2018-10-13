@@ -212,9 +212,10 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     end
 
   elseif isempty(poly) # no polygon clipping
-      msk = Array{Float64}(ones((size(data, 1), size(data, 2))))
+    msk = Array{Float64}(ones((size(data, 1), size(data, 2))))
     # if ndims(data) == 3
-      data = extractdata(data, msk, idxtimebeg, idxtimeend)
+    data_sub = Array{typeof(data)}(size(data, 1), size(data, 2), length(idxtimebeg:idxtimeend))
+    extractdata!(data_sub, data, msk, idxtimebeg, idxtimeend)
     # elseif ndims(data) == 4
         # data = extractdata(data, msk, idxtimebeg, idxtimeend)
     # end
@@ -1134,7 +1135,7 @@ end
 Returns the data contained in netCDF file, using the appropriate mask and time index. Used internally by `load`.
 
 """
-function extractdata(data, msk, idxtimebeg, idxtimeend)
+function extractdata!(data_sub, data, msk, idxtimebeg, idxtimeend)
 
     # idlon, idlat = findn(.!isnan.(msk))
     begin
@@ -1147,16 +1148,16 @@ function extractdata(data, msk, idxtimebeg, idxtimeend)
     maxYgrid = maximum(idlat)
 
     if ndims(data) == 3
-        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, idxtimebeg:idxtimeend]
+        data_sub = data[minXgrid:maxXgrid, minYgrid:maxYgrid, idxtimebeg:idxtimeend]
         # Permute dims
         # data = permutedims(data, [3, 1, 2])
     elseif ndims(data) == 4
-        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, idxtimebeg:idxtimeend]
+        data_sub = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, idxtimebeg:idxtimeend]
         # Permute dims
         # data = permutedims(data, [4, 1, 2, 3])
     end
 
-    return data
+    return data_sub
 end
 
 function extractdata2D(data, msk)

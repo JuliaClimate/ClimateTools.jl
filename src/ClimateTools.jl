@@ -22,7 +22,7 @@ import Base.vcat
 import Base.getindex
 import Base.show
 import Base.size
-import Base.endof
+#import Base.endof
 import Base.setindex!
 import Base.similar
 import Statistics.minimum

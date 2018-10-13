@@ -76,7 +76,7 @@ B = C * 2.2; @test B[1].data[1, 1, 1] == 482.2902801513672
 @test size(C) == (21, )
 @test size(C, 1) == 21
 @test length(C) == 21
-@test endof(C) == 21
+# @test endof(C) == 21
 @test_throws MethodError C[end]
 @test ndims(C) == 1
 

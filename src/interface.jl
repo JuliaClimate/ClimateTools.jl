@@ -163,7 +163,7 @@ end
 Base.length(C::ClimGrid) = length(fieldnames(typeof(C)))
 Base.size(C::ClimGrid) = (length(C),)
 Base.size(C::ClimGrid, n::Int) = n==1 ? length(C) : error("Only dimension 1 has a well-defined size.")
-Base.endof(C::ClimGrid) = length(C)
+#Base.endof(C::ClimGrid) = length(C)
 Base.ndims(::ClimGrid) = 1
 
 
