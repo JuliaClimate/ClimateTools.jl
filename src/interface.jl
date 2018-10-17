@@ -30,14 +30,13 @@ end
 
 Combines two ClimGrid. Based on the AxisArrays method.
 """
-
 function Base.merge(A::ClimGrid, B::ClimGrid)
     axisArray = merge(A.data, B.data)
     ClimGrid(axisArray, longrid=A.longrid, latgrid=A.latgrid, msk=A.msk, grid_mapping=A.grid_mapping, dimension_dict=A.dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=A.latunits, lonunits=A.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 end
 
 function Base.:+(A::ClimGrid, B::ClimGrid)
-    axisArraytmp = A.data + B.data
+    axisArraytmp = A.data .+ B.data
 
     axisArray = buildarrayinterface(axisArraytmp, A)
 
@@ -45,7 +44,7 @@ function Base.:+(A::ClimGrid, B::ClimGrid)
 end
 
 function Base.:+(A::ClimGrid, k)
-    axisArraytmp = A.data + k
+    axisArraytmp = A.data .+ k
 
     axisArray = buildarrayinterface(axisArraytmp, A)
 
@@ -53,7 +52,7 @@ function Base.:+(A::ClimGrid, k)
 end
 
 function Base.:-(A::ClimGrid, B::ClimGrid)
-    axisArraytmp = A.data - B.data
+    axisArraytmp = A.data .- B.data
 
     axisArray = buildarrayinterface(axisArraytmp, A)
 
@@ -61,7 +60,7 @@ function Base.:-(A::ClimGrid, B::ClimGrid)
 end
 
 function Base.:-(A::ClimGrid, k)
-    axisArraytmp = A.data - k
+    axisArraytmp = A.data .- k
 
     axisArray = buildarrayinterface(axisArraytmp, A)
 
@@ -93,7 +92,7 @@ function Base.:/(A::ClimGrid, B::ClimGrid)
 end
 
 function Base.:/(A::ClimGrid, k)
-    axisArraytmp = A.data / k
+    axisArraytmp = A.data ./ k
 
     axisArray = buildarrayinterface(axisArraytmp, A)
 
@@ -105,7 +104,7 @@ end
 
 Compute the mean of `ClimGrid` A
 """
-Base.mean(A::ClimGrid) = mean(A[1])
+mean(A::ClimGrid) = Statistics.mean(A[1])
 
 """
     minimum(A::ClimGrid)
@@ -126,14 +125,14 @@ Base.maximum(A::ClimGrid) = maximum(A[1])
 
 Compute the standard deviation of `ClimGrid` A
 """
-Base.std(A::ClimGrid) = std(A[1])
+std(A::ClimGrid) = Statistics.std(A[1])
 
 """
     var(A::ClimGrid)
 
 Compute the variance of `ClimGrid` A
 """
-Base.var(A::ClimGrid) = var(A[1])
+var(A::ClimGrid) = Statistics.var(A[1])
 
 
 function getindex(C::ClimGrid,i::Int)
@@ -167,10 +166,10 @@ function getindex(C::ClimGrid,i::Int)
 end
 
 # Base.IndexStyle{T<:ClimGrid}(::Type{T}) = Base.IndexLinear()
-Base.length(C::ClimGrid) = length(fieldnames(C))
+Base.length(C::ClimGrid) = length(fieldnames(typeof(C)))
 Base.size(C::ClimGrid) = (length(C),)
 Base.size(C::ClimGrid, n::Int) = n==1 ? length(C) : error("Only dimension 1 has a well-defined size.")
-Base.endof(C::ClimGrid) = length(C)
+#Base.endof(C::ClimGrid) = length(C)
 Base.ndims(::ClimGrid) = 1
 
 
@@ -198,7 +197,6 @@ Base.show(io::IO, ::MIME"text/plain", ITP::TransferFunction) = print(io, "Transf
 
 Return the index of time vector specified by start_date and end_date. Provide timestep "freq" to account for monthly timestep.
 """
-
 function timeindex(timeV, datebeg::Tuple, dateend::Tuple, frequency)
 
     # Start Date
@@ -248,7 +246,6 @@ end
 
 Returns the adequate DateTime for temporal subsetting.
 """
-
 function buildtimetype(datetuple)
 
     if length(datetuple) == 1

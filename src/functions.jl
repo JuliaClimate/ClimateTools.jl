@@ -6,7 +6,7 @@ times a polygon winds around the point.
 
 It follows Dan Sunday: http://geomalgorithms.com/a03-_inclusion.html.
 """
-function windnr(p, poly::Matrix)
+function windnr(p, poly)
     @assert length(p) == 2
     @assert poly[:, 1] == poly[:, end]
     # Loop over edges
@@ -60,7 +60,7 @@ points as exterior which are inside outcrops.  See test for a test.
 
 Author: Github "Mauro3" / "Mauro"
 """
-function inpoly(p, poly::Matrix)
+function inpoly(p, poly)
   return isodd(windnr(p, poly))
 end
 # inpoly(p, poly::Matrix) = isodd(windnr(p,poly))
@@ -70,17 +70,16 @@ end
 
 This function creates a 2-D mesh-grid in a format consistent with Matlab's function ndgrid(). XV and YV are vectors.
 """
-
 ndgrid(v::AbstractVector) = copy(v)
 
-function ndgrid{T}(v1::AbstractVector{T}, v2::AbstractVector{T})
+function ndgrid(v1::AbstractVector{T}, v2::AbstractVector{T}) where T
     m, n = length(v1), length(v2)
     v1 = reshape(v1, m, 1)
     v2 = reshape(v2, 1, n)
-    (repmat(v1, 1, n), repmat(v2, m, 1))
+    (repeat(v1, 1, n), repeat(v2, m, 1))
 end
 
-function ndgrid{T}(vs::AbstractVector{T}...)
+function ndgrid(vs::AbstractVector{T}...) where T
     n = length(vs)
     sz = map(length, vs)
     out = ntuple(i->Array{T}(sz), n)
@@ -102,15 +101,15 @@ meshgrid(v::AbstractVector) = meshgrid(v, v)
 
 This function creates a 2-D mesh-grid in a format consistent with Matlab's function meshgrid(). XV and YV are vectors.
 """
-function meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T})
+function meshgrid(vx::AbstractVector{T}, vy::AbstractVector{T}) where T
     m, n = length(vy), length(vx)
     vx = reshape(vx, 1, n)
     vy = reshape(vy, m, 1)
-    (repmat(vx, m, 1), repmat(vy, 1, n))
+    (repeat(vx, m, 1), repeat(vy, 1, n))
 end
 
-function meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T},
-    vz::AbstractVector{T})
+function meshgrid(vx::AbstractVector{T}, vy::AbstractVector{T},
+    vz::AbstractVector{T}) where T
     m, n, o = length(vy), length(vx), length(vz)
     vx = reshape(vx, 1, n, 1)
     vy = reshape(vy, m, 1, 1)
@@ -137,7 +136,8 @@ function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} wh
     # lon[lon .< 0] += 360
 
     # Find number of polygons (separated by NaN values)
-    polyidx = findn(isnan.(poly[1, :])) #poly start index
+    # polyidx = findn(isnan.(poly[1, :])) #poly start index DEPRECATED IN Julia 0.7
+    polyidx = Base.findall(isnan, poly[1,:])
     npoly = length(polyidx) # number of polygons
 
     for p = 1:npoly # loop over each polygon
@@ -153,10 +153,13 @@ function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} wh
         maxlon = maximum(polyn[1, :])
         minlat = minimum(polyn[2, :])
         maxlat = maximum(polyn[2, :])
-
-        # TODO Should be revisited. Right now it tries every single grid point
-        # perhaps the following line
-        idx, idy = findn((lon .<= maxlon) .& (lon .>= minlon) .& (lat .>= minlat) .& (lat .<= maxlat))
+        
+        # DEPRECATED. SEE NEXT "begin ... end"
+        # idx, idy = findn((lon .<= maxlon) .& (lon .>= minlon) .& (lat .>= minlat) .& (lat .<= maxlat))
+        begin
+            I = Base.findall((lon .<= maxlon) .& (lon .>= minlon) .& (lat .>= minlat) .& (lat .<= maxlat))
+            idx, idy = (getindex.(I, 1), getindex.(I, 2))
+        end
 
         for (ix, iy) in zip(idx, idy)
             # @show lon[ix, iy], lat[ix, iy]
@@ -170,6 +173,7 @@ function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} wh
 
 end
 
+# TODO define interpolation for 4D grid
 
 """
     C = regrid(A::ClimGrid, B::ClimGrid; method="linear", min=[], max=[])
@@ -180,7 +184,6 @@ where A and B are `ClimGrid`. Available methods for interpolation are "linear" (
 Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.
 
 """
-# TODO define interpolation for 4D grid
 function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[])
 
     # ---------------------------------------
@@ -205,11 +208,11 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
     interp!(OUT, timeorig, dataorig, points, londest, latdest, method, msk=B.msk)
 
     if !isempty(min)
-        OUT[OUT.<=min] = min
+        OUT[OUT .<= min] .= min
     end
 
     if !isempty(max)
-        OUT[OUT.>=max] = max
+        OUT[OUT .>= max] .= max
     end
 
     # -----------------------
@@ -265,11 +268,11 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
     interp!(OUT, timeorig, dataorig, points, londest, latdest, method)
 
     if !isempty(min)
-        OUT[OUT.<=min] = min
+        OUT[OUT .<= min] .= min
     end
 
     if !isempty(max)
-        OUT[OUT.>=max] = max
+        OUT[OUT .>= max] .= max
     end
 
     # -----------------------
@@ -295,10 +298,9 @@ end
 
 Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `regrid`.
 """
-
 function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk=[])
 
-    p = Progress(length(timeorig), 5)
+    p = Progress(length(timeorig), 5, "Regridding: ")
     for t = 1:length(timeorig)
 
         # Points values
@@ -340,7 +342,7 @@ get_timevec(C::ClimGrid) = C[1][Axis{:time}][:]
 """
     applymask(A::AbstractArray{N, n}, mask::AbstractArray{N, n})
 
-This function applies a mask on the array A. Return an AbstractArray{N, n}.
+Applies a mask on the array A. Return an AbstractArray{N, n}.
 
 """
 function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} where N)
@@ -364,6 +366,7 @@ function applymask(A::AbstractArray{N,3} where N, mask::AbstractArray{N, 2} wher
 end
 
 function applymask(A::AbstractArray{N,2} where N, mask::AbstractArray{N, 2} where N)
+    @assert ndims(A) == ndims(mask)
     A .*= mask
     return A
 end

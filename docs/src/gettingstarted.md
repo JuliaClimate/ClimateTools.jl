@@ -4,6 +4,12 @@
 
 ### Required dependencies
 
+**Important** Due to an upstream bug with Conda, the user should launch Julia with the following alias. The alias can be permanently defined .bashrc on Linux OS (should be similar on OSX). Right now, there is no known workaround for Windows OS.
+
+```
+alias julia="export LD_LIBRARY_PATH=$HOME/.julia/v0.6/Conda/deps/usr/lib; LD_PRELOAD=${HOME}/.julia/v0.6/Conda/deps/usr/lib/libz.so julia"
+```
+
 In theory, installing the package with `Pkg.add("ClimateTools")` and launching the command `using ClimateTools` should install all required dependencies. However, sometimes it's just better to do it manually to ensure that all steps are properly done. If the installation fails when launching `ùsing ClimateTools`, below are the steps to do it manually.
 
 *Note ClimateTools is developed using the Python distribution in the Conda package by default. PyCall should be built with the `ENV["PYTHON"] = ""` environment and then re-build PyCall with `Pkg.build("PyCall")`. It should work with python 2.7.x and Python 3.4+ without modifications, but since Python configurations varies widely from system to system, it is not supported.*
@@ -70,7 +76,9 @@ struct ClimGrid
 end
 ```
 
-### Subsetting
+## Subsetting
+
+### Spatial
 
 Once the data is loaded in a `ClimGrid` struct, options to further subset the data are available.
 
@@ -80,8 +88,20 @@ There is a `spatialsubset` function which acts on `ClimGrid` type and further su
 C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
 ```
 
+### Temporal
+
 Temporal subset of the data is also possible with the `temporalsubset` function:
 
 ```julia
 C = temporalsubset(C::ClimGrid, startdate::Tuple, enddate::Tuple)
+```
+
+### Discontinuous temporal
+
+It is also possible to only keep a given non-continuous period for a given timeframe. For example, we might be interested in keeping only northern summer months (June-July-August) from a continuous ClimGrid covering 1961-2100. `periodsubset` returns such a subsetted ClimGrid.
+
+```julia
+Csub = periodsubset(C, "JJA") # hardcoded ClimateTools's season
+Csub = periodsubset(C, 6, 8) # custom subset example for June-July-August
+Csub = periodsubset(C, 1, 2) # custom subset example for January-February
 ```

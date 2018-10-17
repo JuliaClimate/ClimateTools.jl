@@ -8,9 +8,9 @@ C = load(filenc, "tas")
 
 @test load(filenc, "tas", data_units = "Celsius")[2] == "Celsius"
 @test load(filenc, "pr", data_units = "mm")[2] == "mm"
-@test typeof(load(filenc, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}},AxisArrays.Axis{:time,Array{DateTime,1}}}}}
+@test typeof(load(filenc, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}},AxisArrays.Axis{:time,Array{Dates.DateTime,1}}}}}
 
-@test typeof(ClimateTools.buildtimevec(filenc, "24h")) == Array{DateTime, 1}
+@test typeof(ClimateTools.buildtimevec(filenc, "24h")) == Array{Dates.DateTime, 1}
 
 fileorog = joinpath(dirname(@__FILE__), "data", "orog_fx_GFDL-ESM2G_historicalMisc_r0i0p0.nc")
 orog = load2D(fileorog, "orog")
@@ -50,11 +50,11 @@ B = C / 2.2; @test B[1].data[1, 1, 1] == 99.6467520973899
 B = C * 2; @test B[1].data[1, 1, 1] == 438.4457f0
 B = C * 2.2; @test B[1].data[1, 1, 1] == 482.2902801513672
 
-@test mean(C) == 278.6421f0
-@test maximum(C) == 309.09613f0
-@test minimum(C) == 205.24321f0
-@test std(C) == 21.92836f0
-@test round(var(C), 3) == 480.853f0
+@test ClimateTools.mean(C) == 278.6421f0
+@test ClimateTools.maximum(C) == 309.09613f0
+@test ClimateTools.minimum(C) == 205.24321f0
+@test ClimateTools.std(C) == 21.92836f0
+@test round(ClimateTools.var(C), digits=3) == 480.853f0
 
 # @test typeof(show(C)) == Dict{Any, Any}
 @test typeof(C[1].data) == Array{Float64,3} || typeof(C[1].data) == Array{Float32,3}
@@ -76,8 +76,8 @@ B = C * 2.2; @test B[1].data[1, 1, 1] == 482.2902801513672
 @test size(C) == (21, )
 @test size(C, 1) == 21
 @test length(C) == 21
-@test endof(C) == 21
-@test_throws ErrorException C[end]
+# @test endof(C) == 21
+@test_throws MethodError C[end]
 @test ndims(C) == 1
 
 
@@ -131,18 +131,18 @@ YV = [1, 2, 3]
 XV = [4, 5, 6]
 @test meshgrid(XV, YV) == ([4 5 6; 4 5 6; 4 5 6], [1 1 1; 2 2 2; 3 3 3])
 @test meshgrid(XV) == ([4 5 6; 4 5 6; 4 5 6], [4 4 4; 5 5 5; 6 6 6])
-Q = Array{Int64, 3}(3, 3, 3)
-R = Array{Int64, 3}(3, 3, 3)
-S = Array{Int64, 3}(3, 3, 3)
-Q[:, :, 1] = [4 5 6; 4 5 6; 4 5 6]
-Q[:, :, 2] = [4 5 6; 4 5 6; 4 5 6]
-Q[:, :, 3] = [4 5 6; 4 5 6; 4 5 6]
-R[:, :, 1] = [1 1 1; 2 2 2; 3 3 3]
-R[:, :, 2] = [1 1 1; 2 2 2; 3 3 3]
-R[:, :, 3] = [1 1 1; 2 2 2; 3 3 3]
-S[:, :, 1] = [4 4 4; 4 4 4; 4 4 4]
-S[:, :, 2] = [5 5 5; 5 5 5; 5 5 5]
-S[:, :, 3] = [6 6 6; 6 6 6; 6 6 6]
+Q = Array{Int64, 3}(undef, 3, 3, 3)
+R = Array{Int64, 3}(undef, 3, 3, 3)
+S = Array{Int64, 3}(undef, 3, 3, 3)
+Q[:, :, 1] .= [4 5 6; 4 5 6; 4 5 6]
+Q[:, :, 2] .= [4 5 6; 4 5 6; 4 5 6]
+Q[:, :, 3] .= [4 5 6; 4 5 6; 4 5 6]
+R[:, :, 1] .= [1 1 1; 2 2 2; 3 3 3]
+R[:, :, 2] .= [1 1 1; 2 2 2; 3 3 3]
+R[:, :, 3] .= [1 1 1; 2 2 2; 3 3 3]
+S[:, :, 1] .= [4 4 4; 4 4 4; 4 4 4]
+S[:, :, 2] .= [5 5 5; 5 5 5; 5 5 5]
+S[:, :, 3] .= [6 6 6; 6 6 6; 6 6 6]
 
 @test meshgrid(XV, YV, XV) == (Q, R, S)
 
@@ -153,8 +153,8 @@ S[:, :, 3] = [6 6 6; 6 6 6; 6 6 6]
 
 # isdefined
 C = 1
-@test @isdefined C
-@test (@isdefined T) == false
+@test ClimateTools.@isdefined C
+@test (ClimateTools.@isdefined T) == false
 
 
 ## INPOLY
@@ -205,9 +205,7 @@ poly = Float64[0 0
                0 1
                1 1
                0 0]'
-if VERSION >= v"0.5-"
-    eval(:(@test_broken inpoly(p1, poly) )) # should be true
-end
+eval(:(@test_broken inpoly(p1, poly) )) # should be true
 @test inpoly(p2, poly)
 @test inpoly(p22, poly)
 @test inpoly(p23, poly)
@@ -320,8 +318,8 @@ lon = Float32.(C[1][Axis{:lon}][:])
 latgrid = Float32.(C.latgrid)
 longrid = Float32.(C.longrid)
 # Shift longitude by 1
-lon += Float32(1.0)
-longrid += Float32(1.0)
+lon .+= Float32(1.0)
+longrid .+= Float32(1.0)
 axisdata = AxisArray(C[1].data, Axis{:lon}(lon), Axis{:lat}(lat), Axis{:time}(C[1][Axis{:time}][:]))
 C2 = ClimGrid(axisdata, variable = "tas", longrid=longrid, latgrid=latgrid, msk=C.msk)
 @test regrid(C, C2)[1].data[1, 1, 1] == 219.2400638156467
@@ -371,15 +369,16 @@ for i = 1:size(data, 1)
 end
 
 # Test sumleapyear with StepRange{Date,Base.Dates.Day} type
-d = Date(2003,1,1):Date(2008,12,31)
+d = Date(2003,1,1):Day(1):Date(2008,12,31)
 @test ClimateTools.sumleapyear(d) == 2
 
 # Test timeresolution and pr_timefactor
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 timevec = NetCDF.ncread(filename, "time")
-@test ClimateTools.pr_timefactor(ClimateTools.timeresolution(timevec)) == 1.
+@test ClimateTools.pr_timefactor(ClimateTools.timeresolution(timevec)) == 1.0
 @test ClimateTools.pr_timefactor("24h") == 86400.0
 @test ClimateTools.pr_timefactor("12h") == 43200.0
 @test ClimateTools.pr_timefactor("6h") == 21600.0
 @test ClimateTools.pr_timefactor("3h") == 10800.0
 @test ClimateTools.pr_timefactor("1h") == 3600.0
+

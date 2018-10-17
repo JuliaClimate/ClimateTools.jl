@@ -3,9 +3,6 @@
 
 Annual number of days with temperature >= 10 Celsius. This function returns a ClimGrid.
 """
-
-# TODO add check for units. important for threshold indices
-
 function daysabove10(C::ClimGrid)
   @argcheck C[9] == "tas"
   years    = Dates.year.(C.data[Axis{:time}][:])

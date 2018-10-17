@@ -1,6 +1,6 @@
 The ClimateTools.jl package is licensed under the following License:
 
-Copyright (c) 2017, Ouranos, Philippe Roy, Trevor James Smith
+Copyright (c) 2017, Ouranos, Philippe Roy, Dominique Caron, Trevor James Smith
 
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
 

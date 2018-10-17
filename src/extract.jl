@@ -1,7 +1,7 @@
 """
-    load(file::String, variable::String; poly = Array{Float64}([]), start_date::Tuple, end_date::Tuple, data_units::String = "")
+    load(file::String, vari::String; poly = Array{Float64}([]), start_date::Tuple, end_date::Tuple, data_units::String = "")
 
-Returns a ClimGrid type with the data in **file** of variable **var** inside the polygon **poly**. Metadata is built-in the ClimGrid type, from the netCDF attributes.
+Returns a ClimGrid type with the data in **file** of variable **vari** inside the polygon **poly**. Metadata is built-in the ClimGrid type, from the netCDF attributes.
 
 Inside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude/x and latitude/y dimensions.
 
@@ -11,11 +11,9 @@ Options for data_units are for precipitation : "mm", which converts the usual "k
 
 Temporal subsetting can be done by providing start_date and end-date Tuples of length 1 (year), length 3 (year, month, day) or 6 (hour, minute, second).
 
-**Note:** load uses [CF conventions](http://cfconventions.org/). If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in the [NetCDF.jl package](https://github.com/JuliaGeo/NetCDF.jl).
+**Note:** load uses [CF conventions](http://cfconventions.org/). If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in [NetCDF.jl package](https://github.com/JuliaGeo/NetCDF.jl) or [NCDatasets.jl](https://github.com/Alexander-Barth/NCDatasets.jl) or re-create standartized netCDF files.
 """
-
-function load(file::String, variable::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
-
+function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
 
   # TODO this file is a complete mess, but it works. Clean it up!
   # TODO create another function for orography extraction (2D dataset)
@@ -37,7 +35,7 @@ function load(file::String, variable::String; poly = ([]), start_date::Tuple=(In
   frequency = ClimateTools.frequency_var(attribs_dataset)
   runsim = ClimateTools.runsim_id(attribs_dataset)
 
-  dataunits = ds[variable].attrib["units"]
+  dataunits = ds[vari].attrib["units"]
   latunits = ds["lat"].attrib["units"]
   lonunits = ds["lon"].attrib["units"]
   caltype = ds["time"].attrib["calendar"]
@@ -53,12 +51,12 @@ function load(file::String, variable::String; poly = ([]), start_date::Tuple=(In
   lon_raw = NetCDF.ncread(file, lonname)
 
   # Get variable attributes
-  varattrib = Dict(ds[variable].attrib)
+  varattrib = Dict(ds[vari].attrib)
 
   if latname != "lat" && lonname != "lon" # means we don't have a "regular" grid
       latgrid = NetCDF.ncread(file, "lat")
       longrid = NetCDF.ncread(file, "lon")
-      if @isdefined varattrib["grid_mapping"]
+      if ClimateTools.@isdefined varattrib["grid_mapping"]
           map_dim = varattrib["grid_mapping"]
           map_attrib = Dict(ds[map_dim].attrib)
           map_attrib["grid_mapping"] = map_dim
@@ -81,12 +79,12 @@ function load(file::String, variable::String; poly = ([]), start_date::Tuple=(In
   end
 
   # Construct time vector from info in netCDF file *str*
-  timeV = buildtimevec(file, rez)
+  timeV = ClimateTools.buildtimevec(file, rez)
   if frequency == "mon"
       timeV = corr_timevec(timeV, frequency)
   end
 
-  idxtimebeg, idxtimeend = timeindex(timeV, start_date, end_date, frequency)
+  idxtimebeg, idxtimeend = ClimateTools.timeindex(timeV, start_date, end_date, frequency)
 
   timeV = timeV[idxtimebeg:idxtimeend]
 
@@ -109,7 +107,7 @@ function load(file::String, variable::String; poly = ([]), start_date::Tuple=(In
   # ===================
   # GET DATA
   # data = ds[variable]
-  data = NetCDF.open(file, variable)
+  data_pointer = NetCDF.open(file, vari)
   if !isempty(poly)
 
     # Test to see if the polygon crosses the meridian
@@ -118,7 +116,7 @@ function load(file::String, variable::String; poly = ([]), start_date::Tuple=(In
     # Build mask based on provided polygon
     msk = inpolygrid(longrid_flip, latgrid, poly)
 
-    if sum(isnan.(msk)) == length(msk) # no grid point insode polygon
+    if sum(isnan.(msk)) == length(msk) # no grid point inside polygon
         throw(error("No grid points found inside the provided polygon"))
     end
 
@@ -128,16 +126,21 @@ function load(file::String, variable::String; poly = ([]), start_date::Tuple=(In
     end
 
     #Extract data based on mask
-    data = ClimateTools.extractdata(data, msk, idxtimebeg, idxtimeend)
+    data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
 
     #new mask (e.g. representing the region of the polygon)
-    idlon, idlat = findn(.!isnan.(msk))
+    # TODO MOVE THIS CODE TO "extractdata" ?
+    # idlon, idlat = findn(.!isnan.(msk))
+    begin
+        I = Base.findall(!isnan, msk)
+        idlon, idlat = (getindex.(I, 1), getindex.(I, 2))
+      end
     minXgrid = minimum(idlon)
     maxXgrid = maximum(idlon)
     minYgrid = minimum(idlat)
     maxYgrid = maximum(idlat)
     msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
-    data = applymask(data, msk) # needed when polygon is not rectangular
+    data_mask = applymask(data_ext, msk) # needed when polygon is not rectangular
 
     if rotatedgrid
         # Regrid msk to shifted grid if the grid have been rotated to get final mask
@@ -166,7 +169,7 @@ function load(file::String, variable::String; poly = ([]), start_date::Tuple=(In
 
             longrid_flip = ClimateTools.shiftgrid_180_west_east(longrid)
 
-            data = permute_west_east(data, longrid)#idxwest, idxeast)
+            data_final = permute_west_east(data_mask, longrid)#idxwest, idxeast)
             msk = ClimateTools.permute_west_east(msk, longrid)
 
             # TODO Try to trim padding when meridian is crossed and model was on a 0-360 coords
@@ -186,6 +189,9 @@ function load(file::String, variable::String; poly = ([]), start_date::Tuple=(In
 
             #     data = applymask(data, msk)
 
+        else
+            data_final = data_mask
+
 
 
         end
@@ -196,7 +202,7 @@ function load(file::String, variable::String; poly = ([]), start_date::Tuple=(In
     else
 
         if rotatedgrid # flip in original grid
-            longrid = shiftgrid_180_east_west(longrid) #grideast, gridwest)
+            longrid = ClimateTools.shiftgrid_180_east_west(longrid) #grideast, gridwest)
         end
 
         longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
@@ -209,17 +215,20 @@ function load(file::String, variable::String; poly = ([]), start_date::Tuple=(In
 
             lon_raw_flip = shiftvector_180_east_west(lon_raw)
 
-            data = permute_west_east(data, longrid)#idxwest, idxeast)
+            data_final = permute_west_east(data_mask, longrid)#idxwest, idxeast)
             msk = ClimateTools.permute_west_east(msk, longrid)
+        else
+            data_final = data_mask
 
         end
 
     end
 
   elseif isempty(poly) # no polygon clipping
-      msk = Array{Float64}(ones((size(data, 1), size(data, 2))))
+      msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
     # if ndims(data) == 3
-      data = extractdata(data, msk, idxtimebeg, idxtimeend)
+    # data_sub = Array(, , length)
+      data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
     # elseif ndims(data) == 4
         # data = extractdata(data, msk, idxtimebeg, idxtimeend)
     # end
@@ -227,31 +236,35 @@ function load(file::String, variable::String; poly = ([]), start_date::Tuple=(In
 
     if rotatedgrid
         # Flip data "west-east"
-        data = permute_west_east(data, longrid)
+        data_final = ClimateTools.permute_west_east(data_ext, longrid)
+    else
+        data_final = data_ext
     end
 
   end
 
   # # Replace fillvalues with NaN
-  fillval = NetCDF.ncgetatt(file, variable, "_FillValue")
-  data[data .== fillval] = NaN
+  fillval = NetCDF.ncgetatt(file, vari, "_FillValue")
+  data_final[data_final .== fillval] .= NaN
+
+  data = data_final
 
   if rotatedgrid
-      longrid = longrid_flip
-      lon_raw = lon_raw_flip
+      longrid .= longrid_flip
+      lon_raw .= lon_raw_flip
   end
 
   # Convert units of optional argument data_units is provided
-  if data_units == "Celsius" && (variable == "tas" || variable == "tasmax" || variable == "tasmin") && dataunits == "K"
-    data = data - 273.15
+  if data_units == "Celsius" && (vari == "tas" || vari == "tasmax" || vari == "tasmin") && dataunits == "K"
+    data .-= 273.15
     dataunits = "Celsius"
   end
 
-  if data_units == "mm" && variable == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")
+  if data_units == "mm" && vari == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")
 
     rez = timeresolution(NetCDF.ncread(file, "time"))
     factor = pr_timefactor(rez)
-    data = data .* factor
+    data .*= factor
     if rez != "N/A"
         dataunits = string("mm/",rez)
     else
@@ -276,29 +289,26 @@ function load(file::String, variable::String; poly = ([]), start_date::Tuple=(In
   close(ds)
   NetCDF.ncclose(file)
 
-  return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=variable, typeofvar=variable, typeofcal=caltype, varattribs=varattrib, globalattribs=attribs)
+  return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal=caltype, varattribs=varattrib, globalattribs=attribs)
 
 
 end
 
 """
-    load(files::Array{String,1}, variable::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = "")
+    load(files::Array{String,1}, vari::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = "")
 
 Loads and merge the files contained in the arrar files.
 """
-
-
-function load(files::Array{String,1}, variable::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
+function load(files::Array{String,1}, vari::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
 
     C = [] # initialize # TODO better initialization
-
     nfiles = length(files)
 
-    p = Progress(nfiles, 3)
+    p = Progress(nfiles, 3, "Loading files: ")
 
     for ifile = 1:nfiles
 
-        datatmp = load(files[ifile], variable, poly = poly, start_date=start_date, end_date=end_date, data_units=data_units)
+        datatmp = load(files[ifile], vari, poly = poly, start_date=start_date, end_date=end_date, data_units=data_units)
 
         if ifile == 1
             C = datatmp
@@ -310,12 +320,13 @@ function load(files::Array{String,1}, variable::String; poly = ([]), start_date:
     return C
 end
 
+
 """
-    load2D(file::String, variable::String; poly=[], data_units::String="")
+    load2D(file::String, vari::String; poly=[], data_units::String="")
 
 Returns a 2D array. Should be used for *fixed* data, such as orography
 """
-function load2D(file::String, variable::String; poly=[], data_units::String="")
+function load2D(file::String, vari::String; poly=[], data_units::String="")
     # Get attributes
     ncI = NetCDF.ncinfo(file);
     attribs = NetCDF.ncinfo(file).gatts;
@@ -323,14 +334,14 @@ function load2D(file::String, variable::String; poly=[], data_units::String="")
     # ncI = NetCDF.ncinfo(file);
     attribs_dataset = ds.attrib
 
-    project = project_id(attribs_dataset)
-    institute = institute_id(attribs_dataset)
-    model = model_id(attribs_dataset)
-    experiment = experiment_id(attribs_dataset)
-    frequency = frequency_var(attribs_dataset)
-    runsim = runsim_id(attribs_dataset)
+    project = ClimateTools.project_id(attribs_dataset)
+    institute = ClimateTools.institute_id(attribs_dataset)
+    model = ClimateTools.model_id(attribs_dataset)
+    experiment = ClimateTools.experiment_id(attribs_dataset)
+    frequency = ClimateTools.frequency_var(attribs_dataset)
+    runsim = ClimateTools.runsim_id(attribs_dataset)
 
-    dataunits = ds[variable].attrib["units"]
+    dataunits = ds[vari].attrib["units"]
     latunits = ds["lat"].attrib["units"]
     lonunits = ds["lon"].attrib["units"]
 
@@ -345,12 +356,12 @@ function load2D(file::String, variable::String; poly=[], data_units::String="")
     lon_raw = NetCDF.ncread(file, lonname)
 
     # Get variable attributes
-    varattrib = Dict(ds[variable].attrib)
+    varattrib = Dict(ds[vari].attrib)
 
     if latname != "lat" && lonname != "lon" # means we don't have a "regular" grid
         latgrid = NetCDF.ncread(file, "lat")
         longrid = NetCDF.ncread(file, "lon")
-        if @isdefined varattrib["grid_mapping"]
+        if ClimateTools.@isdefined varattrib["grid_mapping"]
             map_dim = varattrib["grid_mapping"]
             map_attrib = Dict(ds[map_dim].attrib)
             map_attrib["grid_mapping"] = map_dim
@@ -384,7 +395,7 @@ function load2D(file::String, variable::String; poly=[], data_units::String="")
     # ===================
     # GET DATA
     # data = ds[variable]
-    data = NetCDF.open(file, variable)
+    data_pointer = NetCDF.open(file, vari)
     if !isempty(poly)
 
       # Test to see if the polygon crosses the meridian
@@ -403,16 +414,22 @@ function load2D(file::String, variable::String; poly=[], data_units::String="")
       end
 
       #Extract data based on mask
-      data = ClimateTools.extractdata2D(data, msk)
+      data_ext = ClimateTools.extractdata2D(data_pointer, msk)
 
       #new mask (e.g. representing the region of the polygon)
-      idlon, idlat = findn(.!isnan.(msk))
+      # idlon, idlat = findn(.!isnan.(msk)) # DEPRECATED SEE NEXT "begin...end"
+      
+      begin
+        I = Base.findall(!isnan, msk)
+        idlon, idlat = (getindex.(I, 1), getindex.(I, 2))
+      end
+
       minXgrid = minimum(idlon)
       maxXgrid = maximum(idlon)
       minYgrid = minimum(idlat)
       maxYgrid = maximum(idlat)
       msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
-      data = applymask(data, msk) # needed when polygon is not rectangular
+      data_mask = applymask(data_ext, msk) # needed when polygon is not rectangular
 
       if rotatedgrid
           # Regrid msk to shifted grid if the grid have been rotated to get final mask
@@ -441,7 +458,7 @@ function load2D(file::String, variable::String; poly=[], data_units::String="")
 
               longrid_flip = ClimateTools.shiftgrid_180_west_east(longrid)
 
-              data = permute_west_east(data, longrid)#idxwest, idxeast)
+              data_final = permute_west_east(data_mask, longrid)#idxwest, idxeast)
               msk = ClimateTools.permute_west_east(msk, longrid)
 
               # TODO Try to trim padding when meridian is crossed and model was on a 0-360 coords
@@ -461,11 +478,10 @@ function load2D(file::String, variable::String; poly=[], data_units::String="")
 
               #     data = applymask(data, msk)
 
-
+          else
+            data_final = data_mask
 
           end
-
-
 
 
       else
@@ -484,17 +500,20 @@ function load2D(file::String, variable::String; poly=[], data_units::String="")
 
               lon_raw_flip = shiftvector_180_east_west(lon_raw)
 
-              data = permute_west_east(data, longrid)#idxwest, idxeast)
+              data_final = permute_west_east(data_mask, longrid)#idxwest, idxeast)
               msk = ClimateTools.permute_west_east(msk, longrid)
+
+          else
+            data_final = data_mask
 
           end
 
       end
 
     elseif isempty(poly) # no polygon clipping
-        msk = Array{Float64}(ones((size(data, 1), size(data, 2))))
+        msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
       # if ndims(data) == 3
-        data = extractdata2D(data, msk)
+        data_ext = extractdata2D(data_pointer, msk)
       # elseif ndims(data) == 4
           # data = extractdata(data, msk, idxtimebeg, idxtimeend)
       # end
@@ -502,14 +521,17 @@ function load2D(file::String, variable::String; poly=[], data_units::String="")
 
       if rotatedgrid
           # Flip data "west-east"
-          data = permute_west_east(data, longrid)
+          data_final = permute_west_east(data_ext, longrid)
+      else
+        data_final = data_ext
       end
 
     end
 
     # # Replace fillvalues with NaN
-    fillval = NetCDF.ncgetatt(file, variable, "_FillValue")
-    data[data .== fillval] = NaN
+    fillval = NetCDF.ncgetatt(file, vari, "_FillValue")
+    data_final[data_final .== fillval] .= NaN
+    data = data_final
 
     if rotatedgrid
         longrid = longrid_flip
@@ -517,16 +539,16 @@ function load2D(file::String, variable::String; poly=[], data_units::String="")
     end
 
     # Convert units of optional argument data_units is provided
-    if data_units == "Celsius" && (variable == "tas" || variable == "tasmax" || variable == "tasmin") && dataunits == "K"
-      data = data - 273.15
+    if data_units == "Celsius" && (vari == "tas" || vari == "tasmax" || vari == "tasmin") && dataunits == "K"
+      data .-= 273.15
       dataunits = "Celsius"
     end
 
-    if data_units == "mm" && variable == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")
+    if data_units == "mm" && vari == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")
 
       rez = timeresolution(NetCDF.ncread(file, "time"))
       factor = pr_timefactor(rez)
-      data = data .* factor
+      data .*= factor
       if rez != "N/A"
           dataunits = string("mm/",rez)
       else
@@ -544,10 +566,7 @@ function load2D(file::String, variable::String; poly=[], data_units::String="")
     close(ds)
     NetCDF.ncclose(file)
 
-    return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=variable, typeofvar=variable, typeofcal="fixed", varattribs=varattrib, globalattribs=attribs)
-
-
-
+    return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal="fixed", varattribs=varattrib, globalattribs=attribs)
 
 end
 
@@ -565,7 +584,7 @@ function buildtimevec(str::String, rez)
   units = NetCDF.ncgetatt(str, "time", "units") # get starting date
   # m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1)
   m = match(r"(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})", units, 1) # match a date from string
-  if isempty(fieldnames(m))#@isdefined m.captures
+  if isempty(fieldnames(typeof(m)))#@isdefined m.captures
       m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1)
   end
 
@@ -590,8 +609,8 @@ function buildtimevec(str::String, rez)
 
     leapDaysPer = sumleapyear(initDate, timeRaw[1] - 1)
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
-    startDate = initDate + Base.Dates.Day(convert(Int64, floor(timeRaw[1]))) + Base.Dates.Day(leapDaysPer)
-    endDate = initDate + Base.Dates.Day(convert(Int64, ceil(timeRaw[end]))) + Base.Dates.Day(leapDaysPer2) - period
+    startDate = initDate + Dates.Day(convert(Int64, floor(timeRaw[1]))) + Dates.Day(leapDaysPer)
+    endDate = initDate + Dates.Day(convert(Int64, ceil(timeRaw[end]))) + Dates.Day(leapDaysPer2) - period
 
     # period = getperiod(rez)
 
@@ -612,23 +631,23 @@ elseif calType == "gregorian" || calType == "standard" || calType == "proleptic_
 
     if typeof(timeRaw[1]) == Int8 || typeof(timeRaw[1]) == Int16 || typeof(timeRaw[1]) == Int32 || typeof(timeRaw[1]) == Int64
 
-        startDate = initDate + Base.Dates.Day(floor(timeRaw[1]))
-        endDate = initDate + Base.Dates.Day(ceil(timeRaw[end]))
+        startDate = initDate + Dates.Day(floor(timeRaw[1]))
+        endDate = initDate + Dates.Day(floor(timeRaw[end]))
     else
-        startDate = initDate + Base.Dates.Day(convert(Int64,floor(timeRaw[1])))
-        endDate = initDate + Base.Dates.Day(convert(Int64,ceil(timeRaw[end]))) - period
+        startDate = initDate + Dates.Day(convert(Int64,floor(timeRaw[1])))
+        endDate = initDate + Dates.Day(convert(Int64,floor(timeRaw[end])))# - period
     end
     dateTmp = DateTime(startDate):period:DateTime(endDate)
 
 elseif calType == "360_day"
-    throw(error("360_day yype of calendar not yet supported"))
+    throw(error("360_day type of calendar not yet supported"))
 
     # timeRaw = floor.(NetCDF.ncread(str, "time"))
     leapDaysPer = sumleapyear(initDate, timeRaw[1] - 1)
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
 
-    startDate = initDate + Base.Dates.Day(convert(Int64, round(timeRaw[1]))) + Base.Dates.Day(leapDaysPer)
-    endDate = initDate + Base.Dates.Day(convert(Int64, round(timeRaw[end]))) + Base.Dates.Day(leapDaysPer2)
+    startDate = initDate + Dates.Day(convert(Int64, round(timeRaw[1]))) + Dates.Day(leapDaysPer)
+    endDate = initDate + Dates.Day(convert(Int64, round(timeRaw[end]))) + Dates.Day(leapDaysPer2)
 
     dateTmp = DateTime(startDate):period:DateTime(endDate)
 
@@ -656,6 +675,8 @@ function getperiod(rez::String)
         period = Dates.Hour(12)
     elseif rez == "24h"
         period = Dates.Hour(24)
+    elseif rez == "Yearly"
+        period = Dates.Year(1)
     else
         period = Dates.Hour(24)
     end
@@ -667,15 +688,15 @@ end
 """
 Number of leap years in date vector
 
-    sumleapyear(dates::StepRange{Date,Base.Dates.Day})
+    sumleapyear(dates::StepRange{Date, Dates.Day})
 
     sumleapyear(initDate::Date, timeRaw)
 """
 function sumleapyear(initDate::Dates.TimeType, timeRaw)
 
   out = 0::Int
-  endDate = initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
-  years = unique(Dates.year.(initDate:endDate))
+  endDate = initDate + Dates.Day(convert(Int64,round(timeRaw[1])))
+  years = unique(Dates.year.(initDate:Day(1):endDate))
   # Sum over time vector
   for idx = 1:length(years)
     if Dates.isleapyear(years[idx])
@@ -688,10 +709,10 @@ function sumleapyear(initDate::Dates.TimeType, timeRaw)
 
 end
 
-function sumleapyear(dates::StepRange{Date,Base.Dates.Day})
+function sumleapyear(dates::StepRange{Date, Dates.Day})
 
   out = 0::Int
-  endDate = dates[end]#initDate + Base.Dates.Day(convert(Int64,round(timeRaw[1])))
+  endDate = dates[end]#initDate + Dates.Day(convert(Int64,round(timeRaw[1])))
   years = unique(Dates.year.(dates))
   # Sum over time vector
   for idx = 1:length(years)
@@ -713,7 +734,7 @@ See also [`shapefile_coords_poly`](@ref), which returns a polygon that ca be use
 
 """
 function shapefile_coords(poly::Shapefile.Polygon)
-    start_indices = poly.parts+1
+    start_indices = poly.parts .+ 1
     end_indices = vcat(poly.parts[2:end], length(poly.points))
     x, y = zeros(0), zeros(0)
     for (si,ei) in zip(start_indices, end_indices)
@@ -791,9 +812,7 @@ end
 
 Return the time resolution of the vector timevec.
 
-
 """
-
 function timeresolution(timevec::Array{N,1} where N)
 
     # timevec = (NetCDF.ncread(str, "time"))
@@ -801,14 +820,16 @@ function timeresolution(timevec::Array{N,1} where N)
         timediff = diff(timevec)[2]
         if timediff == 1. || timediff == 1
             return "24h"
-        elseif round(timediff, 5) == round(12/24, 5)
+        elseif round(timediff, digits=5) == round(12/24, digits=5)
             return "12h"
-        elseif round(timediff, 5) == round(6/24, 5)
+        elseif round(timediff, digits=5) == round(6/24, digits=5)
             return "6h"
-        elseif round(timediff, 5) == round(3/24, 5)
+        elseif round(timediff, digits=5) == round(3/24, digits=5)
             return "3h"
-        elseif round(timediff, 5) == round(1/24, 5)
+        elseif round(timediff, digits=5) == round(1/24, digits=5)
             return "1h"
+        elseif round(timediff, digits=5) == 365.0 || round(timediff, digits=5) == 366.0 || round(timediff, digits=5) == 360.0
+            return "Yearly"
         end
     else
         return "N/A"
@@ -869,8 +890,7 @@ end
 Returns the spatial subset of ClimGrid C. The spatial subset is defined by the polygon poly, defined on a -180, +180 longitude reference.
 
 """
-
-function spatialsubset(C::ClimGrid, poly::Array{N, 2} where N)
+function spatialsubset(C::ClimGrid, poly)
 
     # Some checks for polygon poly
 
@@ -890,7 +910,11 @@ function spatialsubset(C::ClimGrid, poly::Array{N, 2} where N)
     lat = C[1][Axis{latsymbol}][:]
 
     msk = inpolygrid(longrid, latgrid, poly)
-    idlon, idlat = findn(.!isnan.(msk))
+    # idlon, idlat = findn(.!isnan.(msk))
+    begin
+        I = findall(!isnan, msk)
+        idlon, idlat = (getindex.(I, 1), getindex.(I, 2))
+    end
     minXgrid = minimum(idlon)
     maxXgrid = maximum(idlon)
     minYgrid = minimum(idlat)
@@ -931,7 +955,6 @@ end
 Returns the temporal subset of ClimGrid C. The temporal subset is defined by a start and end date.
 
 """
-
 function temporalsubset(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
 
     startdate = buildtimetype(datebeg)
@@ -958,8 +981,10 @@ end
 Return the temporal subset of ClimGrid C based on months.
 """
 function periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)
+
     @argcheck startmonth >= minimum(Dates.month.(C[1][Axis{:time}][:]))
     @argcheck startmonth <= maximum(Dates.month.(C[1][Axis{:time}][:]))
+
     if startmonth <= endmonth
         # Each matrix [:,:,i] represent data for a day
         datain = C.data.data
@@ -974,6 +999,7 @@ function periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)
         lonsymbol = Symbol(C.dimension_dict["lon"])
         latsymbol = Symbol(C.dimension_dict["lat"])
         axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]),    Axis{:time}(datevecout))
+
     elseif endmonth < startmonth
         # Each matrix [:,:,i] represent data for a day
         datain = C.data.data
@@ -996,7 +1022,7 @@ end
 """
     periodsubset(C::ClimGrid, season::String)
 
-Return the temporal subset of ClimGrid C for a given season. Season options are : "DJF" (December-February; Winter), "MAM" (March-May; Spring), "JJA" (June-August; Summer), "SON" (September-November; Fall)
+Return the temporal subset of ClimGrid C for a given season. Season options are: "DJF" (December-February), "MAM" (March-May), "JJA" (June-August), "SON" (September-November)
 """
 function periodsubset(C::ClimGrid, season::String)
     if lowercase(season) == "djf"
@@ -1025,7 +1051,6 @@ institute_id(attrib::NCDatasets.Attributes) = get(attrib,"institute_id",get(attr
 frequency_var(attrib::NCDatasets.Attributes) = get(attrib,"frequency","N/A")
 
 runsim_id(attrib::NCDatasets.Attributes) = get(attrib, "parent_experiment_rip", get(attrib,"driving_model_ensemble_member","N/A"))
-
 
 
 function getdim_lat(ds::NCDatasets.Dataset)
@@ -1161,28 +1186,36 @@ Returns the data contained in netCDF file, using the appropriate mask and time i
 """
 function extractdata(data, msk, idxtimebeg, idxtimeend)
 
-    idlon, idlat = findn(.!isnan.(msk))
+    # idlon, idlat = findn(.!isnan.(msk))
+    begin
+        I = Base.findall(!isnan, msk)
+        idlon, idlat = (getindex.(I, 1), getindex.(I, 2))
+    end
     minXgrid = minimum(idlon)
     maxXgrid = maximum(idlon)
     minYgrid = minimum(idlat)
     maxYgrid = maximum(idlat)
 
     if ndims(data) == 3
-        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, idxtimebeg:idxtimeend]
+        dataout = data[minXgrid:maxXgrid, minYgrid:maxYgrid, idxtimebeg:idxtimeend]
         # Permute dims
         # data = permutedims(data, [3, 1, 2])
     elseif ndims(data) == 4
-        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, idxtimebeg:idxtimeend]
+        dataout = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, idxtimebeg:idxtimeend]
         # Permute dims
         # data = permutedims(data, [4, 1, 2, 3])
     end
 
-    return data
+    return dataout
 end
 
 function extractdata2D(data, msk)
 
-    idlon, idlat = findn(.!isnan.(msk))
+    # idlon, idlat = findn(.!isnan.(msk))
+    begin
+        I = Base.findall(!isnan, msk)
+        idlon, idlat = (getindex.(I, 1), getindex.(I, 2))
+    end
     minXgrid = minimum(idlon)
     maxXgrid = maximum(idlon)
     minYgrid = minimum(idlat)

@@ -1,9 +1,9 @@
 """
-    mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Tuple, end_date::Tuple, titlestr::String, surface::Symbol, ncolors::Int, center_cs::Bool, filename::String, cs_label::String)
+    mapclimgrid(C::ClimGrid; region::String="auto", poly, level, mask, caxis, start_date::Tuple, end_date::Tuple, titlestr::String, surface::Symbol, cm::String="", ncolors::Int, center_cs::Bool, filename::String, cs_label::String)
 
 Maps the time-mean average of ClimGrid C. If a filename is provided, the figure is saved in a png format.
 
-Optional keyworkd includes precribed regions (keyword *region*, see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword *level* is used to map a given level (defaults to 1). *caxis* is used to limit the colorscale. *ncolors* is used to set the number of color classes (defaults to 12). Set *center_cs* to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature). *cs_label* is used for custom colorscale label.
+Optional keyworkd includes precribed regions (keyword *region*, see list below), spatial clipping by polygon (keyword *poly*) or mask (keyword *mask*, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword *level* is used to map a given level (defaults to 1). *caxis* is used to limit the colorscale. *cm* is used to manually set the colorscale (see Python documentation for native colorscale keyword), *ncolors* is used to set the number of color classes (defaults to 12). Set *center_cs* to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature). *cs_label* is used for custom colorscale label.
 
 ## Arguments for keyword *region* (and shortcuts)
 - Europe ("EU")
@@ -19,7 +19,7 @@ Optional keyworkd includes precribed regions (keyword *region*, see list below),
 - :contourf
 - :pcolormesh
 """
-function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", surface::Symbol=:contourf, ncolors::Int=12, center_cs::Bool=false, filename::String="", cs_label::String="")
+function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, poly=[], level=1, mask=[], caxis=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", surface::Symbol=:contourf, cm::String="", ncolors::Int=12, center_cs::Bool=false, filename::String="", cs_label::String="")
 
   # TODO Add options for custom region
 
@@ -37,30 +37,28 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   # Time limits
   if ndims(C[1]) > 2
       timeV = C[1][Axis{:time}][:]
-      timebeg, timeend = timeindex(timeV, start_date, end_date, C.frequency)
+      timebeg, timeend = ClimateTools.timeindex(timeV, start_date, end_date, C.frequency)
   end
 
   # =============
   # Colorscale
   # TODO replace C[10] comparison with C.varattribs["standard_name"]
-
-  if C[10] == "pr" || C[10]=="huss"
+  if isempty(cm)
+    if C[10] == "pr" || C[10]=="huss"
       # cm = "YlGnBu"
       cm = cmocean[:cm][:deep]
-  elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin"
-
-    cm = "RdYlBu_r"
-
-  elseif C[10]=="psl" # pressure
+    elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin" || C[10] == "wbgtmean" || C[10] == "wbgtmax"
+      cm = "RdYlBu_r"
+    elseif C[10]=="psl" || C[10]=="vp" # pressure
       cm = cmocean[:cm][:deep_r]
-  elseif C[10]=="ua" # wind
+    elseif C[10]=="ua" # wind
       cm = cmocean[:cm][:balance]
-  else
+    else
       cm = "viridis"
+    end
   end
 
-  # overide colorscale if we want to center scale
-
+  # overide colorscale if the user specify to center the colorscale
   if center_cs
       cm = "RdBu_r"
   end
@@ -71,7 +69,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
       N = ncolors
   end
   cmap = mpl[:cm][:get_cmap](cm)
-  colorlist = cmap(linspace(0, 1, N))
+  colorlist = cmap(range(0, stop=1, length=N))
   # #
   cm = mpl[:colors][:LinearSegmentedColormap][:from_list]("cm_custom", colorlist, N)
 
@@ -79,24 +77,24 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   # PLOT DATA
   # Time-average
   if ndims(C[1]) > 2
-      data2 = timeavg(C, timebeg, timeend, mask, poly, level)
+      data2 = ClimateTools.timeavg(C, timebeg, timeend, mask, poly, level)
   elseif ndims(C[1]) == 2
       data2 = C[1].data
   end
 
   # Get colorscale limits
-#   println(data2)
-  vmin, vmax = getcslimits(caxis, data2, center_cs)
-
-  # norm = mpl[:colors][:Normalize](vmin=vmin, vmax=vmax)
-
+  vmin, vmax = ClimateTools.getcslimits(caxis, data2, center_cs)
 
   # Empty-map generator
   status, fig, ax, m = mapclimgrid(region=region, states=states, llon=llon, rlon=rlon, slat=slat, nlat=nlat)
 
   x, y = m(C.longrid, C.latgrid) # convert longrid and latgrid to projected coordinates
   if surface == :contourf
-    cs = m[surface](x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
+    # try
+        cs = m[surface](x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
+    # catch
+    #     cs = m[surface](x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
+    # end
   else
     cs = m[surface](x, y, data2, cmap = cm, vmin=vmin, vmax=vmax)
   end
@@ -213,7 +211,7 @@ function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::T
     timevec = C[1][Axis{:time}][:]
 
     if typeof(timevec[1]) != Date
-        if typeof(timevec[1]) == Base.Dates.Year
+        if typeof(timevec[1]) == Dates.Year
             timevec = Date.(timevec)
         end
     end
@@ -223,7 +221,7 @@ function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::T
     # Spatial mean for each timestep
     for t in 1:length(timevec)
         datatmp = data[:, :, t]
-        average[t] = mean(datatmp[.!isnan.(datatmp)])
+        average[t] = Statistics.mean(datatmp[.!isnan.(datatmp)])
     end
 
     # figh, ax = subplots()
@@ -254,7 +252,6 @@ end
 
 Returns minimum and maximum values of the colorscale axis. Used internally by [`mapclimgrid`](@ref).
 """
-
 function getcslimits(caxis, data, center_cs)
 
     if !isempty(caxis)
@@ -279,19 +276,10 @@ end
 
 Returns an array for mapping purpose. Used internally by [`mapclimgrid`](@ref).
 """
-
 function timeavg(C, timebeg, timeend, mask, poly, level)
-    data2 = Array{Float64}(size(C[1], 1), size(C[1], 2))
+    data2 = Array{Float64}(undef, size(C[1], 2), size(C[1], 3))
     if ndims(C[1]) == 3
-
-        for k = 1:size(C[1], 2)
-            for j = 1:size(C[1], 1)
-                # data2[j, k] = mean(C[1][j, k, timebeg:timeend])
-                data2[j, k] = mean(C[1][j, k, :])
-            end
-        end
-
-    #   data2 = squeeze(mean(C[1][:, :, timebeg:timeend], 3), 3) #time mean
+      data2 = Array(dropdims(Statistics.mean(C[1][:, :, timebeg:timeend], dims=3), dims=3)) #time mean
 
       # TODO throw error/warning if no grid point inside polygon or mask
 
@@ -304,7 +292,7 @@ function timeavg(C, timebeg, timeend, mask, poly, level)
 
     # 4D fields
   elseif ndims(C[1]) == 4 # 4D field
-      data2 = squeeze(mean(C[1][:, :, level, timebeg:timeend], 4), 3) # time mean over "level"
+      data2 = Array(dropdims(Statistics.mean(C[1][:, :, level, timebeg:timeend], dims=4), dims=3)) # time mean over "level"
 
       if !isempty(poly)
           msk = inpolygrid(C.longrid, C.latgrid, poly)
@@ -322,14 +310,13 @@ end
 
 Returns the title. Used internally by [`mapclimgrid`](@ref).
 """
-
 function titledef(C::ClimGrid)
     if ndims(C[1]) > 2
 
         if typeof((C[1][Axis{:time}][1])) == DateTime
-            begYear = string(Base.Dates.year(C[1][Axis{:time}][1]))
-            endYear = string(Base.Dates.year(C[1][Axis{:time}][end]))
-        elseif typeof((C[1][Axis{:time}][1])) == Base.Dates.Year
+            begYear = string(Dates.year(C[1][Axis{:time}][1]))
+            endYear = string(Dates.year(C[1][Axis{:time}][end]))
+        elseif typeof((C[1][Axis{:time}][1])) == Dates.Year
             begYear = string(C[1][Axis{:time}][1])[1:4]
             endYear = string(C[1][Axis{:time}][end])[1:4]
         elseif typeof((C[1][Axis{:time}][1])) == Int
@@ -351,7 +338,6 @@ end
 
 Return verbose label for colorbar. Used internally by [`mapclimgrid`](@ref).
 """
-
 function getunitslabel(C::ClimGrid)
 
     try
