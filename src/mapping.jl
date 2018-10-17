@@ -85,6 +85,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   end
 
   # Get colorscale limits
+#   println(data2)
   vmin, vmax = getcslimits(caxis, data2, center_cs)
 
   # norm = mpl[:colors][:Normalize](vmin=vmin, vmax=vmax)
@@ -280,9 +281,17 @@ Returns an array for mapping purpose. Used internally by [`mapclimgrid`](@ref).
 """
 
 function timeavg(C, timebeg, timeend, mask, poly, level)
-    data2 = Array{Float64}(size(C[1], 2), size(C[1], 3))
+    data2 = Array{Float64}(size(C[1], 1), size(C[1], 2))
     if ndims(C[1]) == 3
-      data2 = squeeze(mean(C[1][:, :, timebeg:timeend], 3), 3) #time mean
+
+        for k = 1:size(C[1], 2)
+            for j = 1:size(C[1], 1)
+                # data2[j, k] = mean(C[1][j, k, timebeg:timeend])
+                data2[j, k] = mean(C[1][j, k, :])
+            end
+        end
+
+    #   data2 = squeeze(mean(C[1][:, :, timebeg:timeend], 3), 3) #time mean
 
       # TODO throw error/warning if no grid point inside polygon or mask
 

@@ -1,8 +1,29 @@
 # TODO add quantile estimation as indices
-function buildarray(C::ClimateTools.ClimGrid, dataout, numYears)
+function buildarray_annual(C::ClimateTools.ClimGrid, dataout, numYears)
     lonsymbol = Symbol(C.dimension_dict["lon"])
     latsymbol = Symbol(C.dimension_dict["lat"])
     FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(Dates.Year.(numYears)))
+    return FD
+end
+
+function buildarray_climato(C::ClimateTools.ClimGrid, dataout)
+    lonsymbol = Symbol(C.dimension_dict["lon"])
+    latsymbol = Symbol(C.dimension_dict["lat"])
+    FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]))
+    return FD
+end
+
+function buildarray_orig(C::ClimateTools.ClimGrid, dataout)
+    lonsymbol = Symbol(C.dimension_dict["lon"])
+    latsymbol = Symbol(C.dimension_dict["lat"])
+    FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(get_timevec(C)))
+    return FD
+end
+
+function buildarray_resample(C::ClimateTools.ClimGrid, dataout, newtime)
+    lonsymbol = Symbol(C.dimension_dict["lon"])
+    latsymbol = Symbol(C.dimension_dict["lat"])
+    FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(newtime))
     return FD
 end
 
@@ -27,11 +48,14 @@ function prcp1(C::ClimGrid)
     Base.mapreducedim!(t -> t >= 1, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
+  # Apply mask
+  dataout = applymask(dataout, C.msk)
+
   # Build output AxisArray
-  FD = buildarray(C, dataout, numYears)
+  FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable="prcp1", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable="prcp1", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 # """
@@ -105,11 +129,14 @@ function frostdays(C::ClimGrid)
     Base.mapreducedim!(t -> t < 0, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
+  # Apply mask
+  dataout = applymask(dataout, C.msk)
+
   # Build output AxisArray
-  FD = buildarray(C, dataout, numYears)
+  FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable="frostdays", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable="frostdays", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 # """
@@ -181,11 +208,14 @@ function summerdays(C::ClimGrid)
     Base.mapreducedim!(t -> t > 25, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
+  # Apply mask
+  dataout = applymask(dataout, C.msk)
+
   # Build output AxisArray
-  FD = buildarray(C, dataout, numYears)
+  FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable="summerdays", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable="summerdays", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 
@@ -258,11 +288,14 @@ function icingdays(C::ClimGrid)
     Base.mapreducedim!(t -> t < 0, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
+  # Apply mask
+  dataout = applymask(dataout, C.msk)
+
   # Build output AxisArray
-  FD = buildarray(C, dataout, numYears)
+  FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable="icingdays", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable="icingdays", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 
@@ -311,11 +344,14 @@ function tropicalnights(C::ClimGrid)
     Base.mapreducedim!(t -> t > 20, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
+  # Apply mask
+  dataout = applymask(dataout, C.msk)
+
   # Build output AxisArray
-  FD = buildarray(C, dataout, numYears)
+  FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable="tropicalnights", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable="tropicalnights", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 # """
@@ -377,20 +413,29 @@ Let TS[i,j] be a daily time serie value on day i in year j. Count the number of 
 function customthresover(C::ClimGrid, thres)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
-  dataout  = zeros(Int64, (size(C.data, 1), size(C.data, 2), length(numYears)))
+  dataout  = fill(NaN, (size(C.data, 1), size(C.data, 2), length(numYears)))
   datain   = C.data.data
 
+  dataout_rshp = reshape(dataout, (size(dataout, 1)*size(dataout, 2), size(dataout, 3)))
+  datain_rshp = reshape(datain, (size(datain, 1)*size(datain, 2), size(datain, 3)))
+
   # Indice calculation
-  Threads.@threads for i in 1:length(numYears)
-    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t > thres, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+  Threads.@threads for k in 1:size(datain_rshp, 1)
+    for i in 1:length(numYears)
+      idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+      dataout_rshp[k, i] = sum(datain_rshp[k, idx] .>= thres)
+      # Base.mapreducedim!(t -> t > thres, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    end
   end
 
+  # Apply mask
+  dataout = applymask(dataout, C.msk)
+
   # Build output AxisArray
-  FD = buildarray(C, dataout, numYears)
+  FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable=string("Days over ", thres, " ", C.dataunits), typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable=string("Days over ", thres, " ", C.dataunits), typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 # """
@@ -461,11 +506,14 @@ function customthresunder(C::ClimGrid, thres)
     Base.mapreducedim!(t -> t < thres, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
+  # Apply mask
+  dataout = applymask(dataout, C.msk)
+
   # Build output AxisArray
-  FD = buildarray(C, dataout, numYears)
+  FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable=string("Days under ", thres, " ", C.dataunits), typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable=string("Days under ", thres, " ", C.dataunits), typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 
@@ -535,11 +583,14 @@ function annualmax(C::ClimGrid)
     Base.maximum!(view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
+  # Apply mask
+  dataout = applymask(dataout, C.msk)
+
   # Build output AxisArray
-  FD = buildarray(C, dataout, numYears)
+  FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="annualmax", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="annualmax", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 # """
@@ -618,11 +669,14 @@ function annualmin(C::ClimGrid)
     Base.minimum!(view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
+  # Apply mask
+  dataout = applymask(dataout, C.msk)
+
   # Build output AxisArray
-  FD = buildarray(C, dataout, numYears)
+  FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="annualmin", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="annualmin", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 # """
@@ -688,11 +742,14 @@ function annualmean(C::ClimGrid)
     Base.mean!(view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
+  # Apply mask
+  dataout = applymask(dataout, C.msk)
+
   # Build output AxisArray
-  FD = buildarray(C, dataout, numYears)
+  FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="annualmean", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="annualmean", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 # """
@@ -734,7 +791,7 @@ end
 #
 #   Threads.@threads for i in 1:length(numYears)
 #     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-#     Base.mean!(view(FD,i:i,:,:), view(data,idx,:,:))
+#     Base.mean!(view(FD,:,:,i:i), view(data,:,:,idx))
 #   end
 #   return FD
 # end
@@ -758,11 +815,14 @@ function annualsum(C::ClimGrid)
     Base.sum!(view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
+  # Apply mask
+  dataout = applymask(dataout, C.msk)
+
   # Build output AxisArray
-  FD = buildarray(C, dataout, numYears)
+  FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="annualsum", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="annualsum", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 # """
@@ -818,11 +878,12 @@ function periodmean(C::ClimGrid, startdate::Tuple, enddate::Tuple)
     Csubset = temporalsubset(C, startdate, enddate)
     datain   = Csubset.data.data
 
-    dataout = Base.mean(datain, 3)
+    # Mean and squeeze
+    dataout = squeeze(Base.mean(datain, 3), 3)
 
     # Build output AxisArray
-    FD = buildarray(C, dataout, [1])
+    FD = buildarray_climato(C, dataout)
 
     # Return climGrid type containing the indice
-    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
 end

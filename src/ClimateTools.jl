@@ -15,6 +15,7 @@ using PyPlot
 using Interpolations
 using ProgressMeter
 using Polynomials
+using IterTools
 import Base.vcat
 import Base.getindex
 import Base.show
@@ -87,7 +88,6 @@ end
 
 Constructor of the ClimGrid function. Data is an AxisArray. Everything else is optional, but usually needed for further processing (mapping, interpolation, etc...).
 """
-
 function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), model="NA", frequency="NA", experiment="NA", run="NA", project="NA", institute="NA", filename="NA", dataunits="NA", latunits="NA", lonunits="NA", variable="NA", typeofvar="NA", typeofcal="NA", varattribs=Dict(), globalattribs=Dict())
 
     if isempty(dimension_dict)
@@ -134,5 +134,6 @@ export polyfit, polyval
 export @isdefined
 export plot, merge, vaporpressure, approx_surfacepressure, wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
+export get_timevec, ensemble_mean, daymean
 
 end #module
