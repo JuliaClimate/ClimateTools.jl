@@ -46,7 +46,7 @@ function vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid,
 
   # Convert to Kelvin if necessery
   if daily_temperature[2] == "Celsius"
-    daily_temperature = daily_temperature .+ 273.15
+    daily_temperature = daily_temperature + 273.15
   end
 
   # Calculate the estimated surface pressure
@@ -105,7 +105,7 @@ function wbgt(mean_temperature::ClimGrid, vapor_pressure::ClimGrid)
 
   # Convert to Celsius if necessery
   if mean_temperature[2] == "K"
-    mean_temperature = mean_temperature .- 273.15
+    mean_temperature -= 273.15
   end
 
   # Calculate the wbgt

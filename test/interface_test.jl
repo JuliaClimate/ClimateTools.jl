@@ -318,8 +318,8 @@ lon = Float32.(C[1][Axis{:lon}][:])
 latgrid = Float32.(C.latgrid)
 longrid = Float32.(C.longrid)
 # Shift longitude by 1
-lon += Float32(1.0)
-longrid += Float32(1.0)
+lon .+= Float32(1.0)
+longrid .+= Float32(1.0)
 axisdata = AxisArray(C[1].data, Axis{:lon}(lon), Axis{:lat}(lat), Axis{:time}(C[1][Axis{:time}][:]))
 C2 = ClimGrid(axisdata, variable = "tas", longrid=longrid, latgrid=latgrid, msk=C.msk)
 @test regrid(C, C2)[1].data[1, 1, 1] == 219.2400638156467

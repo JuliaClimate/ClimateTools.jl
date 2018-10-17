@@ -17,7 +17,7 @@ D = qqmap(obs, ref, fut, method = "Additive", detrend=true)
 
 Random.seed!(42)
 data = randn(2, 2, 10957)
-axisdata = AxisArray(data-minimum(data), Axis{:lon}(1:2), Axis{:lat}(1:2),Axis{:time}(d))
+axisdata = AxisArray(data .- minimum(data), Axis{:lon}(1:2), Axis{:lat}(1:2),Axis{:time}(d))
 obs = ClimateTools.ClimGrid(axisdata, variable = "tasmax", dimension_dict=dimension_dict)
 ref = obs * 1.05
 fut = obs * 1.05
@@ -73,10 +73,10 @@ x = 1:10957
 x = x
 d = Date(1961,1,1):Day(1):Date(1990,12,31)
 data = zeros(2, 2, 10957)
-data[1,1,:] = 0.0 + x
-data[1,2,:] = 0.0 + 0.2.*x + x.^2
-data[2,1,:] = 0.0 + 0.04.*x - 0.01 .* x.^3
-data[2,2,:] = 0.0 + 0.14.*x.^2 - 0.032 .* x .^4
+data[1,1,:] .= 0.0 .+ x
+data[1,2,:] .= 0.0 .+ 0.2.*x .+ x.^2
+data[2,1,:] .= 0.0 .+ 0.04.*x - 0.01 .* x.^3
+data[2,2,:] .= 0.0 .+ 0.14.*x.^2 .- 0.032 .* x .^4
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 C = ClimGrid(axisdata)
 poly = polyfit(C)

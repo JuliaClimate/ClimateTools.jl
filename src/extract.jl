@@ -56,7 +56,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   if latname != "lat" && lonname != "lon" # means we don't have a "regular" grid
       latgrid = NetCDF.ncread(file, "lat")
       longrid = NetCDF.ncread(file, "lon")
-      if @isdefined varattrib["grid_mapping"]
+      if ClimateTools.@isdefined varattrib["grid_mapping"]
           map_dim = varattrib["grid_mapping"]
           map_attrib = Dict(ds[map_dim].attrib)
           map_attrib["grid_mapping"] = map_dim
@@ -76,12 +76,12 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   rez = ClimateTools.timeresolution(NetCDF.ncread(file, "time"))
 
   # Construct time vector from info in netCDF file *str*
-  timeV = buildtimevec(file, rez)
+  timeV = ClimateTools.buildtimevec(file, rez)
   if frequency == "mon"
       timeV = corr_timevec(timeV, frequency)
   end
 
-  idxtimebeg, idxtimeend = timeindex(timeV, start_date, end_date, frequency)
+  idxtimebeg, idxtimeend = ClimateTools.timeindex(timeV, start_date, end_date, frequency)
 
   timeV = timeV[idxtimebeg:idxtimeend]
 
@@ -104,7 +104,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # ===================
   # GET DATA
   # data = ds[variable]
-  data = NetCDF.open(file, vari)
+  data_pointer = NetCDF.open(file, vari)
   if !isempty(poly)
 
     # Test to see if the polygon crosses the meridian
@@ -123,16 +123,21 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     end
 
     #Extract data based on mask
-    data = ClimateTools.extractdata(data, msk, idxtimebeg, idxtimeend)
+    data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
 
     #new mask (e.g. representing the region of the polygon)
-    idlon, idlat = findn(.!isnan.(msk))
+    # TODO MOVE THIS CODE TO "extractdata" ?
+    # idlon, idlat = findn(.!isnan.(msk))
+    begin
+        I = Base.findall(!isnan, msk)
+        idlon, idlat = (getindex.(I, 1), getindex.(I, 2))
+      end
     minXgrid = minimum(idlon)
     maxXgrid = maximum(idlon)
     minYgrid = minimum(idlat)
     maxYgrid = maximum(idlat)
     msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
-    data = applymask(data, msk) # needed when polygon is not rectangular
+    data_mask = applymask(data_ext, msk) # needed when polygon is not rectangular
 
     if rotatedgrid
         # Regrid msk to shifted grid if the grid have been rotated to get final mask
@@ -161,7 +166,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
             longrid_flip = ClimateTools.shiftgrid_180_west_east(longrid)
 
-            data = permute_west_east(data, longrid)#idxwest, idxeast)
+            data_final = permute_west_east(data_mask, longrid)#idxwest, idxeast)
             msk = ClimateTools.permute_west_east(msk, longrid)
 
             # TODO Try to trim padding when meridian is crossed and model was on a 0-360 coords
@@ -181,6 +186,9 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
             #     data = applymask(data, msk)
 
+        else
+            data_final = data_mask
+
 
 
         end
@@ -191,7 +199,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     else
 
         if rotatedgrid # flip in original grid
-            longrid = shiftgrid_180_east_west(longrid) #grideast, gridwest)
+            longrid = ClimateTools.shiftgrid_180_east_west(longrid) #grideast, gridwest)
         end
 
         longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
@@ -204,18 +212,20 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
             lon_raw_flip = shiftvector_180_east_west(lon_raw)
 
-            data = permute_west_east(data, longrid)#idxwest, idxeast)
+            data_final = permute_west_east(data_mask, longrid)#idxwest, idxeast)
             msk = ClimateTools.permute_west_east(msk, longrid)
+        else
+            data_final = data_mask
 
         end
 
     end
 
   elseif isempty(poly) # no polygon clipping
-    msk = Array{Float64}(ones((size(data, 1), size(data, 2))))
+      msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
     # if ndims(data) == 3
-    data_sub = Array{typeof(data)}(size(data, 1), size(data, 2), length(idxtimebeg:idxtimeend))
-    extractdata!(data_sub, data, msk, idxtimebeg, idxtimeend)
+    # data_sub = Array(, , length)
+      data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
     # elseif ndims(data) == 4
         # data = extractdata(data, msk, idxtimebeg, idxtimeend)
     # end
@@ -223,14 +233,18 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
     if rotatedgrid
         # Flip data "west-east"
-        data = permute_west_east(data, longrid)
+        data_final = ClimateTools.permute_west_east(data_ext, longrid)
+    else
+        data_final = data_ext
     end
 
   end
 
   # # Replace fillvalues with NaN
   fillval = NetCDF.ncgetatt(file, vari, "_FillValue")
-  data[data .== fillval] = NaN
+  data_final[data_final .== fillval] .= NaN
+
+  data = data_final
 
   if rotatedgrid
       longrid .= longrid_flip
@@ -239,7 +253,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   # Convert units of optional argument data_units is provided
   if data_units == "Celsius" && (vari == "tas" || vari == "tasmax" || vari == "tasmin") && dataunits == "K"
-    data = data .- 273.15
+    data .-= 273.15
     dataunits = "Celsius"
   end
 
@@ -247,7 +261,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
     rez = timeresolution(NetCDF.ncread(file, "time"))
     factor = pr_timefactor(rez)
-    data = data .* factor
+    data .*= factor
     if rez != "N/A"
         dataunits = string("mm/",rez)
     else
@@ -378,7 +392,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
     # ===================
     # GET DATA
     # data = ds[variable]
-    data = NetCDF.open(file, vari)
+    data_pointer = NetCDF.open(file, vari)
     if !isempty(poly)
 
       # Test to see if the polygon crosses the meridian
@@ -397,7 +411,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
       end
 
       #Extract data based on mask
-      data = ClimateTools.extractdata2D(data, msk)
+      data_ext = ClimateTools.extractdata2D(data_pointer, msk)
 
       #new mask (e.g. representing the region of the polygon)
       # idlon, idlat = findn(.!isnan.(msk)) # DEPRECATED SEE NEXT "begin...end"
@@ -412,7 +426,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
       minYgrid = minimum(idlat)
       maxYgrid = maximum(idlat)
       msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
-      data = applymask(data, msk) # needed when polygon is not rectangular
+      data_mask = applymask(data_ext, msk) # needed when polygon is not rectangular
 
       if rotatedgrid
           # Regrid msk to shifted grid if the grid have been rotated to get final mask
@@ -441,7 +455,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
               longrid_flip = ClimateTools.shiftgrid_180_west_east(longrid)
 
-              data = permute_west_east(data, longrid)#idxwest, idxeast)
+              data_final = permute_west_east(data_mask, longrid)#idxwest, idxeast)
               msk = ClimateTools.permute_west_east(msk, longrid)
 
               # TODO Try to trim padding when meridian is crossed and model was on a 0-360 coords
@@ -461,11 +475,10 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
               #     data = applymask(data, msk)
 
-
+          else
+            data_final = data_mask
 
           end
-
-
 
 
       else
@@ -484,17 +497,20 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
               lon_raw_flip = shiftvector_180_east_west(lon_raw)
 
-              data = permute_west_east(data, longrid)#idxwest, idxeast)
+              data_final = permute_west_east(data_mask, longrid)#idxwest, idxeast)
               msk = ClimateTools.permute_west_east(msk, longrid)
+
+          else
+            data_final = data_mask
 
           end
 
       end
 
     elseif isempty(poly) # no polygon clipping
-        msk = Array{Float64}(ones((size(data, 1), size(data, 2))))
+        msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
       # if ndims(data) == 3
-        data = extractdata2D(data, msk)
+        data_ext = extractdata2D(data_pointer, msk)
       # elseif ndims(data) == 4
           # data = extractdata(data, msk, idxtimebeg, idxtimeend)
       # end
@@ -502,14 +518,17 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
       if rotatedgrid
           # Flip data "west-east"
-          data = permute_west_east(data, longrid)
+          data_final = permute_west_east(data_ext, longrid)
+      else
+        data_final = data_ext
       end
 
     end
 
     # # Replace fillvalues with NaN
     fillval = NetCDF.ncgetatt(file, vari, "_FillValue")
-    data[data .== fillval] = NaN
+    data_final[data_final .== fillval] .= NaN
+    data = data_final
 
     if rotatedgrid
         longrid = longrid_flip
@@ -518,7 +537,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
     # Convert units of optional argument data_units is provided
     if data_units == "Celsius" && (vari == "tas" || vari == "tasmax" || vari == "tasmin") && dataunits == "K"
-      data = data - 273.15
+      data .-= 273.15
       dataunits = "Celsius"
     end
 
@@ -526,7 +545,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
       rez = timeresolution(NetCDF.ncread(file, "time"))
       factor = pr_timefactor(rez)
-      data = data .* factor
+      data .*= factor
       if rez != "N/A"
           dataunits = string("mm/",rez)
       else
@@ -545,9 +564,6 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
     NetCDF.ncclose(file)
 
     return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal="fixed", varattribs=varattrib, globalattribs=attribs)
-
-
-
 
 end
 
@@ -1135,7 +1151,7 @@ end
 Returns the data contained in netCDF file, using the appropriate mask and time index. Used internally by `load`.
 
 """
-function extractdata!(data_sub, data, msk, idxtimebeg, idxtimeend)
+function extractdata(data, msk, idxtimebeg, idxtimeend)
 
     # idlon, idlat = findn(.!isnan.(msk))
     begin
@@ -1148,16 +1164,16 @@ function extractdata!(data_sub, data, msk, idxtimebeg, idxtimeend)
     maxYgrid = maximum(idlat)
 
     if ndims(data) == 3
-        data_sub = data[minXgrid:maxXgrid, minYgrid:maxYgrid, idxtimebeg:idxtimeend]
+        dataout = data[minXgrid:maxXgrid, minYgrid:maxYgrid, idxtimebeg:idxtimeend]
         # Permute dims
         # data = permutedims(data, [3, 1, 2])
     elseif ndims(data) == 4
-        data_sub = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, idxtimebeg:idxtimeend]
+        dataout = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, idxtimebeg:idxtimeend]
         # Permute dims
         # data = permutedims(data, [4, 1, 2, 3])
     end
 
-    return data_sub
+    return dataout
 end
 
 function extractdata2D(data, msk)

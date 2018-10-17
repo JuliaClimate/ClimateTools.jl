@@ -37,7 +37,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   # Time limits
   if ndims(C[1]) > 2
       timeV = C[1][Axis{:time}][:]
-      timebeg, timeend = timeindex(timeV, start_date, end_date, C.frequency)
+      timebeg, timeend = ClimateTools.timeindex(timeV, start_date, end_date, C.frequency)
   end
 
   # =============
@@ -77,13 +77,13 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   # PLOT DATA
   # Time-average
   if ndims(C[1]) > 2
-      data2 = timeavg(C, timebeg, timeend, mask, poly, level)
+      data2 = ClimateTools.timeavg(C, timebeg, timeend, mask, poly, level)
   elseif ndims(C[1]) == 2
       data2 = C[1].data
   end
 
   # Get colorscale limits
-  vmin, vmax = getcslimits(caxis, data2, center_cs)
+  vmin, vmax = ClimateTools.getcslimits(caxis, data2, center_cs)
 
   # norm = mpl[:colors][:Normalize](vmin=vmin, vmax=vmax)
 
@@ -93,7 +93,11 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
 
   x, y = m(C.longrid, C.latgrid) # convert longrid and latgrid to projected coordinates
   if surface == :contourf
-    cs = m[surface](x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
+    # try
+        cs = m[surface](x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
+    # catch
+    #     cs = m[surface](x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
+    # end
   else
     cs = m[surface](x, y, data2, cmap = cm, vmin=vmin, vmax=vmax)
   end
@@ -278,7 +282,7 @@ Returns an array for mapping purpose. Used internally by [`mapclimgrid`](@ref).
 function timeavg(C, timebeg, timeend, mask, poly, level)
     data2 = Array{Float64}(undef, size(C[1], 2), size(C[1], 3))
     if ndims(C[1]) == 3
-      data2 = dropdims(Statistics.mean(C[1][:, :, timebeg:timeend], dims=3), dims=3) #time mean
+      data2 = Array(dropdims(Statistics.mean(C[1][:, :, timebeg:timeend], dims=3), dims=3)) #time mean
 
       # TODO throw error/warning if no grid point inside polygon or mask
 
@@ -291,7 +295,7 @@ function timeavg(C, timebeg, timeend, mask, poly, level)
 
     # 4D fields
   elseif ndims(C[1]) == 4 # 4D field
-      data2 = squeeze(Statistics.mean(C[1][:, :, level, timebeg:timeend], dims=4), dims=3) # time mean over "level"
+      data2 = Array(dropdims(Statistics.mean(C[1][:, :, level, timebeg:timeend], dims=4), dims=3)) # time mean over "level"
 
       if !isempty(poly)
           msk = inpolygrid(C.longrid, C.latgrid, poly)

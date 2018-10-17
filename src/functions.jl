@@ -359,6 +359,7 @@ function applymask(A::AbstractArray{N,3} where N, mask::AbstractArray{N, 2} wher
 end
 
 function applymask(A::AbstractArray{N,2} where N, mask::AbstractArray{N, 2} where N)
+    @assert ndims(A) == ndims(mask)
     A .*= mask
     return A
 end
