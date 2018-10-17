@@ -164,7 +164,7 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
                 # # Replace values with original ones (i.e. too may NaN values for robust quantile estimation)
                 dataout[idxfut] = futval
             else
-                dataout[idxfut] = NaN
+                dataout[idxfut] .= NaN
                 # DO NOTHING (e.g. if there is no reference, we want NaNs and not original values)
             end
         end
