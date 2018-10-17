@@ -30,7 +30,7 @@ function Base.merge(A::ClimGrid, B::ClimGrid)
 end
 
 function Base.:+(A::ClimGrid, B::ClimGrid)
-    axisArraytmp = A.data + B.data
+    axisArraytmp = A.data .+ B.data
 
     axisArray = buildarrayinterface(axisArraytmp, A)
 
@@ -38,7 +38,7 @@ function Base.:+(A::ClimGrid, B::ClimGrid)
 end
 
 function Base.:+(A::ClimGrid, k)
-    axisArraytmp = A.data + k
+    axisArraytmp = A.data .+ k
 
     axisArray = buildarrayinterface(axisArraytmp, A)
 
@@ -46,7 +46,7 @@ function Base.:+(A::ClimGrid, k)
 end
 
 function Base.:-(A::ClimGrid, B::ClimGrid)
-    axisArraytmp = A.data - B.data
+    axisArraytmp = A.data .- B.data
 
     axisArray = buildarrayinterface(axisArraytmp, A)
 
@@ -54,7 +54,7 @@ function Base.:-(A::ClimGrid, B::ClimGrid)
 end
 
 function Base.:-(A::ClimGrid, k)
-    axisArraytmp = A.data - k
+    axisArraytmp = A.data .- k
 
     axisArray = buildarrayinterface(axisArraytmp, A)
 
@@ -86,7 +86,7 @@ function Base.:/(A::ClimGrid, B::ClimGrid)
 end
 
 function Base.:/(A::ClimGrid, k)
-    axisArraytmp = A.data / k
+    axisArraytmp = A.data ./ k
 
     axisArray = buildarrayinterface(axisArraytmp, A)
 
@@ -98,7 +98,7 @@ end
 
 Compute the mean of `ClimGrid` A
 """
-mean(A::ClimGrid) = mean(A[1])
+mean(A::ClimGrid) = Statistics.mean(A[1])
 
 """
     minimum(A::ClimGrid)
@@ -119,14 +119,14 @@ Base.maximum(A::ClimGrid) = maximum(A[1])
 
 Compute the standard deviation of `ClimGrid` A
 """
-std(A::ClimGrid) = std(A[1])
+std(A::ClimGrid) = Statistics.std(A[1])
 
 """
     var(A::ClimGrid)
 
 Compute the variance of `ClimGrid` A
 """
-var(A::ClimGrid) = var(A[1])
+var(A::ClimGrid) = Statistics.var(A[1])
 
 
 function getindex(C::ClimGrid,i::Int)
@@ -160,10 +160,10 @@ function getindex(C::ClimGrid,i::Int)
 end
 
 # Base.IndexStyle{T<:ClimGrid}(::Type{T}) = Base.IndexLinear()
-Base.length(C::ClimGrid) = length(fieldnames(C))
+Base.length(C::ClimGrid) = length(fieldnames(typeof(C)))
 Base.size(C::ClimGrid) = (length(C),)
 Base.size(C::ClimGrid, n::Int) = n==1 ? length(C) : error("Only dimension 1 has a well-defined size.")
-Base.endof(C::ClimGrid) = length(C)
+#Base.endof(C::ClimGrid) = length(C)
 Base.ndims(::ClimGrid) = 1
 
 

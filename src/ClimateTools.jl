@@ -9,6 +9,7 @@ using Reexport
 # using NCDatasets
 using Shapefile
 using AxisArrays
+const axes = Base.axes
 using ArgCheck
 using PyCall
 using PyPlot
@@ -21,14 +22,14 @@ import Base.vcat
 import Base.getindex
 import Base.show
 import Base.size
-import Base.endof
+#import Base.endof
 import Base.setindex!
 import Base.similar
-import Base.minimum
-import Base.maximum
-# import Base.std
-# import Base.var
-# import Base.mean
+import Statistics.minimum
+import Statistics.maximum
+import Statistics.std
+import Statistics.var
+import Statistics.mean
 import Base: +
 import Base: -
 import Base: *
@@ -36,7 +37,7 @@ import Base: /
 
 
 const basemap = PyNULL()
-const np = PyNULL()
+# const np = PyNULL()
 const mpl = PyNULL()
 const cmocean = PyNULL()
 const scipy = PyNULL()
@@ -46,7 +47,7 @@ function __init__()
   copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))
   #copy!(plt, pyimport_conda("matplotlib", "pyplot"))
   copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
-  copy!(np, pyimport_conda("numpy", "numpy"))
+#   copy!(np, pyimport_conda("numpy", "numpy"))
   copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
   copy!(scipy, pyimport_conda("scipy.interpolate", "scipy"))
 end

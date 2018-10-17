@@ -522,7 +522,7 @@ function annualmax(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.maximum!(view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Statistics.maximum!(view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Build output AxisArray
@@ -674,7 +674,7 @@ function annualmean(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mean!(view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Statistics.mean!(view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Build output AxisArray
@@ -807,7 +807,7 @@ function periodmean(C::ClimGrid, startdate::Tuple, enddate::Tuple)
     Csubset = temporalsubset(C, startdate, enddate)
     datain   = Csubset.data.data
 
-    dataout = Base.mean(datain, 3)
+    dataout = Statistics.mean(datain, dims=3)
 
     # Build output AxisArray
     FD = buildarray(C, dataout, [1])
