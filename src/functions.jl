@@ -450,32 +450,20 @@ end
 
 Returns the Ensemble mean of ClimGrids C..
 """
-function ensemble_mean(C)
+function ensemble_mean(C; skipnan=true)
 
     # Create list of AxisArrays contained inside the ClimGrids
     # Climref = C[1]
-    axisarrays = Array{Any}(length(C))
+    axisarrays = Array{ClimGrid}(undef, length(C))
 
     for k = 1:length(C)
-        axisarrays[k] = C[k][1]
-    end
-
-    # Add some checks on dimensions (same grid and same time)    
-    for i in subsets(axisarrays, 2)
-        assert(AxisArrays.axes(i[1], 1) .== AxisArrays.axes(i[2], 1))
-        assert(AxisArrays.axes(i[1], 2) .== AxisArrays.axes(i[2], 2))
-        assert(AxisArrays.axes(i[1], 3) .== AxisArrays.axes(i[2], 3))        
-    end
+        # datatmp[.!isnan.(datatmp)
+        axisarrays[k] = periodmean(C[k])#[1][.!isnan.(C[k][1])], dims=3)
+    end    
 
     # ENSEMBLE MEAN
     n = length(axisarrays) # number of members
     dataout = sum(axisarrays) / n # ensemble mean
-
-    # Build AxisArray (summation breaks AxisArrays information apparently)   
-    # lonsymbol = Symbol(C[1].dimension_dict["lon"])
-    # latsymbol = Symbol(C[1].dimension_dict["lat"])
-    axisdata = ClimateTools.buildarray_orig(C[1], dataout)    
-    # axisdata = AxisArray(dataout, Axis{:lon}(C[1][Axis{:lon}][:]), Axis{:lat}(Climref[1][Axis{:lat}][:]), Axis{:time}(get_timevec(Climref)))    
 
     # Ensemble metadata
     globalattribs = Dict()
@@ -486,7 +474,7 @@ function ensemble_mean(C)
     end
 
     # Return ClimGrid
-    return ClimGrid(axisdata, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, model=globalattribs["models"], frequency=C[1].frequency, experiment=C[1].experiment, run=C[1].run, project=C[1].project, institute=C[1].institute, filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal=C[1].typeofcal, varattribs=C[1].varattribs, globalattribs=globalattribs)
+    return ClimGrid(dataout[1], longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, model=globalattribs["models"], frequency="Climatology", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
 
 end
 
@@ -549,6 +537,45 @@ function daymean(C::ClimGrid)
 
     return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)    
         
+end
+
+"""
+    periodmean(C::ClimGrid; startdate::Tuple, enddate::Tuple)
+
+Mean of array data over a given period.
+"""
+function periodmean(C::ClimGrid; startdate::Tuple=(Inf, ), enddate::Tuple=(Inf,))
+
+    if startdate == (Inf, )
+        timevec = get_timevec(C)
+        # Get time resolution
+        rez = C.frequency
+        if rez == "year"
+            startdate = (Dates.Year(timevec[1]).value, )
+            enddate = (Dates.Year(timevec[end]).value, )
+        else
+            startdate = (Dates.Year(timevec[1]).value, Dates.Month(timevec[1]).value, Dates.Day(timevec[1]).value)
+            startdate = (Dates.Year(timevec[end]).value, Dates.Month(timevec[end]).value, Dates.Day(timevec[end]).value)
+        end
+    end
+    Csubset = temporalsubset(C, startdate, enddate)
+    datain   = Csubset.data.data
+
+    # Mean and squeeze
+    dataout = fill(NaN, size(datain, 1), size(datain, 2))
+    dataout_rshp = reshape(dataout, (size(dataout, 1)*size(dataout, 2)))
+    datain_rshp = reshape(datain, (size(datain, 1)*size(datain, 2), size(datain, 3)))
+
+    for k = 1:size(datain_rshp, 1)
+        datatmp = datain_rshp[k, :]
+        dataout_rshp[k] = Statistics.mean(datatmp[.!isnan.(datatmp)])
+    end
+
+    # Build output AxisArray
+    FD = buildarray_climato(C, dataout)
+
+    # Return climGrid type containing the indice
+    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 
