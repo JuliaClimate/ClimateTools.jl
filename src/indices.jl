@@ -415,7 +415,7 @@ function customthresover(C::ClimGrid, thres)
   Threads.@threads for k in 1:size(datain_rshp, 1)
     for i in 1:length(numYears)
       idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-      dataout_rshp[k, i] = sum(datain_rshp[k, idx] .>= thres)
+      dataout_rshp[k, i] = sum(datain_rshp[k, idx] .> thres)
       # Base.mapreducedim!(t -> t > thres, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
     end
   end

@@ -4,11 +4,15 @@
 
 ClimateTools.jl is a collection of commonly-used tools in Climate science. Basics of climate field analysis will be covered, with some forays into exploratory techniques. The package is aimed to ease the typical steps of analysis climate models outputs from netCDF files that follows [Climate Forecast conventions](http://cfconventions.org/) and the creation of [climate scenarios](https://www.ouranos.ca/publication-scientifique/Guidebook-2016.pdf).
 
-The package is registered on METADATA.jl and can be added with `Pkg.add("ClimateTools")` and used with `using ClimateTools`.
+The package is registered on METADATA.jl and can be added with
+```julia
+] add ClimateTools
+using ClimateTools
+```
 
 ## Notes
 
-When possible, functions are coded to use **multiple threads**. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.CPU_CORES`. This is especially useful for climate indices, bias correction and regridding.
+When possible, functions are coded to use **multiple threads**. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.THREADS`. This is especially useful for climate indices, bias correction and regridding.
 
 ## Features
 

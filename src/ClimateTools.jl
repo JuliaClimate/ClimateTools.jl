@@ -96,6 +96,11 @@ function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dim
         dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
     end
 
+    if isempty(msk)
+        msk = Array{Float64}(ones((size(data, 1), size(data, 2))))
+
+    end
+
     ClimGrid(data, longrid, latgrid, msk, grid_mapping, dimension_dict, model, frequency, experiment, run, project, institute, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal, varattribs, globalattribs)
 
 end

@@ -12,22 +12,27 @@
 
 ## Overview
 
-This package is a collection of commonly-used tools in Climate science. Basics of climate field analysis will be covered, with some forays into exploratory techniques. The package is aimed to ease the typical steps of analysis climate models outputs and observed time series from weather stations.
+*Note. Now compatible with Julia 1.0!*
 
-This package is registered on METADATA.jl and can be added with `Pkg.add("ClimateTools")` and used with `using ClimateTools`.
+This package is a collection of commonly-used tools in Climate science. Basics of climate field analysis will be covered, with some forays into exploratory techniques. The package is aimed to ease the typical steps of analysis climate models outputs and gridded datasets (support for weather stations is a work-in-progress).
+
+This package is registered on METADATA.jl and can be added and updated with `Pkg` commands. See Documentation for Python's dependencies (for mapping features).
 
 ```julia
-Pkg.add("ClimateTools") # Tagged release
-Pkg.checkout("ClimateTools") # For latest master branch
+] add ClimateTools
 ```
 
-The climate indices are coded to use **multiple threads**. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.CPU_CORES`.
+The climate indices and bias correction functions are coded to leverage **multiple threads**. To gain maximum performance, use (bash shell Linux/MacOSX) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.THREADS`.
+
+## Contributors
+
+If you'd like to have other climate indices coded, please, submit them through a Pull Request! I'd be more than happy to include them. Alternatively, provide the equation in Issues.
 
 ## Features
 
 * Extraction and visualization of CF-compliant netCDF datasets
 * Custom user-provided polygons and start and end date for localized studies
-* Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices
+* Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices. [See list](https://balinus.github.io/ClimateTools.jl/stable/indices.html).
 * Regridding of a datasets onto another grid
 * Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)
 
@@ -44,7 +49,7 @@ using ClimateTools
 The entry point of `ClimateTools` is to load data with the `load` function. Optional polygon clipping feature is available. By providing such polygon, the `load` function  returns a `ClimGrid` with grid points contained in the polygon.
 
 ```julia
-C = load(filename::String, var::String; poly::Array, data_units::String, start_date::Tuple, end_date::Tuple)
+C = load(filename::String, vari::String; poly::Array, data_units::String, start_date::Tuple, end_date::Tuple)
 ```
 
 `load` returns a `ClimGrid` type. Using the optional `poly` argument, the user can provide a polygon and the returned `ClimGrid` will only contains the grid points inside the provided polygon. For some variable, the optional keyword argument `data_units` can be provided. For example, precipitation in climate models are usually provided as `kg/m^2/s`. By specifying `data_units = mm`, the `load` function returns accumulation at the data time resolution. Similarly, the user can provide `Celsius` as `data_units` and `load` will return `Celsius` instead of `Kelvin`.
@@ -84,10 +89,16 @@ Furthermore, there is also the `spatialsubset` function which acts on `ClimGrid`
 C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
 ```
 
-Temporal subset of the data is also possible with the `temporalsubset` function:
+Temporal subset of the data is also possible with the `temporalsubset` function, which returns a continuous timeserie between `startdate` and `enddate`.
 
 ```julia
 C = temporalsubset(C::ClimGrid, startdate::Tuple, enddate::Tuple)
+```
+Resampling is available with the `periodsubset`, which returns a given period for each year (e.g. only summer months).
+
+```julia
+C = periodsubset(C::ClimGrid, startmonth::Int, endmonth::Ind)
+C = periodsubset(C::ClimGrid, season::String) # hardcoded seasons -> "DJF", "MAM", "JJA" and "SON"
 ```
 
 ### Mapping the ClimGrid type
@@ -97,15 +108,13 @@ Mapping climate information can be done by using `mapclimgrid`:
 mapclimgrid(C::ClimGrid; region = "World")
 ```
 
-Which should return
+Which should return the time average of ClimGrid `C` over the world region.
 
 <p align="center">
   <img src="https://cloud.githubusercontent.com/assets/3630311/23712122/e97bd322-03ef-11e7-93da-749c961c4070.png?raw=true" width="771" height="388" alt="Precipitation example"/>
 </p>
 
-Note that if the `ClimGrid` data structure has 3 dimensions (time x longitude x latitude) the `mapclimgrid` function makes a time-average (i.e. climatological mean). Right now, options are available for region: `World`, `Canada`, `Quebec` and the default `auto` which use the maximum and minimum of the lat-long coordinates inside the `ClimGrid` structure. The user can also provide a polygon(s) and the `mapclimgrid` function will clip the grid points outside the specified polygon. Another option is to provide a mask (with dimensions identical to the spatial dimension of the `ClimGrid` data) which contains `NaN` and `1.0` and the data inside the `ClimGrid` struct will be clipped with the mask. Other regions will be added in the future, as well as the option to send a custom region defined by a lat-lon box.
-
-In a future release, the user will have the option to specify his own time period (e.g. plotting the time-average of a given month and year, as opposed to the time-average of the whole `ClimGrid` structure).
+Note that if the `ClimGrid` data structure has 3 dimensions (time x longitude x latitude) the `mapclimgrid` function makes a time-average (i.e. climatological mean). Right now, there are a growing list of hardcoded regions (see help section of `mapclimgrid` function) and the default `auto` which use the maximum and minimum of the lat-long coordinates inside the `ClimGrid` structure. The user can also provide a polygon(s) and the `mapclimgrid` function will clip the grid points outside the specified polygon. Another option is to provide a mask (with dimensions identical to the spatial dimension of the `ClimGrid` data) which contains `NaN` and `1.0` and the data inside the `ClimGrid` struct will be clipped with the mask. Other regions will be added in the future, as well as the option to send a custom region defined by a lat-lon box.
 
 ### Indices
 
@@ -121,6 +130,7 @@ Which returns another `ClimGrid`. You can also map this `ClimGrid` with the `map
   <img src="https://cloud.githubusercontent.com/assets/3630311/23873133/59b85c08-0807-11e7-967b-7cc7d28aada0.png?raw=true" width="771" height="388" alt="Precipitation example"/>
 </p>
 
+Climate indices can easily be developed by following the source code or looking at the available metadata inside a ClimGrid.
 
 ### Interpolation
 
@@ -140,19 +150,15 @@ C = regrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N, 1})
 
 ### Bias-correction
 
-TODO
+See [Documentation](https://balinus.github.io/ClimateTools.jl/stable/biascorrection.html).
 
 ### Merging ClimGrid type
 
-Sometimes, the timeseries are split among multiple files (e.g. climate models outputs). To obtain the complete timeseries, you can `merge` 2 `ClimGrid`. The method is based on the merging of 2 `AxisArrays` and is overloaded for the `ClimGrid` type.
+Sometimes, the timeseries are split among multiple files (e.g. climate models outputs). To obtain the complete timeseries, you can `merge` 2 `ClimGrid`. The method is based on the merging of two `AxisArrays` and is overloaded for the `ClimGrid` type.
 
 ```julia
 C = merge(C1::ClimGrid, C2::ClimGrid)
 ```
-
-## Contributors
-
-If you'd like to have other climate indices coded, please, submit them through a Pull Request! I'd be more than happy to include them. Alternatively, provide the equation in Issues.
 
 ## TO-DO
 
@@ -160,10 +166,3 @@ If you'd like to have other climate indices coded, please, submit them through a
 * Create a WeatherStation type.
 * Export ClimGrid to netCDF file.
 * Add a more complex quantile-quantile mapping technique, combining extreme value theory and quantile-quantile standard technique
-
-
-N.B. version 0.1.2 is compatible with Julia 0.5 and version >0.2.0 is for Julia 0.6. To use a specific version of the package, you can use in Julia the following command:
-
-```julia
-Pkg.pin("ClimateTools",v"0.1.2") # if using Julia 0.5
-```

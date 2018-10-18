@@ -4,34 +4,25 @@
 
 ### Required dependencies
 
-**Important** Due to an upstream bug with Conda, the user should launch Julia with the following alias. The alias can be permanently defined .bashrc on Linux OS (should be similar on OSX). Right now, there is no known workaround for Windows OS.
+In theory, installing the package with `] add ClimateTools` and launching the command `using ClimateTools` should install all required dependencies if you set `PyCall` and `Conda` to use Conda's python. However, sometimes it's just better to do it manually to ensure that all steps are properly done. If the installation fails when launching `ùsing ClimateTools`, below are the steps to do it manually.
 
-```
-alias julia="export LD_LIBRARY_PATH=$HOME/.julia/v0.6/Conda/deps/usr/lib; LD_PRELOAD=${HOME}/.julia/v0.6/Conda/deps/usr/lib/libz.so julia"
-```
+*Note1. ClimateTools is developed using the Python distribution in the Conda package by default. PyCall should be built with the `ENV["PYTHON"] = ""` environment and then re-build PyCall with `Pkg.build("PyCall")`. It should work with python 2.7.x and Python 3.4+ without modifications, but since Python configurations varies widely from system to system, the proper python pacakage installation is beyond the scope of ClimateTools.*
 
-In theory, installing the package with `Pkg.add("ClimateTools")` and launching the command `using ClimateTools` should install all required dependencies. However, sometimes it's just better to do it manually to ensure that all steps are properly done. If the installation fails when launching `ùsing ClimateTools`, below are the steps to do it manually.
+*Note2. Installing Basemap for python 3.6+ seems problematic.*
 
-*Note ClimateTools is developed using the Python distribution in the Conda package by default. PyCall should be built with the `ENV["PYTHON"] = ""` environment and then re-build PyCall with `Pkg.build("PyCall")`. It should work with python 2.7.x and Python 3.4+ without modifications, but since Python configurations varies widely from system to system, it is not supported.*
+#### Python deps
 
-```julia
-ENV["PYTHON"] = "" # tells PyCall to use Julia's Conda python environment
-Pkg.add("Conda")
-using Conda
-Conda.update()
-Conda.add("matplotlib")
-Conda.add("basemap")
-Conda.add("scipy")
-Conda.add("numpy")
-Pkg.add("PyCall")
-Pkg.build("PyCall")
-Pkg.add("Pyplot")
-```
+You should ensure that the following packages are working in your Python interpreter.
+
+* matplotlib
+* basemap
+* scipy
+* cmocean
+
 ### Installing ClimateTools.jl
 
 ```julia
-Pkg.add("ClimateTools") # Tagged release
-Pkg.checkout("ClimateTools") # For latest master branch
+] add ClimateTools # Tagged release
 ```
 
 ## Reading a NetCDF file
