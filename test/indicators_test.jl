@@ -202,9 +202,29 @@ Results[2,2,3] = 20.0
 # Creating climgrids
 axisdata_tmax = AxisArray(data_tmax, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 axisdata_tmin = AxisArray(data_tmin, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
-C_tmax = ClimateTools.ClimGrid(axisdata_tmax, dataunits= "Celsius", variable = "tasmax")
+C_tmax = ClimateTools.ClimGrid(axisdata_tmax, dataunits= "Celsius", variable = "tasmax", frequency="day")
 C_tmin = ClimateTools.ClimGrid(axisdata_tmin, dataunits = "Celsius", variable = "tasmin")
 # Using the function
 C_mean = meantemperature(C_tmin, C_tmax)
 # Run the test
 @test C_mean.data.data == Results
+
+C_tmax2 = C_tmax
+ens = [C_tmax2, C_tmax]
+E = ensemble_mean(ens)
+@test E[1][1, 1, 1] == C_tmax[1][1, 1, 1]
+ens = [C_tmax2, C_tmax*2]
+@test E[1][1, 1, 1] == (C_tmax[1][1, 1, 1]*2 + C_tmax2[1][1, 1, 1])/2
+
+
+# d = DateTime(2003,1,1):Hour(1):DateTime(2003,1,3)-Hour(1)
+# data = Array{Float64}(undef, 2, 2, 48)
+# vecdata = collect(range(1, length=48))
+
+# data[1, 1, :] .= vecdata
+# data[1, 2, :] .= vecdata
+# data[2, 1, :] .= vecdata
+# data[2, 2, :] .= vecdata
+
+# axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
+# C = ClimGrid(axisdata, dataunits = "Celsius", variable = "tasmin", frequency="1h")
