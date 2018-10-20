@@ -16,6 +16,7 @@ using PyPlot
 using Interpolations
 using ProgressMeter
 using Polynomials
+using IterTools
 using Statistics
 using Dates
 import Base.vcat
@@ -35,19 +36,14 @@ import Base: -
 import Base: *
 import Base: /
 
-
 const basemap = PyNULL()
-# const np = PyNULL()
 const mpl = PyNULL()
 const cmocean = PyNULL()
 const scipy = PyNULL()
-#const folium = PyNULL()
 
 function __init__()
-  copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))
-  #copy!(plt, pyimport_conda("matplotlib", "pyplot"))
+  copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))  
   copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
-#   copy!(np, pyimport_conda("numpy", "numpy"))
   copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
   copy!(scipy, pyimport_conda("scipy.interpolate", "scipy"))
 end
@@ -95,6 +91,11 @@ function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dim
         dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
     end
 
+    if isempty(msk)
+        msk = Array{Float64}(ones((size(data, 1), size(data, 2))))
+
+    end
+
     ClimGrid(data, longrid, latgrid, msk, grid_mapping, dimension_dict, model, frequency, experiment, run, project, institute, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal, varattribs, globalattribs)
 
 end
@@ -135,5 +136,6 @@ export polyfit, polyval
 export @isdefined
 export plot, merge, vaporpressure, approx_surfacepressure, wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
+export get_timevec, ensemble_mean, daymean
 
 end #module

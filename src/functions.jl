@@ -333,6 +333,13 @@ function getgrids(C::ClimGrid)
 end
 
 """
+    get_timevec(C::ClimGrid)
+
+Returns time vector of ClimGrid C.
+"""
+get_timevec(C::ClimGrid) = C[1][Axis{:time}][:]
+
+"""
     applymask(A::AbstractArray{N, n}, mask::AbstractArray{N, n})
 
 Applies a mask on the array A. Return an AbstractArray{N, n}.
@@ -437,6 +444,141 @@ function permute_east_west2D(data::AbstractArray{N,2} where N, iwest, ieast)
     return vcat(dataeast, datawest)
 
 end
+
+"""
+    ensemble_mean(C::ClimGrid...)
+
+Returns the Ensemble mean of ClimGrids C..
+"""
+function ensemble_mean(C; skipnan=true)
+
+    # Create list of AxisArrays contained inside the ClimGrids
+    # Climref = C[1]
+    axisarrays = Array{ClimGrid}(undef, length(C))
+
+    for k = 1:length(C)
+        # datatmp[.!isnan.(datatmp)
+        axisarrays[k] = periodmean(C[k])#[1][.!isnan.(C[k][1])], dims=3)
+    end    
+
+    # ENSEMBLE MEAN
+    n = length(axisarrays) # number of members
+    dataout = sum(axisarrays) / n # ensemble mean
+
+    # Ensemble metadata
+    globalattribs = Dict()
+    globalattribs["history"] = "Ensemble mean"
+    globalattribs["models"] = ""
+    for k = 1:length(C)
+        globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
+    end
+
+    # Return ClimGrid
+    return ClimGrid(dataout[1], longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, model=globalattribs["models"], frequency="Climatology", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+
+end
+
+
+"""
+    buildtoken(date::DateTime, C::ClimGrid)
+
+Returns the right date token based on time vector contained in ClimGrid C.
+"""
+function buildtoken(date, C::ClimGrid)
+    timevec = get_timevec(C)
+    typetoken = typeof(timevec[1])
+
+    return typetoken
+
+
+end
+
+"""
+    daymean(C::ClimGrid)
+
+Returns the daily average of sub-daily ClimGrid.
+"""
+function daymean(C::ClimGrid)
+
+    datain = C[1].data
+
+    timevec   = get_timevec(C)
+    years     = Dates.year.(timevec)
+    numYears  = unique(years)
+    months    = Dates.month.(timevec)
+    numMonths = unique(months)
+    days    = Dates.day.(timevec)
+    numDays = unique(days)
+    # numDays2 = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+    dayfactor = ClimateTools.daymean_factor(C.frequency)
+    dataout = fill(NaN, (size(C[1], 1), size(C[1], 2), Int64(size(C[1],3)/dayfactor)))
+    newtime = Array{DateTime}(undef, Int64(size(C[1],3)/dayfactor))
+
+    # loop over year-month-days
+    z = 1
+    for iy in 1:length(numYears)
+        for im in 1:length(numMonths)
+            numDays = 
+            for id in 1:Dates.daysinmonth(Date(string(numYears[iy],"-", numMonths[im])))
+                
+                datefind = Date(string(numYears[iy],"-", numMonths[im],"-",numDays[id]), "yyyy-mm-dd")
+                idx = Date.(timevec) .== datefind
+                # idx = searchsortedfirst(years, numYears[iy]):searchsortedlast(years, numYears[iy]) && searchsortedfirst(months, numMonths[im]):searchsortedlast(months, numMonths[im]) && searchsortedfirst(days, numDays[id]):searchsortedlast(days, numDays[id])
+                
+                mean!(view(dataout, :, :, z), view(datain, :,:, idx))
+                newtime[z] = DateTime(datefind)
+                z += 1
+            end
+        end
+    end
+
+    # Build output AxisArray
+    FD = buildarray_resample(C, dataout, newtime)
+
+    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)    
+        
+end
+
+"""
+    periodmean(C::ClimGrid; startdate::Tuple, enddate::Tuple)
+
+Mean of array data over a given period.
+"""
+function periodmean(C::ClimGrid; startdate::Tuple=(Inf, ), enddate::Tuple=(Inf,))
+
+    if startdate == (Inf, )
+        timevec = get_timevec(C)
+        # Get time resolution
+        rez = C.frequency
+        if rez == "year"
+            startdate = (Dates.Year(timevec[1]).value, )
+            enddate = (Dates.Year(timevec[end]).value, )
+        else
+            startdate = (Dates.Year(timevec[1]).value, Dates.Month(timevec[1]).value, Dates.Day(timevec[1]).value)
+            enddate = (Dates.Year(timevec[end]).value, Dates.Month(timevec[end]).value, Dates.Day(timevec[end]).value)
+        end
+    end
+    Csubset = temporalsubset(C, startdate, enddate)
+    datain   = Csubset.data.data
+
+    # Mean and squeeze
+    dataout = fill(NaN, size(datain, 1), size(datain, 2))
+    dataout_rshp = reshape(dataout, (size(dataout, 1)*size(dataout, 2)))
+    datain_rshp = reshape(datain, (size(datain, 1)*size(datain, 2), size(datain, 3)))
+
+    for k = 1:size(datain_rshp, 1)
+        datatmp = datain_rshp[k, :]
+        dataout_rshp[k] = Statistics.mean(datatmp[.!isnan.(datatmp)])
+    end
+
+    # Build output AxisArray
+    FD = buildarray_climato(C, dataout)
+
+    # Return climGrid type containing the indice
+    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
+end
+
 
 
 # function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)

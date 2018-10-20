@@ -74,6 +74,9 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # Get time resolution
 
   rez = ClimateTools.timeresolution(NetCDF.ncread(file, "time"))
+  if frequency == "N/A"
+    frequency = rez
+  end
 
   # Construct time vector from info in netCDF file *str*
   timeV = ClimateTools.buildtimevec(file, rez)
@@ -857,6 +860,29 @@ function pr_timefactor(rez::String)
 
 end
 
+"""
+    function daymean_factor(rez::String)
+
+Return the time factor that should be applied to precipitation to get accumulation for resolution "rez"
+
+"""
+function daymean_factor(rez::String)
+
+    if rez == "24h"
+        return 1
+    elseif rez == "12h"
+        return 2
+    elseif rez == "6h"
+        return 4
+    elseif rez == "3h"
+        return 8
+    elseif rez == "1h"
+        return 24
+    elseif rez == "N/A"
+        return 1
+    end
+
+end
 
 """
     spatialsubset(C::ClimGrid, poly::Array{N, 2})
@@ -936,11 +962,14 @@ function temporalsubset(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
 
     # some checkups
     @argcheck startdate <= enddate
-    @argcheck startdate >= C[1][Axis{:time}][1]
-    @argcheck enddate <= C[1][Axis{:time}][end]
+    @argcheck startdate >= DateTime(C[1][Axis{:time}][1])
+    @argcheck enddate <= DateTime(C[1][Axis{:time}][end])
+
+    start_token = ClimateTools.buildtoken(startdate, C)
+    end_token = ClimateTools.buildtoken(enddate, C)
 
     # Temporal subset
-    dataOut = C[1][Axis{:time}(startdate .. enddate)]
+    dataOut = C[1][Axis{:time}(start_token(startdate) .. end_token(enddate))]
 
     return ClimGrid(dataOut, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
@@ -1032,6 +1061,8 @@ function getdim_lat(ds::NCDatasets.Dataset)
         return "lat"
     elseif sum(keys(ds.dim) .== "y") == 1
         return "y"
+    elseif sum(keys(ds.dim) .== "yc") == 1
+        return "yc"
     else
         error("Manually verify x/lat dimension name")
     end
@@ -1046,6 +1077,8 @@ function getdim_lon(ds::NCDatasets.Dataset)
         return "lon"
     elseif sum(keys(ds.dim) .== "x") == 1
         return "x"
+    elseif sum(keys(ds.dim) .== "xc") == 1
+        return "xc"
     else
         error("Manually verify x/lat dimension name")
     end

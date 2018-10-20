@@ -19,7 +19,7 @@ mapclimgrid(C)
 
 ## Climate Indices
 
-Here's a list of climate indices currently provided by ClimateTools.
+Here's a list of climate indices currently provided by ClimateTools. This list may not be always up-to-date. See [here](https://balinus.github.io/ClimateTools.jl/stable/functions.html) for all exported functions.
 
 ```@docs
 annualmax
