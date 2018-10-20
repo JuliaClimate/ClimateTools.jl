@@ -173,7 +173,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "Ensemble mean",
     "category": "section",
-    "text": "You can calculate the ensemble mean with ensemble_mean function, where the input argument is an array of ClimGrids."
+    "text": "You can calculate the ensemble mean with ensemble_mean function, where the input argument is an array of ClimGrids.Abstract example:C_model1 = ClimGrid(...) # model #1\nC_model2 = ClimGrid(...) # model #2\nens = [C_model1, C_model2] # Create an Array of ClimGrids\nE = ensemble_mean(ens) # Returns the mean of all models climatologies"
 },
 
 {
