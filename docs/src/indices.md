@@ -20,6 +20,16 @@ mapclimgrid(C)
 
 You can calculate the ensemble mean with `ensemble_mean` function, where the input argument is an array of ClimGrids.
 
+Abstract example:
+
+```julia
+C_model1 = ClimGrid(...) # model #1
+C_model2 = ClimGrid(...) # model #2
+ens = [C_model1, C_model2] # Create an Array of ClimGrids
+E = ensemble_mean(ens) # Returns the mean of all models climatologies
+```
+
+
 ## Climate Indices
 
 Here's a list of climate indices currently provided by ClimateTools. This list may not be always up-to-date. See [here](https://balinus.github.io/ClimateTools.jl/stable/functions.html) for all exported functions.
