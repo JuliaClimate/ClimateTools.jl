@@ -21,7 +21,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Overview",
     "category": "section",
-    "text": "ClimateTools.jl is a collection of commonly-used tools in Climate science. Basics of climate field analysis will be covered, with some forays into exploratory techniques. The package is aimed to ease the typical steps of analysis climate models outputs from netCDF files that follows Climate Forecast conventions and the creation of climate scenarios.The package is registered on METADATA.jl and can be added with Pkg.add(\"ClimateTools\") and used with using ClimateTools."
+    "text": "ClimateTools.jl is a collection of commonly-used tools in Climate science. Basics of climate field analysis will be covered, with some forays into exploratory techniques. The package is aimed to ease the typical steps of analysis climate models outputs from netCDF files that follows Climate Forecast conventions and the creation of climate scenarios.The package is registered on METADATA.jl and can be added with] add ClimateTools\nusing ClimateTools"
 },
 
 {
@@ -29,7 +29,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Notes",
     "category": "section",
-    "text": "When possible, functions are coded to use multiple threads. To gain maximum performance, use (bash shell) export JULIA_NUM_THREADS=n, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) Sys.CPU_CORES. This is especially useful for climate indices, bias correction and regridding."
+    "text": "When possible, functions are coded to use multiple threads. To gain maximum performance, use (bash shell) export JULIA_NUM_THREADS=n, where n is the number of threads. To get an idea of the number of threads you can use type (in Julia) Sys.THREADS. This is especially useful for climate indices, bias correction and regridding."
 },
 
 {
@@ -85,7 +85,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Getting started",
     "title": "Required dependencies",
     "category": "section",
-    "text": "Important Due to an upstream bug with Conda, the user should launch Julia with the following alias. The alias can be permanently defined .bashrc on Linux OS (should be similar on OSX). Right now, there is no known workaround for Windows OS.alias julia=\"export LD_LIBRARY_PATH=$HOME/.julia/v0.6/Conda/deps/usr/lib; LD_PRELOAD=${HOME}/.julia/v0.6/Conda/deps/usr/lib/libz.so julia\"In theory, installing the package with Pkg.add(\"ClimateTools\") and launching the command using ClimateTools should install all required dependencies. However, sometimes it\'s just better to do it manually to ensure that all steps are properly done. If the installation fails when launching ùsing ClimateTools, below are the steps to do it manually.Note ClimateTools is developed using the Python distribution in the Conda package by default. PyCall should be built with the ENV[\"PYTHON\"] = \"\" environment and then re-build PyCall with Pkg.build(\"PyCall\"). It should work with python 2.7.x and Python 3.4+ without modifications, but since Python configurations varies widely from system to system, it is not supported.ENV[\"PYTHON\"] = \"\" # tells PyCall to use Julia\'s Conda python environment\nPkg.add(\"Conda\")\nusing Conda\nConda.update()\nConda.add(\"matplotlib\")\nConda.add(\"basemap\")\nConda.add(\"scipy\")\nConda.add(\"numpy\")\nPkg.add(\"PyCall\")\nPkg.build(\"PyCall\")\nPkg.add(\"Pyplot\")"
+    "text": "In theory, installing the package with ] add ClimateTools and launching the command using ClimateTools should install all required dependencies if you set PyCall and Conda to use Conda\'s python. However, sometimes it\'s just better to do it manually to ensure that all steps are properly done. If the installation fails when launching ùsing ClimateTools, below are the steps to do it manually.Note1. ClimateTools is developed using the Python distribution in the Conda package by default. PyCall should be built with the ENV[\"PYTHON\"] = \"\" environment and then re-build PyCall with Pkg.build(\"PyCall\"). It should work with python 2.7.x and Python 3.4+ without modifications, but since Python configurations varies widely from system to system, the proper python pacakage installation is beyond the scope of ClimateTools.Note2. Installing Basemap for python 3.6+ seems problematic."
+},
+
+{
+    "location": "gettingstarted.html#Python-deps-1",
+    "page": "Getting started",
+    "title": "Python deps",
+    "category": "section",
+    "text": "You should ensure that the following packages are working in your Python interpreter.matplotlib\nbasemap\nscipy\ncmocean"
 },
 
 {
@@ -93,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Getting started",
     "title": "Installing ClimateTools.jl",
     "category": "section",
-    "text": "Pkg.add(\"ClimateTools\") # Tagged release\nPkg.checkout(\"ClimateTools\") # For latest master branch"
+    "text": "] add ClimateTools # Tagged release"
 },
 
 {
@@ -161,11 +169,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "indices.html#Ensemble-mean-1",
+    "page": "Climate Indices",
+    "title": "Ensemble mean",
+    "category": "section",
+    "text": "You can calculate the ensemble mean with ensemble_mean function, where the input argument is an array of ClimGrids."
+},
+
+{
     "location": "indices.html#ClimateTools.annualmax",
     "page": "Climate Indices",
     "title": "ClimateTools.annualmax",
     "category": "function",
-    "text": "annualmax(C::ClimGrid)\n\nAnnual maximum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.\n\n\n\n"
+    "text": "annualmax(C::ClimGrid)\n\nAnnual maximum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.\n\n\n\n\n\n"
 },
 
 {
@@ -173,7 +189,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.annualmean",
     "category": "function",
-    "text": "annualmean(C::ClimGrid)\n\nAnnual mean of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Calculate the mean value for year j.\n\n\n\n"
+    "text": "annualmean(C::ClimGrid)\n\nAnnual mean of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Calculate the mean value for year j.\n\n\n\n\n\n"
 },
 
 {
@@ -181,7 +197,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.annualmin",
     "category": "function",
-    "text": "annualmin(C::ClimGrid)\n\nAnnual minimum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.\n\n\n\n"
+    "text": "annualmin(C::ClimGrid)\n\nAnnual minimum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.\n\n\n\n\n\n"
 },
 
 {
@@ -189,7 +205,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.annualsum",
     "category": "function",
-    "text": "annualsum(C::ClimGrid)\n\nAnnual sum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Sums daily values for year j.\n\n\n\n"
+    "text": "annualsum(C::ClimGrid)\n\nAnnual sum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Sums daily values for year j.\n\n\n\n\n\n"
 },
 
 {
@@ -197,7 +213,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.approx_surfacepressure",
     "category": "function",
-    "text": "  approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the approximated surface pressure (sp) (Pa) using sea level pressure (psl) (Pa), orography (orog) (m), and daily mean temperature (tas) (K).\n\nsp = psl * 10^x\n\nwhere x = frac-orog18400 * tas  27315\n\n\n\n"
+    "text": "  approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the approximated surface pressure (sp) (Pa) using sea level pressure (psl) (Pa), orography (orog) (m), and daily mean temperature (tas) (K).\n\nsp = psl * 10^x\n\nwhere x = frac-orog18400 * tas  27315\n\n\n\n\n\n"
 },
 
 {
@@ -205,7 +221,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.customthresover",
     "category": "function",
-    "text": "customthresover(C::ClimGrid)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\n\n\n"
+    "text": "customthresover(C::ClimGrid)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\n\n\n\n\n"
 },
 
 {
@@ -213,7 +229,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.customthresunder",
     "category": "function",
-    "text": "customthresunder(C::ClimGrid)\n\ncustomthresover, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\n\n\n"
+    "text": "customthresunder(C::ClimGrid)\n\ncustomthresover, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\n\n\n\n\n"
 },
 
 {
@@ -221,7 +237,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.daysabove10",
     "category": "function",
-    "text": "daysabove10(C::ClimGrid)\n\nAnnual number of days with temperature >= 10 Celsius. This function returns a ClimGrid.\n\n\n\n"
+    "text": "daysabove10(C::ClimGrid)\n\nAnnual number of days with temperature >= 10 Celsius. This function returns a ClimGrid.\n\n\n\n\n\n"
 },
 
 {
@@ -229,7 +245,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.diurnaltemperature",
     "category": "function",
-    "text": "diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid, α::Float64)\n\nReturns an estimation of the diurnal temperature (temperature between 7:00 (7am) and 17:00 (5pm)). The estimation is a linear combination of the daily minimum temperature (temperatureminimum) and daily maximum temperature (temperaturemaximum). The value of α has to be estimated seperatly from observations and depends on the location. The daily max and min must be in the same unit and in Celsius or Kelvin The diurnal temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.\n\nTdiu =  * Tmin + (1 - ) * Tmax\n\n\n\n"
+    "text": "diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid, α::Float64)\n\nReturns an estimation of the diurnal temperature (temperature between 7:00 (7am) and 17:00 (5pm)). The estimation is a linear combination of the daily minimum temperature (temperatureminimum) and daily maximum temperature (temperaturemaximum). The value of α has to be estimated seperatly from observations and depends on the location. The daily max and min must be in the same unit and in Celsius or Kelvin The diurnal temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.\n\nTdiu = α * Tmin + (1 - α) * Tmax\n\n\n\n\n\n"
 },
 
 {
@@ -237,7 +253,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.icingdays",
     "category": "function",
-    "text": "icingdays(C::ClimGrid)\n\nID, Number of summer days: Annual count of days when TX (daily maximum temperature) < 0 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] < 0 Celsius.\n\n\n\n"
+    "text": "icingdays(C::ClimGrid)\n\nID, Number of summer days: Annual count of days when TX (daily maximum temperature) < 0 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] < 0 Celsius.\n\n\n\n\n\n"
 },
 
 {
@@ -245,7 +261,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.frostdays",
     "category": "function",
-    "text": "frostdays(C::ClimGrid)\n\nFD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0 Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] < 0 Celsius.\n\n\n\n"
+    "text": "frostdays(C::ClimGrid)\n\nFD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0 Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] < 0 Celsius.\n\n\n\n\n\n"
 },
 
 {
@@ -253,7 +269,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.prcp1",
     "category": "function",
-    "text": "prcp1(C::ClimGrid)\n\nAnnual number with preciptation >= 1 mm. This function returns a ClimGrid.\n\n\n\n"
+    "text": "prcp1(C::ClimGrid)\n\nAnnual number with preciptation >= 1 mm. This function returns a ClimGrid.\n\n\n\n\n\n"
 },
 
 {
@@ -261,7 +277,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.summerdays",
     "category": "function",
-    "text": "summerdays(C::ClimGrid)\n\nSD, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] > 25 Celsius.\n\n\n\n"
+    "text": "summerdays(C::ClimGrid)\n\nSD, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] > 25 Celsius.\n\n\n\n\n\n"
 },
 
 {
@@ -269,7 +285,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.tropicalnights",
     "category": "function",
-    "text": "tropicalnights(C::ClimGrid)\n\nTropicalNights, Number of tropical nights: Annual count of days when TN (daily maximum temperature) > 20 degree Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] > 20 Celsius.\n\n\n\n"
+    "text": "tropicalnights(C::ClimGrid)\n\nTropicalNights, Number of tropical nights: Annual count of days when TN (daily maximum temperature) > 20 degree Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] > 20 Celsius.\n\n\n\n\n\n"
 },
 
 {
@@ -277,7 +293,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.vaporpressure",
     "category": "function",
-    "text": "vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).\n\nvp = fracq * spq+0622\n\n\n\nvaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) estimated with the specific humidity (q), the sea level pressure (psl) (Pa), the orography (orog) (m) and the daily mean temperature (tas) (K). An approximation of the surface pressure is first computed by using the sea level pressure, orography and the daily mean temperature (see approx_surfacepressure). Then, vapor pressure is calculated by:\n\nvp = fracq * spq+0622\n\n\n\n"
+    "text": "vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).\n\nvp = fracq * spq+0622\n\n\n\n\n\nvaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) estimated with the specific humidity (q), the sea level pressure (psl) (Pa), the orography (orog) (m) and the daily mean temperature (tas) (K). An approximation of the surface pressure is first computed by using the sea level pressure, orography and the daily mean temperature (see approx_surfacepressure). Then, vapor pressure is calculated by:\n\nvp = fracq * spq+0622\n\n\n\n\n\n"
 },
 
 {
@@ -285,7 +301,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.wbgt",
     "category": "function",
-    "text": "wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)\n\nReturns the simplified wet-bulb global temperature (wbgt) (Celsius) calculated using the vapor pressure (Pa) of the day and the estimated mean diurnal temperature (Celsius; temperature between 7:00 (7am) and 17:00 (5pm)).\n\nwbgt = 0567 * Tday + 000393 * vp + 394\n\n\n\n"
+    "text": "wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)\n\nReturns the simplified wet-bulb global temperature (wbgt) (Celsius) calculated using the vapor pressure (Pa) of the day and the estimated mean diurnal temperature (Celsius; temperature between 7:00 (7am) and 17:00 (5pm)).\n\nwbgt = 0567 * Tday + 000393 * vp + 394\n\n\n\n\n\n"
 },
 
 {
@@ -293,7 +309,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "Climate Indices",
     "category": "section",
-    "text": "Here\'s a list of climate indices currently provided by ClimateTools.annualmax\nannualmean\nannualmin\nannualsum\napprox_surfacepressure\ncustomthresover\ncustomthresunder\ndaysabove10\ndiurnaltemperature\nicingdays\nfrostdays\nprcp1\nsummerdays\ntropicalnights\nvaporpressure\nwbgt"
+    "text": "Here\'s a list of climate indices currently provided by ClimateTools. This list may not be always up-to-date. See here for all exported functions.annualmax\nannualmean\nannualmin\nannualsum\napprox_surfacepressure\ncustomthresover\ncustomthresunder\ndaysabove10\ndiurnaltemperature\nicingdays\nfrostdays\nprcp1\nsummerdays\ntropicalnights\nvaporpressure\nwbgt"
 },
 
 {
@@ -349,7 +365,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Visualization",
     "title": "ClimateTools.mapclimgrid",
     "category": "function",
-    "text": "mapclimgrid(C::ClimGrid; region::String=\"auto\", poly, level, mask, caxis, start_date::Tuple, end_date::Tuple, titlestr::String, surface::Symbol, cm::String=\"\", ncolors::Int, center_cs::Bool, filename::String, cs_label::String)\n\nMaps the time-mean average of ClimGrid C. If a filename is provided, the figure is saved in a png format.\n\nOptional keyworkd includes precribed regions (keyword region, see list below), spatial clipping by polygon (keyword poly) or mask (keyword mask, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword level is used to map a given level (defaults to 1). caxis is used to limit the colorscale. cm is used to manually set the colorscale (see Python documentation for native colorscale keyword), ncolors is used to set the number of color classes (defaults to 12). Set center_cs to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature). cs_label is used for custom colorscale label.\n\nArguments for keyword region (and shortcuts)\n\nEurope (\"EU\")\nNorthAmerica (\"NA\")\nCanada (\"CA\")\nQuebec, QuebecNSP (\"QC\", \"QCNSP\")\nAmericas (\"Ams\")\nWorld, WorldAz, WorldEck4 (\"W\", \"Waz\", \"Weck4\")\nGreenwich (\"Gr\")\n\nArguments for keyword surface\n\n:contour\n:contourf\n:pcolormesh\n\n\n\nmapclimgrid(; region::String=\"auto\", poly, level, mask, caxis, start_date::Date, end_date::Date)\n\nEmpty map generator, when called without a ClimGrid as the positional argument.\n\n\n\n"
+    "text": "mapclimgrid(C::ClimGrid; region::String=\"auto\", poly, level, mask, caxis, start_date::Tuple, end_date::Tuple, titlestr::String, surface::Symbol, cm::String=\"\", ncolors::Int, center_cs::Bool, filename::String, cs_label::String)\n\nMaps the time-mean average of ClimGrid C. If a filename is provided, the figure is saved in a png format.\n\nOptional keyworkd includes precribed regions (keyword region, see list below), spatial clipping by polygon (keyword poly) or mask (keyword mask, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), startdate and enddate. For 4D data, keyword level is used to map a given level (defaults to 1). caxis is used to limit the colorscale. cm is used to manually set the colorscale (see Python documentation for native colorscale keyword), ncolors is used to set the number of color classes (defaults to 12). Set center_cs to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature). cs_label is used for custom colorscale label.\n\nArguments for keyword region (and shortcuts)\n\nEurope (\"EU\")\nNorthAmerica (\"NA\")\nCanada (\"CA\")\nQuebec, QuebecNSP (\"QC\", \"QCNSP\")\nAmericas (\"Ams\")\nWorld, WorldAz, WorldEck4 (\"W\", \"Waz\", \"Weck4\")\nGreenwich (\"Gr\")\n\nArguments for keyword surface\n\n:contour\n:contourf\n:pcolormesh\n\n\n\n\n\nmapclimgrid(; region::String=\"auto\", poly, level, mask, caxis, start_date::Date, end_date::Date)\n\nEmpty map generator, when called without a ClimGrid as the positional argument.\n\n\n\n\n\n"
 },
 
 {
@@ -489,83 +505,59 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Base.maximum-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#Base.maximum-Tuple{ClimGrid}",
     "page": "Index",
     "title": "Base.maximum",
     "category": "method",
-    "text": "maximum(A::ClimGrid)\n\nCompute the maximum value of ClimGrid A\n\n\n\n"
+    "text": "maximum(A::ClimGrid)\n\nCompute the maximum value of ClimGrid A\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Base.mean-Tuple{ClimateTools.ClimGrid}",
-    "page": "Index",
-    "title": "Base.mean",
-    "category": "method",
-    "text": "mean(A::ClimGrid)\n\nCompute the mean of ClimGrid A\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Base.merge-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
+    "location": "functions.html#Base.merge-Tuple{ClimGrid,ClimGrid}",
     "page": "Index",
     "title": "Base.merge",
     "category": "method",
-    "text": "merge(A::ClimGrid, B::ClimGrid)\n\nCombines two ClimGrid. Based on the AxisArrays method.\n\n\n\n"
+    "text": "merge(A::ClimGrid, B::ClimGrid)\n\nCombines two ClimGrid. Based on the AxisArrays method.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Base.minimum-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#Base.minimum-Tuple{ClimGrid}",
     "page": "Index",
     "title": "Base.minimum",
     "category": "method",
-    "text": "minimum(A::ClimGrid)\n\nCompute the minimum value of ClimGrid A\n\n\n\n"
+    "text": "minimum(A::ClimGrid)\n\nCompute the minimum value of ClimGrid A\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Base.std-Tuple{ClimateTools.ClimGrid}",
-    "page": "Index",
-    "title": "Base.std",
-    "category": "method",
-    "text": "std(A::ClimGrid)\n\nCompute the standard deviation of ClimGrid A\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Base.var-Tuple{ClimateTools.ClimGrid}",
-    "page": "Index",
-    "title": "Base.var",
-    "category": "method",
-    "text": "var(A::ClimGrid)\n\nCompute the variance of ClimGrid A\n\n\n\n"
-},
-
-{
-    "location": "functions.html#ClimateTools.annualmax-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.annualmax-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.annualmax",
     "category": "method",
-    "text": "annualmax(C::ClimGrid)\n\nAnnual maximum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.\n\n\n\n"
+    "text": "annualmax(C::ClimGrid)\n\nAnnual maximum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.annualmean-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.annualmean-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.annualmean",
     "category": "method",
-    "text": "annualmean(C::ClimGrid)\n\nAnnual mean of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Calculate the mean value for year j.\n\n\n\n"
+    "text": "annualmean(C::ClimGrid)\n\nAnnual mean of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Calculate the mean value for year j.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.annualmin-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.annualmin-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.annualmin",
     "category": "method",
-    "text": "annualmin(C::ClimGrid)\n\nAnnual minimum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.\n\n\n\n"
+    "text": "annualmin(C::ClimGrid)\n\nAnnual minimum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.annualsum-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.annualsum-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.annualsum",
     "category": "method",
-    "text": "annualsum(C::ClimGrid)\n\nAnnual sum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Sums daily values for year j.\n\n\n\n"
+    "text": "annualsum(C::ClimGrid)\n\nAnnual sum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Sums daily values for year j.\n\n\n\n\n\n"
 },
 
 {
@@ -573,47 +565,63 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.applymask",
     "category": "method",
-    "text": "applymask(A::AbstractArray{N, n}, mask::AbstractArray{N, n})\n\nThis function applies a mask on the array A. Return an AbstractArray{N, n}.\n\n\n\n"
+    "text": "applymask(A::AbstractArray{N, n}, mask::AbstractArray{N, n})\n\nApplies a mask on the array A. Return an AbstractArray{N, n}.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.approx_surfacepressure-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.approx_surfacepressure-Tuple{ClimGrid,ClimGrid,ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.approx_surfacepressure",
     "category": "method",
-    "text": "  approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the approximated surface pressure (sp) (Pa) using sea level pressure (psl) (Pa), orography (orog) (m), and daily mean temperature (tas) (K).\n\nsp = psl * 10^x\n\nwhere x = frac-orog18400 * tas  27315\n\n\n\n"
+    "text": "  approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the approximated surface pressure (sp) (Pa) using sea level pressure (psl) (Pa), orography (orog) (m), and daily mean temperature (tas) (K).\n\nsp = psl * 10^x\n\nwhere x = frac-orog18400 * tas  27315\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.customthresover-Tuple{ClimateTools.ClimGrid,Any}",
+    "location": "functions.html#ClimateTools.customthresover-Tuple{ClimGrid,Any}",
     "page": "Index",
     "title": "ClimateTools.customthresover",
     "category": "method",
-    "text": "customthresover(C::ClimGrid)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\n\n\n"
+    "text": "customthresover(C::ClimGrid)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.customthresunder-Tuple{ClimateTools.ClimGrid,Any}",
+    "location": "functions.html#ClimateTools.customthresunder-Tuple{ClimGrid,Any}",
     "page": "Index",
     "title": "ClimateTools.customthresunder",
     "category": "method",
-    "text": "customthresunder(C::ClimGrid)\n\ncustomthresover, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\n\n\n"
+    "text": "customthresunder(C::ClimGrid)\n\ncustomthresover, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.daysabove10-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.daymean-Tuple{ClimGrid}",
+    "page": "Index",
+    "title": "ClimateTools.daymean",
+    "category": "method",
+    "text": "daymean(C::ClimGrid)\n\nReturns the daily average of sub-daily ClimGrid.\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.daysabove10-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.daysabove10",
     "category": "method",
-    "text": "daysabove10(C::ClimGrid)\n\nAnnual number of days with temperature >= 10 Celsius. This function returns a ClimGrid.\n\n\n\n"
+    "text": "daysabove10(C::ClimGrid)\n\nAnnual number of days with temperature >= 10 Celsius. This function returns a ClimGrid.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.diurnaltemperature-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid,Float64}",
+    "location": "functions.html#ClimateTools.diurnaltemperature-Tuple{ClimGrid,ClimGrid,Float64}",
     "page": "Index",
     "title": "ClimateTools.diurnaltemperature",
     "category": "method",
-    "text": "diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid, α::Float64)\n\nReturns an estimation of the diurnal temperature (temperature between 7:00 (7am) and 17:00 (5pm)). The estimation is a linear combination of the daily minimum temperature (temperatureminimum) and daily maximum temperature (temperaturemaximum). The value of α has to be estimated seperatly from observations and depends on the location. The daily max and min must be in the same unit and in Celsius or Kelvin The diurnal temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.\n\nTdiu =  * Tmin + (1 - ) * Tmax\n\n\n\n"
+    "text": "diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid, α::Float64)\n\nReturns an estimation of the diurnal temperature (temperature between 7:00 (7am) and 17:00 (5pm)). The estimation is a linear combination of the daily minimum temperature (temperatureminimum) and daily maximum temperature (temperaturemaximum). The value of α has to be estimated seperatly from observations and depends on the location. The daily max and min must be in the same unit and in Celsius or Kelvin The diurnal temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.\n\nTdiu = α * Tmin + (1 - α) * Tmax\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.ensemble_mean-Tuple{Any}",
+    "page": "Index",
+    "title": "ClimateTools.ensemble_mean",
+    "category": "method",
+    "text": "ensemble_mean(C::ClimGrid...)\n\nReturns the Ensemble mean of ClimGrids C..\n\n\n\n\n\n"
 },
 
 {
@@ -621,31 +629,39 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.extractpoly",
     "category": "method",
-    "text": "extractpoly(file::String, n::Int)\n\nReturns the n-th polygon contained in file.\n\n\n\n"
+    "text": "extractpoly(file::String, n::Int)\n\nReturns the n-th polygon contained in file.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.frostdays-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.frostdays-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.frostdays",
     "category": "method",
-    "text": "frostdays(C::ClimGrid)\n\nFD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0 Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] < 0 Celsius.\n\n\n\n"
+    "text": "frostdays(C::ClimGrid)\n\nFD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0 Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] < 0 Celsius.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.icingdays-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.get_timevec-Tuple{ClimGrid}",
+    "page": "Index",
+    "title": "ClimateTools.get_timevec",
+    "category": "method",
+    "text": "get_timevec(C::ClimGrid)\n\nReturns time vector of ClimGrid C.\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.icingdays-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.icingdays",
     "category": "method",
-    "text": "icingdays(C::ClimGrid)\n\nID, Number of summer days: Annual count of days when TX (daily maximum temperature) < 0 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] < 0 Celsius.\n\n\n\n"
+    "text": "icingdays(C::ClimGrid)\n\nID, Number of summer days: Annual count of days when TX (daily maximum temperature) < 0 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] < 0 Celsius.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.inpoly-Tuple{Any,Array{T,2} where T}",
+    "location": "functions.html#ClimateTools.inpoly-Tuple{Any,Any}",
     "page": "Index",
     "title": "ClimateTools.inpoly",
     "category": "method",
-    "text": "inpoly(p, poly::Matrix)\n\nDetermines if a point is inside a polygon.\n\np – point (x,y) or [x,y]\npoly – polygon vertices [x1 x2 ... xn x1                           y1 y2 ... yn y1]\n\nReturns true if point has an odd winding number.  This should label points as exterior which are inside outcrops.  See test for a test.\n\nAuthor: Github \"Mauro3\" / \"Mauro\"\n\n\n\n"
+    "text": "inpoly(p, poly::Matrix)\n\nDetermines if a point is inside a polygon.\n\np – point (x,y) or [x,y]\npoly – polygon vertices [x1 x2 ... xn x1                           y1 y2 ... yn y1]\n\nReturns true if point has an odd winding number.  This should label points as exterior which are inside outcrops.  See test for a test.\n\nAuthor: Github \"Mauro3\" / \"Mauro\"\n\n\n\n\n\n"
 },
 
 {
@@ -653,7 +669,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.inpolygrid",
     "category": "method",
-    "text": "inpolygrid(lon, lat, poly::AbstractArray{N,2} where N)\n\nUsed to test a grid of points. Returns a mask of ones and NaNs of the same size as lon and lat.\n\n\n\n"
+    "text": "inpolygrid(lon, lat, poly::AbstractArray{N,2} where N)\n\nUsed to test a grid of points. Returns a mask of ones and NaNs of the same size as lon and lat.\n\n\n\n\n\n"
 },
 
 {
@@ -661,7 +677,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.load",
     "category": "method",
-    "text": "load(files::Array{String,1}, variable::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = \"\")\n\nLoads and merge the files contained in the arrar files.\n\n\n\n"
+    "text": "load(files::Array{String,1}, vari::String; poly = ([]), start_date::Date = Date(-4000), end_date::Date = Date(-4000), data_units::String = \"\")\n\nLoads and merge the files contained in the arrar files.\n\n\n\n\n\n"
 },
 
 {
@@ -669,7 +685,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.load",
     "category": "method",
-    "text": "load(file::String, variable::String; poly = Array{Float64}([]), start_date::Tuple, end_date::Tuple, data_units::String = \"\")\n\nReturns a ClimGrid type with the data in file of variable var inside the polygon poly. Metadata is built-in the ClimGrid type, from the netCDF attributes.\n\nInside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude/x and latitude/y dimensions.\n\nThe polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).\n\nOptions for data_units are for precipitation : \"mm\", which converts the usual \"kg m-2 s-1\" unit found in netCDF files. For temperature : \"Celsius\", which converts the usual \"Kelvin\" unit.\n\nTemporal subsetting can be done by providing start_date and end-date Tuples of length 1 (year), length 3 (year, month, day) or 6 (hour, minute, second).\n\nNote: load uses CF conventions. If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in NetCDF.jl package or NCDatasets.jl or re-create standartized netCDF files.\n\n\n\n"
+    "text": "load(file::String, vari::String; poly = Array{Float64}([]), start_date::Tuple, end_date::Tuple, data_units::String = \"\")\n\nReturns a ClimGrid type with the data in file of variable vari inside the polygon poly. Metadata is built-in the ClimGrid type, from the netCDF attributes.\n\nInside the ClimgGrid type, the data is stored into an AxisArray data type, with time, longitude/x and latitude/y dimensions.\n\nThe polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).\n\nOptions for data_units are for precipitation : \"mm\", which converts the usual \"kg m-2 s-1\" unit found in netCDF files. For temperature : \"Celsius\", which converts the usual \"Kelvin\" unit.\n\nTemporal subsetting can be done by providing start_date and end-date Tuples of length 1 (year), length 3 (year, month, day) or 6 (hour, minute, second).\n\nNote: load uses CF conventions. If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in NetCDF.jl package or NCDatasets.jl or re-create standartized netCDF files.\n\n\n\n\n\n"
 },
 
 {
@@ -677,15 +693,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.load2D",
     "category": "method",
-    "text": "load2D(file::String, variable::String; poly=[], data_units::String=\"\")\n\nReturns a 2D array. Should be used for fixed data, such as orography\n\n\n\n"
+    "text": "load2D(file::String, vari::String; poly=[], data_units::String=\"\")\n\nReturns a 2D array. Should be used for fixed data, such as orography\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.mapclimgrid-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.mapclimgrid-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.mapclimgrid",
     "category": "method",
-    "text": "mapclimgrid(C::ClimGrid; region::String=\"auto\", poly, level, mask, caxis, start_date::Tuple, end_date::Tuple, titlestr::String, surface::Symbol, cm::String=\"\", ncolors::Int, center_cs::Bool, filename::String, cs_label::String)\n\nMaps the time-mean average of ClimGrid C. If a filename is provided, the figure is saved in a png format.\n\nOptional keyworkd includes precribed regions (keyword region, see list below), spatial clipping by polygon (keyword poly) or mask (keyword mask, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), start_date and end_date. For 4D data, keyword level is used to map a given level (defaults to 1). caxis is used to limit the colorscale. cm is used to manually set the colorscale (see Python documentation for native colorscale keyword), ncolors is used to set the number of color classes (defaults to 12). Set center_cs to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature). cs_label is used for custom colorscale label.\n\nArguments for keyword region (and shortcuts)\n\nEurope (\"EU\")\nNorthAmerica (\"NA\")\nCanada (\"CA\")\nQuebec, QuebecNSP (\"QC\", \"QCNSP\")\nAmericas (\"Ams\")\nWorld, WorldAz, WorldEck4 (\"W\", \"Waz\", \"Weck4\")\nGreenwich (\"Gr\")\n\nArguments for keyword surface\n\n:contour\n:contourf\n:pcolormesh\n\n\n\n"
+    "text": "mapclimgrid(C::ClimGrid; region::String=\"auto\", poly, level, mask, caxis, start_date::Tuple, end_date::Tuple, titlestr::String, surface::Symbol, cm::String=\"\", ncolors::Int, center_cs::Bool, filename::String, cs_label::String)\n\nMaps the time-mean average of ClimGrid C. If a filename is provided, the figure is saved in a png format.\n\nOptional keyworkd includes precribed regions (keyword region, see list below), spatial clipping by polygon (keyword poly) or mask (keyword mask, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), startdate and enddate. For 4D data, keyword level is used to map a given level (defaults to 1). caxis is used to limit the colorscale. cm is used to manually set the colorscale (see Python documentation for native colorscale keyword), ncolors is used to set the number of color classes (defaults to 12). Set center_cs to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature). cs_label is used for custom colorscale label.\n\nArguments for keyword region (and shortcuts)\n\nEurope (\"EU\")\nNorthAmerica (\"NA\")\nCanada (\"CA\")\nQuebec, QuebecNSP (\"QC\", \"QCNSP\")\nAmericas (\"Ams\")\nWorld, WorldAz, WorldEck4 (\"W\", \"Waz\", \"Weck4\")\nGreenwich (\"Gr\")\n\nArguments for keyword surface\n\n:contour\n:contourf\n:pcolormesh\n\n\n\n\n\n"
 },
 
 {
@@ -693,23 +709,23 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.mapclimgrid",
     "category": "method",
-    "text": "mapclimgrid(; region::String=\"auto\", poly, level, mask, caxis, start_date::Date, end_date::Date)\n\nEmpty map generator, when called without a ClimGrid as the positional argument.\n\n\n\n"
+    "text": "mapclimgrid(; region::String=\"auto\", poly, level, mask, caxis, start_date::Date, end_date::Date)\n\nEmpty map generator, when called without a ClimGrid as the positional argument.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.meantemperature-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.meantemperature-Tuple{ClimGrid,ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.meantemperature",
     "category": "method",
-    "text": "meantemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid)\n\nReturns the daily mean temperature calculated from the maximum and minimum temperature. Daily maximum and minimum temperature must be in the same units. The mean temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.\n\nTmean = fracTmax + Tmin2\n\n\n\n"
+    "text": "meantemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid)\n\nReturns the daily mean temperature calculated from the maximum and minimum temperature. Daily maximum and minimum temperature must be in the same units. The mean temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.\n\nTmean = fracTmax + Tmin2\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.meshgrid-Union{Tuple{AbstractArray{T,1},AbstractArray{T,1}}, Tuple{T}} where T",
+    "location": "functions.html#ClimateTools.meshgrid-Union{Tuple{T}, Tuple{AbstractArray{T,1},AbstractArray{T,1}}} where T",
     "page": "Index",
     "title": "ClimateTools.meshgrid",
     "category": "method",
-    "text": "X, Y = meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T})\n\nThis function creates a 2-D mesh-grid in a format consistent with Matlab\'s function meshgrid(). XV and YV are vectors.\n\n\n\n"
+    "text": "X, Y = meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T})\n\nThis function creates a 2-D mesh-grid in a format consistent with Matlab\'s function meshgrid(). XV and YV are vectors.\n\n\n\n\n\n"
 },
 
 {
@@ -717,55 +733,63 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.ndgrid",
     "category": "method",
-    "text": "X, Y = ndgrid(XV, YV)\n\nThis function creates a 2-D mesh-grid in a format consistent with Matlab\'s function ndgrid(). XV and YV are vectors.\n\n\n\n"
+    "text": "X, Y = ndgrid(XV, YV)\n\nThis function creates a 2-D mesh-grid in a format consistent with Matlab\'s function ndgrid(). XV and YV are vectors.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.periodmean-Tuple{ClimateTools.ClimGrid,Tuple,Tuple}",
+    "location": "functions.html#ClimateTools.periodmean-Tuple{ClimGrid,Tuple,Tuple}",
     "page": "Index",
     "title": "ClimateTools.periodmean",
     "category": "method",
-    "text": "periodmean(C::ClimGrid, startdate::Tuple, enddate::Tuple)\n\nMean of array data over a given period.\n\n\n\n"
+    "text": "periodmean(C::ClimGrid, startdate::Tuple, enddate::Tuple)\n\nMean of array data over a given period.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.periodsubset-Tuple{ClimateTools.ClimGrid,Int64,Int64}",
+    "location": "functions.html#ClimateTools.periodmean-Tuple{ClimGrid}",
+    "page": "Index",
+    "title": "ClimateTools.periodmean",
+    "category": "method",
+    "text": "periodmean(C::ClimGrid; startdate::Tuple, enddate::Tuple)\n\nMean of array data over a given period.\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions.html#ClimateTools.periodsubset-Tuple{ClimGrid,Int64,Int64}",
     "page": "Index",
     "title": "ClimateTools.periodsubset",
     "category": "method",
-    "text": "periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)\n\nReturn the temporal subset of ClimGrid C based on months.\n\n\n\n"
+    "text": "periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)\n\nReturn the temporal subset of ClimGrid C based on months.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.periodsubset-Tuple{ClimateTools.ClimGrid,String}",
+    "location": "functions.html#ClimateTools.periodsubset-Tuple{ClimGrid,String}",
     "page": "Index",
     "title": "ClimateTools.periodsubset",
     "category": "method",
-    "text": "periodsubset(C::ClimGrid, season::String)\n\nReturn the temporal subset of ClimGrid C for a given season. Season options are: \"DJF\" (December-February), \"MAM\" (March-May), \"JJA\" (June-August), \"SON\" (September-November)\n\n\n\n"
+    "text": "periodsubset(C::ClimGrid, season::String)\n\nReturn the temporal subset of ClimGrid C for a given season. Season options are: \"DJF\" (December-February), \"MAM\" (March-May), \"JJA\" (June-August), \"SON\" (September-November)\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.polyfit-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.polyfit-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.polyfit",
     "category": "method",
-    "text": "polyfit(C::ClimGrid)\n\nReturns an array of the polynomials functions of each grid points contained in ClimGrid C.\n\n\n\n"
+    "text": "polyfit(C::ClimGrid)\n\nReturns an array of the polynomials functions of each grid points contained in ClimGrid C.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.polyval-Tuple{ClimateTools.ClimGrid,Array{Polynomials.Poly{Float64},2}}",
+    "location": "functions.html#ClimateTools.polyval-Tuple{ClimGrid,Array{Polynomials.Poly{Float64},2}}",
     "page": "Index",
     "title": "ClimateTools.polyval",
     "category": "method",
-    "text": "polyval(C::ClimGrid, polynomial::Array{Poly{Float64}})\n\nReturns a ClimGrid containing the values, as estimated from polynomial function polyn.\n\n\n\n"
+    "text": "polyval(C::ClimGrid, polynomial::Array{Poly{Float64}})\n\nReturns a ClimGrid containing the values, as estimated from polynomial function polyn.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.prcp1-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.prcp1-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.prcp1",
     "category": "method",
-    "text": "prcp1(C::ClimGrid)\n\nAnnual number with preciptation >= 1 mm. This function returns a ClimGrid.\n\n\n\n"
+    "text": "prcp1(C::ClimGrid)\n\nAnnual number with preciptation >= 1 mm. This function returns a ClimGrid.\n\n\n\n\n\n"
 },
 
 {
@@ -773,47 +797,39 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.qqmap",
     "category": "method",
-    "text": "qqmap(obs::Array{N, 1} where N, ref::Array{N, 1} where N, fut::Array{N, 1} where N; method=\"Additive\", detrend=true, window=15, rankn=50, thresnan=0.1, keep_original=false, interp::Function = Linear(), extrap::Function = Flat())\n\nQuantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.\n\n\n\n"
+    "text": "qqmap(obs::Array{N, 1} where N, ref::Array{N, 1} where N, fut::Array{N, 1} where N; method=\"Additive\", detrend=true, window=15, rankn=50, thresnan=0.1, keep_original=false, interp::Function = Linear(), extrap::Function = Flat())\n\nQuantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.qqmap-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.qqmap-Tuple{ClimGrid,ClimGrid,ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.qqmap",
     "category": "method",
-    "text": "qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method=\"Additive\", detrend=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp::Function = Linear(), extrap::Function = Flat())\n\nQuantile-Quantile mapping bias correction. For each julian day of the year (+/- window size), a transfer function is estimated through an empirical quantile-quantile mapping.\n\nThe quantile-quantile transfer function between ref and obs is etimated on a julian day (and grid-point) basis with a moving window around the julian day. Hence, for a given julian day, the transfer function is then applied to the fut dataset for a given julian day.\n\nOptions\n\nmethod::String = \"Additive\" (default) or \"Multiplicative\". Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.\n\ndetrend::Bool = true (default). A 4th order polynomial is adjusted to the time series and the residuals are corrected with the quantile-quantile mapping.\n\nwindow::Int = 15 (default). The size of the window used to extract the statistical characteristics around a given julian day.\n\nrankn::Int = 50 (default). The number of bins used for the quantile estimations. The quantiles uses by default 50 bins between 0.01 and 0.99. The bahavior between the bins is controlled by the interp keyword argument. The behaviour of the quantile-quantile estimation outside the 0.01 and 0.99 range is controlled by the extrap keyword argument.\n\nthresnan::Float64 = 0.1 (default). The fraction is missing values authorized for the estimation of the quantile-quantile mapping for a given julian days. If there is more than treshnan missing values, the output for this given julian days returns NaNs.\n\nkeep_original::Bool = false (default). If keep_original is set to true, the values are set to the original values in presence of too many NaNs.\n\ninterp = Interpolations.Linear() (default). When the data to be corrected lies between 2 quantile bins, the value of the transfer function is linearly interpolated between the 2 closest quantile estimation. The argument is from Interpolations.jl package.\n\nextrap = Interpolations.Flat() (default). The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no \"inflation problem\" with the bias correction. The argument is from Interpolation.jl package.\n\n\n\n"
+    "text": "qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method=\"Additive\", detrend=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp::Function = Linear(), extrap::Function = Flat())\n\nQuantile-Quantile mapping bias correction. For each julian day of the year (+/- window size), a transfer function is estimated through an empirical quantile-quantile mapping.\n\nThe quantile-quantile transfer function between ref and obs is etimated on a julian day (and grid-point) basis with a moving window around the julian day. Hence, for a given julian day, the transfer function is then applied to the fut dataset for a given julian day.\n\nOptions\n\nmethod::String = \"Additive\" (default) or \"Multiplicative\". Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.\n\ndetrend::Bool = true (default). A 4th order polynomial is adjusted to the time series and the residuals are corrected with the quantile-quantile mapping.\n\nwindow::Int = 15 (default). The size of the window used to extract the statistical characteristics around a given julian day.\n\nrankn::Int = 50 (default). The number of bins used for the quantile estimations. The quantiles uses by default 50 bins between 0.01 and 0.99. The bahavior between the bins is controlled by the interp keyword argument. The behaviour of the quantile-quantile estimation outside the 0.01 and 0.99 range is controlled by the extrap keyword argument.\n\nthresnan::Float64 = 0.1 (default). The fraction is missing values authorized for the estimation of the quantile-quantile mapping for a given julian days. If there is more than treshnan missing values, the output for this given julian days returns NaNs.\n\nkeep_original::Bool = false (default). If keep_original is set to true, the values are set to the original values in presence of too many NaNs.\n\ninterp = Interpolations.Linear() (default). When the data to be corrected lies between 2 quantile bins, the value of the transfer function is linearly interpolated between the 2 closest quantile estimation. The argument is from Interpolations.jl package.\n\nextrap = Interpolations.Flat() (default). The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no \"inflation problem\" with the bias correction. The argument is from Interpolation.jl package.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.qqmap-Tuple{ClimateTools.ClimGrid,ClimateTools.TransferFunction}",
+    "location": "functions.html#ClimateTools.qqmap-Tuple{ClimGrid,TransferFunction}",
     "page": "Index",
     "title": "ClimateTools.qqmap",
     "category": "method",
-    "text": "qqmap(fut::ClimGrid, ITP::TransferFunction)\n\nQuantile-Quantile mapping bias correction with a known transfer function. For each julian day of the year, use the right transfert function to correct fut values.\n\n\n\n"
+    "text": "qqmap(fut::ClimGrid, ITP::TransferFunction)\n\nQuantile-Quantile mapping bias correction with a known transfer function. For each julian day of the year, use the right transfert function to correct fut values.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.qqmaptf-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
-    "page": "Index",
-    "title": "ClimateTools.qqmaptf",
-    "category": "method",
-    "text": "qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())\n\nTransfer function based on quantile-quantile mapping bias correction. For each julian day, a transfer function is estimated through an empirical quantile-quantile mapping for the entire obs\' ClimGrid extent. The quantile-quantile transfer function between ref and obs is etimated on a julian day basis with a moving window around the julian day. The transfer function can then be used to correct another dataset.\n\nOptions partition::Float64 = 1.0. The proportion of grid-points (chosen randomly) used for the estimation of the transfer function. A transfer function is estimated for every chosen grid-points (and julian day) and averaged for the entire obs ClimGrid extent.\n\nmethod::String = \"Additive\" (default) or \"Multiplicative\". Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.\n\ndetrend::Bool = true (default). A 4th order polynomial is adjusted to the time series and the residuals are corrected with the quantile-quantile mapping.\n\nwindow::Int = 15 (default). The size of the window used to extract the statistical characteristics around a given julian day.\n\nrankn::Int = 50 (default). The number of bins used for the quantile estimations. The quantiles uses by default 50 bins between 0.01 and 0.99. The bahavior between the bins is controlled by the interp keyword argument. The behaviour of the quantile-quantile estimation outside the 0.01 and 0.99 range is controlled by the extrap keyword argument.\n\ninterp = Interpolations.Linear() (default). When the data to be corrected lies between 2 quantile bins, the value of the transfer function is linearly interpolated between the 2 closest quantile estimation. The argument is from Interpolations.jl package.\n\nextrap = Interpolations.Flat() (default). The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no \"inflation problem\" with the bias correction. The argument is from Interpolation.jl package.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#ClimateTools.regrid-Tuple{ClimateTools.ClimGrid,AbstractArray{N,T} where N where T,AbstractArray{N,T} where N where T}",
+    "location": "functions.html#ClimateTools.regrid-Tuple{ClimGrid,AbstractArray{N,T} where N where T,AbstractArray{N,T} where N where T}",
     "page": "Index",
     "title": "ClimateTools.regrid",
     "category": "method",
-    "text": "C = regrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)A\n\nInterpolate ClimGrid A onto lat-lon grid defined by londest and latdest vector or array. If an array is provided, it is assumed that the grid is curvilinear (not a regular lon-lat grid) and the user needs to provide the dimension vector (\"x\" and \"y\") for such a grid.\n\n\n\n"
+    "text": "C = regrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)A\n\nInterpolate ClimGrid A onto lat-lon grid defined by londest and latdest vector or array. If an array is provided, it is assumed that the grid is curvilinear (not a regular lon-lat grid) and the user needs to provide the dimension vector (\"x\" and \"y\") for such a grid.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.regrid-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.regrid-Tuple{ClimGrid,ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.regrid",
     "category": "method",
-    "text": "C = regrid(A::ClimGrid, B::ClimGrid; method=\"linear\", min=[], max=[])\n\nInterpolate ClimGrid A onto the lon-lat grid of ClimGrid B, where A and B are ClimGrid. Available methods for interpolation are \"linear\" (default), \"nearest\" and \"cubic\".\n\nMin and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.\n\n\n\n"
+    "text": "C = regrid(A::ClimGrid, B::ClimGrid; method=\"linear\", min=[], max=[])\n\nInterpolate ClimGrid A onto the lon-lat grid of ClimGrid B, where A and B are ClimGrid. Available methods for interpolation are \"linear\" (default), \"nearest\" and \"cubic\".\n\nMin and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.\n\n\n\n\n\n"
 },
 
 {
@@ -821,7 +837,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.shapefile_coords",
     "category": "method",
-    "text": "shapefile_coords(poly::Shapefile.Polygon)\n\nThis function return the polygons contained in shp.shapes[i]. It returns the x and y coordinates vectors.\n\nSee also shapefile_coords_poly, which returns a polygon that ca be used for data extraction of the load.\n\n\n\n"
+    "text": "shapefile_coords(poly::Shapefile.Polygon)\n\nThis function return the polygons contained in shp.shapes[i]. It returns the x and y coordinates vectors.\n\nSee also shapefile_coords_poly, which returns a polygon that ca be used for data extraction of the load.\n\n\n\n\n\n"
 },
 
 {
@@ -829,71 +845,95 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.shapefile_coords_poly",
     "category": "method",
-    "text": "shapefile_coords_poly(poly::Shapefile.Polygon)\n\nReturn the polygons contained in shp.shapes[i]. It returns an array containing the polygons.\n\nSee also shapefile_coords, which returns vectors as opposed to array. Returned polygon is consistent with the data extraction of the load function.\n\n\n\n"
+    "text": "shapefile_coords_poly(poly::Shapefile.Polygon)\n\nReturn the polygons contained in shp.shapes[i]. It returns an array containing the polygons.\n\nSee also shapefile_coords, which returns vectors as opposed to array. Returned polygon is consistent with the data extraction of the load function.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.spatialsubset-Tuple{ClimateTools.ClimGrid,Array{N,2} where N}",
+    "location": "functions.html#ClimateTools.spatialsubset-Tuple{ClimGrid,Any}",
     "page": "Index",
     "title": "ClimateTools.spatialsubset",
     "category": "method",
-    "text": "spatialsubset(C::ClimGrid, poly::Array{N, 2})\n\nReturns the spatial subset of ClimGrid C. The spatial subset is defined by the polygon poly, defined on a -180, +180 longitude reference.\n\n\n\n"
+    "text": "spatialsubset(C::ClimGrid, poly::Array{N, 2})\n\nReturns the spatial subset of ClimGrid C. The spatial subset is defined by the polygon poly, defined on a -180, +180 longitude reference.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.summerdays-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.summerdays-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.summerdays",
     "category": "method",
-    "text": "summerdays(C::ClimGrid)\n\nSD, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] > 25 Celsius.\n\n\n\n"
+    "text": "summerdays(C::ClimGrid)\n\nSD, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] > 25 Celsius.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.temporalsubset-Tuple{ClimateTools.ClimGrid,Tuple,Tuple}",
+    "location": "functions.html#ClimateTools.temporalsubset-Tuple{ClimGrid,Tuple,Tuple}",
     "page": "Index",
     "title": "ClimateTools.temporalsubset",
     "category": "method",
-    "text": "function temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)\n\nReturns the temporal subset of ClimGrid C. The temporal subset is defined by a start and end date.\n\n\n\n"
+    "text": "function temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)\n\nReturns the temporal subset of ClimGrid C. The temporal subset is defined by a start and end date.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.tropicalnights-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.tropicalnights-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.tropicalnights",
     "category": "method",
-    "text": "tropicalnights(C::ClimGrid)\n\nTropicalNights, Number of tropical nights: Annual count of days when TN (daily maximum temperature) > 20 degree Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] > 20 Celsius.\n\n\n\n"
+    "text": "tropicalnights(C::ClimGrid)\n\nTropicalNights, Number of tropical nights: Annual count of days when TN (daily maximum temperature) > 20 degree Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] > 20 Celsius.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.vaporpressure-NTuple{4,ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.vaporpressure-NTuple{4,ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.vaporpressure",
     "category": "method",
-    "text": "vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) estimated with the specific humidity (q), the sea level pressure (psl) (Pa), the orography (orog) (m) and the daily mean temperature (tas) (K). An approximation of the surface pressure is first computed by using the sea level pressure, orography and the daily mean temperature (see approx_surfacepressure). Then, vapor pressure is calculated by:\n\nvp = fracq * spq+0622\n\n\n\n"
+    "text": "vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) estimated with the specific humidity (q), the sea level pressure (psl) (Pa), the orography (orog) (m) and the daily mean temperature (tas) (K). An approximation of the surface pressure is first computed by using the sea level pressure, orography and the daily mean temperature (see approx_surfacepressure). Then, vapor pressure is calculated by:\n\nvp = fracq * spq+0622\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.vaporpressure-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.vaporpressure-Tuple{ClimGrid,ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.vaporpressure",
     "category": "method",
-    "text": "vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).\n\nvp = fracq * spq+0622\n\n\n\n"
+    "text": "vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).\n\nvp = fracq * spq+0622\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#ClimateTools.wbgt-Tuple{ClimateTools.ClimGrid,ClimateTools.ClimGrid}",
+    "location": "functions.html#ClimateTools.wbgt-Tuple{ClimGrid,ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.wbgt",
     "category": "method",
-    "text": "wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)\n\nReturns the simplified wet-bulb global temperature (wbgt) (Celsius) calculated using the vapor pressure (Pa) of the day and the estimated mean diurnal temperature (Celsius; temperature between 7:00 (7am) and 17:00 (5pm)).\n\nwbgt = 0567 * Tday + 000393 * vp + 394\n\n\n\n"
+    "text": "wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)\n\nReturns the simplified wet-bulb global temperature (wbgt) (Celsius) calculated using the vapor pressure (Pa) of the day and the estimated mean diurnal temperature (Celsius; temperature between 7:00 (7am) and 17:00 (5pm)).\n\nwbgt = 0567 * Tday + 000393 * vp + 394\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions.html#PyPlot.plot-Tuple{ClimateTools.ClimGrid}",
+    "location": "functions.html#PyPlot.plot-Tuple{ClimGrid}",
     "page": "Index",
     "title": "PyPlot.plot",
     "category": "method",
-    "text": "plot(C::ClimGrid, titlefig::String, gridfig::Bool, label::String, color, lw, linestyle)\n\nPlots the spatial average timeserie of ClimGrid C.\n\n\n\n"
+    "text": "plot(C::ClimGrid, titlefig::String, gridfig::Bool, label::String, color, lw, linestyle)\n\nPlots the spatial average timeserie of ClimGrid C.\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Statistics.mean-Tuple{ClimGrid}",
+    "page": "Index",
+    "title": "Statistics.mean",
+    "category": "method",
+    "text": "mean(A::ClimGrid)\n\nCompute the mean of ClimGrid A\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Statistics.std-Tuple{ClimGrid}",
+    "page": "Index",
+    "title": "Statistics.std",
+    "category": "method",
+    "text": "std(A::ClimGrid)\n\nCompute the standard deviation of ClimGrid A\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Statistics.var-Tuple{ClimGrid}",
+    "page": "Index",
+    "title": "Statistics.var",
+    "category": "method",
+    "text": "var(A::ClimGrid)\n\nCompute the variance of ClimGrid A\n\n\n\n\n\n"
 },
 
 {
@@ -901,7 +941,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.ClimGrid",
     "category": "type",
-    "text": "ClimGrid{A <: AxisArray}\n\nIn-memory representation of Climate Forecast netCDF files.\n\n\n\n"
+    "text": "ClimGrid{A <: AxisArray}\n\nIn-memory representation of Climate Forecast netCDF files.\n\n\n\n\n\n"
 },
 
 {
@@ -909,7 +949,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.ClimGrid",
     "category": "method",
-    "text": "ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), model=\"NA\", frequency=\"NA\", experiment=\"NA\", run=\"NA\", project=\"NA\", institute=\"NA\", filename=\"NA\", dataunits=\"NA\", latunits=\"NA\", lonunits=\"NA\", variable=\"NA\", typeofvar=\"NA\", typeofcal=\"NA\", varattribs=Dict(), globalattribs=Dict())\n\nConstructor of the ClimGrid function. Data is an AxisArray. Everything else is optional, but usually needed for further processing (mapping, interpolation, etc...).\n\n\n\n"
+    "text": "ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), model=\"NA\", frequency=\"NA\", experiment=\"NA\", run=\"NA\", project=\"NA\", institute=\"NA\", filename=\"NA\", dataunits=\"NA\", latunits=\"NA\", lonunits=\"NA\", variable=\"NA\", typeofvar=\"NA\", typeofcal=\"NA\", varattribs=Dict(), globalattribs=Dict())\n\nConstructor of the ClimGrid function. Data is an AxisArray. Everything else is optional, but usually needed for further processing (mapping, interpolation, etc...).\n\n\n\n\n\n"
 },
 
 {
@@ -917,7 +957,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.TransferFunction",
     "category": "type",
-    "text": "TransferFunction(itp::Array, method::String, detrend::Bool)\n\nTransfer function used during quantile-quantile mapping bias correction.\n\n\n\n"
+    "text": "TransferFunction(itp::Array, method::String, detrend::Bool)\n\nTransfer function used during quantile-quantile mapping bias correction.\n\n\n\n\n\n"
 },
 
 {
