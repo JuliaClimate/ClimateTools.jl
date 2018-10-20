@@ -16,6 +16,9 @@ mapclimgrid(C)
 
 ![BNU-ESM](assets/BNU_AnnMax.png)
 
+## Ensemble mean
+
+You can calculate the ensemble mean with `ensemble_mean` function, where the input argument is an array of ClimGrids.
 
 ## Climate Indices
 
