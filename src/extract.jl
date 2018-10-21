@@ -414,10 +414,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
       end
 
       #Extract data based on mask
-      data_ext = ClimateTools.extractdata2D(data_pointer, msk)
-
-      #new mask (e.g. representing the region of the polygon)
-      # idlon, idlat = findn(.!isnan.(msk)) # DEPRECATED SEE NEXT "begin...end"
+      data_ext = ClimateTools.extractdata2D(data_pointer, msk)      
       
       begin
         I = Base.findall(!isnan, msk)
@@ -511,13 +508,8 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
       end
 
     elseif isempty(poly) # no polygon clipping
-        msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
-      # if ndims(data) == 3
+        msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))      
         data_ext = extractdata2D(data_pointer, msk)
-      # elseif ndims(data) == 4
-          # data = extractdata(data, msk, idxtimebeg, idxtimeend)
-      # end
-
 
       if rotatedgrid
           # Flip data "west-east"
@@ -538,30 +530,8 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
         lon_raw = lon_raw_flip
     end
 
-    # Convert units of optional argument data_units is provided
-    if data_units == "Celsius" && (vari == "tas" || vari == "tasmax" || vari == "tasmin") && dataunits == "K"
-      data .-= 273.15
-      dataunits = "Celsius"
-    end
-
-    if data_units == "mm" && vari == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")
-
-      rez = timeresolution(NetCDF.ncread(file, "time"))
-      factor = pr_timefactor(rez)
-      data .*= factor
-      if rez != "N/A"
-          dataunits = string("mm/",rez)
-      else
-          dataunits = "mm"
-      end
-      varattrib["standard_name"] = "precipitation"
-    end
-
-    # Create AxisArray from variable "data"
-
     # Convert data to AxisArray
     dataOut = AxisArray(data, Axis{Symbol(lonname)}(lon_raw), Axis{Symbol(latname)}(lat_raw))
-
 
     close(ds)
     NetCDF.ncclose(file)

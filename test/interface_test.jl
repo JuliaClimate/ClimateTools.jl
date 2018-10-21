@@ -115,14 +115,30 @@ B = load(filenc, "tas", start_date=(2000, 05, 15), end_date=(2000, 05, 15))
 # Time resolution
 timevec = [1, 2, 3]
 @test ClimateTools.timeresolution(timevec) == "24h"
+@test ClimateTools.daymean_factor(ClimateTools.timeresolution(timevec)) == 1
+
 timevec = [1.0, 1.5, 2.0]
 @test ClimateTools.timeresolution(timevec) == "12h"
+@test ClimateTools.daymean_factor(ClimateTools.timeresolution(timevec)) == 2
+
 timevec = [1.25, 1.5, 1.75]
 @test ClimateTools.timeresolution(timevec) == "6h"
+@test ClimateTools.daymean_factor(ClimateTools.timeresolution(timevec)) == 4
+
 timevec = [1.125, 1.25, 1.375]
 @test ClimateTools.timeresolution(timevec) == "3h"
+@test ClimateTools.daymean_factor(ClimateTools.timeresolution(timevec)) == 8
+
+timevec = [1.0, 1.04167, 1.08334]
+@test ClimateTools.timeresolution(timevec) == "1h"
+@test ClimateTools.daymean_factor(ClimateTools.timeresolution(timevec)) == 24
+
+timevec = [0.0, 365.0, 365.0*2]
+@test ClimateTools.timeresolution(timevec) == "Yearly"
+
 timevec = NetCDF.ncread(filenc, "time")
 @test ClimateTools.timeresolution(timevec) == "N/A"
+@test ClimateTools.daymean_factor(ClimateTools.timeresolution(timevec)) == 1
 
 
 

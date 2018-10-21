@@ -81,7 +81,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
         refvec = refin[k,:]
         futvec = futin[k,:]
 
-        dataoutin[k, :] = qqmap(obsvec, refvec, futvec, days, datevec_obs, datevec_ref, datevec_fut, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap = extrap)
+        dataoutin[k, :] = qqmap(obsvec, refvec, futvec, days, datevec_obs, datevec_ref, datevec_fut, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
 
     end
 
@@ -111,9 +111,9 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
     # range over which quantiles are estimated
     P = range(0.01, stop=0.99, length=rankn)
     # Get correct julian days (e.g. we can't have a mismatch of calendars between observed and models ref/fut)
-    obsvec2, obs_jul, datevec_obs2 = corrjuliandays(obsvec, datevec_obs)
-    refvec2, ref_jul, datevec_ref2 = corrjuliandays(refvec, datevec_ref)
-    futvec2, fut_jul, datevec_fut2 = corrjuliandays(futvec, datevec_fut)
+    obsvec2, obs_jul, datevec_obs2 = ClimateTools.corrjuliandays(obsvec, datevec_obs)
+    refvec2, ref_jul, datevec_ref2 = ClimateTools.corrjuliandays(refvec, datevec_ref)
+    futvec2, fut_jul, datevec_fut2 = ClimateTools.corrjuliandays(futvec, datevec_fut)
     # obsvec2, refvec2, futvec2, obs_jul, ref_jul, fut_jul, datevec_obs2, datevec_ref2, datevec_fut2 = corrjuliandays(obsvec, refvec, futvec, datevec_obs, datevec_ref, datevec_fut)
 
     # Prepare output array
@@ -127,12 +127,14 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
         idxfut = (fut_jul .== ijulian)
 
         # Find all index of moving window around ijulian day of year
-        idxobs = find_julianday_idx(obs_jul, ijulian, window)
-        idxref = find_julianday_idx(ref_jul, ijulian, window)
+        idxobs = ClimateTools.find_julianday_idx(obs_jul, ijulian, window)
+        idxref = ClimateTools.find_julianday_idx(ref_jul, ijulian, window)
 
-        obsval = obsvec2[idxobs] # values to use as ground truth
-        refval = refvec2[idxref] # values to use as reference for sim
-        futval = futvec2[idxfut] # values to correct
+        # rng = MersenneTwister(1234)
+
+        obsval = obsvec2[idxobs] .+ eps(1.0) # values to use as ground truth
+        refval = refvec2[idxref] .+ eps(1.0)# values to use as reference for sim
+        futval = futvec2[idxfut] .+ eps(1.0) # values to correct
 
         if (sum(isnan.(obsval)) < (length(obsval) * thresnan)) & (sum(isnan.(refval)) < (length(refval) * thresnan)) & (sum(isnan.(futval)) < (length(futval) * thresnan))
 
@@ -148,10 +150,13 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
 
             elseif lowercase(method) == "multiplicative" # used for precipitation
                 sf_refP = obsP ./ refP
-                sf_refP[sf_refP .< 0] .= 0.0
+                sf_refP[sf_refP .< 0] .= eps(1.0)
+                sf_refP[isnan.(sf_refP)] .= eps(1.0)
                 itp = interpolate((refP,), sf_refP, Gridded(interp))
                 itp = extrapolate(itp, extrap) # add extrapolation
                 futnew = itp(futval) .* futval
+
+                futnew[isnan.(futnew)] .= 0.0
 
             else
                 error("Wrong method")
