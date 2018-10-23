@@ -301,23 +301,35 @@ Loads and merge the files contained in the arrar files.
 """
 function load(files::Array{String,1}, vari::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
 
-    C = [] # initialize # TODO better initialization
     nfiles = length(files)
+    C = Array{ClimGrid}(undef, nfiles) # initialize # TODO better initialization
+    datesort = Array{DateTime}(undef, nfiles)
+    Cout = []    
 
-    p = Progress(nfiles, 3, "Loading files: ")
+    p = Progress(nfiles*2, 3, "Loading files: ")
 
     for ifile = 1:nfiles
 
-        datatmp = load(files[ifile], vari, poly = poly, start_date=start_date, end_date=end_date, data_units=data_units)
+        C[ifile] = load(files[ifile], vari, poly = poly, start_date=start_date, end_date=end_date, data_units=data_units)
+        datesort[ifile] = get_timevec(C[ifile])[1]
 
-        if ifile == 1
-            C = datatmp
-        else
-            C = merge(C, datatmp)
-        end
         next!(p)
     end
-    return C
+
+    # Sort files based on timevector to ensure that merge results in amonotone increase in time
+    idx = sortperm(datesort)
+    C = C[idx]
+
+    for imod = 1:nfiles
+        if imod == 1
+            Cout = C[imod]
+        else
+            Cout = merge(Cout, C[imod])
+        end        
+        next!(p)
+    end
+
+    return Cout
 end
 
 
