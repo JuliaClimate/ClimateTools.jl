@@ -238,7 +238,7 @@ function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::T
     xlabel("Time")
     ylabel(C.dataunits)
     legend()
-    xticks(timevec[1:20:end])
+    # xticks(timevec[1:20:end])
     if isempty(titlestr)
         titlestr = C.variable
     end
