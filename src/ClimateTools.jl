@@ -6,7 +6,6 @@ module ClimateTools
 using NetCDF
 using Reexport
 @reexport using NCDatasets
-# using NCDatasets
 using Shapefile
 using AxisArrays
 const axes = Base.axes
@@ -19,6 +18,7 @@ using Polynomials
 using IterTools
 using Statistics
 using Dates
+using Unitful: K, °C, @u_str  
 import Base.vcat
 import Base.getindex
 import Base.show
@@ -42,7 +42,7 @@ const cmocean = PyNULL()
 const scipy = PyNULL()
 
 function __init__()
-  copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))  
+  copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))
   copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
   copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
   copy!(scipy, pyimport_conda("scipy.interpolate", "scipy"))
@@ -72,7 +72,7 @@ struct ClimGrid{A <: AxisArray}
   dataunits::String
   latunits::String # of the coordinate variable
   lonunits::String # of the coordinate variable
-  variable::String # Type of variable 
+  variable::String # Type of variable
   typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
   typeofcal::String # Calendar type
   varattribs::Dict # Variable attributes
