@@ -184,6 +184,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
         else
             data_final = data_mask
         end
+
     else
 
         if rotatedgrid # flip in original grid
@@ -192,7 +193,6 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
         longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
         latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
-
 
         if rotatedgrid
 
@@ -204,7 +204,6 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
             msk = ClimateTools.permute_west_east(msk, longrid)
         else
             data_final = data_mask
-
         end
 
     end
@@ -253,6 +252,11 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
         dataunits = "mm"
     end
     varattrib["standard_name"] = "precipitation"
+  end
+
+  # Attribute dimension to data
+  if dataunits == "K" || dataunits == "Kelvin"
+      data = [data][1]u"K"
   end
 
   # Create AxisArray from variable "data"

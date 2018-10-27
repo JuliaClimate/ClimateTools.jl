@@ -6,7 +6,6 @@ module ClimateTools
 using NetCDF
 using Reexport
 @reexport using NCDatasets
-# using NCDatasets
 using Shapefile
 using AxisArrays
 using NaNMath
@@ -20,6 +19,7 @@ using Polynomials
 using IterTools
 using Statistics
 using Dates
+using Unitful: K, °C, @u_str  
 import Base.vcat
 import Base.getindex
 import Base.show
