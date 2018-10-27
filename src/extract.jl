@@ -191,13 +191,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
         else
             data_final = data_mask
-
-
-
         end
-
-
-
 
     else
 
@@ -207,7 +201,6 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
         longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
         latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
-
 
         if rotatedgrid
 
@@ -219,20 +212,13 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
             msk = ClimateTools.permute_west_east(msk, longrid)
         else
             data_final = data_mask
-
         end
 
     end
 
   elseif isempty(poly) # no polygon clipping
       msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
-    # if ndims(data) == 3
-    # data_sub = Array(, , length)
       data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
-    # elseif ndims(data) == 4
-        # data = extractdata(data, msk, idxtimebeg, idxtimeend)
-    # end
-
 
     if rotatedgrid
         # Flip data "west-east"
@@ -273,6 +259,11 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     varattrib["standard_name"] = "precipitation"
   end
 
+  # Attribute dimension to data
+  if dataunits == "K" || dataunits == "Kelvin"
+      data = [data][1]u"K"
+  end
+
   # Create AxisArray from variable "data"
   if ndims(data) == 3
     # Convert data to AxisArray
@@ -304,7 +295,7 @@ function load(files::Array{String,1}, vari::String; poly = ([]), start_date::Tup
     nfiles = length(files)
     C = Array{ClimGrid}(undef, nfiles) # initialize # TODO better initialization
     datesort = Array{DateTime}(undef, nfiles)
-    Cout = []    
+    Cout = []
 
     p = Progress(nfiles*2, 3, "Loading files: ")
 
@@ -325,7 +316,7 @@ function load(files::Array{String,1}, vari::String; poly = ([]), start_date::Tup
             Cout = C[imod]
         else
             Cout = merge(Cout, C[imod])
-        end        
+        end
         next!(p)
     end
 
@@ -426,8 +417,8 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
       end
 
       #Extract data based on mask
-      data_ext = ClimateTools.extractdata2D(data_pointer, msk)      
-      
+      data_ext = ClimateTools.extractdata2D(data_pointer, msk)
+
       begin
         I = Base.findall(!isnan, msk)
         idlon, idlat = (getindex.(I, 1), getindex.(I, 2))
@@ -520,7 +511,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
       end
 
     elseif isempty(poly) # no polygon clipping
-        msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))      
+        msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
         data_ext = extractdata2D(data_pointer, msk)
 
       if rotatedgrid
