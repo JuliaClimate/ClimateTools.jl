@@ -19,7 +19,7 @@ using Polynomials
 using IterTools
 using Statistics
 using Dates
-using Unitful: K, °C, @u_str  
+using Unitful: K, °C, @u_str, ustrip  
 import Base.vcat
 import Base.getindex
 import Base.show
