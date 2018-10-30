@@ -132,7 +132,10 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
         m = basemap[:Basemap](projection = "lcc", resolution = "l", width=6500000,height=5000000, lat_0 = 62, lon_0 = -95, lat_1 = 45., lat_2 = 55, rsphere = (6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "quebec" || lowercase(region) == "qc"
-        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -80.5, llcrnrlat = 41., urcrnrlon = -50.566, urcrnrlat = 62.352, lon_0 = -70, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
+        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -70.5, llcrnrlat = 41., urcrnrlon = -56.566, urcrnrlat = 62.352, lon_0 = -60, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
+
+    elseif lowercase(region) == "south_quebec" || lowercase(region) == "south_qc"
+        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -75.9, llcrnrlat = 42.6, urcrnrlon = -61.5, urcrnrlat = 49.5, lon_0 = -70, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "quebecnsp" || lowercase(region) == "qcnsp"
         m = basemap[:Basemap](projection = "nsper", resolution= "l", satellite_height = 2000000, lon_0 = -72.5, lat_0 = 55)
@@ -167,8 +170,8 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
     elseif lowercase(region) == "worldeck4" || lowercase(region) == "weck4"
         m = basemap[:Basemap](projection="eck4", resolution = "c", lon_0 = 0)
 
-    elseif lowercase(region) == "outaouais" || lowercase(region) == "qc"
-        m = basemap[:Basemap](projection="lcc", resolution="h", llcrnrlon=-78.5, llcrnrlat=45., urcrnrlon=-73.866, urcrnrlat=48.0, lon_0=-75, lat_1=44, rsphere=(6378137.00, 6356752.3142))
+    elseif lowercase(region) == "outaouais"
+        m = basemap[:Basemap](projection="lcc", resolution="h", llcrnrlon=-78.5, llcrnrlat=45., urcrnrlon=-73.866, urcrnrlat=48.0, lon_0=-75, lat_1=44, rsphere=(6378137.00, 6356752.3142))    
 
     elseif region == "auto"
         m = basemap[:Basemap](projection="cyl", resolution = "c", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon)
@@ -201,7 +204,7 @@ end
 
 Plots the spatial average timeserie of ClimGrid `C`.
 """
-function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", gridfig::Bool=true, label::String="", lw=1.5, linestyle="-")
+function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", gridfig::Bool=true, label::String="", lw=1.5, linestyle="-", xlimit=[], ylimit=[])
 
     if !isempty(poly)
         C = spatialsubset(C, poly)
@@ -235,6 +238,12 @@ function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::T
 
     # PLOTTING
     figh = plot(timevec, average, lw=lw, label=label, linestyle=linestyle)
+    if !isempty(xlimit)
+        xlim(xlimit[1], xlimit[2])
+    end
+    if !isempty(ylimit)
+        ylim(ylimit[1], ylimit[2])
+    end
     xlabel("Time")
     ylabel(C.dataunits)
     legend()
