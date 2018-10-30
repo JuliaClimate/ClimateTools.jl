@@ -178,3 +178,33 @@ function meantemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimG
   # Build ClimGrid object
   return ClimGrid(tmean_array, longrid=temperatureminimum.longrid, latgrid=temperatureminimum.latgrid, msk=temperatureminimum.msk, grid_mapping=temperatureminimum.grid_mapping, dimension_dict=temperatureminimum.dimension_dict, timeattrib=temperatureminimum.timeattrib, model=temperatureminimum.model, frequency=temperatureminimum.frequency, experiment=temperatureminimum.experiment, run=temperatureminimum.run, project=temperatureminimum.project, institute=temperatureminimum.institute, filename=temperatureminimum.filename, dataunits=temperatureminimum.dataunits, latunits=temperatureminimum.latunits, lonunits=temperatureminimum.lonunits, variable="tmean", typeofvar="tmean", typeofcal=temperatureminimum.typeofcal, varattribs=tmean_dict, globalattribs=temperatureminimum.globalattribs)
 end
+
+# """
+#     pet(C::ClimGrid)
+#
+# Returns the potential evapotranspiration, as estimated by the method of Thornthwaite
+# (1948).
+#
+# Thornthwaite, C. W., 1948: An approach toward a rational classi-
+# fication of climate. Geogr. Rev., 38, 55–94.
+# """
+# function pet(C::ClimGrid)
+#   # Some assertions and unit conversion
+#   # ...
+#   # ...
+#
+#   K = 67.0
+#
+#   i = (T/5.0)^(1.514)
+#
+#   I = sum(i)
+#
+#   m = 6.75*10^(-7)*I^3 - 7.71*10^(-5)*I^2 + 1.79*10^(-2)*I + 0.492 3 10 27 I 3 2
+# 7.71 3 10 25 I 2 1 1.79 3 10 22 I 1 0.492
+#
+#   return 16*K*(10*T/I)^m
+#
+#
+#
+#
+# end
