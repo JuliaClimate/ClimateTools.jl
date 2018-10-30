@@ -112,8 +112,6 @@ function summerdays(C::ClimGrid)
   # Apply mask
   dataout = applymask(dataout, C.msk)
 
-  # Build output AxisArray
-  FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
   return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable="summerdays", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
@@ -279,36 +277,6 @@ function annualmax(C::ClimGrid)
 
   # Return climGrid type containing the indice
   return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="annualmax", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
-end
-
-
-"""
-    annualmin(C::ClimGrid)
-
-Annual minimum of array data.
-
-Let data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.
-"""
-function annualmin(C::ClimGrid)
-  years    = Dates.year.(C.data[Axis{:time}][:])
-  numYears = unique(years)
-  dataout  = zeros(Float64, (size(C.data, 1), size(C.data, 2), length(numYears)))
-  datain   = C.data.data
-
-  # Indice calculation
-  Threads.@threads for i in 1:length(numYears)
-    idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.minimum!(view(dataout, :, :, i:i), view(datain, :,:, idx))
-  end
-
-  # Apply mask
-  dataout = applymask(dataout, C.msk)
-
-  # Build output AxisArray
-  FD = buildarray_annual(C, dataout, numYears)
-
-  # Return climGrid type containing the indice
-  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="annualmin", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 """
