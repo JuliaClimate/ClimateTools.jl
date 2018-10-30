@@ -538,7 +538,7 @@ function polyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
         dataout_rshp[k,:] = val
     end
 
-    # 
+    #
     # for k = 1:size(C[1], 2)
     #     Threads.@threads for j = 1:size(C[1], 1)
     #         val = polynomial[j,k](datain[j,k,:])

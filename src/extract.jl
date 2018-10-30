@@ -259,6 +259,12 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
       data = [data][1]u"K"
   elseif dataunits == "C" || dataunits == "°C" || dataunits == "Celsius"
       data = [data][1]u"°C"
+  elseif dataunits == "kg m-2 s-1"
+      data = [data][1]u"kg/m^2/s"
+  elseif dataunits == "mm"
+      data = [data][1]u"mm"
+  elseif dataunits == "m s-1"
+      data = [data][1]u"m/s"
   end
 
   # Create AxisArray from variable "data"
