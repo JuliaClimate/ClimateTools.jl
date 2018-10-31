@@ -1,3 +1,4 @@
+@testset "Bias correction tests" begin
 # replstr(x) = sprint((io,x) -> show(IOContext(io, :limit => true, :displaysize => (24, 80)), MIME("text/plain"), x), x)
 # showstr(x) = sprint((io,x) -> show(IOContext(io, :limit => true, :displaysize => (24, 80)), x), x)
 
@@ -84,3 +85,4 @@ val = polyval(C, poly)
 D = C - val
 @test D[1] == (C - val)[1]
 
+end
