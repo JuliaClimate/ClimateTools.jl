@@ -93,7 +93,7 @@ Csub = spatialsubset(C, P')
 C = load(filenc, "ua")
 Csub = spatialsubset(C, P)
 @test size(Csub[1]) == (23, 12, 17, 1)
-@test Csub[1][12, 1, 1, 1] == 6.658482f0u"K"
+@test Csub[1][12, 1, 1, 1] == 6.658482f0u"m/s"
 @test isnan(Csub[1][1, 1, 1, 1])
 
 poly= [[NaN 10 -10 -10 10 10];[NaN -10 -20 10 10 -10]] # meridian test

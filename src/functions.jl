@@ -277,7 +277,6 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
     elseif ndims(lon) == 2
         grid_mapping = Dict(["grid_mapping_name" => "Curvilinear_grid"])
         dimension_dict = Dict(["lon" => "x", "lat" => "y"])
-
     end
 
 
@@ -296,7 +295,7 @@ function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk
     for t = 1:length(timeorig)
 
         # Points values
-        val = dataorig[:, :, t][:]
+        val = ustrip(dataorig[:, :, t][:])
 
         # Call scipy griddata
         data_interp = scipy[:griddata](points, val, (londest, latdest), method=method)
@@ -311,6 +310,9 @@ function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk
         next!(p)
 
     end
+    # Apply original units
+    un = get_units(dataorig)
+    OUT = [OUT][1]un
 end
 
 """
