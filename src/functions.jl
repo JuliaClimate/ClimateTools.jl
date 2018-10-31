@@ -577,13 +577,24 @@ function polyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
     return ClimGrid(dataout2; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
-function extension(url::String)
-    try
-        return match(r"\.[A-Za-z0-9]+$", url).match
-    catch
-        return ""
-    end
+"""
+    function applyunits(C::ClimGrid)
+
+Returns the adequate units of Unitful of ClimGrid C.
+"""
+function get_units(A)
+
+    return unit(A[1])
+
+    # dict_units = Dict(["K" => u"K",
+    # "Celsius" => u"°C",
+    # "mm s-1" => u"m/2",
+    # "mm" => u"mm"])
+    #
+    # return dict_units[C.dataunits]
+
 end
+
 
 # function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)
 #
