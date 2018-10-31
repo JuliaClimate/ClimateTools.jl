@@ -251,11 +251,12 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     rez = timeresolution(NetCDF.ncread(file, "time"))
     factor = pr_timefactor(rez)
     data .*= factor
-    if rez != "N/A"
-        dataunits = string("mm/",rez)
-    else
-        dataunits = "mm"
-    end
+    dataunits = "mm"
+    # if rez != "N/A"
+    #     dataunits = string("mm/",rez)
+    # else
+    #     dataunits = "mm"
+    # end
     varattrib["standard_name"] = "precipitation"
   end
 
