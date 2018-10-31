@@ -1,4 +1,6 @@
-@testset "Interface" begin
+using Unitful: K, °C, m, mm, s, kg
+using Unitful: @u_str, ustrip, uconvert
+
 # test that load return a ClimGrid type
 file1 = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 file2 = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
@@ -9,7 +11,7 @@ C = load(filenc, "tas")
 
 @test load(filenc, "tas", data_units = "Celsius")[2] == "Celsius"
 @test load(filenc, "pr", data_units = "mm")[2] == "mm"
-@test typeof(load(filenc, "tas")) == ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}},AxisArrays.Axis{:time,Array{Union{Missing, DateTimeNoLeap},1}}}}}
+@test typeof(C) == ClimGrid{AxisArrays.AxisArray{Unitful.Quantity{Float32,Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)},Unitful.FreeUnits{(Unitful.Unit{:Kelvin,Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)}}(0, 1//1),),Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)}}},3,Array{Unitful.Quantity{Float32,Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)},Unitful.FreeUnits{(Unitful.Unit{:Kelvin,Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)}}(0, 1//1),),Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)}}},3},Tuple{AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}},AxisArrays.Axis{:time,Array{Dates.DateTime,1}}}}}
 
 
 fileorog = joinpath(dirname(@__FILE__), "data", "orog_fx_GFDL-ESM2G_historicalMisc_r0i0p0.nc")
