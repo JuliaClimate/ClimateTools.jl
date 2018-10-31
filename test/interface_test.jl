@@ -1,6 +1,8 @@
 using Unitful: K, °C, m, mm, s, kg
 using Unitful: @u_str, ustrip, uconvert
 
+@testset "Interface tests" begin
+
 # test that load return a ClimGrid type
 file1 = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 file2 = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")

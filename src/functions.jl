@@ -295,7 +295,7 @@ function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk
     for t = 1:length(timeorig)
 
         # Points values
-        val = ustrip(dataorig[:, :, t][:])
+        val = ustrip.(dataorig[:, :, t][:])
 
         # Call scipy griddata
         data_interp = scipy[:griddata](points, val, (londest, latdest), method=method)
