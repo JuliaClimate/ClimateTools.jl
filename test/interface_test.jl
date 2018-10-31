@@ -1,8 +1,6 @@
 using Unitful: K, °C, m, mm, s, kg
 using Unitful: @u_str, ustrip, uconvert
 
-@testset "Interface tests" begin
-
 # test that load return a ClimGrid type
 file1 = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 file2 = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
@@ -405,5 +403,3 @@ timevec = NetCDF.ncread(filename, "time")
 @test ClimateTools.pr_timefactor("6h") == 21600.0
 @test ClimateTools.pr_timefactor("3h") == 10800.0
 @test ClimateTools.pr_timefactor("1h") == 3600.0
-
-end

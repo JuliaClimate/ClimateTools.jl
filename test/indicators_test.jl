@@ -1,4 +1,3 @@
-@testset "Indicators tests" begin
 # Test vaporpressure(specific_humidity::ClimGrid, surface_pressure::ClimGrid)
 d = Date(2003,1,1):Day(1):Date(2003,1,3)
 # Dummy data
@@ -229,5 +228,3 @@ ens = [C_tmax2, C_tmax*2]
 
 # axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 # C = ClimGrid(axisdata, dataunits = "Celsius", variable = "tasmin", frequency="1h")
-
-end

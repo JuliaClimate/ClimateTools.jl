@@ -1,4 +1,3 @@
-@testset "Indices tests" begin
 # Prcp1
 d = Date(2003,1,1):Day(1):Date(2005,12,31)
 
@@ -243,5 +242,3 @@ axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 C = ClimateTools.ClimGrid(axisdata)
 ind = periodmean(C, (2004, 06, 01), (2005, 08, 31)) #mean between June 1st 2004 and August 31st 2005
 @test ind.data.data == Results
-
-end
