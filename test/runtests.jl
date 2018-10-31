@@ -9,7 +9,9 @@ using Dates
 using Statistics
 using Random
 using ArgCheck
-# using Lint
+using Unitful: K, °C, m, mm, s, kg
+using Unitful: @u_str, ustrip, uconvert
+import Unitful
 using Test
 
 # println("Running data extraction tests...")
