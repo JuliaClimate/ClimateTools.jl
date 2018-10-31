@@ -285,9 +285,7 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
     elseif ndims(lon) == 2
         grid_mapping = Dict(["grid_mapping_name" => "Curvilinear_grid"])
         dimension_dict = Dict(["lon" => "x", "lat" => "y"])
-
     end
-
 
     C = ClimateTools.ClimGrid(dataOut, longrid=londest, latgrid=latdest, msk=msk, grid_mapping=grid_mapping, dimension_dict=dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits="degrees_north", lonunits="degrees_east", variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 
@@ -304,7 +302,7 @@ function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk
     for t = 1:length(timeorig)
 
         # Points values
-        val = dataorig[:, :, t][:]
+        val = ustrip(dataorig[:, :, t][:])
 
         # Call scipy griddata
         data_interp = scipy[:griddata](points, val, (londest, latdest), method=method)
@@ -319,6 +317,9 @@ function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk
         next!(p)
 
     end
+    # Apply original units
+    un = get_units(dataorig)
+    OUT = [OUT][1]un
 end
 
 """
@@ -598,6 +599,23 @@ function periodmean(C::ClimGrid, startdate::Tuple, enddate::Tuple)
     return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
+"""
+    function applyunits(C::ClimGrid)
+
+Returns the adequate units of Unitful of ClimGrid C.
+"""
+function get_units(A)
+
+    return unit(A[1])
+
+    # dict_units = Dict(["K" => u"K",
+    # "Celsius" => u"°C",
+    # "mm s-1" => u"m/2",
+    # "mm" => u"mm"])
+    #
+    # return dict_units[C.dataunits]
+
+end
 
 
 # function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)

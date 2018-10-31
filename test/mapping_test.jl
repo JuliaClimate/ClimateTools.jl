@@ -14,10 +14,10 @@ status, figh = mapclimgrid(C); @test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, mask = msk); @test status == true; PyPlot.close()
 C = load(filenc, "tas")
 status, figh = mapclimgrid(C); @test status == true; PyPlot.close()
-@test length(x) == 6
-@test length(y) == 6
-@test isnan(x[1])
-@test isnan(y[1])
+@test length(P[1,:]) == 6
+@test length(P[2,:]) == 6
+@test isnan(P[1,1])
+@test isnan(P[2,1])
 
 # filename = joinpath(dirname(@__FILE__), "data", "zoneAgricoleQc15km.shp")
 # polyshp = read(filename,Shapefile.Handle)
@@ -48,7 +48,7 @@ status, figh = mapclimgrid(annualmax(C), region = "Europe");@test status == true
 # status, figh = mapclimgrid(annualmin(C), region = "Antarctic");@test status == true; PyPlot.close()
 
 # precip
-C = load(filename, "pr", data_units="mm") + 2.0
+C = load(filename, "pr", data_units="mm") + 2.0u"mm"
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, start_date=(2000, 05, 15), end_date=(2000, 05, 15));@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "World");@test status == true; PyPlot.close()
