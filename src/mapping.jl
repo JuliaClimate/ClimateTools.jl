@@ -233,7 +233,7 @@ function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::T
 
     # Spatial mean for each timestep
     for t in 1:length(timevec)
-        datatmp = data[:, :, t]
+        datatmp = ustrip.(data[:, :, t])
         average[t] = Statistics.mean(datatmp[.!isnan.(datatmp)])
     end
 
