@@ -26,6 +26,7 @@ import Base.size
 #import Base.endof
 import Base.setindex!
 import Base.similar
+import Base.write
 import Statistics.minimum
 import Statistics.maximum
 import Statistics.std
@@ -42,7 +43,7 @@ const cmocean = PyNULL()
 const scipy = PyNULL()
 
 function __init__()
-  copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))  
+  copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))
   copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
   copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
   copy!(scipy, pyimport_conda("scipy.interpolate", "scipy"))
@@ -72,7 +73,7 @@ struct ClimGrid{A <: AxisArray}
   dataunits::String
   latunits::String # of the coordinate variable
   lonunits::String # of the coordinate variable
-  variable::String # Type of variable 
+  variable::String # Type of variable
   typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
   typeofcal::String # Calendar type
   varattribs::Dict # Variable attributes
@@ -120,6 +121,7 @@ include("interface.jl")
 include("mapping.jl")
 include("biascorrect.jl")
 include("heatsum_indices.jl")
+include("export.jl")
 
 # Exported functions
 export inpoly, inpolygrid, meshgrid, prcp1
@@ -136,6 +138,6 @@ export polyfit, polyval
 export @isdefined
 export plot, merge, vaporpressure, approx_surfacepressure, wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
-export get_timevec, ensemble_mean, daymean
+export get_timevec, ensemble_mean, daymean, write, extension
 
 end #module

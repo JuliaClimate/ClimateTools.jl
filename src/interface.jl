@@ -5,10 +5,17 @@ function buildarrayinterface(axisArraytmp, A)
         axisArray = AxisArray(axisArraytmp, Axis{lonsymbol}(A[1][Axis{lonsymbol}][:]), Axis{latsymbol}(A[1][Axis{latsymbol}][:]))
     elseif ndims(axisArraytmp) == 3
         axisArray = AxisArray(axisArraytmp, Axis{lonsymbol}(A[1][Axis{lonsymbol}][:]), Axis{latsymbol}(A[1][Axis{latsymbol}][:]), Axis{:time}(A[1][Axis{:time}][:]))
-    elseif ndims(axisArraytmp) == 4        
+    elseif ndims(axisArraytmp) == 4
         axisArray = AxisArray(axisArraytmp, Axis{lonsymbol}(A[1][Axis{lonsymbol}][:]), Axis{latsymbol}(A[1][Axis{latsymbol}][:]), Axis{:plev}(A[1][Axis{:plev}][:]), Axis{:time}(A[1][Axis{:time}][:]))
     end
     return axisArray
+end
+
+function getsymbols(C::ClimGrid)
+    latsymbol = Symbol(C.dimension_dict["lat"])
+    lonsymbol = Symbol(C.dimension_dict["lon"])
+
+    return latsymbol, lonsymbol
 end
 
 # """

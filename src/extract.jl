@@ -592,7 +592,7 @@ function buildtimevec(str::String, rez)
     leapDaysPer = sumleapyear(initDate, timeRaw[1] - 1)
     leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
     startDate = initDate + Dates.Day(convert(Int64, floor(timeRaw[1]))) + Dates.Day(leapDaysPer)
-    endDate = initDate + Dates.Day(convert(Int64, ceil(timeRaw[end]))) + Dates.Day(leapDaysPer2) - period
+    endDate = initDate + Dates.Day(convert(Int64, ceil(timeRaw[end]))) + Dates.Day(leapDaysPer2) #- period
 
     # period = getperiod(rez)
 
