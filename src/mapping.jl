@@ -171,7 +171,7 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
         m = basemap[:Basemap](projection="eck4", resolution = "c", lon_0 = 0)
 
     elseif lowercase(region) == "outaouais"
-        m = basemap[:Basemap](projection="lcc", resolution="h", llcrnrlon=-78.5, llcrnrlat=45., urcrnrlon=-73.866, urcrnrlat=48.0, lon_0=-75, lat_1=44, rsphere=(6378137.00, 6356752.3142))    
+        m = basemap[:Basemap](projection="lcc", resolution="h", llcrnrlon=-78.5, llcrnrlat=45., urcrnrlon=-73.866, urcrnrlat=48.0, lon_0=-75, lat_1=44, rsphere=(6378137.00, 6356752.3142))
 
     elseif region == "auto"
         m = basemap[:Basemap](projection="cyl", resolution = "c", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon)
@@ -226,7 +226,7 @@ function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::T
 
     # Spatial mean for each timestep
     for t in 1:length(timevec)
-        datatmp = data[:, :, t]
+        datatmp = ustrip.(data[:, :, t])
         average[t] = Statistics.mean(datatmp[.!isnan.(datatmp)])
     end
 
