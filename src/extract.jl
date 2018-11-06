@@ -579,7 +579,7 @@ function buildtimevec(str::String, rez)
   # daysfrom = m.match # get only the date ()"yyyy-mm-dd" format)
   # initDate = Date(daysfrom, "yyyy-mm-dd")
 
-  period = getperiod(rez)
+  period = ClimateTools.getperiod(rez)
   timeRaw = NetCDF.ncread(str, "time")
 
   # Calendar type
@@ -589,10 +589,10 @@ function buildtimevec(str::String, rez)
     # get time of netCDF file *str*
     # timeRaw = floor.(NetCDF.ncread(str, "time"))
 
-    leapDaysPer = sumleapyear(initDate, timeRaw[1] - 1)
-    leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
+    leapDaysPer = ClimateTools.sumleapyear(initDate, timeRaw[1] - 1, period)
+    leapDaysPer2 = ClimateTools.sumleapyear(initDate, timeRaw[end], period)
     startDate = initDate + Dates.Day(convert(Int64, floor(timeRaw[1]))) + Dates.Day(leapDaysPer)
-    endDate = initDate + Dates.Day(convert(Int64, ceil(timeRaw[end]))) + Dates.Day(leapDaysPer2) #- period
+    endDate = initDate + Dates.Day(convert(Int64, ceil(timeRaw[end]))) + Dates.Day(leapDaysPer2) - period
 
     # period = getperiod(rez)
 
@@ -608,8 +608,8 @@ function buildtimevec(str::String, rez)
 
 elseif calType == "gregorian" || calType == "standard" || calType == "proleptic_gregorian"
     # timeRaw = floor.(NetCDF.ncread(str, "time"))
-    leapDaysPer = sumleapyear(initDate, timeRaw[1])
-    leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
+    leapDaysPer = sumleapyear(initDate, timeRaw[1], period)
+    leapDaysPer2 = sumleapyear(initDate, timeRaw[end], period)
 
     if typeof(timeRaw[1]) == Int8 || typeof(timeRaw[1]) == Int16 || typeof(timeRaw[1]) == Int32 || typeof(timeRaw[1]) == Int64
 
@@ -625,8 +625,8 @@ elseif calType == "360_day"
     throw(error("360_day type of calendar not yet supported"))
 
     # timeRaw = floor.(NetCDF.ncread(str, "time"))
-    leapDaysPer = sumleapyear(initDate, timeRaw[1] - 1)
-    leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
+    leapDaysPer = ClimateTools.sumleapyear(initDate, timeRaw[1] - 1, period)
+    leapDaysPer2 = ClimateTools.sumleapyear(initDate, timeRaw[end], period)
 
     startDate = initDate + Dates.Day(convert(Int64, round(timeRaw[1]))) + Dates.Day(leapDaysPer)
     endDate = initDate + Dates.Day(convert(Int64, round(timeRaw[end]))) + Dates.Day(leapDaysPer2)
@@ -674,10 +674,10 @@ Number of leap years in date vector
 
     sumleapyear(initDate::Date, timeRaw)
 """
-function sumleapyear(initDate::Dates.TimeType, timeRaw)
+function sumleapyear(initDate::Dates.TimeType, timeRaw, period)
 
   out = 0::Int
-  endDate = initDate + Dates.Day(convert(Int64,round(timeRaw[1])))
+  endDate = initDate + Dates.Day(convert(Int64,round(timeRaw[1]))) - period
   years = unique(Dates.year.(initDate:Day(1):endDate))
   # Sum over time vector
   for idx = 1:length(years)
