@@ -285,7 +285,7 @@ function load(files::Array{String,1}, vari::String; poly = ([]), start_date::Tup
 
     nfiles = length(files)
     C = Array{ClimGrid}(undef, nfiles) # initialize # TODO better initialization
-    datesort = Array{DateTime}(undef, nfiles)
+    datesort = Array{Any}(undef, nfiles)
     Cout = []
 
     p = Progress(nfiles*2, 3, "Loading files: ")

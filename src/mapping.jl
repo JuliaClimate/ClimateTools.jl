@@ -215,7 +215,7 @@ function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::T
     end
 
     data = C[1].data
-    timevec = C[1][Axis{:time}][:]
+    timevec = get_timevec(C)
 
     if typeof(timevec[1]) != Date
         if typeof(timevec[1]) == Dates.Year
