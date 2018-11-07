@@ -97,7 +97,7 @@ C = load(filenc, "tas", poly=poly)
 
 # Spatial subset
 C = load(filenc, "tas")
-Csub = temporalsubset(C, (2000, 05, 15), (2000, 05, 15))
+Csub = temporalsubset(C, (2000, 05, 16, 12, 0, 0), (2000, 05, 16, 12, 0, 0))
 @test Csub[1][1, 1, 1] == 219.22285f0
 @test Csub[1][Axis{:time}][1] == DateTime(2000, 05, 15)
 B = load(filenc, "tas", start_date=(2000, 05, 15), end_date=(2000, 05, 15))

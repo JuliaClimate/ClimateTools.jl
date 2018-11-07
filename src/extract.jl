@@ -730,21 +730,18 @@ function temporalsubset(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
 
     f = typeof(get_timevec(C)[1])
 
-    startdate = buildtimetype(datebeg, f)
-    enddate = buildtimetype(dateend, f)
+    startdate = ClimateTools.buildtimetype(datebeg, f)
+    enddate = ClimateTools.buildtimetype(dateend, f)
 
     # some checkups
     @argcheck startdate <= enddate
     @argcheck startdate >= C[1][Axis{:time}][1]
     @argcheck enddate <= C[1][Axis{:time}][end]
 
-    start_token = ClimateTools.buildtoken(startdate, C)
-    end_token = ClimateTools.buildtoken(enddate, C)
-
     # Temporal subset
-    dataOut = C[1][Axis{:time}(start_token(startdate) .. end_token(enddate))]
+    dataOut = C[1][Axis{:time}(startdate .. enddate)]
 
-    return ClimGrid(dataOut, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+    return ClimGrid(dataOut, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
 end
 
