@@ -63,7 +63,7 @@ struct ClimGrid{A <: AxisArray}
   msk::Array{N,T} where T where N
   grid_mapping::Dict # information of native grid
   dimension_dict::Dict
-  timeattrib::Dict#NCDatasets.CFVariable{N, T, 1} where T where N
+  timeattrib::Dict
   model::String
   frequency::String
   experiment::String
@@ -95,11 +95,9 @@ function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dim
 
     if isempty(msk)
         msk = Array{Float64}(ones((size(data, 1), size(data, 2))))
-
     end
 
     ClimGrid(data, longrid, latgrid, msk, grid_mapping, dimension_dict, timeattrib, model, frequency, experiment, run, project, institute, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal, varattribs, globalattribs)
-
 end
 
 """
@@ -139,6 +137,6 @@ export polyfit, polyval
 export @isdefined
 export plot, merge, vaporpressure, approx_surfacepressure, wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
-export get_timevec, ensemble_mean, daymean, write, extension
+export get_timevec, ensemble_mean, daymean, write
 
 end #module

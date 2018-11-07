@@ -16,13 +16,11 @@ Temporal subsetting can be done by providing start_date and end-date Tuples of l
 function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
 
   # TODO this file is a complete mess, but it works. Clean it up!
-  # TODO create another function for orography extraction (2D dataset)
 
   # Get attributes
   ncI = NetCDF.ncinfo(file);
   attribs = NetCDF.ncinfo(file).gatts;
   ds = NCDatasets.Dataset(file)
-  # ncI = NetCDF.ncinfo(file);
   attribs_dataset = ds.attrib
 
   # The following attributes should be set for netCDF files that follows CF conventions.
@@ -70,22 +68,15 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   # =====================
   # TIME
-
   # Get time resolution
-
   rez = ClimateTools.timeresolution(NetCDF.ncread(file, "time"))
   if frequency == "N/A"
     frequency = rez
   end
 
-  # Construct time vector from info in netCDF file *str*
   timeattrib = Dict(ds["time"].attrib)
   timeV = ds["time"][:]
   f = typeof(timeV[1])
-  # timeV = ClimateTools.buildtimevec(file, rez)
-  # if frequency == "mon"
-  #     timeV = corr_timevec(timeV, frequency)
-  # end
 
   idxtimebeg, idxtimeend = ClimateTools.timeindex(timeV, start_date, end_date, frequency, f)
 
@@ -132,7 +123,6 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
 
     #new mask (e.g. representing the region of the polygon)
-    # TODO MOVE THIS CODE TO "extractdata" ?
     # idlon, idlat = findn(.!isnan.(msk))
     begin
         I = Base.findall(!isnan, msk)
@@ -157,7 +147,6 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     if map_attrib["grid_mapping_name"] == "Regular_longitude_latitude"
 
         lon_raw = ClimateTools.shiftvector_180_west_east(lon_raw)
-
     end
 
     # Idem for longrid and latgrid
@@ -194,14 +183,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
         else
             data_final = data_mask
-
-
-
         end
-
-
-
-
     else
 
         if rotatedgrid # flip in original grid
@@ -228,18 +210,15 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     end
 
   elseif isempty(poly) # no polygon clipping
-      msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
-    # if ndims(data) == 3
-    # data_sub = Array(, , length)
-      data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
-    # elseif ndims(data) == 4
-        # data = extractdata(data, msk, idxtimebeg, idxtimeend)
-    # end
 
+      msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
+      data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
 
     if rotatedgrid
+
         # Flip data "west-east"
         data_final = ClimateTools.permute_west_east(data_ext, longrid)
+
     else
         data_final = data_ext
     end
@@ -388,9 +367,6 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
         map_attrib = Dict(["grid_mapping_name" => "Regular_longitude_latitude"])
     end
 
-    # =====================
-    # TIME
-
     # ==================
     # Spatial shift if grid is 0-360.
     rotatedgrid = false
@@ -492,9 +468,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
           else
             data_final = data_mask
-
           end
-
 
       else
 
@@ -504,7 +478,6 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
           longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
           latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
-
 
           if rotatedgrid
 
@@ -517,9 +490,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
           else
             data_final = data_mask
-
           end
-
       end
 
     elseif isempty(poly) # no polygon clipping
@@ -552,161 +523,6 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
     NetCDF.ncclose(file)
 
     return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal="fixed", varattribs=varattrib, globalattribs=attribs)
-
-end
-
-
-"""
-    buildtimevec(str::String)
-
-Construct the time vector from the netCDF file str
-
-"""
-function buildtimevec(str::String, rez)
-
-  # Time units
-  ncI = NetCDF.ncinfo(str); # seems to be necessary. Otherwise can an inconsistent error when trying to load attributes
-  units = NetCDF.ncgetatt(str, "time", "units") # get starting date
-  # m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1)
-  m = match(r"(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})", units, 1) # match a date from string
-  if isempty(fieldnames(typeof(m)))#@isdefined m.captures
-      m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1)
-  end
-
-  arrdate = parse.(Int, m.captures)
-  if length(arrdate) == 6
-      initDate = DateTime(arrdate[1], arrdate[2], arrdate[3], arrdate[4], arrdate[5], arrdate[6])
-  elseif length(arrdate) == 3
-      initDate = DateTime(arrdate[1], arrdate[2], arrdate[3])
-  end
-  # daysfrom = m.match # get only the date ()"yyyy-mm-dd" format)
-  # initDate = Date(daysfrom, "yyyy-mm-dd")
-
-  period = ClimateTools.getperiod(rez)
-  timeRaw = NetCDF.ncread(str, "time")
-
-  # Calendar type
-  calType = NetCDF.ncgetatt(str, "time", "calendar")
-  if calType == "noleap" || calType == "365_day"
-    nDays = 365
-    # get time of netCDF file *str*
-    # timeRaw = floor.(NetCDF.ncread(str, "time"))
-
-    leapDaysPer = ClimateTools.sumleapyear(initDate, timeRaw[1] - 1, period)
-    leapDaysPer2 = ClimateTools.sumleapyear(initDate, timeRaw[end], period)
-    startDate = initDate + Dates.Day(convert(Int64, floor(timeRaw[1]))) + Dates.Day(leapDaysPer)
-    endDate = initDate + Dates.Day(convert(Int64, ceil(timeRaw[end]))) + Dates.Day(leapDaysPer2) - period
-
-    # period = getperiod(rez)
-
-    dateTmp = DateTime(startDate):period:DateTime(endDate)
-
-    # REMOVE leap year (i.e. climate models use a no leap calendar)
-    idx = (Dates.month.(dateTmp) .== 2) .&  (Dates.day.(dateTmp) .== 29)
-    if length(idx) !== 1
-      dateTmp = dateTmp[.!idx]
-    else
-      dateTmp = Array{Date}(dateTmp)
-    end
-
-elseif calType == "gregorian" || calType == "standard" || calType == "proleptic_gregorian"
-    # timeRaw = floor.(NetCDF.ncread(str, "time"))
-    leapDaysPer = sumleapyear(initDate, timeRaw[1], period)
-    leapDaysPer2 = sumleapyear(initDate, timeRaw[end], period)
-
-    if typeof(timeRaw[1]) == Int8 || typeof(timeRaw[1]) == Int16 || typeof(timeRaw[1]) == Int32 || typeof(timeRaw[1]) == Int64
-
-        startDate = initDate + Dates.Day(floor(timeRaw[1]))
-        endDate = initDate + Dates.Day(floor(timeRaw[end]))
-    else
-        startDate = initDate + Dates.Day(convert(Int64,floor(timeRaw[1])))
-        endDate = initDate + Dates.Day(convert(Int64,floor(timeRaw[end])))# - period
-    end
-    dateTmp = DateTime(startDate):period:DateTime(endDate)
-
-elseif calType == "360_day"
-    throw(error("360_day type of calendar not yet supported"))
-
-    # timeRaw = floor.(NetCDF.ncread(str, "time"))
-    leapDaysPer = ClimateTools.sumleapyear(initDate, timeRaw[1] - 1, period)
-    leapDaysPer2 = ClimateTools.sumleapyear(initDate, timeRaw[end], period)
-
-    startDate = initDate + Dates.Day(convert(Int64, round(timeRaw[1]))) + Dates.Day(leapDaysPer)
-    endDate = initDate + Dates.Day(convert(Int64, round(timeRaw[end]))) + Dates.Day(leapDaysPer2)
-
-    dateTmp = DateTime(startDate):period:DateTime(endDate)
-
-
-  end
-  # output date vector
-  dateTmp = convert(Array{DateTime, 1}, dateTmp)
-  return dateTmp
-end
-
-"""
-    getperiod(rez::String)
-
-Returns the Dates resolution (e.g. Dates.Hour(1) for hourly data, Dates.Hour(3) for 3-hours data, etc..).
-"""
-function getperiod(rez::String)
-
-    if rez == "1h"
-        period = Dates.Hour(1)
-    elseif rez == "3h"
-        period = Dates.Hour(3)
-    elseif rez == "6h"
-        period = Dates.Hour(6)
-    elseif rez == "12h"
-        period = Dates.Hour(12)
-    elseif rez == "24h"
-        period = Dates.Hour(24)
-    elseif rez == "Yearly"
-        period = Dates.Year(1)
-    else
-        period = Dates.Hour(24)
-    end
-
-    return period
-end
-
-
-"""
-Number of leap years in date vector
-
-    sumleapyear(dates::StepRange{Date, Dates.Day})
-
-    sumleapyear(initDate::Date, timeRaw)
-"""
-function sumleapyear(initDate::Dates.TimeType, timeRaw, period)
-
-  out = 0::Int
-  endDate = initDate + Dates.Day(convert(Int64,round(timeRaw[1]))) - period
-  years = unique(Dates.year.(initDate:Day(1):endDate))
-  # Sum over time vector
-  for idx = 1:length(years)
-    if Dates.isleapyear(years[idx])
-      out += 1
-    end
-
-  end
-
-  return out
-
-end
-
-function sumleapyear(dates::StepRange{Date, Dates.Day})
-
-  out = 0::Int
-  endDate = dates[end]#initDate + Dates.Day(convert(Int64,round(timeRaw[1])))
-  years = unique(Dates.year.(dates))
-  # Sum over time vector
-  for idx = 1:length(years)
-    if Dates.isleapyear(years[idx])
-      out += 1
-    end
-  end
-
-  return out
 
 end
 
@@ -760,36 +576,6 @@ function extractpoly(file::String, n::Int)
 
     poly = shapefile_coords_poly(shp.shapes[n])
     return poly
-end
-
-
-function corr_timevec(timeV, timefreq)
-
-    if timefreq == "mon"
-        year, month = Dates.year.(timeV), Dates.month.(timeV)
-        years = unique(year)
-        months = unique(month)
-        timeout = Array{Date, 1}(length(years)*length(months))
-        z = 1
-        for iyear in years
-            for imonth in months
-                timeout[z] = Date(iyear, imonth)
-                z += 1
-
-            end
-        end
-
-
-    elseif timefreq == "day"
-        error("have to do it")
-
-    else
-        error("wrong timefreq, needs to add it")
-
-    end
-
-    return timeout
-
 end
 
 """
@@ -853,7 +639,7 @@ Return the time factor that should be applied to precipitation to get accumulati
 """
 function daymean_factor(rez::String)
 
-    if rez == "24h"
+    if rez == "24h" || rez == "day" || rez == "daily"
         return 1
     elseif rez == "12h"
         return 2
