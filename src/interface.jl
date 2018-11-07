@@ -200,17 +200,17 @@ Base.show(io::IO, ::MIME"text/plain", ITP::TransferFunction) = print(io, "Transf
 
 
 """
-    timeindex(timeVec, start_date, end_date, freq)
+    timeindex(timeVec, start_date, end_date, freq, f)
 
-Return the index of time vector specified by start_date and end_date. Provide timestep "freq" to account for monthly timestep.
+Return the index of time vector specified by start_date and end_date. Provide timestep "freq" to account for monthly timestep. f is the DateTime type (see NCDatasets.jl documentation).
 """
-function timeindex(timeV, datebeg::Tuple, dateend::Tuple, frequency)
+function timeindex(timeV, datebeg::Tuple, dateend::Tuple, frequency, f)
 
     # Start Date
     if !isinf(datebeg[1])
 
         # Build DateTime type
-        start_date = buildtimetype(datebeg)
+        start_date = ClimateTools.buildtimetype(datebeg, f)
 
         # Check
         @argcheck start_date >= timeV[1]
@@ -229,7 +229,7 @@ function timeindex(timeV, datebeg::Tuple, dateend::Tuple, frequency)
     if !isinf(dateend[1])
 
         # Build DateTime type
-        end_date = buildtimetype(dateend)
+        end_date = ClimateTools.buildtimetype(dateend, f)
 
         @argcheck end_date <= timeV[end]
         if frequency != "mon"
@@ -249,24 +249,24 @@ function timeindex(timeV, datebeg::Tuple, dateend::Tuple, frequency)
 end
 
 """
-    buildtimetype(datetuple)
+    buildtimetype(datetuple, f)
 
-Returns the adequate DateTime for temporal subsetting.
+Returns the adequate DateTime for temporal subsetting using DateType *f*
 """
-function buildtimetype(datetuple)
+function buildtimetype(date_tuple, f)
 
-    if length(datetuple) == 1
-        dateout = DateTime(datetuple[1], 01, 01)
-    elseif length(datetuple) == 2
-        dateout = DateTime(datetuple[1], datetuple[2], 01)
-    elseif length(datetuple) == 3
-        dateout = DateTime(datetuple[1], datetuple[2], datetuple[3])
-    elseif length(datetuple) == 4
-        dateout = DateTime(datetuple[1], datetuple[2], datetuple[3], datetuple[4], 00, 00)
-    elseif length(datetuple) == 5
-        dateout = DateTime(datetuple[1], datetuple[2], datetuple[3], datetuple[4], datetuple[5], 00)
-    elseif length(datetuple) == 6
-        dateout = DateTime(datetuple[1], datetuple[2], datetuple[3], datetuple[4], datetuple[5], datetuple[6])
+    if length(date_tuple) == 1
+        dateout = f(date_tuple[1], 01, 01)
+    elseif length(date_tuple) == 2
+        dateout = f(date_tuple[1], date_tuple[2], 01)
+    elseif length(date_tuple) == 3
+        dateout = f(date_tuple[1], date_tuple[2], date_tuple[3])
+    elseif length(date_tuple) == 4
+        dateout = f(date_tuple[1], date_tuple[2], date_tuple[3], date_tuple[4], 00, 00)
+    elseif length(date_tuple) == 5
+        dateout = f(date_tuple[1], date_tuple[2], date_tuple[3], date_tuple[4], date_tuple[5], 00)
+    elseif length(date_tuple) == 6
+        dateout = f(date_tuple[1], date_tuple[2], date_tuple[3], date_tuple[4], date_tuple[5], date_tuple[6])
     end
 
     return dateout

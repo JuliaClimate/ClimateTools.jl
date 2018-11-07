@@ -79,12 +79,15 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   end
 
   # Construct time vector from info in netCDF file *str*
-  timeV = ClimateTools.buildtimevec(file, rez)
-  if frequency == "mon"
-      timeV = corr_timevec(timeV, frequency)
-  end
+  timeattrib = Dict(ds["time"].attrib)
+  timeV = ds["time"][:]
+  f = typeof(timeV[1])
+  # timeV = ClimateTools.buildtimevec(file, rez)
+  # if frequency == "mon"
+  #     timeV = corr_timevec(timeV, frequency)
+  # end
 
-  idxtimebeg, idxtimeend = ClimateTools.timeindex(timeV, start_date, end_date, frequency)
+  idxtimebeg, idxtimeend = ClimateTools.timeindex(timeV, start_date, end_date, frequency, f)
 
   timeV = timeV[idxtimebeg:idxtimeend]
 
@@ -289,7 +292,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   close(ds)
   NetCDF.ncclose(file)
 
-  return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal=caltype, varattribs=varattrib, globalattribs=attribs)
+  return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, timeattrib=timeattrib, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal=caltype, varattribs=varattrib, globalattribs=attribs)
 
 
 end

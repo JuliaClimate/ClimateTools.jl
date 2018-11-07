@@ -19,7 +19,7 @@ function write(C::ClimGrid, filename::String)
 
     # Define the dimension "lon" and "lat" with the size 100 and 110 resp.
 
-    latsymbol, lonsymbol = getsymbols(C)
+    latsymbol, lonsymbol = ClimateTools.getsymbols(C)
 
 
     defDim(ds, string(lonsymbol),length(C[1][Axis{lonsymbol}][:]))
@@ -66,14 +66,20 @@ function write(C::ClimGrid, filename::String)
     end
 
     # time
-    daysfrom = string("days since ", string(timevec[1] - Dates.Day(1))[1:10], " ", string(timevec[1])[12:end])
+    timeout = Array{Float64, 1}(undef, length(timevec))
+    for itime = 1:length(timevec)
+        timeout[itime] = NCDatasets.timeencode([timevec[itime]], C.timeattrib["units"], C.timeattrib["calendar"])[1]
+    end
+
+
+    # daysfrom = string("days since ", string(timevec[1] - Dates.Day(1))[1:10], " ", string(timevec[1])[12:end])
 
     nctime = defVar(ds,"time", Float64, ("time",))
     nctime.attrib["long_name"] = "time"
     nctime.attrib["standard_name"] = "time"
     nctime.attrib["axis"] = "T"
     nctime.attrib["calendar"] = C.typeofcal#"365_day"
-    nctime.attrib["units"] = daysfrom
+    nctime.attrib["units"] = C.timeattrib["units"]#daysfrom
     # nctime.attrib["bounds"] = "time_bnds"
     nctime.attrib["coordinate_defines"] = "point"
 
@@ -88,7 +94,7 @@ function write(C::ClimGrid, filename::String)
     v[:] = C[1].data
 
     # Time vector
-    nctime[:] = Float64.(Dates.days.(Dates.DateTime.(timevec) - timevec[1] + Dates.DateTime(Dates.Day(1))))
+    nctime[:] = timeout#Float64.(Dates.days.(Dates.DateTime.(timevec) - timevec[1] + Dates.DateTime(Dates.Day(1))))
 
     # Longitude/latitude
     nclon[:] = C.longrid

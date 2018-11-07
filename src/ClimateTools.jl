@@ -58,11 +58,12 @@ In-memory representation of Climate Forecast netCDF files.
 """
 struct ClimGrid{A <: AxisArray}
   data::A
-  longrid::Array{N,T} where N where T
-  latgrid::Array{N,T} where N where T
-  msk::Array{N,T} where N where T
+  longrid::Array{N,T} where T where N
+  latgrid::Array{N,T} where T where N
+  msk::Array{N,T} where T where N
   grid_mapping::Dict # information of native grid
   dimension_dict::Dict
+  timeattrib::Dict#NCDatasets.CFVariable{N, T, 1} where T where N
   model::String
   frequency::String
   experiment::String
@@ -86,7 +87,7 @@ end
 
 Constructor of the ClimGrid function. Data is an AxisArray. Everything else is optional, but usually needed for further processing (mapping, interpolation, etc...).
 """
-function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), model="NA", frequency="NA", experiment="NA", run="NA", project="NA", institute="NA", filename="NA", dataunits="NA", latunits="NA", lonunits="NA", variable="NA", typeofvar="NA", typeofcal="NA", varattribs=Dict(), globalattribs=Dict())
+function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), timeattrib=Dict(), model="NA", frequency="NA", experiment="NA", run="NA", project="NA", institute="NA", filename="NA", dataunits="NA", latunits="NA", lonunits="NA", variable="NA", typeofvar="NA", typeofcal="NA", varattribs=Dict(), globalattribs=Dict())
 
     if isempty(dimension_dict)
         dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
@@ -97,7 +98,7 @@ function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dim
 
     end
 
-    ClimGrid(data, longrid, latgrid, msk, grid_mapping, dimension_dict, model, frequency, experiment, run, project, institute, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal, varattribs, globalattribs)
+    ClimGrid(data, longrid, latgrid, msk, grid_mapping, dimension_dict, timeattrib, model, frequency, experiment, run, project, institute, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal, varattribs, globalattribs)
 
 end
 
