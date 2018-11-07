@@ -728,13 +728,15 @@ Returns the temporal subset of ClimGrid C. The temporal subset is defined by a s
 """
 function temporalsubset(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
 
-    startdate = buildtimetype(datebeg)
-    enddate = buildtimetype(dateend)
+    f = typeof(get_timevec(C)[1])
+
+    startdate = buildtimetype(datebeg, f)
+    enddate = buildtimetype(dateend, f)
 
     # some checkups
     @argcheck startdate <= enddate
-    @argcheck startdate >= DateTime(C[1][Axis{:time}][1])
-    @argcheck enddate <= DateTime(C[1][Axis{:time}][end])
+    @argcheck startdate >= C[1][Axis{:time}][1]
+    @argcheck enddate <= C[1][Axis{:time}][end]
 
     start_token = ClimateTools.buildtoken(startdate, C)
     end_token = ClimateTools.buildtoken(enddate, C)

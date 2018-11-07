@@ -528,11 +528,7 @@ function daymean(C::ClimGrid)
 
                 datefind = T(numYears[iyear],numMonths[imonth],numDays[iday])
 
-                # datefind = T(string(numYears[iyear],"-", numMonths[imonth],"-",numDays[iday]), "yyyy-mm-dd")
                 idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind) && Dates.day(x) == Dates.day(datefind), timevec)
-
-                # idx = timevec .== datefind
-                # idx = collect(searchsortedfirst(years, numYears[iyear]):searchsortedlast(years, numYears[iyear])) && collect(searchsortedfirst(months, numMonths[imonth]):searchsortedlast(months, numMonths[imonth])) && collect(searchsortedfirst(days, numDays[iday]):searchsortedlast(days, numDays[iday]))
 
                 dataout[:, :, z] = Statistics.mean(datain[:, :, idx], dims=3)
 
