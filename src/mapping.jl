@@ -36,8 +36,9 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
 
   # Time limits
   if ndims(C[1]) > 2
-      timeV = C[1][Axis{:time}][:]
-      timebeg, timeend = ClimateTools.timeindex(timeV, start_date, end_date, C.frequency)
+      timeV = get_timevec(C)
+      f = typeof(timeV[1])
+      timebeg, timeend = ClimateTools.timeindex(timeV, start_date, end_date, C.frequency, f)
   end
 
   # =============
@@ -326,7 +327,7 @@ Returns the title. Used internally by [`mapclimgrid`](@ref).
 function titledef(C::ClimGrid)
     if ndims(C[1]) > 2
 
-        if typeof((C[1][Axis{:time}][1])) == DateTime
+        if typeof((C[1][Axis{:time}][1])) <: AbstractCFDateTime
             begYear = string(Dates.year(C[1][Axis{:time}][1]))
             endYear = string(Dates.year(C[1][Axis{:time}][end]))
         elseif typeof((C[1][Axis{:time}][1])) == Dates.Year
