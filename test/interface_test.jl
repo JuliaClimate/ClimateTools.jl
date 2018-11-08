@@ -99,8 +99,8 @@ C = load(filenc, "tas", poly=poly)
 C = load(filenc, "tas")
 Csub = temporalsubset(C, (2000, 05, 16, 12, 0, 0), (2000, 05, 16, 12, 0, 0))
 @test Csub[1][1, 1, 1] == 219.22285f0
-@test Csub[1][Axis{:time}][1] == DateTime(2000, 05, 15)
-B = load(filenc, "tas", start_date=(2000, 05, 15), end_date=(2000, 05, 15))
+@test Csub[1][Axis{:time}][1] == DateTimeNoLeap(2000, 05, 16, 12)
+B = load(filenc, "tas", start_date=(2000, 05, 16, 12), end_date=(2000, 05, 16, 12))
 @test B[1] == C[1]
 
 # Time resolution
@@ -374,10 +374,6 @@ for i = 1:size(data, 1)
     @test applymask(data, mask)[3,1,1,i] == data[3,1,1,i]
     @test applymask(data, mask)[3,2,1,i] == data[3,2,1,i]
 end
-
-# Test sumleapyear with StepRange{Date,Base.Dates.Day} type
-d = Date(2003,1,1):Day(1):Date(2008,12,31)
-@test ClimateTools.sumleapyear(d) == 2
 
 # Test timeresolution and pr_timefactor
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")

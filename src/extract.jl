@@ -741,6 +741,17 @@ function temporalsubset(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
     # Temporal subset
     dataOut = C[1][Axis{:time}(startdate .. enddate)]
 
+    # The following control ensure that a 1-timestep temporal subset returns a 3D Array with time information on the timestep. i.e. startdate == enddate
+    if ndims(dataOut) == 2
+        timeV = startdate
+        latsymbol = Symbol(C.dimension_dict["lat"])
+        lonsymbol = Symbol(C.dimension_dict["lon"])
+        data2 = fill(NaN, (size(dataOut,1), size(dataOut, 2), 1))
+        data2[:,:,1] = dataOut
+        dataOut = AxisArray(data2, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(C[1][Axis{:time}][:]))
+        
+    end
+
     return ClimGrid(dataOut, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
 end

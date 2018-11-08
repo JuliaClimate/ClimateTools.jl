@@ -327,7 +327,7 @@ Returns the title. Used internally by [`mapclimgrid`](@ref).
 function titledef(C::ClimGrid)
     if ndims(C[1]) > 2
 
-        if typeof((C[1][Axis{:time}][1])) <: AbstractCFDateTime
+        if typeof((C[1][Axis{:time}][1])) <: AbstractCFDateTime || typeof((C[1][Axis{:time}][1])) == DateTime
             begYear = string(Dates.year(C[1][Axis{:time}][1]))
             endYear = string(Dates.year(C[1][Axis{:time}][end]))
         elseif typeof((C[1][Axis{:time}][1])) == Dates.Year
