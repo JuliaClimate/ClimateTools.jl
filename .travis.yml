@@ -10,7 +10,7 @@ julia:
   - 1.0
   - nightly
 matrix:
-  #- PYTHON=python  # python 2.7
+  - PYTHON=python  # python 2.7
   #- PYTHON=python3 # python 3.5
   - PYTHON=Conda-python
 matrix:
