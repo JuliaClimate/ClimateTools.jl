@@ -233,11 +233,10 @@ function buildtimetype(date_tuple, f)
     return dateout
 end
 
-
 """
     daymean(C::ClimGrid)
 
-Returns the daily average of sub-daily ClimGrid.
+Returns the daily average given a sub-daily ClimGrid.
 """
 function daymean(C::ClimGrid)
 
@@ -271,6 +270,57 @@ function daymean(C::ClimGrid)
                 idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind) && Dates.day(x) == Dates.day(datefind), timevec)
 
                 dataout[:, :, z] = Statistics.mean(datain[:, :, idx], dims=3)
+
+                newtime[z] = datefind
+                z += 1
+            end
+        end
+    end
+
+    # Build output AxisArray
+    FD = buildarray_resample(C, dataout, newtime)
+
+    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+
+end
+
+"""
+    daysum(C::ClimGrid)
+
+Returns the daily sum given a sub-daily ClimGrid C.
+"""
+function daysum(C::ClimGrid)
+
+    datain = C[1].data
+
+    timevec   = get_timevec(C)
+    years     = Dates.year.(timevec)
+    numYears  = unique(years)
+    months    = Dates.month.(timevec)
+    numMonths = unique(months)
+    days    = Dates.day.(timevec)
+    numDays = unique(days)
+
+    T = typeof(timevec[1])
+
+    # numDays2 = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+
+    dayfactor = ClimateTools.daymean_factor(C.frequency)
+    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), Int64(size(C[1],3)/dayfactor)))
+    newtime = Array{T}(undef, Int64(size(C[1],3)/dayfactor))
+
+    # loop over year-month-days
+    z = 1
+    for iyear in 1:length(numYears)
+        for imonth in 1:length(numMonths)
+            for iday in 1:daysinmonth(T(numYears[iyear],numMonths[imonth]))
+
+                datefind = T(numYears[iyear],numMonths[imonth],numDays[iday])
+
+                idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind) && Dates.day(x) == Dates.day(datefind), timevec)
+
+                dataout[:, :, z] = Statistics.sum(datain[:, :, idx], dims=3)
 
                 newtime[z] = datefind
                 z += 1
