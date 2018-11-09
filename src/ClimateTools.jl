@@ -139,6 +139,7 @@ export polyfit, polyval
 export @isdefined
 export plot, merge, vaporpressure, approx_surfacepressure, wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
-export get_timevec, ensemble_mean, daymean, write
+export get_timevec, ensemble_mean, daymean, daysum
+export write
 
 end #module
