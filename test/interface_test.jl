@@ -8,9 +8,8 @@ C = load(filenc, "tas")
 
 @test load(filenc, "tas", data_units = "Celsius")[2] == "Celsius"
 @test load(filenc, "pr", data_units = "mm")[2] == "mm"
-@test typeof(load(filenc, "tas")) == ClimateTools.ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}},AxisArrays.Axis{:time,Array{Dates.DateTime,1}}}}}
+@test typeof(load(filenc, "tas")) == ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}},AxisArrays.Axis{:time,Array{Union{Missing, DateTimeNoLeap},1}}}}}
 
-@test typeof(ClimateTools.buildtimevec(filenc, "24h")) == Array{Dates.DateTime, 1}
 
 fileorog = joinpath(dirname(@__FILE__), "data", "orog_fx_GFDL-ESM2G_historicalMisc_r0i0p0.nc")
 orog = load2D(fileorog, "orog")
@@ -24,14 +23,6 @@ P = shapefile_coords_poly(polyshp.shapes[1])
 orog = load2D(fileorog, "orog", poly = P)
 @test size(orog[1]) == (13, 8)
 @test orog.typeofvar == "orog"
-
-# Time units
-units = NetCDF.ncgetatt(filenc, "time", "units") # get starting date
-m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1) # match a date from string
-daysfrom = m.match # get only the date ()"yyyy-mm-dd" format)
-initDate = DateTime(daysfrom, "yyyy-mm-dd")
-timeRaw = floor.(NetCDF.ncread(filenc, "time"))
-@test ClimateTools.sumleapyear(initDate::DateTime, timeRaw) == 485
 
 # INTERFACE
 # B = vcat(C, C)
@@ -73,9 +64,9 @@ B = C * 2.2; @test B[1].data[1, 1, 1] == 482.2902801513672
 @test C[12]["project_id"] == "IPCC Fourth Assessment"
 @test_throws ErrorException C[13]
 @test annualmax(C)[10] == "tas"
-@test size(C) == (21, )
-@test size(C, 1) == 21
-@test length(C) == 21
+@test size(C) == (22, )
+@test size(C, 1) == 22
+@test length(C) == 22
 # @test endof(C) == 21
 @test_throws MethodError C[end]
 @test ndims(C) == 1
@@ -106,10 +97,10 @@ C = load(filenc, "tas", poly=poly)
 
 # Spatial subset
 C = load(filenc, "tas")
-Csub = temporalsubset(C, (2000, 05, 15), (2000, 05, 15))
+Csub = temporalsubset(C, (2000, 05, 16, 12, 0, 0), (2000, 05, 16, 12, 0, 0))
 @test Csub[1][1, 1, 1] == 219.22285f0
-@test Csub[1][Axis{:time}][1] == DateTime(2000, 05, 15)
-B = load(filenc, "tas", start_date=(2000, 05, 15), end_date=(2000, 05, 15))
+@test Csub[1][Axis{:time}][1] == DateTimeNoLeap(2000, 05, 16, 12)
+B = load(filenc, "tas", start_date=(2000, 05, 16, 12), end_date=(2000, 05, 16, 12))
 @test B[1] == C[1]
 
 # Time resolution
@@ -384,10 +375,6 @@ for i = 1:size(data, 1)
     @test applymask(data, mask)[3,2,1,i] == data[3,2,1,i]
 end
 
-# Test sumleapyear with StepRange{Date,Base.Dates.Day} type
-d = Date(2003,1,1):Day(1):Date(2008,12,31)
-@test ClimateTools.sumleapyear(d) == 2
-
 # Test timeresolution and pr_timefactor
 filename = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 timevec = NetCDF.ncread(filename, "time")
@@ -397,4 +384,3 @@ timevec = NetCDF.ncread(filename, "time")
 @test ClimateTools.pr_timefactor("6h") == 21600.0
 @test ClimateTools.pr_timefactor("3h") == 10800.0
 @test ClimateTools.pr_timefactor("1h") == 3600.0
-

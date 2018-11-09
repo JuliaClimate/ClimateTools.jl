@@ -16,13 +16,11 @@ Temporal subsetting can be done by providing start_date and end-date Tuples of l
 function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
 
   # TODO this file is a complete mess, but it works. Clean it up!
-  # TODO create another function for orography extraction (2D dataset)
 
   # Get attributes
   ncI = NetCDF.ncinfo(file);
   attribs = NetCDF.ncinfo(file).gatts;
   ds = NCDatasets.Dataset(file)
-  # ncI = NetCDF.ncinfo(file);
   attribs_dataset = ds.attrib
 
   # The following attributes should be set for netCDF files that follows CF conventions.
@@ -70,21 +68,17 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   # =====================
   # TIME
-
   # Get time resolution
-
   rez = ClimateTools.timeresolution(NetCDF.ncread(file, "time"))
   if frequency == "N/A"
     frequency = rez
   end
 
-  # Construct time vector from info in netCDF file *str*
-  timeV = ClimateTools.buildtimevec(file, rez)
-  if frequency == "mon"
-      timeV = corr_timevec(timeV, frequency)
-  end
+  timeattrib = Dict(ds["time"].attrib)
+  timeV = ds["time"][:]
+  T = typeof(timeV[1])
 
-  idxtimebeg, idxtimeend = ClimateTools.timeindex(timeV, start_date, end_date, frequency)
+  idxtimebeg, idxtimeend = ClimateTools.timeindex(timeV, start_date, end_date, T)
 
   timeV = timeV[idxtimebeg:idxtimeend]
 
@@ -129,7 +123,6 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
 
     #new mask (e.g. representing the region of the polygon)
-    # TODO MOVE THIS CODE TO "extractdata" ?
     # idlon, idlat = findn(.!isnan.(msk))
     begin
         I = Base.findall(!isnan, msk)
@@ -154,7 +147,6 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     if map_attrib["grid_mapping_name"] == "Regular_longitude_latitude"
 
         lon_raw = ClimateTools.shiftvector_180_west_east(lon_raw)
-
     end
 
     # Idem for longrid and latgrid
@@ -191,14 +183,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
         else
             data_final = data_mask
-
-
-
         end
-
-
-
-
     else
 
         if rotatedgrid # flip in original grid
@@ -225,18 +210,15 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     end
 
   elseif isempty(poly) # no polygon clipping
-      msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
-    # if ndims(data) == 3
-    # data_sub = Array(, , length)
-      data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
-    # elseif ndims(data) == 4
-        # data = extractdata(data, msk, idxtimebeg, idxtimeend)
-    # end
 
+      msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
+      data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
 
     if rotatedgrid
+
         # Flip data "west-east"
         data_final = ClimateTools.permute_west_east(data_ext, longrid)
+
     else
         data_final = data_ext
     end
@@ -289,7 +271,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   close(ds)
   NetCDF.ncclose(file)
 
-  return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal=caltype, varattribs=varattrib, globalattribs=attribs)
+  return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, timeattrib=timeattrib, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal=caltype, varattribs=varattrib, globalattribs=attribs)
 
 
 end
@@ -303,7 +285,7 @@ function load(files::Array{String,1}, vari::String; poly = ([]), start_date::Tup
 
     nfiles = length(files)
     C = Array{ClimGrid}(undef, nfiles) # initialize # TODO better initialization
-    datesort = Array{DateTime}(undef, nfiles)
+    datesort = Array{Any}(undef, nfiles)
     Cout = []
 
     p = Progress(nfiles*2, 3, "Loading files: ")
@@ -384,9 +366,6 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
         longrid, latgrid = ndgrid(lon_raw, lat_raw)
         map_attrib = Dict(["grid_mapping_name" => "Regular_longitude_latitude"])
     end
-
-    # =====================
-    # TIME
 
     # ==================
     # Spatial shift if grid is 0-360.
@@ -489,9 +468,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
           else
             data_final = data_mask
-
           end
-
 
       else
 
@@ -501,7 +478,6 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
           longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
           latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
-
 
           if rotatedgrid
 
@@ -514,9 +490,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
           else
             data_final = data_mask
-
           end
-
       end
 
     elseif isempty(poly) # no polygon clipping
@@ -550,476 +524,6 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
     return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal="fixed", varattribs=varattrib, globalattribs=attribs)
 
-end
-
-
-"""
-    buildtimevec(str::String)
-
-Construct the time vector from the netCDF file str
-
-"""
-function buildtimevec(str::String, rez)
-
-  # Time units
-  ncI = NetCDF.ncinfo(str); # seems to be necessary. Otherwise can an inconsistent error when trying to load attributes
-  units = NetCDF.ncgetatt(str, "time", "units") # get starting date
-  # m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1)
-  m = match(r"(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})", units, 1) # match a date from string
-  if isempty(fieldnames(typeof(m)))#@isdefined m.captures
-      m = match(r"(\d+)[-.\/](\d+)[-.\/](\d+)", units, 1)
-  end
-
-  arrdate = parse.(Int, m.captures)
-  if length(arrdate) == 6
-      initDate = DateTime(arrdate[1], arrdate[2], arrdate[3], arrdate[4], arrdate[5], arrdate[6])
-  elseif length(arrdate) == 3
-      initDate = DateTime(arrdate[1], arrdate[2], arrdate[3])
-  end
-  # daysfrom = m.match # get only the date ()"yyyy-mm-dd" format)
-  # initDate = Date(daysfrom, "yyyy-mm-dd")
-
-  period = getperiod(rez)
-  timeRaw = NetCDF.ncread(str, "time")
-
-  # Calendar type
-  calType = NetCDF.ncgetatt(str, "time", "calendar")
-  if calType == "noleap" || calType == "365_day"
-    nDays = 365
-    # get time of netCDF file *str*
-    # timeRaw = floor.(NetCDF.ncread(str, "time"))
-
-    leapDaysPer = sumleapyear(initDate, timeRaw[1] - 1)
-    leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
-    startDate = initDate + Dates.Day(convert(Int64, floor(timeRaw[1]))) + Dates.Day(leapDaysPer)
-    endDate = initDate + Dates.Day(convert(Int64, ceil(timeRaw[end]))) + Dates.Day(leapDaysPer2) - period
-
-    # period = getperiod(rez)
-
-    dateTmp = DateTime(startDate):period:DateTime(endDate)
-
-    # REMOVE leap year (i.e. climate models use a no leap calendar)
-    idx = (Dates.month.(dateTmp) .== 2) .&  (Dates.day.(dateTmp) .== 29)
-    if length(idx) !== 1
-      dateTmp = dateTmp[.!idx]
-    else
-      dateTmp = Array{Date}(dateTmp)
-    end
-
-elseif calType == "gregorian" || calType == "standard" || calType == "proleptic_gregorian"
-    # timeRaw = floor.(NetCDF.ncread(str, "time"))
-    leapDaysPer = sumleapyear(initDate, timeRaw[1])
-    leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
-
-    if typeof(timeRaw[1]) == Int8 || typeof(timeRaw[1]) == Int16 || typeof(timeRaw[1]) == Int32 || typeof(timeRaw[1]) == Int64
-
-        startDate = initDate + Dates.Day(floor(timeRaw[1]))
-        endDate = initDate + Dates.Day(floor(timeRaw[end]))
-    else
-        startDate = initDate + Dates.Day(convert(Int64,floor(timeRaw[1])))
-        endDate = initDate + Dates.Day(convert(Int64,floor(timeRaw[end])))# - period
-    end
-    dateTmp = DateTime(startDate):period:DateTime(endDate)
-
-elseif calType == "360_day"
-    throw(error("360_day type of calendar not yet supported"))
-
-    # timeRaw = floor.(NetCDF.ncread(str, "time"))
-    leapDaysPer = sumleapyear(initDate, timeRaw[1] - 1)
-    leapDaysPer2 = sumleapyear(initDate, timeRaw[end])
-
-    startDate = initDate + Dates.Day(convert(Int64, round(timeRaw[1]))) + Dates.Day(leapDaysPer)
-    endDate = initDate + Dates.Day(convert(Int64, round(timeRaw[end]))) + Dates.Day(leapDaysPer2)
-
-    dateTmp = DateTime(startDate):period:DateTime(endDate)
-
-
-  end
-  # output date vector
-  dateTmp = convert(Array{DateTime, 1}, dateTmp)
-  return dateTmp
-end
-
-"""
-    getperiod(rez::String)
-
-Returns the Dates resolution (e.g. Dates.Hour(1) for hourly data, Dates.Hour(3) for 3-hours data, etc..).
-"""
-function getperiod(rez::String)
-
-    if rez == "1h"
-        period = Dates.Hour(1)
-    elseif rez == "3h"
-        period = Dates.Hour(3)
-    elseif rez == "6h"
-        period = Dates.Hour(6)
-    elseif rez == "12h"
-        period = Dates.Hour(12)
-    elseif rez == "24h"
-        period = Dates.Hour(24)
-    elseif rez == "Yearly"
-        period = Dates.Year(1)
-    else
-        period = Dates.Hour(24)
-    end
-
-    return period
-end
-
-
-"""
-Number of leap years in date vector
-
-    sumleapyear(dates::StepRange{Date, Dates.Day})
-
-    sumleapyear(initDate::Date, timeRaw)
-"""
-function sumleapyear(initDate::Dates.TimeType, timeRaw)
-
-  out = 0::Int
-  endDate = initDate + Dates.Day(convert(Int64,round(timeRaw[1])))
-  years = unique(Dates.year.(initDate:Day(1):endDate))
-  # Sum over time vector
-  for idx = 1:length(years)
-    if Dates.isleapyear(years[idx])
-      out += 1
-    end
-
-  end
-
-  return out
-
-end
-
-function sumleapyear(dates::StepRange{Date, Dates.Day})
-
-  out = 0::Int
-  endDate = dates[end]#initDate + Dates.Day(convert(Int64,round(timeRaw[1])))
-  years = unique(Dates.year.(dates))
-  # Sum over time vector
-  for idx = 1:length(years)
-    if Dates.isleapyear(years[idx])
-      out += 1
-    end
-  end
-
-  return out
-
-end
-
-"""
-    shapefile_coords(poly::Shapefile.Polygon)
-
-This function return the polygons contained in shp.shapes[i]. It returns the x and y coordinates vectors.
-
-See also [`shapefile_coords_poly`](@ref), which returns a polygon that ca be used for data extraction of the [`load`](@ref).
-
-"""
-function shapefile_coords(poly::Shapefile.Polygon)
-    start_indices = poly.parts .+ 1
-    end_indices = vcat(poly.parts[2:end], length(poly.points))
-    x, y = zeros(0), zeros(0)
-    for (si,ei) in zip(start_indices, end_indices)
-        push!(x, NaN)
-        push!(y, NaN)
-        for pt in poly.points[si:ei]
-            push!(x, pt.x)
-            push!(y, pt.y)
-        end
-    end
-    x, y
-end
-
-
-"""
-    shapefile_coords_poly(poly::Shapefile.Polygon)
-
-Return the polygons contained in shp.shapes[i]. It returns an array containing the polygons.
-
-See also [`shapefile_coords`](@ref), which returns vectors as opposed to array. Returned polygon is consistent with the data extraction of the [`load`](@ref) function.
-
-"""
-function shapefile_coords_poly(poly::Shapefile.Polygon)
-    x, y = shapefile_coords(poly)
-    return [x y]'
-end
-
-"""
-    extractpoly(file::String, n::Int)
-
-Returns the n-th polygon contained in *file*.
-"""
-function extractpoly(file::String, n::Int)
-
-    shp = open(file) do fd
-        read(fd, Shapefile.Handle)
-    end
-
-    poly = shapefile_coords_poly(shp.shapes[n])
-    return poly
-end
-
-
-function corr_timevec(timeV, timefreq)
-
-    if timefreq == "mon"
-        year, month = Dates.year.(timeV), Dates.month.(timeV)
-        years = unique(year)
-        months = unique(month)
-        timeout = Array{Date, 1}(length(years)*length(months))
-        z = 1
-        for iyear in years
-            for imonth in months
-                timeout[z] = Date(iyear, imonth)
-                z += 1
-
-            end
-        end
-
-
-    elseif timefreq == "day"
-        error("have to do it")
-
-    else
-        error("wrong timefreq, needs to add it")
-
-    end
-
-    return timeout
-
-end
-
-"""
-    timeresolution(timevec::Array{N,1} where N)
-
-Return the time resolution of the vector timevec.
-
-"""
-function timeresolution(timevec::Array{N,1} where N)
-
-    # timevec = (NetCDF.ncread(str, "time"))
-    if length(timevec) > 1
-        timediff = diff(timevec)[2]
-        if timediff == 1. || timediff == 1
-            return "24h"
-        elseif round(timediff, digits=5) == round(12/24, digits=5)
-            return "12h"
-        elseif round(timediff, digits=5) == round(6/24, digits=5)
-            return "6h"
-        elseif round(timediff, digits=5) == round(3/24, digits=5)
-            return "3h"
-        elseif round(timediff, digits=5) == round(1/24, digits=5)
-            return "1h"
-        elseif round(timediff, digits=5) == 365.0 || round(timediff, digits=5) == 366.0 || round(timediff, digits=5) == 360.0
-            return "Yearly"
-        end
-    else
-        return "N/A"
-    end
-end
-
-"""
-    function pr_timefactor(rez::String)
-
-Return the time factor that should be applied to precipitation to get accumulation for resolution "rez"
-
-"""
-function pr_timefactor(rez::String)
-
-    if rez == "24h"
-        return 86400.0
-    elseif rez == "12h"
-        return 43200.0
-    elseif rez == "6h"
-        return 21600.0
-    elseif rez == "3h"
-        return 10800.0
-    elseif rez == "1h"
-        return 3600.0
-    elseif rez == "N/A"
-        return 1.0
-    end
-
-end
-
-"""
-    function daymean_factor(rez::String)
-
-Return the time factor that should be applied to precipitation to get accumulation for resolution "rez"
-
-"""
-function daymean_factor(rez::String)
-
-    if rez == "24h"
-        return 1
-    elseif rez == "12h"
-        return 2
-    elseif rez == "6h"
-        return 4
-    elseif rez == "3h"
-        return 8
-    elseif rez == "1h"
-        return 24
-    elseif rez == "N/A"
-        return 1
-    end
-
-end
-
-"""
-    spatialsubset(C::ClimGrid, poly::Array{N, 2})
-
-Returns the spatial subset of ClimGrid C. The spatial subset is defined by the polygon poly, defined on a -180, +180 longitude reference.
-
-"""
-function spatialsubset(C::ClimGrid, poly)
-
-    # Some checks for polygon poly
-
-    if size(poly, 1) != 2 && size(poly, 2) == 2
-        # transpose
-        poly = poly'
-    end
-
-
-    lonsymbol = Symbol(C.dimension_dict["lon"])
-    latsymbol = Symbol(C.dimension_dict["lat"])
-
-    longrid = C.longrid
-    latgrid = C.latgrid
-
-    lon = C[1][Axis{lonsymbol}][:]
-    lat = C[1][Axis{latsymbol}][:]
-
-    msk = inpolygrid(longrid, latgrid, poly)
-    # idlon, idlat = findn(.!isnan.(msk))
-    begin
-        I = findall(!isnan, msk)
-        idlon, idlat = (getindex.(I, 1), getindex.(I, 2))
-    end
-    minXgrid = minimum(idlon)
-    maxXgrid = maximum(idlon)
-    minYgrid = minimum(idlat)
-    maxYgrid = maximum(idlat)
-
-    # Get DATA
-    data = C[1].data
-
-    if ndims(data) == 3
-        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :]
-    elseif ndims(data) == 4
-        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, :]
-    end
-
-    #new mask (e.g. representing the region of the polygon)
-    msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
-    data = applymask(data, msk)
-
-    # Get lon-lat for such region
-    longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
-    latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
-    lon = lon[minXgrid:maxXgrid]
-    lat = lat[minYgrid:maxYgrid]
-
-    if ndims(data) == 3
-      dataOut = AxisArray(data, Axis{lonsymbol}(lon), Axis{latsymbol}(lat),  Axis{:time}(C[1][Axis{:time}][:]))
-    elseif ndims(data) == 4
-      dataOut = AxisArray(data, Axis{lonsymbol}(lon), Axis{latsymbol}(lat), Axis{:level}(C[1][Axis{:plev}][:]), Axis{:time}(C[1][Axis{:time}][:]))
-    end
-
-    return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
-
-end
-
-"""
-    function temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
-
-Returns the temporal subset of ClimGrid C. The temporal subset is defined by a start and end date.
-
-"""
-function temporalsubset(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
-
-    startdate = buildtimetype(datebeg)
-    enddate = buildtimetype(dateend)
-
-    # some checkups
-    @argcheck startdate <= enddate
-    @argcheck startdate >= DateTime(C[1][Axis{:time}][1])
-    @argcheck enddate <= DateTime(C[1][Axis{:time}][end])
-
-    start_token = ClimateTools.buildtoken(startdate, C)
-    end_token = ClimateTools.buildtoken(enddate, C)
-
-    # Temporal subset
-    dataOut = C[1][Axis{:time}(start_token(startdate) .. end_token(enddate))]
-
-    return ClimGrid(dataOut, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
-
-end
-
-"""
-    periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)
-
-Return the temporal subset of ClimGrid C based on months.
-"""
-function periodsubset(C::ClimGrid, startmonth::Int64, endmonth::Int64)
-
-    @argcheck startmonth >= minimum(Dates.month.(C[1][Axis{:time}][:]))
-    @argcheck startmonth <= maximum(Dates.month.(C[1][Axis{:time}][:]))
-
-    if startmonth <= endmonth
-        # Each matrix [:,:,i] represent data for a day
-        datain = C.data.data
-        # Date vector
-        datevecin = C[1][Axis{:time}][:]
-        # Where are the data between startmonth and endmonth
-        index = (Dates.month.(datevecin) .<= endmonth) .&  (Dates.month.(datevecin) .>= startmonth)
-        # Keep only data between startmonth and endmonth
-        dataout = datain[:,:,index]
-        datevecout = datevecin[index]
-        # Create the ClimGrid output
-        lonsymbol = Symbol(C.dimension_dict["lon"])
-        latsymbol = Symbol(C.dimension_dict["lat"])
-        axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]),    Axis{:time}(datevecout))
-
-    elseif endmonth < startmonth
-        # Each matrix [:,:,i] represent data for a day
-        datain = C.data.data
-        # Date vector
-        datevecin = C[1][Axis{:time}][:]
-        # Where are the data between startmonth and endmonth
-        index = (Dates.month.(datevecin) .<= endmonth) .|  (Dates.month.(datevecin) .>= startmonth)
-        # Keep only data between startmonth and endmonth
-        dataout = datain[:,:,index]
-        datevecout = datevecin[index]
-        # Create the ClimGrid output
-        lonsymbol = Symbol(C.dimension_dict["lon"])
-        latsymbol = Symbol(C.dimension_dict["lat"])
-        axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(datevecout))
-    end
-
-    return ClimGrid(axisout, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping,dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project,institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable,typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
-end
-
-"""
-    periodsubset(C::ClimGrid, season::String)
-
-Return the temporal subset of ClimGrid C for a given season. Season options are: "DJF" (December-February), "MAM" (March-May), "JJA" (June-August), "SON" (September-November)
-"""
-function periodsubset(C::ClimGrid, season::String)
-    if lowercase(season) == "djf"
-      D = periodsubset(C, 12, 2)
-    elseif lowercase(season) == "mam"
-      D = periodsubset(C, 3, 5)
-    elseif lowercase(season) == "jja"
-      D = periodsubset(C, 6, 8)
-    elseif lowercase(season) == "son"
-      D = periodsubset(C, 9, 11)
-    else
-      error("Wrong season name. Options are DJF (December-February; Winter), MAM (March-May; Spring), JJA (June-August; Summer) and SON (September-November; Fall)")
-    end
-
-    return D
 end
 
 model_id(attrib::NCDatasets.Attributes) = get(attrib,"model_id",get(attrib,"model","N/A"))
@@ -1067,98 +571,6 @@ function getdim_lon(ds::NCDatasets.Dataset)
 
 end
 
-function shiftgrid_180_west_east(longrid)
-
-    for ilon in eachindex(longrid)
-        if longrid[ilon] >= 180
-            longrid[ilon] = longrid[ilon] - 360
-        end
-    end
-
-    ieast = longrid .>= 0
-    iwest = longrid .< 0
-
-    grideast = reshape(longrid[ieast], :, size(longrid, 2))
-    gridwest = reshape(longrid[iwest], :, size(longrid, 2))
-
-    longrid_flip = vcat(gridwest, grideast)
-
-    return longrid_flip
-
-end
-
-
-function shiftgrid_180_east_west(longrid)
-
-    for ilon in eachindex(longrid)
-        if longrid[ilon] >= 180
-            longrid[ilon] = longrid[ilon] - 360
-        end
-    end
-
-    ieast = longrid .>= 0
-    iwest = longrid .< 0
-
-    grideast = reshape(longrid[ieast], :, size(longrid, 2))
-    gridwest = reshape(longrid[iwest], :, size(longrid, 2))
-
-    longrid_flip = vcat(grideast, gridwest)
-
-    return longrid_flip
-
-end
-
-function shiftarray_west_east(data, longrid_flip)
-
-    ieast = longrid_flip .>= 0
-    iwest = longrid_flip .< 0
-
-    msk = permute_west_east2D(data, iwest, ieast)
-    return msk
-
-end
-
-function shiftarray_east_west(data, longrid_flip)
-
-    ieast = longrid_flip .>= 0
-    iwest = longrid_flip .< 0
-
-    msk = permute_east_west2D(data, iwest, ieast)
-    return msk
-
-end
-
-
-function shiftvector_180_east_west(lon_raw)
-
-    for ilon in eachindex(lon_raw)
-        if lon_raw[ilon] >= 180
-            lon_raw[ilon] = lon_raw[ilon] - 360
-        end
-    end
-    ieast_vec = lon_raw .>= 0
-    iwest_vec = lon_raw .< 0
-    lon_raw_flip = [lon_raw[ieast_vec];lon_raw[iwest_vec]]
-    return lon_raw_flip
-
-end
-
-function shiftvector_180_west_east(lon_raw)
-
-    for ilon in eachindex(lon_raw)
-        if lon_raw[ilon] >= 180
-            lon_raw[ilon] = lon_raw[ilon] - 360
-        end
-    end
-
-    ieast_vec = lon_raw .>= 0
-    iwest_vec = lon_raw .< 0
-
-    lon_raw_flip = [lon_raw[iwest_vec];lon_raw[ieast_vec]]
-
-    return lon_raw_flip
-
-end
 
 """
     extractdata(data, msk, idxtimebeg, idxtimeend)
@@ -1206,19 +618,5 @@ function extractdata2D(data, msk)
     data = data[minXgrid:maxXgrid, minYgrid:maxYgrid]
 
     return data
-
-end
-
-function meridian_check(poly)
-
-    minpoly = minimum(poly[1, .!isnan.(poly[1, :])])
-    maxpoly = maximum(poly[1, .!isnan.(poly[1, :])])
-
-    meridian = false
-    if sign(minpoly)*sign(maxpoly) == sign(-1.0) # polygon crosses the meridian
-       meridian = true
-    end
-
-    return meridian
 
 end

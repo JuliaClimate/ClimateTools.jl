@@ -26,6 +26,7 @@ import Base.size
 #import Base.endof
 import Base.setindex!
 import Base.similar
+import Base.write
 import Statistics.minimum
 import Statistics.maximum
 import Statistics.std
@@ -42,7 +43,7 @@ const cmocean = PyNULL()
 const scipy = PyNULL()
 
 function __init__()
-  copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))  
+  copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))
   copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
   copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
   copy!(scipy, pyimport_conda("scipy.interpolate", "scipy"))
@@ -57,11 +58,12 @@ In-memory representation of Climate Forecast netCDF files.
 """
 struct ClimGrid{A <: AxisArray}
   data::A
-  longrid::Array{N,T} where N where T
-  latgrid::Array{N,T} where N where T
-  msk::Array{N,T} where N where T
+  longrid::Array{N,T} where T where N
+  latgrid::Array{N,T} where T where N
+  msk::Array{N,T} where T where N
   grid_mapping::Dict # information of native grid
   dimension_dict::Dict
+  timeattrib::Dict
   model::String
   frequency::String
   experiment::String
@@ -72,7 +74,7 @@ struct ClimGrid{A <: AxisArray}
   dataunits::String
   latunits::String # of the coordinate variable
   lonunits::String # of the coordinate variable
-  variable::String # Type of variable 
+  variable::String # Type of variable
   typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
   typeofcal::String # Calendar type
   varattribs::Dict # Variable attributes
@@ -85,7 +87,7 @@ end
 
 Constructor of the ClimGrid function. Data is an AxisArray. Everything else is optional, but usually needed for further processing (mapping, interpolation, etc...).
 """
-function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), model="NA", frequency="NA", experiment="NA", run="NA", project="NA", institute="NA", filename="NA", dataunits="NA", latunits="NA", lonunits="NA", variable="NA", typeofvar="NA", typeofcal="NA", varattribs=Dict(), globalattribs=Dict())
+function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), timeattrib=Dict(), model="NA", frequency="NA", experiment="NA", run="NA", project="NA", institute="NA", filename="NA", dataunits="NA", latunits="NA", lonunits="NA", variable="NA", typeofvar="NA", typeofcal="NA", varattribs=Dict(), globalattribs=Dict())
 
     if isempty(dimension_dict)
         dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
@@ -93,11 +95,9 @@ function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dim
 
     if isempty(msk)
         msk = Array{Float64}(ones((size(data, 1), size(data, 2))))
-
     end
 
-    ClimGrid(data, longrid, latgrid, msk, grid_mapping, dimension_dict, model, frequency, experiment, run, project, institute, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal, varattribs, globalattribs)
-
+    ClimGrid(data, longrid, latgrid, msk, grid_mapping, dimension_dict, timeattrib, model, frequency, experiment, run, project, institute, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal, varattribs, globalattribs)
 end
 
 """
@@ -120,6 +120,9 @@ include("interface.jl")
 include("mapping.jl")
 include("biascorrect.jl")
 include("heatsum_indices.jl")
+include("export.jl")
+include("time.jl")
+include("spatial.jl")
 
 # Exported functions
 export inpoly, inpolygrid, meshgrid, prcp1
@@ -129,13 +132,14 @@ export customthresover, customthresunder, annualmax, annualmin, periodmean
 export annualmean, annualsum, load, load2D
 export mapclimgrid, regrid, ClimGrid, inpolyvec, applymask, TransferFunction
 export shapefile_coords, shapefile_coords_poly
-export spatialsubset, temporalsubset, periodsubset
+export spatialsubset, temporalsubset, resample
 export qqmap, qqmaptf, ndgrid, permute_west_east
 export getdim_lat, getdim_lon, isdefined, extractpoly
 export polyfit, polyval
 export @isdefined
 export plot, merge, vaporpressure, approx_surfacepressure, wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
-export get_timevec, ensemble_mean, daymean
+export get_timevec, ensemble_mean, daymean, daysum
+export write
 
 end #module
