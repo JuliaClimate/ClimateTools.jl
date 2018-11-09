@@ -2,42 +2,45 @@
 
 ## Installation
 
-### Required dependencies
+## Required dependencies
 
-In theory, installing the package with `] add ClimateTools` and launching the command `using ClimateTools` should install all required dependencies if you set `PyCall` and `Conda` to use Conda's python. However, sometimes it's just better to do it manually to ensure that all steps are properly done. If the installation fails when launching `ùsing ClimateTools`, below are the steps to do it manually.
+ClimateTools need some Python dependencies for mapping purpose. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the following python modules and build `PyCall` with the same python distribution.
 
-*Note1. ClimateTools is developed using the Python distribution in the Conda package by default. PyCall should be built with the `ENV["PYTHON"] = ""` environment and then re-build PyCall with `Pkg.build("PyCall")`. It should work with python 2.7.x and Python 3.4+ without modifications, but since Python configurations varies widely from system to system, the proper python pacakage installation is beyond the scope of ClimateTools.*
-
-*Note2. Installing Basemap for python 3.6+ seems problematic.*
-
-#### Python deps
-
-You should ensure that the following packages are working in your Python interpreter.
+**Python deps**
 
 * matplotlib
 * basemap
 * scipy
 * cmocean
 
+*Note2. Installing Basemap for python 3.6+ seems problematic.*
+
+**Building PyCall**
+
+```julia
+ENV["PYTHON"]="path_to_python_distribution"
+pkg> build PyCall
+```
+
 ### Installing ClimateTools.jl
 
 ```julia
-] add ClimateTools # Tagged release
+pkg> add ClimateTools # Tagged release
 ```
 
 ## Reading a NetCDF file
 
-The entry point of `ClimateTools` is to load data with the `load` function. The return structure of the `load` function is an in-memory representation of the dataset contained in the netCDF file.
+The entry point of `ClimateTools` is to load data with the `load` function. The return structure of the `load` function is a in-memory representation of the variable contained in the netCDF file.
 
 ```julia
-C = load(filename::String, var::String; poly::Array, data_units::String, start_date::Tuple, end_date::Tuple)
+C = load(filename::String, vari::String; poly::Array, data_units::String, start_date::Tuple, end_date::Tuple)
 ```
 
-`load` return a `ClimGrid` type. The `ClimGrid` is a in-memory representation of a CF-compliant netCDF file for a single variable.
+`load` return a `ClimGrid` type. The `ClimGrid` represent a single variable. In the event of a dataset containing
 
 Using the optional `poly` argument, the user can provide a polygon and the returned `ClimGrid` will only contains the grid points inside the provided polygon. **The polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).**
 
-`start_date` and `end_date` can also be provided. It is useful when climate simulations file spans multiple decades/centuries and one only needs a temporal subset. Dates should be provided as a `Tuple` of the form `(year, month, day, hour, minute, seconds)`, where only `year` is mandatory (e.g. `(2000,)` can be provided and will defaults to `(2000, 01, 01)`).
+`start_date` and `end_date` can also be provided. It is useful when climate simulations file spans multiple decades/centuries and only a temporal subset is needed. Dates should be provided as a `Tuple` of the form `(year, month, day, hour, minute, seconds)`, where only `year` is mandatory (e.g. `(2000,)` can be provided and will defaults to `(2000, 01, 01)`).
 
 For some variable, the optional keyword argument `data_units` can be provided. For example, precipitation in climate models are usually provided as `kg/m^2/s`. By specifying `data_units = mm`, the `load` function returns accumulation at the data time resolution. Similarly, the user can provide `Celsius` as `data_units` and `load` will return `Celsius` instead of `Kelvin`.
 
@@ -69,11 +72,11 @@ end
 
 ## Subsetting
 
-### Spatial
-
 Once the data is loaded in a `ClimGrid` struct, options to further subset the data are available.
 
-There is a `spatialsubset` function which acts on `ClimGrid` type and further subset the data through a spatial subset using a provided polygon. The function returns a `ClimGrid`. **Polygons needs to be on a -180, +180 longitude coordinates, as data coordinates defaults to such grid.** For instance, global models are often on a 0-360 degrees grid but the load function shift the data onto a -180,+180 coordinates.
+### Spatial
+
+`spatialsubset` function acts on `ClimGrid` type and subset the data through a spatial subset using a provided polygon. The function returns a `ClimGrid`. **Polygons needs to be on a -180, +180 longitude coordinates, as data coordinates defaults to such grid.** For instance, global models are often on a 0-360 degrees grid but the load function shift the data onto a -180,+180 coordinates.
 
 ```julia
 C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
@@ -87,12 +90,12 @@ Temporal subset of the data is also possible with the `temporalsubset` function:
 C = temporalsubset(C::ClimGrid, startdate::Tuple, enddate::Tuple)
 ```
 
-### Discontinuous temporal
+### Discontinuous temporal (e.g. resampling)
 
-It is also possible to only keep a given non-continuous period for a given timeframe. For example, we might be interested in keeping only northern summer months (June-July-August) from a continuous ClimGrid covering 1961-2100. `periodsubset` returns such a subsetted ClimGrid.
+It is also possible to only keep a given non-continuous period for a given timeframe. For example, we might be interested in keeping only northern summer months (June-July-August) from a continuous ClimGrid covering 1961-2100. `resample` returns such a subsetted ClimGrid.
 
 ```julia
-Csub = periodsubset(C, "JJA") # hardcoded ClimateTools's season
-Csub = periodsubset(C, 6, 8) # custom subset example for June-July-August
-Csub = periodsubset(C, 1, 2) # custom subset example for January-February
+Csub = resample(C, "JJA") # hardcoded ClimateTools's season
+Csub = resample(C, 6, 8) # custom subset example for June-July-August
+Csub = resample(C, 1, 2) # custom subset example for January-February
 ```

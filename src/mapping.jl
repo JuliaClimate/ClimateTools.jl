@@ -37,8 +37,8 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   # Time limits
   if ndims(C[1]) > 2
       timeV = get_timevec(C)
-      f = typeof(timeV[1])
-      timebeg, timeend = ClimateTools.timeindex(timeV, start_date, end_date, C.frequency, f)
+      T = typeof(timeV[1])
+      timebeg, timeend = ClimateTools.timeindex(timeV, start_date, end_date, T)
   end
 
   # =============

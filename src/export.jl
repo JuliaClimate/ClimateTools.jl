@@ -143,13 +143,7 @@ function write(C::ClimGrid, filename::String)
 
 end
 
-function extension(url::String)
-    try
-        return match(r"\.[A-Za-z0-9]+$", url).match
-    catch
-        return ""
-    end
-end
+
 
 function mapping_name(C::ClimGrid)
 

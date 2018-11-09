@@ -480,159 +480,52 @@ end
 
 
 """
-    buildtoken(date::DateTime, C::ClimGrid)
+    polyfit(C::ClimGrid)
 
-Returns the right date token based on time vector contained in ClimGrid C.
+Returns an array of the polynomials functions of each grid points contained in ClimGrid C.
 """
-function buildtoken(date, C::ClimGrid)
-    timevec = get_timevec(C)
-    typetoken = typeof(timevec[1])
-
-    return typetoken
-
-
+function polyfit(C::ClimGrid)
+    x = 1:length(C[1][Axis{:time}][:])
+    # x = Dates.value.(C[1][Axis{:time}][:] - C[1][Axis{:time}][1])+1
+    dataout = Array{Polynomials.Poly{Float64}}(undef, size(C[1], 1),size(C[1], 2))
+    for k = 1:size(C[1], 2)
+        Threads.@threads for j = 1:size(C[1], 1)
+            y = C[1][j , k, :].data
+            polynomial = Polynomials.polyfit(x, y, 4)
+            polynomial[0] = 0.0
+            dataout[j,k] = polynomial
+        end
+    end
+    return dataout
 end
 
 """
-    daymean(C::ClimGrid)
+    polyval(C::ClimGrid, polynomial::Array{Poly{Float64}})
 
-Returns the daily average of sub-daily ClimGrid.
+    Returns a ClimGrid containing the values, as estimated from polynomial function polyn.
 """
-function daymean(C::ClimGrid)
-
+function polyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
     datain = C[1].data
-
-    timevec   = get_timevec(C)
-    years     = Dates.year.(timevec)
-    numYears  = unique(years)
-    months    = Dates.month.(timevec)
-    numMonths = unique(months)
-    days    = Dates.day.(timevec)
-    numDays = unique(days)
-
-    T = typeof(timevec[1])
-
-    # numDays2 = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-
-
-    dayfactor = ClimateTools.daymean_factor(C.frequency)
-    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), Int64(size(C[1],3)/dayfactor)))
-    newtime = Array{T}(undef, Int64(size(C[1],3)/dayfactor))
-
-    # loop over year-month-days
-    z = 1
-    for iyear in 1:length(numYears)
-        for imonth in 1:length(numMonths)
-            # numDays =
-            for iday in 1:daysinmonth(T(numYears[iyear],numMonths[imonth]))
-
-                datefind = T(numYears[iyear],numMonths[imonth],numDays[iday])
-
-                idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind) && Dates.day(x) == Dates.day(datefind), timevec)
-
-                dataout[:, :, z] = Statistics.mean(datain[:, :, idx], dims=3)
-
-                newtime[z] = datefind
-                z += 1
-            end
+    dataout = fill(NaN, (size(C[1], 1), size(C[1],2), size(C[1], 3)))::Array{N, T} where N where T
+    for k = 1:size(C[1], 2)
+        Threads.@threads for j = 1:size(C[1], 1)
+            val = polynomial[j,k](datain[j,k,:])
+            dataout[j,k,:] = val
         end
     end
 
-    # Build output AxisArray
-    FD = buildarray_resample(C, dataout, newtime)
+    dataout2 = buildarrayinterface(dataout, C)
 
-    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
-
+    return ClimGrid(dataout2; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
-"""
-    daysinmonth(D::DateTimeNoLeap)
-
-Workaround to work with non-standard calendar DateTimeNoLeap.
-"""
-function daysinmonth(D::DateTimeNoLeap)
-    DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    return DAYSINMONTH2[Dates.month(D)]
-end
-
-"""
-    daysinmonth(D::DateTimeStandard)
-
-Workaround to work with non-standard calendar DateTimeStandard.
-"""
-function daysinmonth(D::DateTimeStandard)
-    DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    return DAYSINMONTH2[Dates.month(D)] + (Dates.month(D) == 2 && isleapyear(Dates.year(D)))
-end
-
-"""
-    daysinmonth(D::DateTimeProlepticGregorian)
-
-Workaround to work with non-standard calendar DateTimeProlepticGregorian.
-"""
-function daysinmonth(D::DateTimeProlepticGregorian)
-    DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    return DAYSINMONTH2[m] + (m == 2 && isleapyear(y))
-end
-
-"""
-    daysinmonth(D::DateTimeAllLeap)
-
-Workaround to work with non-standard calendar DateTimeAllLeap.
-"""
-function daysinmonth(D::DateTimeAllLeap)
-    DAYSINMONTH2 = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    return DAYSINMONTH2[Dates.month(D)]
-end
-
-"""
-    daysinmonth(D::DateTime360Day)
-
-Workaround to work with non-standard calendar DateTime360Day.
-"""
-daysinmonth(D::DateTime360Day) = 30
-
-
-"""
-    periodmean(C::ClimGrid; startdate::Tuple, enddate::Tuple)
-
-Mean of array data over a given period.
-"""
-function periodmean(C::ClimGrid; startdate::Tuple=(Inf, ), enddate::Tuple=(Inf,))
-
-    if startdate == (Inf, )
-        timevec = get_timevec(C)
-        # Get time resolution
-        rez = C.frequency
-        if rez == "year"
-            startdate = (Dates.Year(timevec[1]).value, )
-            enddate = (Dates.Year(timevec[end]).value, )
-        else
-            startdate = (Dates.Year(timevec[1]).value, Dates.Month(timevec[1]).value, Dates.Day(timevec[1]).value)
-            enddate = (Dates.Year(timevec[end]).value, Dates.Month(timevec[end]).value, Dates.Day(timevec[end]).value)
-        end
+function extension(url::String)
+    try
+        return match(r"\.[A-Za-z0-9]+$", url).match
+    catch
+        return ""
     end
-    Csubset = temporalsubset(C, startdate, enddate)
-    datain   = Csubset.data.data
-
-    # Mean and squeeze
-    dataout = fill(NaN, size(datain, 1), size(datain, 2))
-    dataout_rshp = reshape(dataout, (size(dataout, 1)*size(dataout, 2)))
-    datain_rshp = reshape(datain, (size(datain, 1)*size(datain, 2), size(datain, 3)))
-
-    for k = 1:size(datain_rshp, 1)
-        datatmp = datain_rshp[k, :]
-        dataout_rshp[k] = Statistics.mean(datatmp[.!isnan.(datatmp)])
-    end
-
-    # Build output AxisArray
-    FD = buildarray_climato(C, dataout)
-
-    # Return climGrid type containing the indice
-    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
-
-
 
 # function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)
 #
