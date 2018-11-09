@@ -389,10 +389,14 @@ function periodmean(C::ClimGrid, startdate::Tuple, enddate::Tuple)
 end
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> spei indice
 """
     spei()
 
 Returns the The Standardized Precipitation Evapotranspiration Index (SPEI).
+<<<<<<< HEAD
 
 **Reference**
 Vicente-Serrano, S. M., Beguería, S., & López-Moreno, J. I. (2010). A Multiscalar Drought Index Sensitive to Global Warming: The Standardized Precipitation Evapotranspiration Index. Journal of Climate, 23(7), 1696–1718. https://doi.org/10.1175/2009JCLI2909.1
@@ -400,6 +404,12 @@ Vicente-Serrano, S. M., Beguería, S., & López-Moreno, J. I. (2010). A Multisca
 =======
 
 >>>>>>> cleaned file
+=======
+
+**Reference**
+Vicente-Serrano, S. M., Beguería, S., & López-Moreno, J. I. (2010). A Multiscalar Drought Index Sensitive to Global Warming: The Standardized Precipitation Evapotranspiration Index. Journal of Climate, 23(7), 1696–1718. https://doi.org/10.1175/2009JCLI2909.1
+"""
+>>>>>>> spei indice
 
 
 # """
