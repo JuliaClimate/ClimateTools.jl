@@ -137,7 +137,7 @@ export shapefile_coords, shapefile_coords_poly
 export periodmean, resample, temporalsubset, spatialsubset
 export qqmap, qqmaptf
 export permute_west_east
-export getdim_lat, getdim_lon, isdefined, extractpoly,
+export getdim_lat, getdim_lon, isdefined, extractpoly
 export polyfit, polyval
 export @isdefined
 export plot, mapclimgrid
