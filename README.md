@@ -73,7 +73,7 @@ struct ClimGrid
   lonunits::String # of the coordinate variable
   variable::String # Type of variable (i.e. can be the same as "var", but it is changed when calculating indices)
   typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
-  typeofcal::String # Calendar type (e.g. 365_day, Standard, etc.)
+  typeofcal::String # Calendar type
   timeattrib::Dict # Time attributes
   varattribs::Dict # Variable attributes
   globalattribs::Dict # Global attributes
@@ -159,6 +159,14 @@ Sometimes, the timeseries are split among multiple files (e.g. climate models ou
 
 ```julia
 C = merge(C1::ClimGrid, C2::ClimGrid)
+```
+
+### Exporting
+
+It is possible to export to a netCDF file with the command `write`
+
+```julia
+write(C::ClimGrid, filename::String)
 ```
 
 ## TO-DO
