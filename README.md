@@ -161,6 +161,14 @@ Sometimes, the timeseries are split among multiple files (e.g. climate models ou
 C = merge(C1::ClimGrid, C2::ClimGrid)
 ```
 
+### Exporting
+
+It is possible to export to a netCDF file with the command `write`
+
+```julia
+write(C::ClimGrid, filename::String)
+```
+
 ## TO-DO
 
 * Dashboard tool. This will return the main characteristics of a ClimGrid: maps of minimum, maximum and mean climatological values, seasonal cycle, timeseries of annual maximum, minimum and mean values, etc...
