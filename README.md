@@ -81,6 +81,8 @@ struct ClimGrid
 end
 ```
 
+### Subsetting
+
 Further subsets can be done in the temporal and spatial domains. `spatialsubset` function acts on `ClimGrid` type and subset the data using a user polygon. The function returns another `ClimGrid`.
 
 ```julia
