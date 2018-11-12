@@ -1,5 +1,5 @@
 # Prcp1
-d = Date(2003,1,1):Day(1):Date(2005,12,31)
+d = DateTime(2003,1,1):Day(1):DateTime(2005,12,31)
 
 data = Array{Float64,3}(undef, 2, 2,1096)
 data[1,1,:] = vcat(ones(365,1), zeros(366,1), ones(365))
@@ -115,7 +115,7 @@ ind = icingdays(C)
 @test ind.data.data == Results
 
 # Summer Days
-d = Date(2003,1,1):Day(1):Date(2007,12,31)
+d = DateTime(2003,1,1):Day(1):DateTime(2007,12,31)
 
 data = Array{Float64, 3}(undef, 2, 2, 1826)
 data[1,1,:] = collect(1.0:1826.0); data[1,2,:] = collect(1.0:1826.0); data[2,1,:]=collect(1.0:1826.0); data[2,2,:] = collect(1.0:1826.0);

@@ -50,7 +50,7 @@ status, figh = mapclimgrid(annualmax(C), region = "Europe");@test status == true
 # precip
 C = load(filename, "pr", data_units="mm") + 2.0
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
-status, figh = mapclimgrid(C, start_date=(2000, 05, 15), end_date=(2000, 05, 15));@test status == true; PyPlot.close()
+status, figh = mapclimgrid(C, start_date=(2000, 05, 16, 12), end_date=(2000, 05, 16, 12));@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "World");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, region = "WorldAz");@test status == true; PyPlot.close()
 # status, figh = mapclimgrid(C, region = "WorldEck4");@test status == true; PyPlot.close()

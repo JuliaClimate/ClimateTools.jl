@@ -36,8 +36,9 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
 
   # Time limits
   if ndims(C[1]) > 2
-      timeV = C[1][Axis{:time}][:]
-      timebeg, timeend = ClimateTools.timeindex(timeV, start_date, end_date, C.frequency)
+      timeV = get_timevec(C)
+      T = typeof(timeV[1])
+      timebeg, timeend = ClimateTools.timeindex(timeV, start_date, end_date, T)
   end
 
   # =============
@@ -132,7 +133,7 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
         m = basemap[:Basemap](projection = "lcc", resolution = "l", width=6500000,height=5000000, lat_0 = 62, lon_0 = -95, lat_1 = 45., lat_2 = 55, rsphere = (6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "quebec" || lowercase(region) == "qc"
-        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -70.5, llcrnrlat = 41., urcrnrlon = -56.566, urcrnrlat = 62.352, lon_0 = -60, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
+        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -80.5, llcrnrlat = 41., urcrnrlon = -50.566, urcrnrlat = 62.352, lon_0 = -70, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "south_quebec" || lowercase(region) == "south_qc"
         m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -75.9, llcrnrlat = 42.6, urcrnrlon = -61.5, urcrnrlat = 49.5, lon_0 = -70, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
@@ -171,7 +172,7 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
         m = basemap[:Basemap](projection="eck4", resolution = "c", lon_0 = 0)
 
     elseif lowercase(region) == "outaouais"
-        m = basemap[:Basemap](projection="lcc", resolution="h", llcrnrlon=-78.5, llcrnrlat=45., urcrnrlon=-73.866, urcrnrlat=48.0, lon_0=-75, lat_1=44, rsphere=(6378137.00, 6356752.3142))    
+        m = basemap[:Basemap](projection="lcc", resolution="h", llcrnrlon=-78.5, llcrnrlat=45., urcrnrlon=-73.866, urcrnrlat=48.0, lon_0=-75, lat_1=44, rsphere=(6378137.00, 6356752.3142))
 
     elseif region == "auto"
         m = basemap[:Basemap](projection="cyl", resolution = "c", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon)
@@ -214,7 +215,7 @@ function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::T
     end
 
     data = C[1].data
-    timevec = C[1][Axis{:time}][:]
+    timevec = get_timevec(C)
 
     if typeof(timevec[1]) != Date
         if typeof(timevec[1]) == Dates.Year
@@ -326,7 +327,7 @@ Returns the title. Used internally by [`mapclimgrid`](@ref).
 function titledef(C::ClimGrid)
     if ndims(C[1]) > 2
 
-        if typeof((C[1][Axis{:time}][1])) == DateTime
+        if typeof((C[1][Axis{:time}][1])) <: AbstractCFDateTime || typeof((C[1][Axis{:time}][1])) == DateTime
             begYear = string(Dates.year(C[1][Axis{:time}][1]))
             endYear = string(Dates.year(C[1][Axis{:time}][end]))
         elseif typeof((C[1][Axis{:time}][1])) == Dates.Year

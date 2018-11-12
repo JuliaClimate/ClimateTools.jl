@@ -1,5 +1,5 @@
 # Test vaporpressure(specific_humidity::ClimGrid, surface_pressure::ClimGrid)
-d = Date(2003,1,1):Day(1):Date(2003,1,3)
+d = DateTime(2003,1,1):Day(1):DateTime(2003,1,3)
 # Dummy data
 data_huss = Array{Float64,3}(undef, 2,2,3)
 data_huss[1,1,:] .= 0
@@ -90,7 +90,7 @@ vp = vaporpressure(C_huss, C_psl, C_orog, C_tas)
 @test round.(vp.data.data, digits=10) == Results
 
 # Test wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)
-d = Date(2003,1,1):Day(1):Date(2003,1,3)
+d = DateTime(2003,1,1):Day(1):DateTime(2003,1,3)
 # Dummy data
 data_tdiu = Array{Float64,3}(undef, 2,2,3)
 data_tdiu[1,1,:] .= 250.0
@@ -138,7 +138,7 @@ C_wbgt = wbgt(C_tdiu, C_vp)
 @test round.(C_wbgt.data.data, digits=10) == Results
 
 # Test diurnaltemperature()
-d = Date(2003,1,1):Day(1):Date(2003,1,3)
+d = DateTime(2003,1,1):Day(1):DateTime(2003,1,3)
 # Dummy data
 data_tmax = Array{Float64,3}(undef, 2,2,3)
 data_tmax[1,1,:] .= 0.0
@@ -174,7 +174,7 @@ C_tdiu = diurnaltemperature(C_tmin, C_tmax, α)
 @test C_tdiu.data.data == Results
 
 # Test meantemperature()
-d = Date(2003,1,1):Day(1):Date(2003,1,3)
+d = DateTime(2003,1,1):Day(1):DateTime(2003,1,3)
 # Dummy data
 data_tmax = Array{Float64,3}(undef, 2,2,3)
 data_tmax[1,1,:] .= 0.0

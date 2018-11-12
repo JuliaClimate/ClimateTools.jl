@@ -153,7 +153,7 @@ function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} wh
         maxlon = maximum(polyn[1, :])
         minlat = minimum(polyn[2, :])
         maxlat = maximum(polyn[2, :])
-        
+
         # DEPRECATED. SEE NEXT "begin ... end"
         # idx, idy = findn((lon .<= maxlon) .& (lon .>= minlon) .& (lat .>= minlat) .& (lat .<= maxlat))
         begin
@@ -221,7 +221,7 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
     lonsymbol = Symbol(B.dimension_dict["lon"])
     dataOut = AxisArray(OUT, Axis{lonsymbol}(B[1][Axis{lonsymbol}][:]), Axis{latsymbol}(B[1][Axis{latsymbol}][:]), Axis{:time}(timeorig))
 
-    C = ClimateTools.ClimGrid(dataOut, longrid=B.longrid, latgrid=B.latgrid, msk=B.msk, grid_mapping=B.grid_mapping, dimension_dict=B.dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=B.latunits, lonunits=B.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
+    C = ClimateTools.ClimGrid(dataOut, longrid=B.longrid, latgrid=B.latgrid, msk=B.msk, grid_mapping=B.grid_mapping, dimension_dict=B.dimension_dict, timeattrib=A.timeattrib, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=B.latunits, lonunits=B.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 
 end
 
@@ -289,7 +289,7 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
     end
 
 
-    C = ClimateTools.ClimGrid(dataOut, longrid=londest, latgrid=latdest, msk=msk, grid_mapping=grid_mapping, dimension_dict=dimension_dict, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits="degrees_north", lonunits="degrees_east", variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
+    C = ClimateTools.ClimGrid(dataOut, longrid=londest, latgrid=latdest, msk=msk, grid_mapping=grid_mapping, dimension_dict=dimension_dict, timeattrib=A.timeattrib, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits="degrees_north", lonunits="degrees_east", variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 
 end
 
@@ -459,7 +459,7 @@ function ensemble_mean(C; skipnan=true)
     for k = 1:length(C)
         # datatmp[.!isnan.(datatmp)
         axisarrays[k] = periodmean(C[k])#[1][.!isnan.(C[k][1])], dims=3)
-    end    
+    end
 
     # ENSEMBLE MEAN
     n = length(axisarrays) # number of members
@@ -474,112 +474,58 @@ function ensemble_mean(C; skipnan=true)
     end
 
     # Return ClimGrid
-    return ClimGrid(dataout[1], longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, model=globalattribs["models"], frequency="Climatology", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+    return ClimGrid(dataout[1], longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
 
 end
 
 
 """
-    buildtoken(date::DateTime, C::ClimGrid)
+    polyfit(C::ClimGrid)
 
-Returns the right date token based on time vector contained in ClimGrid C.
+Returns an array of the polynomials functions of each grid points contained in ClimGrid C.
 """
-function buildtoken(date, C::ClimGrid)
-    timevec = get_timevec(C)
-    typetoken = typeof(timevec[1])
-
-    return typetoken
-
-
+function polyfit(C::ClimGrid)
+    x = 1:length(C[1][Axis{:time}][:])
+    # x = Dates.value.(C[1][Axis{:time}][:] - C[1][Axis{:time}][1])+1
+    dataout = Array{Polynomials.Poly{Float64}}(undef, size(C[1], 1),size(C[1], 2))
+    for k = 1:size(C[1], 2)
+        Threads.@threads for j = 1:size(C[1], 1)
+            y = C[1][j , k, :].data
+            polynomial = Polynomials.polyfit(x, y, 4)
+            polynomial[0] = 0.0
+            dataout[j,k] = polynomial
+        end
+    end
+    return dataout
 end
 
 """
-    daymean(C::ClimGrid)
+    polyval(C::ClimGrid, polynomial::Array{Poly{Float64}})
 
-Returns the daily average of sub-daily ClimGrid.
+    Returns a ClimGrid containing the values, as estimated from polynomial function polyn.
 """
-function daymean(C::ClimGrid)
-
+function polyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
     datain = C[1].data
-
-    timevec   = get_timevec(C)
-    years     = Dates.year.(timevec)
-    numYears  = unique(years)
-    months    = Dates.month.(timevec)
-    numMonths = unique(months)
-    days    = Dates.day.(timevec)
-    numDays = unique(days)
-    # numDays2 = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-
-    dayfactor = ClimateTools.daymean_factor(C.frequency)
-    dataout = fill(NaN, (size(C[1], 1), size(C[1], 2), Int64(size(C[1],3)/dayfactor)))
-    newtime = Array{DateTime}(undef, Int64(size(C[1],3)/dayfactor))
-
-    # loop over year-month-days
-    z = 1
-    for iy in 1:length(numYears)
-        for im in 1:length(numMonths)
-            numDays = 
-            for id in 1:Dates.daysinmonth(Date(string(numYears[iy],"-", numMonths[im])))
-                
-                datefind = Date(string(numYears[iy],"-", numMonths[im],"-",numDays[id]), "yyyy-mm-dd")
-                idx = Date.(timevec) .== datefind
-                # idx = searchsortedfirst(years, numYears[iy]):searchsortedlast(years, numYears[iy]) && searchsortedfirst(months, numMonths[im]):searchsortedlast(months, numMonths[im]) && searchsortedfirst(days, numDays[id]):searchsortedlast(days, numDays[id])
-                
-                mean!(view(dataout, :, :, z), view(datain, :,:, idx))
-                newtime[z] = DateTime(datefind)
-                z += 1
-            end
+    dataout = fill(NaN, (size(C[1], 1), size(C[1],2), size(C[1], 3)))::Array{N, T} where N where T
+    for k = 1:size(C[1], 2)
+        Threads.@threads for j = 1:size(C[1], 1)
+            val = polynomial[j,k](datain[j,k,:])
+            dataout[j,k,:] = val
         end
     end
 
-    # Build output AxisArray
-    FD = buildarray_resample(C, dataout, newtime)
+    dataout2 = buildarrayinterface(dataout, C)
 
-    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)    
-        
+    return ClimGrid(dataout2; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
-"""
-    periodmean(C::ClimGrid; startdate::Tuple, enddate::Tuple)
-
-Mean of array data over a given period.
-"""
-function periodmean(C::ClimGrid; startdate::Tuple=(Inf, ), enddate::Tuple=(Inf,))
-
-    if startdate == (Inf, )
-        timevec = get_timevec(C)
-        # Get time resolution
-        rez = C.frequency
-        if rez == "year"
-            startdate = (Dates.Year(timevec[1]).value, )
-            enddate = (Dates.Year(timevec[end]).value, )
-        else
-            startdate = (Dates.Year(timevec[1]).value, Dates.Month(timevec[1]).value, Dates.Day(timevec[1]).value)
-            enddate = (Dates.Year(timevec[end]).value, Dates.Month(timevec[end]).value, Dates.Day(timevec[end]).value)
-        end
+function extension(url::String)
+    try
+        return match(r"\.[A-Za-z0-9]+$", url).match
+    catch
+        return ""
     end
-    Csubset = temporalsubset(C, startdate, enddate)
-    datain   = Csubset.data.data
-
-    # Mean and squeeze
-    dataout = fill(NaN, size(datain, 1), size(datain, 2))
-    dataout_rshp = reshape(dataout, (size(dataout, 1)*size(dataout, 2)))
-    datain_rshp = reshape(datain, (size(datain, 1)*size(datain, 2), size(datain, 3)))
-
-    for k = 1:size(datain_rshp, 1)
-        datatmp = datain_rshp[k, :]
-        dataout_rshp[k] = Statistics.mean(datatmp[.!isnan.(datatmp)])
-    end
-
-    # Build output AxisArray
-    FD = buildarray_climato(C, dataout)
-
-    # Return climGrid type containing the indice
-    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
-
-
 
 # function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)
 #
@@ -662,5 +608,3 @@ end
 #
 # grid_in = [[12; 12; 12] [55; 54; 53]]
 # rot2lonlat(grid_in[:, 1], grid_in[:, 2], SP_lon2, SP_lat2, northpole=false)
-
-

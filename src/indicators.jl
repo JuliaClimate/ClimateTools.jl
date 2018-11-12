@@ -22,7 +22,7 @@ function vaporpressure(specific_humidity::ClimGrid, surface_pressure::ClimGrid)
   vp_dict["history"] = "Water vapor pressure calculated by a function of surface_pressure and specific humidity"
 
   # Build ClimGrid object
-  return ClimGrid(vp_array, longrid=surface_pressure.longrid, latgrid=surface_pressure.latgrid, msk=surface_pressure.msk, grid_mapping=surface_pressure.grid_mapping, dimension_dict=surface_pressure.dimension_dict, model=surface_pressure.model, frequency=surface_pressure.frequency, experiment=surface_pressure.experiment, run=surface_pressure.run, project=surface_pressure.project, institute=surface_pressure.institute, filename=surface_pressure.filename, dataunits="Pa", latunits=surface_pressure.latunits, lonunits=surface_pressure.lonunits, variable="vp", typeofvar="vp", typeofcal=surface_pressure.typeofcal, varattribs=vp_dict, globalattribs=surface_pressure.globalattribs)
+  return ClimGrid(vp_array, longrid=surface_pressure.longrid, latgrid=surface_pressure.latgrid, msk=surface_pressure.msk, grid_mapping=surface_pressure.grid_mapping, dimension_dict=surface_pressure.dimension_dict, timeattrib=surface_pressure.timeattrib, model=surface_pressure.model, frequency=surface_pressure.frequency, experiment=surface_pressure.experiment, run=surface_pressure.run, project=surface_pressure.project, institute=surface_pressure.institute, filename=surface_pressure.filename, dataunits="Pa", latunits=surface_pressure.latunits, lonunits=surface_pressure.lonunits, variable="vp", typeofvar="vp", typeofcal=surface_pressure.typeofcal, varattribs=vp_dict, globalattribs=surface_pressure.globalattribs)
 end
 
 
@@ -86,7 +86,7 @@ function approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid
   ps_dict["history"] = "Surface pressure estimated with the sealevel pressure, the orography and the daily temperature"
 
   # Build ClimGrid object
-  return ClimGrid(ps_array, longrid=sealevel_pressure.longrid, latgrid=sealevel_pressure.latgrid, msk=sealevel_pressure.msk, grid_mapping=sealevel_pressure.grid_mapping, dimension_dict=sealevel_pressure.dimension_dict, model=sealevel_pressure.model, frequency=sealevel_pressure.frequency, experiment=sealevel_pressure.experiment, run=sealevel_pressure.run, project=sealevel_pressure.project, institute=sealevel_pressure.institute, filename=sealevel_pressure.filename, dataunits="Pa", latunits=sealevel_pressure.latunits, lonunits=sealevel_pressure.lonunits, variable="ps", typeofvar="ps", typeofcal=sealevel_pressure.typeofcal, varattribs=ps_dict, globalattribs=sealevel_pressure.globalattribs)
+  return ClimGrid(ps_array, longrid=sealevel_pressure.longrid, latgrid=sealevel_pressure.latgrid, msk=sealevel_pressure.msk, grid_mapping=sealevel_pressure.grid_mapping, dimension_dict=sealevel_pressure.dimension_dict, timeattrib=sealevel_pressure.timeattrib, model=sealevel_pressure.model, frequency=sealevel_pressure.frequency, experiment=sealevel_pressure.experiment, run=sealevel_pressure.run, project=sealevel_pressure.project, institute=sealevel_pressure.institute, filename=sealevel_pressure.filename, dataunits="Pa", latunits=sealevel_pressure.latunits, lonunits=sealevel_pressure.lonunits, variable="ps", typeofvar="ps", typeofcal=sealevel_pressure.typeofcal, varattribs=ps_dict, globalattribs=sealevel_pressure.globalattribs)
 end
 
 """
@@ -119,7 +119,7 @@ function wbgt(mean_temperature::ClimGrid, vapor_pressure::ClimGrid)
   wbgt_dict["history"] = "Wet-bulb globe temperature estimated with the vapor pressure and the mean temperature"
 
   # Build ClimGrid object
-  return ClimGrid(wbgt_array, longrid=mean_temperature.longrid, latgrid=mean_temperature.latgrid, msk=mean_temperature.msk, grid_mapping=mean_temperature.grid_mapping, dimension_dict=mean_temperature.dimension_dict, model=mean_temperature.model, frequency=mean_temperature.frequency, experiment=mean_temperature.experiment, run=mean_temperature.run, project=mean_temperature.project, institute=mean_temperature.institute, filename=mean_temperature.filename, dataunits="Celsius", latunits=mean_temperature.latunits, lonunits=mean_temperature.lonunits, variable="wbgt", typeofvar="wbgt", typeofcal=mean_temperature.typeofcal, varattribs=wbgt_dict, globalattribs=mean_temperature.globalattribs)
+  return ClimGrid(wbgt_array, longrid=mean_temperature.longrid, latgrid=mean_temperature.latgrid, msk=mean_temperature.msk, grid_mapping=mean_temperature.grid_mapping, dimension_dict=mean_temperature.dimension_dict, timeattrib=mean_temperature.timeattrib, model=mean_temperature.model, frequency=mean_temperature.frequency, experiment=mean_temperature.experiment, run=mean_temperature.run, project=mean_temperature.project, institute=mean_temperature.institute, filename=mean_temperature.filename, dataunits="Celsius", latunits=mean_temperature.latunits, lonunits=mean_temperature.lonunits, variable="wbgt", typeofvar="wbgt", typeofcal=mean_temperature.typeofcal, varattribs=wbgt_dict, globalattribs=mean_temperature.globalattribs)
 end
 
 """
@@ -147,7 +147,7 @@ function diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::Cl
   tdiu_dict["history"] = "Diurnal temperature (between 7:00 and 17:00) estimated using a linear combination of the daily minimum temperature and the daily maximum temperature"
 
   # Build ClimGrid object
-  return ClimGrid(tdiu_array, longrid=temperatureminimum.longrid, latgrid=temperatureminimum.latgrid, msk=temperatureminimum.msk, grid_mapping=temperatureminimum.grid_mapping, dimension_dict=temperatureminimum.dimension_dict, model=temperatureminimum.model, frequency=temperatureminimum.frequency, experiment=temperatureminimum.experiment, run=temperatureminimum.run, project=temperatureminimum.project, institute=temperatureminimum.institute, filename=temperatureminimum.filename, dataunits=temperatureminimum.dataunits, latunits=temperatureminimum.latunits, lonunits=temperatureminimum.lonunits, variable="tdiu", typeofvar="tdiu", typeofcal=temperatureminimum.typeofcal, varattribs=tdiu_dict, globalattribs=temperatureminimum.globalattribs)
+  return ClimGrid(tdiu_array, longrid=temperatureminimum.longrid, latgrid=temperatureminimum.latgrid, msk=temperatureminimum.msk, grid_mapping=temperatureminimum.grid_mapping, dimension_dict=temperatureminimum.dimension_dict, timeattrib=temperatureminimum.timeattrib, model=temperatureminimum.model, frequency=temperatureminimum.frequency, experiment=temperatureminimum.experiment, run=temperatureminimum.run, project=temperatureminimum.project, institute=temperatureminimum.institute, filename=temperatureminimum.filename, dataunits=temperatureminimum.dataunits, latunits=temperatureminimum.latunits, lonunits=temperatureminimum.lonunits, variable="tdiu", typeofvar="tdiu", typeofcal=temperatureminimum.typeofcal, varattribs=tdiu_dict, globalattribs=temperatureminimum.globalattribs)
 end
 
 """
@@ -176,7 +176,7 @@ function meantemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimG
   tmean_dict["history"] = "Mean temperature calculated from the daily minimum and maximum temperature"
 
   # Build ClimGrid object
-  return ClimGrid(tmean_array, longrid=temperatureminimum.longrid, latgrid=temperatureminimum.latgrid, msk=temperatureminimum.msk, grid_mapping=temperatureminimum.grid_mapping, dimension_dict=temperatureminimum.dimension_dict, model=temperatureminimum.model, frequency=temperatureminimum.frequency, experiment=temperatureminimum.experiment, run=temperatureminimum.run, project=temperatureminimum.project, institute=temperatureminimum.institute, filename=temperatureminimum.filename, dataunits=temperatureminimum.dataunits, latunits=temperatureminimum.latunits, lonunits=temperatureminimum.lonunits, variable="tmean", typeofvar="tmean", typeofcal=temperatureminimum.typeofcal, varattribs=tmean_dict, globalattribs=temperatureminimum.globalattribs)
+  return ClimGrid(tmean_array, longrid=temperatureminimum.longrid, latgrid=temperatureminimum.latgrid, msk=temperatureminimum.msk, grid_mapping=temperatureminimum.grid_mapping, dimension_dict=temperatureminimum.dimension_dict, timeattrib=temperatureminimum.timeattrib, model=temperatureminimum.model, frequency=temperatureminimum.frequency, experiment=temperatureminimum.experiment, run=temperatureminimum.run, project=temperatureminimum.project, institute=temperatureminimum.institute, filename=temperatureminimum.filename, dataunits=temperatureminimum.dataunits, latunits=temperatureminimum.latunits, lonunits=temperatureminimum.lonunits, variable="tmean", typeofvar="tmean", typeofcal=temperatureminimum.typeofcal, varattribs=tmean_dict, globalattribs=temperatureminimum.globalattribs)
 end
 
 # """
