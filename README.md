@@ -1,14 +1,11 @@
 # ClimateTools for Julia
 
-| **Package Status** | **Package Evaluator** | **Build Status**  |  **DOI**  |
-|:------------------:|:---------------------:|:-----------------:|:---------:|
-| [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) | [![Coverage Status](https://coveralls.io/repos/github/Balinus/ClimateTools.jl/badge.svg?branch=master)](https://coveralls.io/github/Balinus/ClimateTools.jl?branch=master) [![codecov.io](http://codecov.io/github/Balinus/ClimateTools.jl/coverage.svg?branch=master)](http://codecov.io/github/Balinus/ClimateTools.jl?branch=master) | [![Build Status](https://travis-ci.org/Balinus/ClimateTools.jl.svg?branch=master)](https://travis-ci.org/Balinus/ClimateTools.jl)| [![DOI](https://zenodo.org/badge/76293821.svg)](https://zenodo.org/badge/latestdoi/76293821) |
+
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) | [![Coverage Status](https://coveralls.io/repos/github/Balinus/ClimateTools.jl/badge.svg?branch=master)](https://coveralls.io/github/Balinus/ClimateTools.jl?branch=master) [![codecov.io](http://codecov.io/github/Balinus/ClimateTools.jl/coverage.svg?branch=master)](http://codecov.io/github/Balinus/ClimateTools.jl?branch=master) | [![Build Status](https://travis-ci.org/Balinus/ClimateTools.jl.svg?branch=master)](https://travis-ci.org/Balinus/ClimateTools.jl) | [![DOI](https://zenodo.org/badge/76293821.svg)](https://zenodo.org/badge/latestdoi/76293821)
 
 # Documentation
 
-| **Stable** | **Latest** |
-|:-----------:|:-----------:|
-|[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://balinus.github.io/ClimateTools.jl/stable) | [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://balinus.github.io/ClimateTools.jl/latest)
+| [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://balinus.github.io/ClimateTools.jl/stable) | [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://balinus.github.io/ClimateTools.jl/latest)
 
 ## Overview
 
@@ -19,7 +16,7 @@ This package is a collection of commonly-used tools in Climate science. Basics o
 This package is registered on METADATA.jl and can be added and updated with `Pkg` commands. See Documentation for Python's dependencies (for mapping features).
 
 ```julia
-] add ClimateTools
+pkg> add ClimateTools
 ```
 
 The climate indices and bias correction functions are coded to leverage **multiple threads**. To gain maximum performance, use (bash shell Linux/MacOSX) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.THREADS`.
@@ -58,11 +55,11 @@ The `ClimGrid` is a in-memory representation of a CF-compliant netCDF file for a
 
 ```julia
 struct ClimGrid
-  data::AxisArray
+  data::AxisArray # labeled axis
   longrid::AbstractArray{N,2} where N # the longitude grid
   latgrid::AbstractArray{N,2} where N # the latitude grid
   msk::Array{N, 2} where N
-  grid_mapping::Dict#{String, Any} # bindings for native grid
+  grid_mapping::Dict # bindings of native grid
   dimension_dict::Dict
   model::String
   frequency::String
@@ -76,34 +73,36 @@ struct ClimGrid
   lonunits::String # of the coordinate variable
   variable::String # Type of variable (i.e. can be the same as "var", but it is changed when calculating indices)
   typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
-  typeofcal::String # Calendar type
+  typeofcal::String # Calendar type (e.g. 365_day, Standard, etc.)
+  timeattrib::Dict # Time attributes
   varattribs::Dict # Variable attributes
   globalattribs::Dict # Global attributes
 
 end
 ```
 
-Furthermore, there is also the `spatialsubset` function which acts on `ClimGrid` type and further subset the data through a spatial subset using a user polygon. The function returns a `ClimGrid`.
+Further subsets can be done in the temporal and spatial domains. `spatialsubset` function acts on `ClimGrid` type and subset the data using a user polygon. The function returns another `ClimGrid`.
 
 ```julia
 C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)
 ```
 
-Temporal subset of the data is also possible with the `temporalsubset` function, which returns a continuous timeserie between `startdate` and `enddate`.
+Temporal subset of the data is done with `temporalsubset` function, which returns a continuous timeserie between `startdate` and `enddate`.
 
 ```julia
 C = temporalsubset(C::ClimGrid, startdate::Tuple, enddate::Tuple)
 ```
-Resampling is available with the `periodsubset`, which returns a given period for each year (e.g. only summer months).
+Resampling is available with the `resample`, which returns a given period for each year (e.g. only summer months).
 
 ```julia
-C = periodsubset(C::ClimGrid, startmonth::Int, endmonth::Ind)
-C = periodsubset(C::ClimGrid, season::String) # hardcoded seasons -> "DJF", "MAM", "JJA" and "SON"
+C = resample(C::ClimGrid, startmonth::Int, endmonth::Ind)
+C = resample(C::ClimGrid, season::String) # hardcoded seasons -> "DJF", "MAM", "JJA" and "SON"
 ```
 
 ### Mapping the ClimGrid type
 
-Mapping climate information can be done by using `mapclimgrid`:
+Mapping climate information can be done by using `mapclimgrid`.
+
 ```julia
 mapclimgrid(C::ClimGrid; region = "World")
 ```
@@ -152,7 +151,7 @@ C = regrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N, 1})
 
 See [Documentation](https://balinus.github.io/ClimateTools.jl/stable/biascorrection.html).
 
-### Merging ClimGrid type
+### Merging ClimGrids
 
 Sometimes, the timeseries are split among multiple files (e.g. climate models outputs). To obtain the complete timeseries, you can `merge` 2 `ClimGrid`. The method is based on the merging of two `AxisArrays` and is overloaded for the `ClimGrid` type.
 
