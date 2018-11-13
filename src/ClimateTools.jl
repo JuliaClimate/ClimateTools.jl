@@ -125,19 +125,24 @@ include("time.jl")
 include("spatial.jl")
 
 # Exported functions
-export inpoly, inpolygrid, meshgrid, prcp1
+export ClimGrid
+export inpoly, inpolygrid, meshgrid, inpolyvec, ndgrid
 export frostdays, summerdays, icingdays, tropicalnights
 export daysabove10 #, daysbelow0, degdaysabove, degdaysbelow
-export customthresover, customthresunder, annualmax, annualmin, periodmean
-export annualmean, annualsum, load, load2D
-export mapclimgrid, regrid, ClimGrid, inpolyvec, applymask, TransferFunction
+export customthresover, customthresunder, annualmax, annualmin
+export annualmean, annualsum, prcp1, spei
+export load, load2D
+export regrid, applymask, TransferFunction
 export shapefile_coords, shapefile_coords_poly
-export spatialsubset, temporalsubset, resample
-export qqmap, qqmaptf, ndgrid, permute_west_east
+export periodmean, resample, temporalsubset, spatialsubset
+export qqmap, qqmaptf
+export permute_west_east
 export getdim_lat, getdim_lon, isdefined, extractpoly
 export polyfit, polyval
 export @isdefined
-export plot, merge, vaporpressure, approx_surfacepressure, wbgt, diurnaltemperature, meantemperature
+export plot, mapclimgrid
+export merge, vaporpressure, approx_surfacepressure
+export wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
 export get_timevec, ensemble_mean, daymean, daysum
 export write
