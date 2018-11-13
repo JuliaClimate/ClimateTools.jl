@@ -24,7 +24,7 @@ notifications:
 # uncomment the following lines to override the default test script
 script:
 #  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e --inline=no 'using Pkg; Pkg.clone(pwd()); Pkg.test("ClimateTools"; coverage=true);'
+  - julia -e 'using Pkg; Pkg.clone(pwd()); Pkg.test("ClimateTools"; coverage=true);'
 
 before_install:
   #- test "x$TRAVIS_OS_NAME" = xosx -o "x$PYTHON" = xConda-python || (sudo apt-get -qq update && sudo apt-get install -y $PYTHON)
