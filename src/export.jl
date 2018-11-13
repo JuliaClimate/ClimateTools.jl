@@ -22,45 +22,24 @@ function write(C::ClimGrid, filename::String)
     latsymbol, lonsymbol = ClimateTools.getsymbols(C)
 
 
-    defDim(ds, string(lonsymbol), length(C[1][Axis{lonsymbol}][:]))
+    defDim(ds, string(lonsymbol),length(C[1][Axis{lonsymbol}][:]))
     defDim(ds, string(latsymbol), length(C[1][Axis{latsymbol}][:]))
     defDim(ds, "time", length(get_timevec(C)))
 
-    if C.grid_mapping[mapping_name(C)] == "Regular_longitude_latitude"
+    nclat = defVar(ds,"lat", Float64, (string(lonsymbol), string(latsymbol)))
+    nclat.attrib["units"] = C.latunits#"degrees_north"
+    nclat.attrib["long_name"] = "latitude"
+    nclat.attrib["standard_name"] = "latitude"
+    nclat.attrib["actual_range"] = [minimum(C.latgrid), maximum(C.latgrid)]
 
-        nclat = defVar(ds,"lat", Float64, (string(latsymbol),))
-        nclat.attrib["units"] = C.latunits#"degrees_north"
-        nclat.attrib["long_name"] = "latitude"
-        nclat.attrib["standard_name"] = "latitude"
-        nclat.attrib["actual_range"] = [minimum(C.latgrid), maximum(C.latgrid)]
-
-        nclon = defVar(ds,"lon", Float64, (string(lonsymbol),))
-        nclon.attrib["units"] = C.lonunits#"degrees_east"
-        nclon.attrib["long_name"] = "longitude"
-        nclon.attrib["standard_name"] = "longitude"
-        nclon.attrib["actual_range"] = [minimum(C.longrid), maximum(C.longrid)]
-
-    else # i.e. latitude and longitude are on a grid.
-
-        nclat = defVar(ds,"lat", Float64, (string(lonsymbol), string(latsymbol)))
-        nclat.attrib["units"] = C.latunits#"degrees_north"
-        nclat.attrib["long_name"] = "latitude"
-        nclat.attrib["standard_name"] = "latitude"
-        nclat.attrib["actual_range"] = [minimum(C.latgrid), maximum(C.latgrid)]
-
-        nclon = defVar(ds,"lon", Float64, (string(lonsymbol), string(latsymbol)))
-        nclon.attrib["units"] = C.lonunits#"degrees_east"
-        nclon.attrib["long_name"] = "longitude"
-        nclon.attrib["standard_name"] = "longitude"
-        nclon.attrib["actual_range"] = [minimum(C.longrid), maximum(C.longrid)]
-
-    end
+    nclon = defVar(ds,"lon", Float64, (string(lonsymbol), string(latsymbol)))
+    nclon.attrib["units"] = C.lonunits#"degrees_east"
+    nclon.attrib["long_name"] = "longitude"
+    nclon.attrib["standard_name"] = "longitude"
+    nclon.attrib["actual_range"] = [minimum(C.longrid), maximum(C.longrid)]
 
 
-    if C.grid_mapping[mapping_name(C)] != "Regular_longitude_latitude"
-
-        # Dimensions
-
+    if latsymbol != :lat
         ncrlat = defVar(ds,string(latsymbol), Float64, (string(latsymbol),))
         ncrlat.attrib["long_name"] = "latitude in rotated pole grid"
         ncrlat.attrib["units"] = "degrees"
@@ -68,7 +47,9 @@ function write(C::ClimGrid, filename::String)
         ncrlat.attrib["axis"] = "Y"
         ncrlat.attrib["coordinate_defines"] = "point"
         ncrlat.attrib["actual_range"] = [minimum(C[1][Axis{latsymbol}][:]), maximum(C[1][Axis{latsymbol}][:])]
+    end
 
+    if lonsymbol != :lon
         ncrlon = defVar(ds,string(lonsymbol), Float64, (string(lonsymbol),))
         ncrlon.attrib["long_name"] = "longitude in rotated pole grid"
         ncrlon.attrib["units"] = "degrees"
@@ -78,8 +59,8 @@ function write(C::ClimGrid, filename::String)
         ncrlon.attrib["actual_range"] = [minimum(C[1][Axis{lonsymbol}][:]), maximum(C[1][Axis{lonsymbol}][:])]
     end
 
-    ncmapping = defVar(ds, C.grid_mapping[mapping_name(C)], Char, ())
 
+    ncmapping = defVar(ds,C.grid_mapping["grid_mapping"], Char, ())
     for iattr in keys(C.grid_mapping)
         ncmapping.attrib[iattr] = C.grid_mapping[iattr]
     end
@@ -110,6 +91,22 @@ function write(C::ClimGrid, filename::String)
     # ===========
     # DATA
     # Variable
+    v[:] = C[1].data
+
+    # Time vector
+    nctime[:] = timeout#Float64.(Dates.days.(Dates.DateTime.(timevec) - timevec[1] + Dates.DateTime(Dates.Day(1))))
+
+    # Longitude/latitude
+    nclon[:] = C.longrid
+    nclat[:] = C.latgrid
+
+    # Dimensions
+    if latsymbol != :lat
+        ncrlon[:] = C[1][Axis{lonsymbol}][:]
+    end
+    if latsymbol != :lat
+        ncrlat[:] = C[1][Axis{latsymbol}][:]
+    end
 
 
     # write attributes
@@ -122,45 +119,15 @@ function write(C::ClimGrid, filename::String)
         ds.attrib[iattr] = C.globalattribs[iattr]
     end
 
-    v[:] = C[1].data
-
-    # Time vector
-    nctime[:] = timeout#Float64.(Dates.days.(Dates.DateTime.(timevec) - timevec[1] + Dates.DateTime(Dates.Day(1))))
-
-    # Longitude/latitude
-    if C.grid_mapping[mapping_name(C)] == "Regular_longitude_latitude"
-        nclon[:] = C[1][Axis{lonsymbol}][:]
-        nclat[:] = C[1][Axis{latsymbol}][:]
-    elseif C.grid_mapping[mapping_name(C)] != "Regular_longitude_latitude"
-        nclon[:] = C.longrid
-        nclat[:] = C.latgrid
-        ncrlon[:] = C[1][Axis{lonsymbol}][:]
-        ncrlat[:] = C[1][Axis{latsymbol}][:]
-    end
-
     # Close file
     close(ds)
 
 end
 
-
-
-function mapping_name(C::ClimGrid)
-
-    K = collect(keys(C.grid_mapping))
-
-    if sum(K .== "grid_mapping") == 1
-        return "grid_mapping"
-    elseif sum(K .== "grid_mapping_name") == 1
-        return "grid_mapping_name"
-    # elseif sum(keys(C.grid_mapping) .== "y") == 1
-    #     return "y"
-    # elseif sum(keys(C.grid_mapping) .== "yc") == 1
-    #     return "yc"
-    else
-        throw(error("Mapping attributes seems wrong."))
+function extension(url::String)
+    try
+        return match(r"\.[A-Za-z0-9]+$", url).match
+    catch
+        return ""
     end
-
-
-
 end
