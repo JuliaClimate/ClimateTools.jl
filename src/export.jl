@@ -123,11 +123,3 @@ function write(C::ClimGrid, filename::String)
     close(ds)
 
 end
-
-function extension(url::String)
-    try
-        return match(r"\.[A-Za-z0-9]+$", url).match
-    catch
-        return ""
-    end
-end
