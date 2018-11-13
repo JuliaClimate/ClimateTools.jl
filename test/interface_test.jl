@@ -384,3 +384,40 @@ timevec = NetCDF.ncread(filename, "time")
 @test ClimateTools.pr_timefactor("6h") == 21600.0
 @test ClimateTools.pr_timefactor("3h") == 10800.0
 @test ClimateTools.pr_timefactor("1h") == 3600.0
+
+# timeindex tests
+d = collect(DateTime(2000, 01, 01):Day(1):DateTime(2005, 12, 31))
+T = typeof(d[1])
+
+start_date = (Inf,)
+end_date = (Inf,)
+idxtimebeg, idxtimeend = ClimateTools.timeindex(d, start_date, end_date, T)
+@test idxtimebeg == 1
+@test idxtimeend == length(d)
+
+start_date = (2001, 01, 01)
+end_date = (Inf,)
+idxtimebeg, idxtimeend = ClimateTools.timeindex(d, start_date, end_date, T)
+@test idxtimebeg == 367
+@test idxtimeend == length(d)
+
+start_date = (2001, 01, 01)
+end_date = (2003, 12, 31)
+idxtimebeg, idxtimeend = ClimateTools.timeindex(d, start_date, end_date, T)
+@test idxtimebeg == 367
+@test idxtimeend == 1461
+
+@test_throws ArgumentError ClimateTools.timeindex(d, end_date, start_date, T)
+
+start_date = (2001,)
+end_date = (2004,)
+idxtimebeg, idxtimeend = ClimateTools.timeindex(d, start_date, end_date, T)
+@test idxtimebeg == 367
+@test idxtimeend == 1462
+
+
+start_date = (2001, 01, 01, 0, 0)
+end_date = (2003, 12, 31, 0, 0)
+idxtimebeg, idxtimeend = ClimateTools.timeindex(d, start_date, end_date, T)
+@test idxtimebeg == 367
+@test idxtimeend == 1461

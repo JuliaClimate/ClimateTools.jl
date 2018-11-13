@@ -1,5 +1,5 @@
 # Prcp1
-d = DateTime(2003,1,1):Day(1):DateTime(2005,12,31)
+d = collect(DateTime(2003,1,1):Day(1):DateTime(2005,12,31))
 
 data = Array{Float64,3}(undef, 2, 2,1096)
 data[1,1,:] = vcat(ones(365,1), zeros(366,1), ones(365))
@@ -115,7 +115,7 @@ ind = icingdays(C)
 @test ind.data.data == Results
 
 # Summer Days
-d = DateTime(2003,1,1):Day(1):DateTime(2007,12,31)
+d = collect(DateTime(2003,1,1):Day(1):DateTime(2007,12,31))
 
 data = Array{Float64, 3}(undef, 2, 2, 1826)
 data[1,1,:] = collect(1.0:1826.0); data[1,2,:] = collect(1.0:1826.0); data[2,1,:]=collect(1.0:1826.0); data[2,2,:] = collect(1.0:1826.0);
@@ -231,14 +231,44 @@ ind = daysabove10(C)
 # Period mean
 data = Array{Float64, 3}(undef, 2, 2, 1826)
 data[1,1,:] = collect(1.0:1826.0); data[1,2,:] = collect(-10.0:1815.0); data[2,1,:] = collect(0.0:1825.0); data[2,2,:] = collect(-1725.0:100);
-Results = Array{Float64, 3}(undef, 2, 2, 1);
-Results[1, 1, 1]= 746.0;
-Results[1, 2, 1] = 735.0;
-Results[2, 1, 1] = 745.0;
-Results[2, 2, 1] = -980.0;
+Results = Array{Float64, 2}(undef, 2, 2);
+Results[1, 1]= 746.0;
+Results[1, 2] = 735.0;
+Results[2, 1] = 745.0;
+Results[2, 2] = -980.0;
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 C = ClimateTools.ClimGrid(axisdata)
-ind = periodmean(C, (2004, 06, 01), (2005, 08, 31)) #mean between June 1st 2004 and August 31st 2005
+ind = periodmean(C, start_date=(2004, 06, 01), end_date=(2005, 08, 31)) #mean between June 1st 2004 and August 31st 2005
 @test ind.data.data == Results
+
+
+Results = Array{Float64, 2}(undef, 2, 2);
+Results[1, 1]= 913.5;
+Results[1, 2] = 902.5;
+Results[2, 1] = 912.5;
+Results[2, 2] = -812.5;
+ind = periodmean(C)
+@test ind.data.data == Results
+
+# Daymean
+raw = collect(0:0.25:1459.75) # 6hr data
+d = timedecode(raw, "days since 2000-01-01", "noleap")
+
+
+data = Array{Float64}(undef, 2, 2, 5840)
+data[1, 1, :] = collect(1:5840)
+data[1, 2, :] = collect(1:5840)
+data[2, 1, :] = collect(1:5840)
+data[2, 2, :] = collect(1:5840)
+
+axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
+C = ClimateTools.ClimGrid(axisdata, frequency="6h")
+D = daymean(C)
+@test D[1][1,1,1] == 2.5
+@test D[1][1,1,end] == 5838.5
+
+D = daysum(C)
+@test D[1][1,1,1] == 10.0
+@test D[1][1,1,end] == 23354.0

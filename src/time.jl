@@ -105,21 +105,21 @@ end
 
 Mean of array data over a given period.
 """
-function periodmean(C::ClimGrid; startdate::Tuple=(Inf, ), enddate::Tuple=(Inf,))
+function periodmean(C::ClimGrid; start_date::Tuple=(Inf, ), end_date::Tuple=(Inf,))
 
-    if startdate == (Inf, )
+    if start_date == (Inf, )
         timevec = get_timevec(C)
         # Get time resolution
         rez = C.frequency
         if rez == "year"
-            startdate = (Dates.Year(timevec[1]).value, )
-            enddate = (Dates.Year(timevec[end]).value, )
+            start_date = (Dates.year(timevec[1]), )
+            end_date = (Dates.year(timevec[end]), )
         else
-            startdate = (Dates.year(timevec[1]), Dates.month(timevec[1]), Dates.day(timevec[1]), Dates.hour(timevec[1]), Dates.minute(timevec[1]), Dates.second(timevec[1]))
-            enddate = (Dates.year(timevec[end]), Dates.month(timevec[end]), Dates.day(timevec[end]), Dates.hour(timevec[end]), Dates.minute(timevec[end]), Dates.second(timevec[end]))
+            start_date = (Dates.year(timevec[1]), Dates.month(timevec[1]), Dates.day(timevec[1]), Dates.hour(timevec[1]), Dates.minute(timevec[1]), Dates.second(timevec[1]))
+            end_date = (Dates.year(timevec[end]), Dates.month(timevec[end]), Dates.day(timevec[end]), Dates.hour(timevec[end]), Dates.minute(timevec[end]), Dates.second(timevec[end]))
         end
     end
-    Csubset = temporalsubset(C, startdate, enddate)
+    Csubset = temporalsubset(C, start_date, end_date)
     datain   = Csubset.data.data
 
     # Mean and squeeze
@@ -127,7 +127,7 @@ function periodmean(C::ClimGrid; startdate::Tuple=(Inf, ), enddate::Tuple=(Inf,)
     dataout_rshp = reshape(dataout, (size(dataout, 1)*size(dataout, 2)))
     datain_rshp = reshape(datain, (size(datain, 1)*size(datain, 2), size(datain, 3)))
 
-    for k = 1:size(datain_rshp, 1)
+    Threads.@threads for k = 1:size(datain_rshp, 1)
         datatmp = datain_rshp[k, :]
         dataout_rshp[k] = Statistics.mean(datatmp[.!isnan.(datatmp)])
     end
@@ -171,43 +171,43 @@ function timeindex(timeV, datebeg::Tuple, dateend::Tuple, T)
     return idxtimebeg, idxtimeend
 end
 
-function timeindex(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
-
-    T = typeof(get_timevec(C)[1])
-
-    # Start Date
-    if !isinf(datebeg[1])
-
-        # Build DateTime type
-        start_date = ClimateTools.buildtimetype(datebeg, T)
-
-        # Check
-        @argcheck start_date >= timeV[1]
-
-        idxtimebeg = findfirst(timeV .>= start_date)[1]
-    else
-        idxtimebeg = 1
-    end
-
-    # End date
-    if !isinf(dateend[1])
-
-        # Build DateTime type
-        end_date = ClimateTools.buildtimetype(dateend, T)
-
-        @argcheck end_date <= timeV[end]
-
-        idxtimeend = findlast(timeV .<= end_date)[1]
-    else
-        idxtimeend = length(timeV)
-    end
-
-    if !isinf(datebeg[1]) && !isinf(dateend[1])
-        @argcheck start_date <= end_date
-    end
-
-    return idxtimebeg, idxtimeend
-end
+# function timeindex(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
+#
+#     T = typeof(get_timevec(C)[1])
+#
+#     # Start Date
+#     if !isinf(datebeg[1])
+#
+#         # Build DateTime type
+#         start_date = ClimateTools.buildtimetype(datebeg, T)
+#
+#         # Check
+#         @argcheck start_date >= timeV[1]
+#
+#         idxtimebeg = findfirst(timeV .>= start_date)[1]
+#     else
+#         idxtimebeg = 1
+#     end
+#
+#     # End date
+#     if !isinf(dateend[1])
+#
+#         # Build DateTime type
+#         end_date = ClimateTools.buildtimetype(dateend, T)
+#
+#         @argcheck end_date <= timeV[end]
+#
+#         idxtimeend = findlast(timeV .<= end_date)[1]
+#     else
+#         idxtimeend = length(timeV)
+#     end
+#
+#     if !isinf(datebeg[1]) && !isinf(dateend[1])
+#         @argcheck start_date <= end_date
+#     end
+#
+#     return idxtimebeg, idxtimeend
+# end
 
 """
     buildtimetype(datetuple, f)
