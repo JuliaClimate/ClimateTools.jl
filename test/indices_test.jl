@@ -256,7 +256,6 @@ ind = periodmean(C)
 raw = collect(0:0.25:1459.75) # 6hr data
 d = timedecode(raw, "days since 2000-01-01", "noleap")
 
-
 data = Array{Float64}(undef, 2, 2, 5840)
 data[1, 1, :] = collect(1:5840)
 data[1, 2, :] = collect(1:5840)
@@ -272,3 +271,5 @@ D = daymean(C)
 D = daysum(C)
 @test D[1][1,1,1] == 10.0
 @test D[1][1,1,end] == 23354.0
+
+@test get_timevec(C)[1] == DateTimeNoLeap(2000, 01, 01)
