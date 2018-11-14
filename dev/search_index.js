@@ -849,14 +849,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions/#ClimateTools.spei-Tuple{}",
-    "page": "Index",
-    "title": "ClimateTools.spei",
-    "category": "method",
-    "text": "spei()\n\nReturns the The Standardized Precipitation Evapotranspiration Index (SPEI). <<<<<<< HEAD <<<<<<< HEAD\n\nReference Vicente-Serrano, S. M., Beguería, S., & López-Moreno, J. I. (2010). A Multiscalar Drought Index Sensitive to Global Warming: The Standardized Precipitation Evapotranspiration Index. Journal of Climate, 23(7), 1696–1718. https://doi.org/10.1175/2009JCLI2909.1\n\n\n\n\n\n"
-},
-
-{
     "location": "functions/#ClimateTools.summerdays-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.summerdays",
