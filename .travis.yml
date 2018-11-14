@@ -21,9 +21,18 @@ branches:
     - master
 notifications:
   email: false
-# uncomment the following lines to override the default test script
+jobs:
+  include:
+    - stage: "Documentation"
+      julia: 1.0
+      os: linux
+      script:
+        - julia --project=docs/ -e 'using Pkg; Pkg.instantiate();
+                                    Pkg.develop(PackageSpec(path=pwd()))'
+        - julia --project=docs/ docs/make.jl
+      after_success: skip
+
 script:
-#  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - julia --inline=no -e 'using Pkg; Pkg.clone(pwd()); Pkg.test("ClimateTools"; coverage=true);'
 
 before_install:
