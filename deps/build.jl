@@ -19,7 +19,7 @@ if lowercase(get(ENV, "CI", "false")) == "true"
             #     run(`sudo apt get install libnetcdf-dev`)
             # end
         end
-        run(`sudo apt get install libnetcdf-dev`)
+        run(`sudo apt-get install libnetcdf-dev`)
         run(`$python -m pip install numpy`)
         run(`$python -m pip install scipy`)
         run(`$python -m pip install matplotlib`)
