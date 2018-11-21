@@ -57,12 +57,13 @@ if lowercase(get(ENV, "CI", "false")) == "true"
             return ver > v"4.2"
         end
 
-        @BinDeps.setup libnetcdf = library_dependency("libnetcdf", aliases = ["libnetcdf4","libnetcdf-7","netcdf"], validate = validate_netcdf_version)
+        @BinDeps.setup
+        libnetcdf = library_dependency("libnetcdf", aliases = ["libnetcdf4","libnetcdf-7","netcdf"], validate = validate_netcdf_version)
 
-        #CondaBinDeps.Conda.add_channel("conda-forge")
-        provides(CondaBinDeps.Manager, "libnetcdf", libnetcdf)
-        provides(AptGet, "libnetcdf-dev", libnetcdf, os = :Linux)
-        provides(Yum, "netcdf-devel", libnetcdf, os = :Linux)
+        CondaBinDeps.Conda.add_channel("anaconda")
+        provides(CondaBinDeps.EnvManager{Symbol(python)}, "libnetcdf", libnetcdf)
+        # provides(AptGet, "libnetcdf-dev", libnetcdf, os = :Linux)
+        # provides(Yum, "netcdf-devel", libnetcdf, os = :Linux)
 
         @BinDeps.install Dict(:libnetcdf => :libnetcdf)
 
