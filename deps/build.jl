@@ -18,5 +18,6 @@ if lowercase(get(ENV, "CI", "false")) == "true"
 
         ENV["PYTHON"] = python
         Pkg.build("PyCall")
+        Pkg.build("NCDatasets")
     end
 end
