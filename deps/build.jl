@@ -5,8 +5,6 @@ import CondaBinDeps
 
 if lowercase(get(ENV, "CI", "false")) == "true"
 
-
-
     let basepython = get(ENV, "PYTHON", "python2")
         envpath = joinpath(@__DIR__, "env")
         run(`virtualenv --python=$basepython $envpath`)
@@ -15,7 +13,13 @@ if lowercase(get(ENV, "CI", "false")) == "true"
             python = joinpath(envpath, "Scripts", "python.exe")
         else
             python = joinpath(envpath, "bin", "python2")
+            # if Sys.islinux()
+            #     run(`sudo apt get install libnetcdf-dev`)
+            # elseif Sys.isapple()
+            #     run(`sudo apt get install libnetcdf-dev`)
+            # end
         end
+        # run(`sudo apt get install libnetcdf-dev`)
         run(`$python -m pip install numpy`)
         run(`$python -m pip install scipy`)
         run(`$python -m pip install matplotlib`)
@@ -53,15 +57,14 @@ if lowercase(get(ENV, "CI", "false")) == "true"
             return ver > v"4.2"
         end
 
-        @BinDeps.setup
-        libnetcdf = library_dependency("libnetcdf", aliases = ["libnetcdf4","libnetcdf-7","netcdf"], validate = validate_netcdf_version)
+        @BinDeps.setup libnetcdf = library_dependency("libnetcdf", aliases = ["libnetcdf4","libnetcdf-7","netcdf"], validate = validate_netcdf_version)
 
         #CondaBinDeps.Conda.add_channel("conda-forge")
         provides(CondaBinDeps.Manager, "libnetcdf", libnetcdf)
         provides(AptGet, "libnetcdf-dev", libnetcdf, os = :Linux)
         provides(Yum, "netcdf-devel", libnetcdf, os = :Linux)
 
-        @BinDeps.install Dict(:libnetcdf => :libnetcdf)       
+        @BinDeps.install Dict(:libnetcdf => :libnetcdf)
 
     end
 end
