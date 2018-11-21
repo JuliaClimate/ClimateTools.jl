@@ -14,7 +14,7 @@ if lowercase(get(ENV, "CI", "false")) == "true"
         run(`$python -m pip install scipy`)
         run(`$python -m pip install matplotlib`)
         run(`$python -m pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz`)
-        run(`$python -m pip install cmocean`)
+        run(`$python -m pip install git+https://github.com/matplotlib/cmocean`)
 
         ENV["PYTHON"] = python
         Pkg.build("PyCall")
