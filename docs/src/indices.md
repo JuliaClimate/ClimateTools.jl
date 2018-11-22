@@ -11,7 +11,7 @@ ind = annualmax(C::ClimGrid)
 Which returns another `ClimGrid`. You can also map this `ClimGrid` with the `mapclimgrid` function and returns the climatological mean of the annual maximum (e.g. daily precipitation in the example below). A list of indices can be found in the documentation and in the `functions.jl` source code.
 
 ```julia
-mapclimgrid(C)
+mapclimgrid(ind) # mapping the indice previously calculated
 ```
 
 ![BNU-ESM](assets/BNU_AnnMax.png)
