@@ -22,6 +22,8 @@ When possible, functions are coded to use **multiple threads**. To gain maximum 
 * Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices
 * Regridding of a datasets onto another grid
 * Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)
+* Exportation of results to a CF-compliant netCDF file
+* Support for typical climate models calendars: 360_day, 365_day, Standard, Prolectip Gregorian through [NCDatasets.jl](https://github.com/Alexander-Barth/NCDatasets.jl).
 
 ## Contributors
 
@@ -30,5 +32,4 @@ If you'd like to have other climate indices coded, please, submit them through a
 ## TO-DO
 
 * Dashboard tool. This will return the main characteristics of a ClimGrid: maps of minimum, maximum and mean climatological values, seasonal cycle, timeseries of annual maximum, minimum and mean values, etc...
-* Export ClimGrid to netCDF file.
-* Add a more complex quantile-quantile mapping technique, combining extreme value theory and quantile-quantile standard technique
+* Extreme value theory analysis

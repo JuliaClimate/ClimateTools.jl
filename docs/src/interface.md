@@ -12,10 +12,18 @@ To merge multiple ClimGrid form an array of files, [`load`](@ref) has a method t
 
 ## Operators
 
-Basic operators are overloaded on `ClimGrid`.
+Basic statistical functions are overloaded on `ClimGrid`.
 
 [`mean`](@ref)
 [`minimum`](@ref)
 [`maximum`](@ref)
 [`std`](@ref)
 [`var`](@ref)
+
+Basic arithmetic operators are also loaded.
+
+```julia
+D = C + 2.0 # will add 2.0 to all elements of C
+D = C::ClimGrid - A::ClimGrid # subtract A from C (useful for climatological difference between a future and historical period 
+D = C / A # Ratio of 2 ClimGrids
+```
