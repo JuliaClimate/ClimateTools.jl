@@ -37,7 +37,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Features",
     "category": "section",
-    "text": "Climate scenarios creation\nExtraction and visualization of CF-compliant netCDF datasets\nCustom user-provided polygons and start and end date for localized studies\nClimate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices\nRegridding of a datasets onto another grid\nPost-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)"
+    "text": "Climate scenarios creation\nExtraction and visualization of CF-compliant netCDF datasets\nCustom user-provided polygons and start and end date for localized studies\nClimate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices\nRegridding of a datasets onto another grid\nPost-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)\nExportation of results to a CF-compliant netCDF file\nSupport for typical climate models calendars: 360day, 365day, Standard, Prolectip Gregorian through NCDatasets.jl."
 },
 
 {
@@ -53,7 +53,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "TO-DO",
     "category": "section",
-    "text": "Dashboard tool. This will return the main characteristics of a ClimGrid: maps of minimum, maximum and mean climatological values, seasonal cycle, timeseries of annual maximum, minimum and mean values, etc...\nExport ClimGrid to netCDF file.\nAdd a more complex quantile-quantile mapping technique, combining extreme value theory and quantile-quantile standard technique"
+    "text": "Dashboard tool. This will return the main characteristics of a ClimGrid: maps of minimum, maximum and mean climatological values, seasonal cycle, timeseries of annual maximum, minimum and mean values, etc...\nExtreme value theory analysis"
 },
 
 {
@@ -85,7 +85,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Getting started",
     "title": "Required dependencies",
     "category": "section",
-    "text": "ClimateTools need some Python dependencies for mapping purpose. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the following python modules and build PyCall with the same python distribution.Python depsmatplotlib\nbasemap\nscipy\ncmoceanNote2. Installing Basemap for python 3.6+ seems problematic.Building PyCallENV[\"PYTHON\"]=\"path_to_python_distribution\"\npkg> build PyCall"
+    "text": "ClimateTools need some Python dependencies for mapping purpose. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the following python modules and build PyCall with the same python distribution.Python dependenciesmatplotlib\nbasemap\nscipy\ncmoceanNote2. Installing Basemap for python 3.6+ seems problematic.Building PyCall After the confirmation that the Python dependencies can be loaded in Python, the user needs to build PyCall with the same Python version. Alternatively, if PyCall is already built, it may be only a matter of installing the Python dependencies with the PyCall\'s Python version.ENV[\"PYTHON\"]=\"path_to_python_distribution\"\npkg> build PyCall"
 },
 
 {
@@ -101,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Getting started",
     "title": "Reading a NetCDF file",
     "category": "section",
-    "text": "The entry point of ClimateTools is to load data with the load function. The return structure of the load function is a in-memory representation of the variable contained in the netCDF file.C = load(filename::String, vari::String; poly::Array, data_units::String, start_date::Tuple, end_date::Tuple)load return a ClimGrid type. The ClimGrid represent a single variable. In the event of a dataset containingUsing the optional poly argument, the user can provide a polygon and the returned ClimGrid will only contains the grid points inside the provided polygon. The polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).start_date and end_date can also be provided. It is useful when climate simulations file spans multiple decades/centuries and only a temporal subset is needed. Dates should be provided as a Tuple of the form (year, month, day, hour, minute, seconds), where only year is mandatory (e.g. (2000,) can be provided and will defaults to (2000, 01, 01)).For some variable, the optional keyword argument data_units can be provided. For example, precipitation in climate models are usually provided as kg/m^2/s. By specifying data_units = mm, the load function returns accumulation at the data time resolution. Similarly, the user can provide Celsius as data_units and load will return Celsius instead of Kelvin.struct ClimGrid\n  data::AxisArray # Data\n  longrid::AbstractArray{N,2} where N # the longitude grid\n  latgrid::AbstractArray{N,2} where N # the latitude grid\n  msk::Array{N, 2} where N # Data mask (NaNs and 1.0)\n  grid_mapping::Dict#{String, Any} # bindings for native grid\n  dimension_dict::Dict\n  model::String\n  frequency::String # Day, month, years\n  experiment::String # Historical, RCP4.5, RCP8.5, etc.\n  run::String\n  project::String # CORDEX, CMIP5, etc.\n  institute::String # UQAM, DMI, etc.\n  filename::String # Path of the original file\n  dataunits::String # Celsius, kelvin, etc.\n  latunits::String # latitude coordinate unit\n  lonunits::String # longitude coordinate unit\n  variable::String # Type of variable (i.e. can be the same as \"typeofvar\", but it is changed when calculating indices)\n  typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)\n  typeofcal::String # Calendar type\n  varattribs::Dict # Variable attributes dictionary\n  globalattribs::Dict # Global attributes dictionary\nend"
+    "text": "The entry point of ClimateTools is to load data with the load function. The return structure of the load function is a in-memory representation of the variable contained in the netCDF file.C = load(filename::String, vari::String; poly::Array, data_units::String, start_date::Tuple, end_date::Tuple)load return a ClimGrid type. The ClimGrid represent a single variable. In the event of a dataset containingUsing the optional poly argument, the user can provide a polygon and the returned ClimGrid will only contains the grid points inside the provided polygon. The polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).start_date and end_date can also be provided. It is useful when climate simulations file spans multiple decades/centuries and only a temporal subset is needed. Dates should be provided as a Tuple of the form (year, month, day, hour, minute, seconds), where only year is mandatory (e.g. (2000,) can be provided and will defaults to (2000, 01, 01)).For some variable, the optional keyword argument data_units can be provided. For example, precipitation in climate models are usually provided as kg/m^2/s. By specifying data_units = mm, the load function returns accumulation at the data time resolution. Similarly, the user can provide Celsius as data_units and load will return Celsius instead of Kelvin.struct ClimGrid\n  data::AxisArray # Data\n  longrid::AbstractArray{N,2} where N # the longitude grid\n  latgrid::AbstractArray{N,2} where N # the latitude grid\n  msk::Array{N, 2} where N # Data mask (NaNs and 1.0)\n  grid_mapping::Dict#{String, Any} # bindings for native grid\n  dimension_dict::Dict\n  model::String\n  frequency::String # Day, month, years\n  experiment::String # Historical, RCP4.5, RCP8.5, etc.\n  run::String\n  project::String # CORDEX, CMIP5, etc.\n  institute::String # UQAM, DMI, etc.\n  filename::String # Path of the original file\n  dataunits::String # Celsius, kelvin, etc.\n  latunits::String # latitude coordinate unit\n  lonunits::String # longitude coordinate unit\n  variable::String # Type of variable (i.e. can be the same as \"typeofvar\", but it is changed when calculating indices)\n  typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)\n  typeofcal::String # Calendar type\n  timeattrib::Dict # Time attributes (e.g. days since ... )\n  varattribs::Dict # Variable attributes dictionary\n  globalattribs::Dict # Global attributes dictionary\nend"
 },
 
 {
@@ -157,7 +157,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "Indices",
     "category": "section",
-    "text": "More than 20 climate indices are available in the package, such as the annual number of tropical nights, annual maximum and minimum, etc. You can calculate such indices simply with:ind = annualmax(C::ClimGrid)Which returns another ClimGrid. You can also map this ClimGrid with the mapclimgrid function and returns the climatological mean of the annual maximum (e.g. daily precipitation in the example below). A list of indices can be found in the documentation and in the functions.jl source code.mapclimgrid(C)(Image: BNU-ESM)"
+    "text": "More than 20 climate indices are available in the package, such as the annual number of tropical nights, annual maximum and minimum, etc. You can calculate such indices simply with:ind = annualmax(C::ClimGrid)Which returns another ClimGrid. You can also map this ClimGrid with the mapclimgrid function and returns the climatological mean of the annual maximum (e.g. daily precipitation in the example below). A list of indices can be found in the documentation and in the functions.jl source code.mapclimgrid(ind) # mapping the indice previously calculated(Image: BNU-ESM)"
 },
 
 {
@@ -405,7 +405,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Operators",
     "category": "section",
-    "text": "Basic operators are overloaded on ClimGrid.mean minimum maximum std var"
+    "text": "Basic statistical functions are overloaded on ClimGrid.mean minimum maximum std varBasic arithmetic operators are also loaded.D = C + 2.0 # will add 2.0 to all elements of C\nD = C::ClimGrid - A::ClimGrid # subtract A from C (useful for climatological difference between a future and historical period \nD = C / A # Ratio of 2 ClimGrids"
 },
 
 {
