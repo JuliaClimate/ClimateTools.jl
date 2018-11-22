@@ -609,6 +609,46 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions/#ClimateTools.daysinmonth-Tuple{DateTime360Day}",
+    "page": "Index",
+    "title": "ClimateTools.daysinmonth",
+    "category": "method",
+    "text": "daysinmonth(D::DateTime360Day)\n\nWorkaround to work with non-standard calendar DateTime360Day.\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions/#ClimateTools.daysinmonth-Tuple{DateTimeAllLeap}",
+    "page": "Index",
+    "title": "ClimateTools.daysinmonth",
+    "category": "method",
+    "text": "daysinmonth(D::DateTimeAllLeap)\n\nWorkaround to work with non-standard calendar DateTimeAllLeap.\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions/#ClimateTools.daysinmonth-Tuple{DateTimeNoLeap}",
+    "page": "Index",
+    "title": "ClimateTools.daysinmonth",
+    "category": "method",
+    "text": "daysinmonth(D::DateTimeNoLeap)\n\nWorkaround to work with non-standard calendar DateTimeNoLeap.\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions/#ClimateTools.daysinmonth-Tuple{DateTimeProlepticGregorian}",
+    "page": "Index",
+    "title": "ClimateTools.daysinmonth",
+    "category": "method",
+    "text": "daysinmonth(D::DateTimeProlepticGregorian)\n\nWorkaround to work with non-standard calendar DateTimeProlepticGregorian.\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions/#ClimateTools.daysinmonth-Tuple{DateTimeStandard}",
+    "page": "Index",
+    "title": "ClimateTools.daysinmonth",
+    "category": "method",
+    "text": "daysinmonth(D::DateTimeStandard)\n\nWorkaround to work with non-standard calendar DateTimeStandard.\n\n\n\n\n\n"
+},
+
+{
     "location": "functions/#ClimateTools.daysum-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.daysum",
