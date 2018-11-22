@@ -6,7 +6,7 @@
 
 ClimateTools need some Python dependencies for mapping purpose. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the following python modules and build `PyCall` with the same python distribution.
 
-**Python deps**
+**Python dependencies**
 
 * matplotlib
 * basemap
@@ -16,6 +16,7 @@ ClimateTools need some Python dependencies for mapping purpose. To ensure that C
 *Note2. Installing Basemap for python 3.6+ seems problematic.*
 
 **Building PyCall**
+After the confirmation that the Python dependencies can be loaded in Python, the user needs to build PyCall with the same Python version. Alternatively, if PyCall is already built, it may be only a matter of installing the Python dependencies with the PyCall's Python version.
 
 ```julia
 ENV["PYTHON"]="path_to_python_distribution"
@@ -65,6 +66,7 @@ struct ClimGrid
   variable::String # Type of variable (i.e. can be the same as "typeofvar", but it is changed when calculating indices)
   typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
   typeofcal::String # Calendar type
+  timeattrib::Dict # Time attributes (e.g. days since ... )
   varattribs::Dict # Variable attributes dictionary
   globalattribs::Dict # Global attributes dictionary
 end
