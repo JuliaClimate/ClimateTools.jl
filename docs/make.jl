@@ -1,9 +1,9 @@
 using Pkg
-
+Pkg.add("BinDeps")
+Pkg.add("CondaBinDeps")
+Pkg.add("Libdl")
 using BinDeps
 import CondaBinDeps
-
-
 
 let basepython = get(ENV, "PYTHON", "python2")
     envpath = joinpath(@__DIR__, "env")
