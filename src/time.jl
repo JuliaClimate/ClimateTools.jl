@@ -331,52 +331,52 @@ function daysum(C::ClimGrid)
 
 end
 
-"""
-    daysinmonth(D::DateTimeNoLeap)
-
-Workaround to work with non-standard calendar DateTimeNoLeap.
-"""
-function daysinmonth(D::DateTimeNoLeap)
-    DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    return DAYSINMONTH2[Dates.month(D)]
-end
-
-"""
-    daysinmonth(D::DateTimeStandard)
-
-Workaround to work with non-standard calendar DateTimeStandard.
-"""
-function daysinmonth(D::DateTimeStandard)
-    DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    return DAYSINMONTH2[Dates.month(D)] + (Dates.month(D) == 2 && isleapyear(Dates.year(D)))
-end
-
-"""
-    daysinmonth(D::DateTimeProlepticGregorian)
-
-Workaround to work with non-standard calendar DateTimeProlepticGregorian.
-"""
-function daysinmonth(D::DateTimeProlepticGregorian)
-    DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    return DAYSINMONTH2[m] + (m == 2 && isleapyear(y))
-end
-
-"""
-    daysinmonth(D::DateTimeAllLeap)
-
-Workaround to work with non-standard calendar DateTimeAllLeap.
-"""
-function daysinmonth(D::DateTimeAllLeap)
-    DAYSINMONTH2 = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    return DAYSINMONTH2[Dates.month(D)]
-end
-
-"""
-    daysinmonth(D::DateTime360Day)
-
-Workaround to work with non-standard calendar DateTime360Day.
-"""
-daysinmonth(D::DateTime360Day) = 30
+# """
+#     daysinmonth(D::DateTimeNoLeap)
+#
+# Workaround to work with non-standard calendar DateTimeNoLeap.
+# """
+# function daysinmonth(D::DateTimeNoLeap)
+#     DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+#     return DAYSINMONTH2[Dates.month(D)]
+# end
+#
+# """
+#     daysinmonth(D::DateTimeStandard)
+#
+# Workaround to work with non-standard calendar DateTimeStandard.
+# """
+# function daysinmonth(D::DateTimeStandard)
+#     DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+#     return DAYSINMONTH2[Dates.month(D)] + (Dates.month(D) == 2 && isleapyear(Dates.year(D)))
+# end
+#
+# """
+#     daysinmonth(D::DateTimeProlepticGregorian)
+#
+# Workaround to work with non-standard calendar DateTimeProlepticGregorian.
+# """
+# function daysinmonth(D::DateTimeProlepticGregorian)
+#     DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+#     return DAYSINMONTH2[m] + (m == 2 && isleapyear(y))
+# end
+#
+# """
+#     daysinmonth(D::DateTimeAllLeap)
+#
+# Workaround to work with non-standard calendar DateTimeAllLeap.
+# """
+# function daysinmonth(D::DateTimeAllLeap)
+#     DAYSINMONTH2 = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+#     return DAYSINMONTH2[Dates.month(D)]
+# end
+#
+# """
+#     daysinmonth(D::DateTime360Day)
+#
+# Workaround to work with non-standard calendar DateTime360Day.
+# """
+# daysinmonth(D::DateTime360Day) = 30
 
 """
     buildtoken(date::DateTime, C::ClimGrid)
