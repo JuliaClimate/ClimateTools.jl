@@ -47,9 +47,9 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     @argcheck size(obs[1], 2) == size(ref[1], 2) == size(fut[1], 2)
 
     #Get date vectors
-    datevec_obs = obs[1][Axis{:time}][:]
-    datevec_ref = ref[1][Axis{:time}][:]
-    datevec_fut = fut[1][Axis{:time}][:]
+    datevec_obs = get_timevec(obs) # [1][Axis{:time}][:]
+    datevec_ref = get_timevec(ref) # [1][Axis{:time}][:]
+    datevec_fut = get_timevec(fut) # [1][Axis{:time}][:]
 
     # Modify dates (e.g. 29th feb are dropped/lost by default)
     obsvec2, obs_jul, datevec_obs2 = ClimateTools.corrjuliandays(obs[1][1,1,:].data, datevec_obs)
@@ -69,12 +69,12 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
         finish = Dates.monthday(maximum(datevec_obs2))
     end
 
-
     obsin = reshape(obs[1].data, (size(obs[1].data, 1)*size(obs[1].data, 2), size(obs[1].data, 3)))
     refin = reshape(ref[1].data, (size(ref[1].data, 1)*size(ref[1].data, 2), size(ref[1].data, 3)))
     futin = reshape(fut[1].data, (size(fut[1].data, 1)*size(fut[1].data, 2), size(fut[1].data, 3)))
     dataoutin = reshape(dataout, (size(dataout, 1)*size(dataout, 2), size(dataout, 3)))
 
+    # Looping over grid points
     Threads.@threads for k = 1:size(obsin, 1)
 
         obsvec = obsin[k,:]

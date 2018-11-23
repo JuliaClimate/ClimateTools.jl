@@ -476,7 +476,7 @@ end
 Removes february 29th. Needed for bias correction.
 """
 function correctdate(C::ClimGrid)
-    date_vec = C[1][Axis{:time}][:]
+    date_vec = get_timevec(C) # [1][Axis{:time}][:]
     f = typeof(date_vec[1])
     feb29th = (Dates.month.(date_vec) .== Dates.month(f(2000, 2, 2))) .& (Dates.day.(date_vec) .== Dates.day(29))
     dataout = C[1][:, :, .!feb29th]
