@@ -253,7 +253,7 @@ function daymean(C::ClimGrid)
     T = typeof(timevec[1])
 
     # dayfactor = ClimateTools.daymean_factor(C.frequency)
-    nbdays = unique(yearmonthday.(timevec))
+    nbdays = length(unique(yearmonthday.(timevec)))
     dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbdays))
     newtime = Array{T}(undef, nbdays)
 
@@ -302,7 +302,7 @@ function daysum(C::ClimGrid)
     T = typeof(timevec[1])
 
     # dayfactor = ClimateTools.daymean_factor(C.frequency)
-    nbdays = unique(yearmonthday.(timevec))
+    nbdays = length(unique(yearmonthday.(timevec)))
     dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbdays))
     newtime = Array{T}(undef, nbdays)
 
