@@ -252,9 +252,10 @@ function daymean(C::ClimGrid)
 
     T = typeof(timevec[1])
 
-    dayfactor = ClimateTools.daymean_factor(C.frequency)
-    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), Int64(size(C[1],3)/dayfactor)))
-    newtime = Array{T}(undef, Int64(size(C[1],3)/dayfactor))
+    # dayfactor = ClimateTools.daymean_factor(C.frequency)
+    nbdays = length(unique(yearmonthday.(timevec)))
+    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbdays))
+    newtime = Array{T}(undef, nbdays)
 
     # loop over year-month-days
     z = 1
@@ -300,9 +301,10 @@ function daysum(C::ClimGrid)
 
     T = typeof(timevec[1])
 
-    dayfactor = ClimateTools.daymean_factor(C.frequency)
-    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), Int64(size(C[1],3)/dayfactor)))
-    newtime = Array{T}(undef, Int64(size(C[1],3)/dayfactor))
+    # dayfactor = ClimateTools.daymean_factor(C.frequency)
+    nbdays = length(unique(yearmonthday.(timevec)))
+    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbdays))
+    newtime = Array{T}(undef, nbdays)
 
     # loop over year-month-days
     z = 1
@@ -329,52 +331,52 @@ function daysum(C::ClimGrid)
 
 end
 
-"""
-    daysinmonth(D::DateTimeNoLeap)
-
-Workaround to work with non-standard calendar DateTimeNoLeap.
-"""
-function daysinmonth(D::DateTimeNoLeap)
-    DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    return DAYSINMONTH2[Dates.month(D)]
-end
-
-"""
-    daysinmonth(D::DateTimeStandard)
-
-Workaround to work with non-standard calendar DateTimeStandard.
-"""
-function daysinmonth(D::DateTimeStandard)
-    DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    return DAYSINMONTH2[Dates.month(D)] + (Dates.month(D) == 2 && isleapyear(Dates.year(D)))
-end
-
-"""
-    daysinmonth(D::DateTimeProlepticGregorian)
-
-Workaround to work with non-standard calendar DateTimeProlepticGregorian.
-"""
-function daysinmonth(D::DateTimeProlepticGregorian)
-    DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    return DAYSINMONTH2[m] + (m == 2 && isleapyear(y))
-end
-
-"""
-    daysinmonth(D::DateTimeAllLeap)
-
-Workaround to work with non-standard calendar DateTimeAllLeap.
-"""
-function daysinmonth(D::DateTimeAllLeap)
-    DAYSINMONTH2 = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    return DAYSINMONTH2[Dates.month(D)]
-end
-
-"""
-    daysinmonth(D::DateTime360Day)
-
-Workaround to work with non-standard calendar DateTime360Day.
-"""
-daysinmonth(D::DateTime360Day) = 30
+# """
+#     daysinmonth(D::DateTimeNoLeap)
+#
+# Workaround to work with non-standard calendar DateTimeNoLeap.
+# """
+# function daysinmonth(D::DateTimeNoLeap)
+#     DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+#     return DAYSINMONTH2[Dates.month(D)]
+# end
+#
+# """
+#     daysinmonth(D::DateTimeStandard)
+#
+# Workaround to work with non-standard calendar DateTimeStandard.
+# """
+# function daysinmonth(D::DateTimeStandard)
+#     DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+#     return DAYSINMONTH2[Dates.month(D)] + (Dates.month(D) == 2 && isleapyear(Dates.year(D)))
+# end
+#
+# """
+#     daysinmonth(D::DateTimeProlepticGregorian)
+#
+# Workaround to work with non-standard calendar DateTimeProlepticGregorian.
+# """
+# function daysinmonth(D::DateTimeProlepticGregorian)
+#     DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+#     return DAYSINMONTH2[m] + (m == 2 && isleapyear(y))
+# end
+#
+# """
+#     daysinmonth(D::DateTimeAllLeap)
+#
+# Workaround to work with non-standard calendar DateTimeAllLeap.
+# """
+# function daysinmonth(D::DateTimeAllLeap)
+#     DAYSINMONTH2 = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+#     return DAYSINMONTH2[Dates.month(D)]
+# end
+#
+# """
+#     daysinmonth(D::DateTime360Day)
+#
+# Workaround to work with non-standard calendar DateTime360Day.
+# """
+# daysinmonth(D::DateTime360Day) = 30
 
 """
     buildtoken(date::DateTime, C::ClimGrid)
@@ -474,7 +476,7 @@ end
 Removes february 29th. Needed for bias correction.
 """
 function correctdate(C::ClimGrid)
-    date_vec = C[1][Axis{:time}][:]
+    date_vec = get_timevec(C) # [1][Axis{:time}][:]
     f = typeof(date_vec[1])
     feb29th = (Dates.month.(date_vec) .== Dates.month(f(2000, 2, 2))) .& (Dates.day.(date_vec) .== Dates.day(29))
     dataout = C[1][:, :, .!feb29th]
