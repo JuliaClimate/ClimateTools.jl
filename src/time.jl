@@ -253,8 +253,9 @@ function daymean(C::ClimGrid)
     T = typeof(timevec[1])
 
     dayfactor = ClimateTools.daymean_factor(C.frequency)
-    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), Int64(size(C[1],3)/dayfactor)))
-    newtime = Array{T}(undef, Int64(size(C[1],3)/dayfactor))
+    nbdays = unique(yearmonthday.(timevec))
+    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbdays))
+    newtime = Array{T}(undef, nbdays)
 
     # loop over year-month-days
     z = 1
