@@ -21,12 +21,12 @@ if lowercase(get(ENV, "CI", "false")) == "true"
             # end
         end
         # run(`sudo apt-get install libnetcdf-dev`)
-        run(`$python -m pip --user install numpy`)
-        run(`$python -m pip --user install scipy`)
-        run(`$python -m pip --user install matplotlib`)
-        run(`$python -m pip --user install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz`)
-        run(`$python -m pip --user install git+https://github.com/matplotlib/cmocean`)
-        run(`$python -m pip --user install netcdf4`)
+        run(`$python -m pip install --user numpy`)
+        run(`$python -m pip install --user scipy`)
+        run(`$python -m pip install --user matplotlib`)
+        run(`$python -m pip install --user https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz`)
+        run(`$python -m pip install --user git+https://github.com/matplotlib/cmocean`)
+        run(`$python -m pip install --user netcdf4`)
 
         ENV["PYTHON"] = python
         Pkg.build("PyCall")
