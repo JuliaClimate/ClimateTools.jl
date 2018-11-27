@@ -9,6 +9,7 @@ using Reexport
 # using NCDatasets
 using Shapefile
 using AxisArrays
+using NaNMath
 const axes = Base.axes
 using ArgCheck
 using PyCall
@@ -36,6 +37,7 @@ import Base: +
 import Base: -
 import Base: *
 import Base: /
+import Base.findmax
 
 const basemap = PyNULL()
 const mpl = PyNULL()
@@ -123,10 +125,12 @@ include("heatsum_indices.jl")
 include("export.jl")
 include("time.jl")
 include("spatial.jl")
+include("analysis.jl")
 
 # Exported functions
 export ClimGrid
 export inpoly, inpolygrid, meshgrid, inpolyvec, ndgrid
+export findmax
 export frostdays, summerdays, icingdays, tropicalnights
 export daysabove10 #, daysbelow0, degdaysabove, degdaysbelow
 export customthresover, customthresunder, annualmax, annualmin

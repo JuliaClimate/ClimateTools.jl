@@ -333,6 +333,20 @@ function getgrids(C::ClimGrid)
 end
 
 """
+    getdims(C::ClimGrid)
+
+Returns dimensions vectors of C
+"""
+function getdims(C::ClimGrid)
+    latsymbol, lonsymbol = ClimateTools.getsymbols(C)
+    x = C[1][Axis{lonsymbol}][:]
+    y = C[1][Axis{latsymbol}][:]
+    timevec = get_timevec(C)
+
+    return x, y, timevec
+end
+
+"""
     get_timevec(C::ClimGrid)
 
 Returns time vector of ClimGrid C.
