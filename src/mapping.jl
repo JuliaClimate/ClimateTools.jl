@@ -174,6 +174,9 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
     elseif lowercase(region) == "outaouais"
         m = basemap[:Basemap](projection="lcc", resolution="h", llcrnrlon=-78.5, llcrnrlat=45., urcrnrlon=-73.866, urcrnrlat=48.0, lon_0=-75, lat_1=44, rsphere=(6378137.00, 6356752.3142))
 
+    elseif lowercase(region) == "laurentides"
+        m = basemap[:Basemap](projection="lcc", resolution="h", llcrnrlon=-76.5, llcrnrlat=45., urcrnrlon=-72.866, urcrnrlat=48.0, lon_0=-73.5, lat_1=44, rsphere=(6378137.00, 6356752.3142))
+
     elseif lowercase(region) == "estrie"
         m = basemap[:Basemap](projection="lcc", resolution="h", llcrnrlon=-73.0, llcrnrlat=44.5, urcrnrlon=-70.0, urcrnrlat=46.3, lon_0=-71.0, lat_1=45, rsphere=(6378137.00, 6356752.3142))
 
