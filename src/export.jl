@@ -55,9 +55,9 @@ function write(C::ClimGrid, filename::String)
         ncrlon.attrib["actual_range"] = [minimum(longrid), maximum(longrid)]
     end
 
-    if ClimateTools.@isdefined E_futur.grid_mapping["grid_mapping_name"]
+    if ClimateTools.@isdefined C.grid_mapping["grid_mapping_name"]
         ncmapping = defVar(ds, C.grid_mapping["grid_mapping_name"], Char, ())
-    elseif ClimateTools.@isdefined E_futur.grid_mapping["grid_mapping"]
+    elseif ClimateTools.@isdefined C.grid_mapping["grid_mapping"]
         ncmapping = defVar(ds, C.grid_mapping["grid_mapping"], Char, ())
     end
     for iattr in keys(C.grid_mapping)
@@ -83,7 +83,7 @@ function write(C::ClimGrid, filename::String)
     nctime.attrib["coordinate_defines"] = "point"
 
     # Define the variables contained in ClimGrid C
-    v = defVar(ds, C.variable, Float32, (string(lonsymbol),string(latsymbol), "time"))    
+    v = defVar(ds, C.variable, Float32, (string(lonsymbol),string(latsymbol), "time"))
 
     # write attributes
     for iattr in keys(C.varattribs)
