@@ -55,10 +55,10 @@ function write(C::ClimGrid, filename::String)
         ncrlon.attrib["actual_range"] = [minimum(longrid), maximum(longrid)]
     end
 
-    if ClimateTools.@isdefined C.grid_mapping["grid_mapping_name"]
-        ncmapping = defVar(ds, C.grid_mapping["grid_mapping_name"], Char, ())
-    elseif ClimateTools.@isdefined C.grid_mapping["grid_mapping"]
+    if ClimateTools.@isdefined C.grid_mapping["grid_mapping"]
         ncmapping = defVar(ds, C.grid_mapping["grid_mapping"], Char, ())
+    elseif ClimateTools.@isdefined C.grid_mapping["grid_mapping_name"]
+        ncmapping = defVar(ds, C.grid_mapping["grid_mapping_name"], Char, ())
     end
     for iattr in keys(C.grid_mapping)
         ncmapping.attrib[iattr] = C.grid_mapping[iattr]
