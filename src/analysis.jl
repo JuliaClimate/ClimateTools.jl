@@ -1,11 +1,32 @@
 """
-    dashboard(C::ClimGrid)
-    
-This function returns the summary of ClimGrid C, such as maps of mean, maximum and minimum values in ClimGrid C. The annual cycle, the histogram and estimated probability density function and time series.
+    findmax(C::ClimGrid; skipnan::Bool=false)
 
-
+Return the maximum element of ClimGrid C its timestamp. If there are multiple maximal elements, then the first one will be returned. If any data element is NaN, this element is returned. The result is in line with max. As climate data can often have NaN values (irregular polygons, missing weather data), the option to skip NaNs is provided as a keyword argument.
 
 """
+function Base.findmax(C::ClimGrid; skipnan::Bool=false)
+    # Get data
+    data = C[1]
+
+    if skipnan
+        idx = findall(data .== NaNMath.maximum(data))[1].I[3]
+        idx = findall(data .== NaNMath.maximum(data))[1]
+        val = data[idx]
+
+    else
+        idx = argmax(data)
+        val = data[idx]
+    end
+
+    return val, idx
+
+end
+
+# """
+#     dashboard(C::ClimGrid)
+#
+# This function returns the summary of ClimGrid C, such as maps of mean, maximum and minimum values in ClimGrid C. The annual cycle, the histogram and estimated probability density function and time series.
+# """
 # function dashboard(C::ClimGrid; poly = ([]))
 #
 #     # MAPS, WHILE NICE TO LOOK AT, ARE ALREADY COVERED BY THE FUNCTION "mapclimgrid". Should focus here on annual cycles, and other diagnostics such as annualmax and annualmin

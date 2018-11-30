@@ -63,7 +63,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
       end
   else # if no grid provided, create one
       longrid, latgrid = ndgrid(lon_raw, lat_raw)
-      map_attrib = Dict(["grid_mapping_name" => "Regular_longitude_latitude"])
+      map_attrib = Dict(["grid_mapping" => "Regular_longitude_latitude"])
   end
 
   # =====================
@@ -144,7 +144,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     lon_raw = lon_raw[minXgrid:maxXgrid]
     lat_raw = lat_raw[minYgrid:maxYgrid]
 
-    if map_attrib["grid_mapping_name"] == "Regular_longitude_latitude"
+    if map_attrib["grid_mapping"] == "Regular_longitude_latitude"
 
         lon_raw = ClimateTools.shiftvector_180_west_east(lon_raw)
     end
@@ -364,7 +364,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
         end
     else # if no grid provided, create one
         longrid, latgrid = ndgrid(lon_raw, lat_raw)
-        map_attrib = Dict(["grid_mapping_name" => "Regular_longitude_latitude"])
+        map_attrib = Dict(["grid_mapping" => "Regular_longitude_latitude"])
     end
 
     # ==================
@@ -428,7 +428,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
       lon_raw = lon_raw[minXgrid:maxXgrid]
       lat_raw = lat_raw[minYgrid:maxYgrid]
 
-      if map_attrib["grid_mapping_name"] == "Regular_longitude_latitude"
+      if map_attrib["grid_mapping"] == "Regular_longitude_latitude"
 
           lon_raw = ClimateTools.shiftvector_180_west_east(lon_raw)
 

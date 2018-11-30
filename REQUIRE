@@ -13,3 +13,4 @@ Reexport 0.2.0
 IterTools 1.1.0
 BinDeps 0.4
 CondaBinDeps
+NaNMath 0.3.2

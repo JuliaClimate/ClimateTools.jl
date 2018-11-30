@@ -173,5 +173,4 @@ write(C::ClimGrid, filename::String)
 
 * Dashboard tool. This will return the main characteristics of a ClimGrid: maps of minimum, maximum and mean climatological values, seasonal cycle, timeseries of annual maximum, minimum and mean values, etc...
 * Create a WeatherStation type.
-* Export ClimGrid to netCDF file.
 * Add a more complex quantile-quantile mapping technique, combining extreme value theory and quantile-quantile standard technique
