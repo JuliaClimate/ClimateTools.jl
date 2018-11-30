@@ -324,3 +324,11 @@ plot(max_modelqqmap, label="MIROC5 - bias corrected", titlefig = "Effect of bias
 ```
 
 ![timeseries](assets/timeseries.png)
+
+## Exporting
+
+Once calculations are done, results can be written to disk with the `write` command. Here, we export the annual maximum values of the bias corrected model to the current folder.
+
+```julia
+write(max_modelqqmap, "annualmax_model_qqmap.nc")
+```
