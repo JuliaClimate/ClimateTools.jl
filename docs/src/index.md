@@ -10,6 +10,10 @@ The package is registered on METADATA.jl and can be added with
 using ClimateTools
 ```
 
+## Philosophy
+
+The idea behind ClimateTools is that most, if not all, climate field can be represented by a 3D or 4D grids that are georeferenced. Those grids are named [`ClimGrid`](@ref) in ClimateTools. Every functions acts on such structure and returns a similar structure.
+
 ## Notes
 
 When possible, functions are coded to use **multiple threads**. To gain maximum performance, use (bash shell) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.THREADS`. This is especially useful for climate indices, bias correction and regridding.
