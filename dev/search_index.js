@@ -29,7 +29,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Philosophy",
     "category": "section",
-    "text": "The idea behind ClimateTools is that most, if not all, climate field can be represented by a 3D or 4D grids that are georeferenced. Those grids are named ClimGrid in ClimateTools. Every functions acts on such structure and returns a similar structure."
+    "text": "The idea behind ClimateTools is that most, if not all, climate fields can be represented by a 2D (e.g. topography), 3D (e.g. air temperature) or 4D (e.g. winds at multiple levels) grids that are georeferenced. Those grids are named ClimGrid in ClimateTools. Every functions acts on such structure and returns a similar structure. The ClimGrid structure contains all elements needed to be manipulated: latitude, longitude, calendars, variable attributes, etc. that was either available in the original netCDF file or that was inferred by the metadata. Note that a ClimGrid is defined for a single variable.The metadata follows the various transformations and is modified when necessary. For example, calculating the annual number of days with precipitation higher than 1mm will modify the variable name from pr (for precipitation) to prcp1, the name of the indicator. It will not, however, modify the base variable type (it will remain pr)."
 },
 
 {
@@ -37,7 +37,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Notes",
     "category": "section",
-    "text": "When possible, functions are coded to use multiple threads. To gain maximum performance, use (bash shell) export JULIA_NUM_THREADS=n, where n is the number of threads. To get an idea of the number of threads you can use type (in Julia) Sys.THREADS. This is especially useful for climate indices, bias correction and regridding."
+    "text": "Where possible, functions are coded to use multiple threads. To gain maximum performance, use (bash shell) export JULIA_NUM_THREADS=n, where n is the number of threads. To get an idea of the number of threads you can use type (in Julia) Sys.THREADS. This is especially useful for climate indices, bias correction and regridding."
 },
 
 {
