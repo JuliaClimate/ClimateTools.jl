@@ -405,7 +405,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Interface",
     "title": "Operators",
     "category": "section",
-    "text": "Basic statistical functions are overloaded on ClimGrid.mean minimum maximum std varBasic arithmetic operators are also loaded.D = C + 2.0 # will add 2.0 to all elements of C\nD = C::ClimGrid - A::ClimGrid # subtract A from C (useful for climatological difference between a future and historical period \nD = C / A # Ratio of 2 ClimGrids"
+    "text": "Basic statistical functions are overloaded on ClimGrid.mean minimum maximum std varBasic arithmetic operators are also loaded.D = C + 2.0 # will add 2.0 to all elements of C\nD = C::ClimGrid - A::ClimGrid # subtract A from C (useful for climatological difference between a future and historical period\nD = C / A # Ratio of 2 ClimGrids"
+},
+
+{
+    "location": "interface/#Exporting-1",
+    "page": "Interface",
+    "title": "Exporting",
+    "category": "section",
+    "text": "Exporting a ClimGrid to disk to a netCDF format can be done with the write functiond.write(C::ClimGrid, filename::String)"
 },
 
 {
@@ -493,7 +501,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Examples",
     "title": "Exporting",
     "category": "section",
-    "text": "Once calculations are done, results can be written to disk with the write command. Here, we export the annual maximum values of the bias corrected model to the current folder.write(max_modelqqmap, \"annualmax_model_qqmap.nc\")"
+    "text": "Once calculations are done, results can be written to disk to a netCDF file with the write command. Here, we export the annual maximum values of the bias corrected model to the current folder.write(max_modelqqmap, \"annualmax_model_qqmap.nc\")"
 },
 
 {
