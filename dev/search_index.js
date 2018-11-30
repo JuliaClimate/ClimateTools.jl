@@ -25,6 +25,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "#Philosophy-1",
+    "page": "Home",
+    "title": "Philosophy",
+    "category": "section",
+    "text": "The idea behind ClimateTools is that most, if not all, climate field can be represented by a 3D or 4D grids that are georeferenced. Those grids are named ClimGrid in ClimateTools. Every functions acts on such structure and returns a similar structure."
+},
+
+{
     "location": "#Notes-1",
     "page": "Home",
     "title": "Notes",
@@ -957,7 +965,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.ClimGrid",
     "category": "type",
-    "text": "ClimGrid{A <: AxisArray}\n\nIn-memory representation of Climate Forecast netCDF files.\n\n\n\n\n\n"
+    "text": "ClimGrid{A <: AxisArray}\n\nIn-memory representation of Climate Forecast netCDF files.\n\nstruct ClimGrid   data::AxisArray # Data   longrid::AbstractArray{N,2} where N # the longitude grid   latgrid::AbstractArray{N,2} where N # the latitude grid   msk::Array{N, 2} where N # Data mask (NaNs and 1.0)   gridmapping::Dict#{String, Any} # bindings for native grid   dimensiondict::Dict   model::String   frequency::String # Day, month, years   experiment::String # Historical, RCP4.5, RCP8.5, etc.   run::String   project::String # CORDEX, CMIP5, etc.   institute::String # UQAM, DMI, etc.   filename::String # Path of the original file   dataunits::String # Celsius, kelvin, etc.   latunits::String # latitude coordinate unit   lonunits::String # longitude coordinate unit   variable::String # Type of variable (i.e. can be the same as \"typeofvar\", but it is changed when calculating indices)   typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)   typeofcal::String # Calendar type   timeattrib::Dict # Time attributes (e.g. days since ... )   varattribs::Dict # Variable attributes dictionary   globalattribs::Dict # Global attributes dictionary end\n\n\n\n\n\n"
 },
 
 {
@@ -965,7 +973,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.ClimGrid",
     "category": "method",
-    "text": "ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), model=\"NA\", frequency=\"NA\", experiment=\"NA\", run=\"NA\", project=\"NA\", institute=\"NA\", filename=\"NA\", dataunits=\"NA\", latunits=\"NA\", lonunits=\"NA\", variable=\"NA\", typeofvar=\"NA\", typeofcal=\"NA\", varattribs=Dict(), globalattribs=Dict())\n\nConstructor of the ClimGrid function. Data is an AxisArray. Everything else is optional, but usually needed for further processing (mapping, interpolation, etc...).\n\n\n\n\n\n"
+    "text": "ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), model=\"NA\", frequency=\"NA\", experiment=\"NA\", run=\"NA\", project=\"NA\", institute=\"NA\", filename=\"NA\", dataunits=\"NA\", latunits=\"NA\", lonunits=\"NA\", variable=\"NA\", typeofvar=\"NA\", typeofcal=\"NA\", varattribs=Dict(), globalattribs=Dict())\n\nConstructor of the ClimGrid function. Data is an AxisArray. Everything else is optional, but usually needed for further processing (mapping, interpolation, etc...).\n\nstruct ClimGrid   data::AxisArray # Data   longrid::AbstractArray{N,2} where N # the longitude grid   latgrid::AbstractArray{N,2} where N # the latitude grid   msk::Array{N, 2} where N # Data mask (NaNs and 1.0)   gridmapping::Dict#{String, Any} # bindings for native grid   dimensiondict::Dict   model::String   frequency::String # Day, month, years   experiment::String # Historical, RCP4.5, RCP8.5, etc.   run::String   project::String # CORDEX, CMIP5, etc.   institute::String # UQAM, DMI, etc.   filename::String # Path of the original file   dataunits::String # Celsius, kelvin, etc.   latunits::String # latitude coordinate unit   lonunits::String # longitude coordinate unit   variable::String # Type of variable (i.e. can be the same as \"typeofvar\", but it is changed when calculating indices)   typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)   typeofcal::String # Calendar type   timeattrib::Dict # Time attributes (e.g. days since ... )   varattribs::Dict # Variable attributes dictionary   globalattribs::Dict # Global attributes dictionary end\n\n\n\n\n\n"
 },
 
 {
