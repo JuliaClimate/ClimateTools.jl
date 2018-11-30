@@ -24,6 +24,14 @@ Basic arithmetic operators are also loaded.
 
 ```julia
 D = C + 2.0 # will add 2.0 to all elements of C
-D = C::ClimGrid - A::ClimGrid # subtract A from C (useful for climatological difference between a future and historical period 
+D = C::ClimGrid - A::ClimGrid # subtract A from C (useful for climatological difference between a future and historical period
 D = C / A # Ratio of 2 ClimGrids
+```
+
+## Exporting
+
+Exporting a `ClimGrid` to disk to a netCDF format can be done with the `write` functiond.
+
+```julia
+write(C::ClimGrid, filename::String)
 ```
