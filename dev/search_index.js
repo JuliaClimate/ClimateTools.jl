@@ -489,11 +489,27 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "examples/#Exporting-1",
+    "page": "Examples",
+    "title": "Exporting",
+    "category": "section",
+    "text": "Once calculations are done, results can be written to disk with the write command. Here, we export the annual maximum values of the bias corrected model to the current folder.write(max_modelqqmap, \"annualmax_model_qqmap.nc\")"
+},
+
+{
     "location": "functions/#",
     "page": "Index",
     "title": "Index",
     "category": "page",
     "text": ""
+},
+
+{
+    "location": "functions/#Base.findmax-Tuple{ClimGrid}",
+    "page": "Index",
+    "title": "Base.findmax",
+    "category": "method",
+    "text": "findmax(C::ClimGrid; skipnan::Bool=false)\n\nReturn the maximum element of ClimGrid C its timestamp. If there are multiple maximal elements, then the first one will be returned. If any data element is NaN, this element is returned. The result is in line with max. As climate data can often have NaN values (irregular polygons, missing weather data), the option to skip NaNs is provided as a keyword argument.\n\n\n\n\n\n"
 },
 
 {
