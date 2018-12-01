@@ -252,27 +252,21 @@ function daymean(C::ClimGrid)
 
     T = typeof(timevec[1])
 
-    # dayfactor = ClimateTools.daymean_factor(C.frequency)
-    nbdays = length(unique(yearmonthday.(timevec)))
-    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbdays))
-    newtime = Array{T}(undef, nbdays)
+    nbdays = unique(yearmonthday.(timevec))
+    nbdays_len = length(nbdays)
+    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbdays_len))
+    newtime = Array{T}(undef, nbdays_len)
 
     # loop over year-month-days
-    z = 1
-    for iyear in 1:length(numYears)
-        for imonth in 1:length(numMonths)
-            for iday in 1:daysinmonth(T(numYears[iyear],numMonths[imonth]))
+    Threads.@threads for iday in 1:nbdays_len
 
-                datefind = T(numYears[iyear],numMonths[imonth],numDays[iday])
+        daytmp = nbdays[iday]
+        datefind = T(daytmp[1], daytmp[2], daytmp[3])
+        idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind) && Dates.day(x) == Dates.day(datefind), timevec)
 
-                idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind) && Dates.day(x) == Dates.day(datefind), timevec)
+        dataout[:, :, iday] = Statistics.mean(datain[:, :, idx], dims=3)
+        newtime[iday] = datefind
 
-                dataout[:, :, z] = Statistics.mean(datain[:, :, idx], dims=3)
-
-                newtime[z] = datefind
-                z += 1
-            end
-        end
     end
 
     # Build output AxisArray
@@ -301,27 +295,21 @@ function daysum(C::ClimGrid)
 
     T = typeof(timevec[1])
 
-    # dayfactor = ClimateTools.daymean_factor(C.frequency)
-    nbdays = length(unique(yearmonthday.(timevec)))
-    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbdays))
-    newtime = Array{T}(undef, nbdays)
+    nbdays = unique(yearmonthday.(timevec))
+    nbdays_len = length(nbdays)
+    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbdays_len))
+    newtime = Array{T}(undef, nbdays_len)
 
     # loop over year-month-days
-    z = 1
-    for iyear in 1:length(numYears)
-        for imonth in 1:length(numMonths)
-            for iday in 1:daysinmonth(T(numYears[iyear],numMonths[imonth]))
+    Threads.@threads for iday in 1:nbdays_len
 
-                datefind = T(numYears[iyear],numMonths[imonth],numDays[iday])
+        daytmp = nbdays[iday]
+        datefind = T(daytmp[1], daytmp[2], daytmp[3])
+        idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind) && Dates.day(x) == Dates.day(datefind), timevec)
 
-                idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind) && Dates.day(x) == Dates.day(datefind), timevec)
+        dataout[:, :, iday] = Statistics.sum(datain[:, :, idx], dims=3)
+        newtime[iday] = datefind
 
-                dataout[:, :, z] = Statistics.sum(datain[:, :, idx], dims=3)
-
-                newtime[z] = datefind
-                z += 1
-            end
-        end
     end
 
     # Build output AxisArray
@@ -331,52 +319,7 @@ function daysum(C::ClimGrid)
 
 end
 
-# """
-#     daysinmonth(D::DateTimeNoLeap)
-#
-# Workaround to work with non-standard calendar DateTimeNoLeap.
-# """
-# function daysinmonth(D::DateTimeNoLeap)
-#     DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-#     return DAYSINMONTH2[Dates.month(D)]
-# end
-#
-# """
-#     daysinmonth(D::DateTimeStandard)
-#
-# Workaround to work with non-standard calendar DateTimeStandard.
-# """
-# function daysinmonth(D::DateTimeStandard)
-#     DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-#     return DAYSINMONTH2[Dates.month(D)] + (Dates.month(D) == 2 && isleapyear(Dates.year(D)))
-# end
-#
-# """
-#     daysinmonth(D::DateTimeProlepticGregorian)
-#
-# Workaround to work with non-standard calendar DateTimeProlepticGregorian.
-# """
-# function daysinmonth(D::DateTimeProlepticGregorian)
-#     DAYSINMONTH2 = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-#     return DAYSINMONTH2[m] + (m == 2 && isleapyear(y))
-# end
-#
-# """
-#     daysinmonth(D::DateTimeAllLeap)
-#
-# Workaround to work with non-standard calendar DateTimeAllLeap.
-# """
-# function daysinmonth(D::DateTimeAllLeap)
-#     DAYSINMONTH2 = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-#     return DAYSINMONTH2[Dates.month(D)]
-# end
-#
-# """
-#     daysinmonth(D::DateTime360Day)
-#
-# Workaround to work with non-standard calendar DateTime360Day.
-# """
-# daysinmonth(D::DateTime360Day) = 30
+
 
 """
     buildtoken(date::DateTime, C::ClimGrid)
