@@ -310,6 +310,9 @@ function daysum(C::ClimGrid)
     z = 1
     for iyear in 1:length(numYears)
         for imonth in 1:length(numMonths)
+            datemonth = T(numYears[iyear],numMonths[imonth])
+            idx_day = findall(x -> Dates.year(x) == Dates.year(datemonth) && Dates.month(x) == Dates.month(datemonth), timevec)
+            
             for iday in 1:daysinmonth(T(numYears[iyear],numMonths[imonth]))
 
                 datefind = T(numYears[iyear],numMonths[imonth],numDays[iday])
