@@ -180,7 +180,7 @@ include("analysis.jl")
 # Exported functions
 export ClimGrid
 export inpoly, inpolygrid, meshgrid, inpolyvec, ndgrid
-export findmax
+export findmax, findmin
 export frostdays, summerdays, icingdays, tropicalnights
 export daysabove10 #, daysbelow0, degdaysabove, degdaysbelow
 export customthresover, customthresunder, annualmax, annualmin
@@ -199,6 +199,7 @@ export merge, vaporpressure, approx_surfacepressure
 export wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
 export get_timevec, ensemble_mean, daymean, daysum
+export monthmean, monthsum
 export write
 
 end #module

@@ -1,3 +1,4 @@
+@testset "Extraction" begin
 # Period subset
 d = DateTime(1961,1,1):Day(1):DateTime(1990,12,31)
 Random.seed!(42)
@@ -38,3 +39,5 @@ D = resample(C, "SON") # hardcoded seasons
 @test unique(Dates.month.(D[1][Axis{:time}][:])) == [9,10,11]
 
 @test_throws ErrorException D = resample(C, "df")
+
+end

@@ -243,12 +243,6 @@ function daymean(C::ClimGrid)
     datain = C[1].data
 
     timevec   = get_timevec(C)
-    years     = Dates.year.(timevec)
-    numYears  = unique(years)
-    months    = Dates.month.(timevec)
-    numMonths = unique(months)
-    days    = Dates.day.(timevec)
-    numDays = unique(days)
 
     T = typeof(timevec[1])
 
@@ -286,12 +280,6 @@ function daysum(C::ClimGrid)
     datain = C[1].data
 
     timevec   = get_timevec(C)
-    years     = Dates.year.(timevec)
-    numYears  = unique(years)
-    months    = Dates.month.(timevec)
-    numMonths = unique(months)
-    days    = Dates.day.(timevec)
-    numDays = unique(days)
 
     T = typeof(timevec[1])
 
@@ -319,22 +307,77 @@ function daysum(C::ClimGrid)
 
 end
 
-
-
 """
-    buildtoken(date::DateTime, C::ClimGrid)
+    monthmean(C::ClimGrid)
 
-Returns the right date token based on time vector contained in ClimGrid C.
+Returns monthly means of ClimGrid C.
 """
-function buildtoken(date, C::ClimGrid)
+function monthmean(C::ClimGrid)
+    datain = C[1].data
+
     timevec = get_timevec(C)
-    typetoken = typeof(timevec[1])
 
-    return typetoken
+    T = typeof(timevec[1])
+
+    nbmonth = unique(yearmonth.(timevec))
+    nbmonth_len = length(nbmonth)
+    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbmonth_len))
+    newtime = Array{T}(undef, nbmonth_len)
+
+    # loop over year-month-days
+    Threads.@threads for imonth in 1:nbmonth_len
+
+        monthtmp = nbmonth[imonth]
+        datefind = T(monthtmp[1], monthtmp[2])
+        idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind), timevec)
+
+        dataout[:, :, imonth] = Statistics.mean(datain[:, :, idx], dims=3)
+        newtime[imonth] = datefind
+
+    end
+
+    # Build output AxisArray
+    FD = buildarray_resample(C, dataout, newtime)
+
+    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
 end
 
+"""
+    monthsum(C::ClimGrid)
 
+Returns monthly sums of ClimGrid C.
+"""
+function monthsum(C::ClimGrid)
+    datain = C[1].data
+
+    timevec = get_timevec(C)
+
+    T = typeof(timevec[1])
+
+    nbmonth = unique(yearmonth.(timevec))
+    nbmonth_len = length(nbmonth)
+    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbmonth_len))
+    newtime = Array{T}(undef, nbmonth_len)
+
+    # loop over year-month-days
+    Threads.@threads for imonth in 1:nbmonth_len
+
+        monthtmp = nbmonth[imonth]
+        datefind = T(monthtmp[1], monthtmp[2])
+        idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind), timevec)
+
+        dataout[:, :, imonth] = Statistics.sum(datain[:, :, idx], dims=3)
+        newtime[imonth] = datefind
+
+    end
+
+    # Build output AxisArray
+    FD = buildarray_resample(C, dataout, newtime)
+
+    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+
+end
 
 """
     timeresolution(timevec::Array{N,1} where N)

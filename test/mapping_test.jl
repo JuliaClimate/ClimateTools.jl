@@ -1,3 +1,4 @@
+@testset "Mapping" begin
 # Shapefile test
 filename = joinpath(dirname(@__FILE__), "data", "SudQC_GCM.shp")
 filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
@@ -14,10 +15,9 @@ status, figh = mapclimgrid(C); @test status == true; PyPlot.close()
 status, figh = mapclimgrid(C, mask = msk); @test status == true; PyPlot.close()
 C = load(filenc, "tas")
 status, figh = mapclimgrid(C); @test status == true; PyPlot.close()
-@test length(x) == 6
-@test length(y) == 6
-@test isnan(x[1])
-@test isnan(y[1])
+@test size(P) == (2, 6)
+@test isnan(P[1,1])
+@test isnan(P[2,1])
 
 # filename = joinpath(dirname(@__FILE__), "data", "zoneAgricoleQc15km.shp")
 # polyshp = read(filename,Shapefile.Handle)
@@ -94,6 +94,9 @@ status, figh = mapclimgrid(region = "Americas");@test status == true; PyPlot.clo
 status, figh = mapclimgrid(region = "NorthAmerica");@test status == true; PyPlot.close()
 # status, figh = mapclimgrid(region = "SouthAmerica");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(region = "Greenwich");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "outaouais");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "laurentides");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "estrie");@test status == true; PyPlot.close()
 # status, figh = mapclimgrid(region = "Arctic");@test status == true; PyPlot.close()
 # status, figh = mapclimgrid(region = "Antarctic");@test status == true; PyPlot.close()
 
@@ -128,3 +131,5 @@ axisdata = AxisArray(data, Axis{:lon}(lon), Axis{:lat}(lat), Axis{:time}(timeV))
 C = ClimateTools.ClimGrid(axisdata, variable = "psl", typeofvar="psl", longrid=longrid, latgrid=latgrid, dimension_dict=dimension_dict, varattribs=varattribs)
 
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close()
+
+end

@@ -1,3 +1,4 @@
+@testset "Interface" begin
 # test that load return a ClimGrid type
 file1 = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 file2 = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
@@ -421,3 +422,5 @@ end_date = (2003, 12, 31, 0, 0)
 idxtimebeg, idxtimeend = ClimateTools.timeindex(d, start_date, end_date, T)
 @test idxtimebeg == 367
 @test idxtimeend == 1461
+
+end
