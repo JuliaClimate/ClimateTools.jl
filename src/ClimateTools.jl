@@ -180,7 +180,7 @@ include("analysis.jl")
 # Exported functions
 export ClimGrid
 export inpoly, inpolygrid, meshgrid, inpolyvec, ndgrid
-export findmax
+export findmax, findmin
 export frostdays, summerdays, icingdays, tropicalnights
 export daysabove10 #, daysbelow0, degdaysabove, degdaysbelow
 export customthresover, customthresunder, annualmax, annualmin
