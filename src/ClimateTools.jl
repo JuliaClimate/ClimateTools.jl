@@ -199,6 +199,7 @@ export merge, vaporpressure, approx_surfacepressure
 export wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
 export get_timevec, ensemble_mean, daymean, daysum
+export monthmean, monthsum
 export write
 
 end #module
