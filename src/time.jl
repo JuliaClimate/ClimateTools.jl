@@ -315,7 +315,7 @@ Returns monthly means of ClimGrid C.
 function monthmean(C::ClimGrid)
     datain = C[1].data
 
-    timevec   = get_timevec(C)
+    timevec = get_timevec(C)
 
     T = typeof(timevec[1])
 
@@ -351,7 +351,7 @@ Returns monthly sums of ClimGrid C.
 function monthsum(C::ClimGrid)
     datain = C[1].data
 
-    timevec   = get_timevec(C)
+    timevec = get_timevec(C)
 
     T = typeof(timevec[1])
 
@@ -378,22 +378,6 @@ function monthsum(C::ClimGrid)
     return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
 end
-
-
-"""
-    buildtoken(date::DateTime, C::ClimGrid)
-
-Returns the right date token based on time vector contained in ClimGrid C.
-"""
-function buildtoken(date, C::ClimGrid)
-    timevec = get_timevec(C)
-    typetoken = typeof(timevec[1])
-
-    return typetoken
-
-end
-
-
 
 """
     timeresolution(timevec::Array{N,1} where N)
