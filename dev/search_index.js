@@ -525,7 +525,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "Base.findmax",
     "category": "method",
-    "text": "findmax(C::ClimGrid; skipnan::Bool=false)\n\nReturn the maximum element of ClimGrid C its timestamp. If there are multiple maximal elements, then the first one will be returned. If any data element is NaN, this element is returned. The result is in line with max. As climate data can often have NaN values (irregular polygons, missing weather data), the option to skip NaNs is provided as a keyword argument.\n\n\n\n\n\n"
+    "text": "findmax(C::ClimGrid; skipnan::Bool=false)\n\nReturn the maximum element of ClimGrid C and its index. If there are multiple maximal elements, then the first one will be returned. If any data element is NaN, this element is returned. The result is in line with max. As climate data can often have NaN values (irregular polygons, missing weather data), the option to skip NaNs is provided as a keyword argument.\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions/#Base.findmin-Tuple{ClimGrid}",
+    "page": "Index",
+    "title": "Base.findmin",
+    "category": "method",
+    "text": "findmin(C::ClimGrid; skipnan::Bool=false)\n\nReturn the minimum element of ClimGrid C and its index. If there are multiple minimal elements, then the first one will be returned. If any data element is NaN, this element is returned. The result is in line with min. As climate data can often have NaN values (irregular polygons, missing weather data), the option to skip NaNs is provided as a keyword argument.\n\n\n\n\n\n"
 },
 
 {
@@ -766,6 +774,22 @@ var documenterSearchIndex = {"docs": [
     "title": "ClimateTools.meshgrid",
     "category": "method",
     "text": "X, Y = meshgrid{T}(vx::AbstractVector{T}, vy::AbstractVector{T})\n\nThis function creates a 2-D mesh-grid in a format consistent with Matlab\'s function meshgrid(). XV and YV are vectors.\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions/#ClimateTools.monthmean-Tuple{ClimGrid}",
+    "page": "Index",
+    "title": "ClimateTools.monthmean",
+    "category": "method",
+    "text": "monthmean(C::ClimGrid)\n\nReturns monthly means of ClimGrid C.\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions/#ClimateTools.monthsum-Tuple{ClimGrid}",
+    "page": "Index",
+    "title": "ClimateTools.monthsum",
+    "category": "method",
+    "text": "monthsum(C::ClimGrid)\n\nReturns monthly sums of ClimGrid C.\n\n\n\n\n\n"
 },
 
 {
