@@ -13,8 +13,6 @@ C = load(filenc, "tas")
 
 @test load(filenc, "tas", data_units = "Celsius")[2] == "Celsius"
 @test load(filenc, "pr", data_units = "mm")[2] == "mm"
-@test typeof(C) == ClimGrid{AxisArrays.AxisArray{Unitful.Quantity{Float32,Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)},Unitful.FreeUnits{(Unitful.Unit{:Kelvin,Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)}}(0, 1//1),),Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)}}},3,Array{Unitful.Quantity{Float32,Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)},Unitful.FreeUnits{(Unitful.Unit{:Kelvin,Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)}}(0, 1//1),),Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)}}},3},Tuple{AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}},AxisArrays.Axis{:time,Array{Dates.DateTime,1}}}}}
-
 
 fileorog = joinpath(dirname(@__FILE__), "data", "orog_fx_GFDL-ESM2G_historicalMisc_r0i0p0.nc")
 orog = load2D(fileorog, "orog")
@@ -106,7 +104,7 @@ C = load(filenc, "tas", poly=poly)
 # Spatial subset
 C = load(filenc, "tas")
 Csub = temporalsubset(C, (2000, 05, 16, 12, 0, 0), (2000, 05, 16, 12, 0, 0))
-@test Csub[1][1, 1, 1] == 219.22285f0
+@test Csub[1][1, 1, 1] == 219.22285f0u"K"
 @test Csub[1][Axis{:time}][1] == DateTimeNoLeap(2000, 05, 16, 12)
 B = load(filenc, "tas", start_date=(2000, 05, 16, 12), end_date=(2000, 05, 16, 12))
 @test B[1] == C[1]
