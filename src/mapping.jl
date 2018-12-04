@@ -243,8 +243,16 @@ function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::T
         label = C.model
     end
 
+    # Convert timevec to an array of string
+    timevec_str = string.(timevec)
+    nb_interval_tmp = length(timevec)/8
+    nb_int = roundup(nb_interval_tmp, 5)
+
+
     # PLOTTING
-    figh = plot(timevec, average, lw=lw, label=label, linestyle=linestyle)
+
+    figh = plot(1:length(timevec_str), average, lw=lw, label=label, linestyle=linestyle)
+    xticks(1:nb_int:length(timevec_str), timevec_str[1:nb_int:end], rotation=10)
     if !isempty(xlimit)
         xlim(xlimit[1], xlimit[2])
     end
@@ -388,4 +396,8 @@ function getunitslabel(C::ClimGrid)
 
     return label
 
+end
+
+function roundup(i,v)
+    return round(Int, i/v)*v
 end

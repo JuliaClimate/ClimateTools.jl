@@ -559,3 +559,9 @@ function corrjuliandays(data_vec, date_vec)
     return data_vec2, date_jul2, date_vec2
 
 end
+
+"""
+    yearmonthdayhour(dt::AbstractCFDateTime) -> (Int64, Int64, Int64, Int64)
+Simultaneously return the year, month and day parts of `dt`.
+"""
+yearmonthdayhour(dt::AbstractCFDateTime) = (Dates.year(dt),Dates.month(dt),Dates.day(dt), Dates.hour(dt))
