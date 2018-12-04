@@ -112,6 +112,8 @@ function summerdays(C::ClimGrid)
   # Apply mask
   dataout = applymask(dataout, C.msk)
 
+  # Build output AxisArray
+  FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
   return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable="summerdays", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
@@ -231,8 +233,8 @@ Let TS[i,j] be a daily time serie value on day i in year j. Count the number of 
 function customthresunder(C::ClimGrid, thres)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
-  dataout  = zeros(Int64, (size(C.data, 1), size(C.data, 2), length(numYears)))
   datain   = C.data.data
+  dataout  = zeros(Int64, (size(C.data, 1), size(C.data, 2), length(numYears)))
 
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
@@ -260,8 +262,8 @@ Let data[i,j] be daily time serie on day i in year j. Extract the highest value 
 function annualmax(C::ClimGrid)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
-  dataout  = zeros(Float64, (size(C.data, 1), size(C.data, 2), length(numYears)))
   datain   = C.data.data
+  dataout  = zeros(typeof(datain[1]), (size(C.data, 1), size(C.data, 2), length(numYears)))
 
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
@@ -319,8 +321,8 @@ Let data[i,j] be daily time serie on day i in year j. Calculate the mean value f
 function annualmean(C::ClimGrid)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
-  dataout  = zeros(Float64, (size(C.data, 1), size(C.data, 2), length(numYears)))
   datain   = C.data.data
+  dataout  = zeros(typeof(datain[1]), (size(C.data, 1), size(C.data, 2), length(numYears)))
 
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
@@ -348,8 +350,8 @@ Let data[i,j] be daily time serie on day i in year j. Sums daily values for year
 function annualsum(C::ClimGrid)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
-  dataout  = zeros(Float64, (size(C.data, 1), size(C.data, 2), length(numYears)))
   datain   = C.data.data
+  dataout  = zeros(typeof(datain[1]), (size(C.data, 1), size(C.data, 2), length(numYears)))
 
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
