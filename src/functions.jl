@@ -128,15 +128,9 @@ Used to test a grid of points. Returns a mask of ones and NaNs of the same size 
 """
 function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} where N, poly::AbstractArray{N,2} where N)
 
-    # @argcheck size(lon, 2) == size(lat)
-
     OUT = fill(NaN, size(lon)) # grid mask
 
-    # Convert longitude to 0-360 degrees_east
-    # lon[lon .< 0] += 360
-
     # Find number of polygons (separated by NaN values)
-    # polyidx = findn(isnan.(poly[1, :])) #poly start index DEPRECATED IN Julia 0.7
     polyidx = Base.findall(isnan, poly[1,:])
     npoly = length(polyidx) # number of polygons
 
@@ -154,8 +148,6 @@ function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} wh
         minlat = minimum(polyn[2, :])
         maxlat = maximum(polyn[2, :])
 
-        # DEPRECATED. SEE NEXT "begin ... end"
-        # idx, idy = findn((lon .<= maxlon) .& (lon .>= minlon) .& (lat .>= minlat) .& (lat .<= maxlat))
         begin
             I = Base.findall((lon .<= maxlon) .& (lon .>= minlon) .& (lat .>= minlat) .& (lat .<= maxlat))
             idx, idy = (getindex.(I, 1), getindex.(I, 2))
@@ -500,16 +492,30 @@ Returns an array of the polynomials functions of each grid points contained in C
 """
 function polyfit(C::ClimGrid)
     x = 1:length(C[1][Axis{:time}][:])
-    # x = Dates.value.(C[1][Axis{:time}][:] - C[1][Axis{:time}][1])+1
     dataout = Array{Polynomials.Poly{Float64}}(undef, size(C[1], 1),size(C[1], 2))
-    for k = 1:size(C[1], 2)
-        Threads.@threads for j = 1:size(C[1], 1)
-            y = C[1][j , k, :].data
-            polynomial = Polynomials.polyfit(x, y, 4)
-            polynomial[0] = 0.0
-            dataout[j,k] = polynomial
-        end
+
+    # Reshaping for multi-threads
+    datain_rshp = reshape(C[1].data, size(C[1].data,1)*size(C[1].data,2), size(C[1].data,3))
+    dataout_rshp = reshape(dataout, size(dataout,1)*size(dataout,2),size(dataout,3))
+
+    Threads.@threads for k = 1:size(datain_rshp,1)
+        y = datain_rshp[k,:]
+        polynomial = Polynomials.polyfit(x, y, 4)
+        polynomial[0] = 0.0
+        dataout_rshp[k] = polynomial
+
     end
+
+
+
+    # for k = 1:size(C[1], 2)
+    #     Threads.@threads for j = 1:size(C[1], 1)
+    #         y = C[1][j , k, :].data
+    #         polynomial = Polynomials.polyfit(x, y, 4)
+    #         polynomial[0] = 0.0
+    #         dataout[j,k] = polynomial
+    #     end
+    # end
     return dataout
 end
 
@@ -521,12 +527,24 @@ end
 function polyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
     datain = C[1].data
     dataout = fill(NaN, (size(C[1], 1), size(C[1],2), size(C[1], 3)))::Array{N, T} where N where T
-    for k = 1:size(C[1], 2)
-        Threads.@threads for j = 1:size(C[1], 1)
-            val = polynomial[j,k](datain[j,k,:])
-            dataout[j,k,:] = val
-        end
+
+    # Reshape
+    datain_rshp = reshape(datain, size(datain,1)*size(datain,2),size(datain,3))
+    dataout_rshp = reshape(dataout, size(dataout,1)*size(dataout,2),size(dataout,3))
+    polynomial_rshp = reshape(polynomial, size(polynomial,1)*size(polynomial,2))
+
+    Threads.@threads for k = 1:size(datain_rshp,1)
+        val = polynomial_rshp[k](datain_rshp[k,:])
+        dataout_rshp[k,:] = val
     end
+
+    # 
+    # for k = 1:size(C[1], 2)
+    #     Threads.@threads for j = 1:size(C[1], 1)
+    #         val = polynomial[j,k](datain[j,k,:])
+    #         dataout[j,k,:] = val
+    #     end
+    # end
 
     dataout2 = buildarrayinterface(dataout, C)
 
