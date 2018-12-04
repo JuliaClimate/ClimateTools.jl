@@ -1,4 +1,5 @@
 @testset "Mapping" begin
+
 # Shapefile test
 filename = joinpath(dirname(@__FILE__), "data", "SudQC_GCM.shp")
 filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")

@@ -1,7 +1,7 @@
 # replstr(x) = sprint((io,x) -> show(IOContext(io, :limit => true, :displaysize => (24, 80)), MIME("text/plain"), x), x)
 # showstr(x) = sprint((io,x) -> show(IOContext(io, :limit => true, :displaysize => (24, 80)), x), x)
 
-@testset "Bias-correction" begin
+@testset "Bias correction" begin
 
 d = DateTime(1961,1,1):Day(1):DateTime(1990,12,31)
 Random.seed!(42)
@@ -42,3 +42,5 @@ poly = polyfit(C)
 val = polyval(C, poly)
 D = C - val
 @test D[1] == (C - val)[1]
+
+end
