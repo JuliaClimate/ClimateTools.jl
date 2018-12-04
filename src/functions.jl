@@ -578,24 +578,6 @@ function polyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
 end
 
 """
-    function applyunits(C::ClimGrid)
-
-Returns the adequate units of Unitful of ClimGrid C.
-"""
-function get_units(A)
-
-    return unit(A[1])
-
-    # dict_units = Dict(["K" => u"K",
-    # "Celsius" => u"°C",
-    # "mm s-1" => u"m/2",
-    # "mm" => u"mm"])
-    #
-    # return dict_units[C.dataunits]
-
-end
-
-"""
     periodmean(C::ClimGrid, startdate::Tuple, enddate::Tuple)
 
 Mean of array data over a given period.
@@ -623,7 +605,7 @@ function extension(url::String)
 end
 
 """
-    function applyunits(C::ClimGrid)
+    function get_units(C::ClimGrid)
 
 Returns the adequate units of Unitful of ClimGrid C.
 """
