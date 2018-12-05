@@ -95,7 +95,7 @@ function write(C::ClimGrid, filename::String)
         ds.attrib[iattr] = C.globalattribs[iattr]
     end
 
-    v[:] = C[1].data
+    v[:] = ustrip.(C[1].data)
 
     # Time vector
     nctime[:] = timeout
