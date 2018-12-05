@@ -6,10 +6,9 @@ Return the maximum element of ClimGrid C and its index. If there are multiple ma
 """
 function Base.findmax(C::ClimGrid; skipnan::Bool=false)
     # Get data
-    data = C[1]
+    data = ustrip.(C[1].data)
 
     if skipnan
-        idx = findall(data .== NaNMath.maximum(data))[1].I[3]
         idx = findall(data .== NaNMath.maximum(data))[1]
         val = data[idx]
 
@@ -30,10 +29,9 @@ Return the minimum element of ClimGrid C and its index. If there are multiple mi
 """
 function Base.findmin(C::ClimGrid; skipnan::Bool=false)
     # Get data
-    data = C[1]
+    data = ustrip.(C[1].data)
 
     if skipnan
-        idx = findall(data .== NaNMath.minimum(data))[1].I[3]
         idx = findall(data .== NaNMath.minimum(data))[1]
         val = data[idx]
 
