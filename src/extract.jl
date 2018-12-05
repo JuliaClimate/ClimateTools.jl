@@ -266,6 +266,10 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
       data = [data][1]u"mm"
   elseif dataunits == "m s-1"
       data = [data][1]u"m/s"
+  elseif dataunits == "m"
+      data = [data][1]u"m"
+  elseif dataunits == "%"
+      data = [data][1]u"percent"
   end
 
   # Create AxisArray from variable "data"
@@ -539,13 +543,13 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
 end
 
-model_id(attrib::NCDatasets.Attributes) = get(attrib,"model_id",get(attrib,"model","N/A"))
+model_id(attrib::NCDatasets.Attributes) = get(attrib,"model_id", get(attrib, "parent_source_id", get(attrib,"model","N/A")))
 
 experiment_id(attrib::NCDatasets.Attributes) = get(attrib,"experiment_id",get(attrib,"experiment","N/A"))
 
-project_id(attrib::NCDatasets.Attributes) = get(attrib,"project_id",get(attrib,"project","N/A"))
+project_id(attrib::NCDatasets.Attributes) = get(attrib,"project_id", get(attrib, "mip_era", get(attrib,"project","N/A")))
 
-institute_id(attrib::NCDatasets.Attributes) = get(attrib,"institute_id",get(attrib,"institute","N/A"))
+institute_id(attrib::NCDatasets.Attributes) = get(attrib,"institute_id",get(attrib, "institution_id", get(attrib,"institute","N/A")))
 
 frequency_var(attrib::NCDatasets.Attributes) = get(attrib,"frequency","N/A")
 
