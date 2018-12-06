@@ -402,7 +402,7 @@ function timeresolution(timevec::Array{N,1} where N)
             return "1h"
         elseif round(timediff, digits=5) == 365.0 || round(timediff, digits=5) == 366.0 || round(timediff, digits=5) == 360.0
             return "Yearly"
-        elseif timediff == 31.0 || timediff == 30.0 || timediff == 28.0
+        elseif timediff == 31.0 || timediff == 30.0 || timediff == 28.0 || timediff == 29.0
             return "Monthly"
         end
     else
