@@ -239,6 +239,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   if data_units == "Celsius" && (vari == "tas" || vari == "tasmax" || vari == "tasmin") && dataunits == "K"
     data .-= 273.15
     dataunits = "Celsius"
+    varattrib["units"] = "Celsius"
   end
 
   if data_units == "mm" && vari == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")
@@ -247,12 +248,8 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     factor = pr_timefactor(rez)
     data .*= factor
     dataunits = "mm"
-    # if rez != "N/A"
-    #     dataunits = string("mm/",rez)
-    # else
-    #     dataunits = "mm"
-    # end
     varattrib["standard_name"] = "precipitation"
+    varattrib["units"] = "mm"
   end
 
   # Attribute dimension to data
@@ -266,6 +263,8 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
       data = [data][1]u"mm"
   elseif dataunits == "m s-1"
       data = [data][1]u"m/s"
+  elseif dataunits == "mm s-1"
+      data = [data][1]u"mm/s"
   elseif dataunits == "m"
       data = [data][1]u"m"
   elseif dataunits == "%"
