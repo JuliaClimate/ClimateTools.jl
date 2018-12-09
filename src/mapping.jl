@@ -250,7 +250,7 @@ function PyPlot.plot(C::ClimGrid; level=1, poly=[], start_date::Tuple=(Inf,), en
 
     # Convert timevec to an array of string
     timevec_str = string.(timevec)
-    if length(timevec) >= 20        
+    if length(timevec) >= 20
         nb_interval_tmp = length(timevec)/8
         nb_int = roundup(nb_interval_tmp, 5)
     else
