@@ -8,9 +8,9 @@ ClimateTools need some Python dependencies for mapping purpose. To ensure that C
 
 **Python dependencies**
 
-* matplotlib
-* basemap
-* scipy
+* matplotlib (tested with version 2.0.1)
+* basemap (tested with version 1.0.7)
+* scipy (tested with version 1.0.1)
 * cmocean
 
 *Note2. Installing Basemap for python 3.6+ seems problematic.*
