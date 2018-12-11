@@ -93,7 +93,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Getting started",
     "title": "Required dependencies",
     "category": "section",
-    "text": "ClimateTools need some Python dependencies for mapping purpose. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the following python modules and build PyCall with the same python distribution.Python dependenciesmatplotlib\nbasemap\nscipy\ncmoceanNote2. Installing Basemap for python 3.6+ seems problematic.Building PyCall After the confirmation that the Python dependencies can be loaded in Python, the user needs to build PyCall with the same Python version. Alternatively, if PyCall is already built, it may be only a matter of installing the Python dependencies with the PyCall\'s Python version.ENV[\"PYTHON\"]=\"path_to_python_distribution\"\npkg> build PyCall"
+    "text": "ClimateTools need some Python dependencies for mapping purpose. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the following python modules and build PyCall with the same python distribution.Python dependenciesmatplotlib (tested with version 2.0.1)\nbasemap (tested with version 1.0.7)\nscipy (tested with version 1.0.1)\ncmoceanNote2. Installing Basemap for python 3.6+ seems problematic.Building PyCall After the confirmation that the Python dependencies can be loaded in Python, the user needs to build PyCall with the same Python version. Alternatively, if PyCall is already built, it may be only a matter of installing the Python dependencies with the PyCall\'s Python version.ENV[\"PYTHON\"]=\"path_to_python_distribution\"\npkg> build PyCall"
 },
 
 {
