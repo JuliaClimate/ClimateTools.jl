@@ -13,7 +13,7 @@ Temporal subsetting can be done by providing start_date and end-date Tuples of l
 
 **Note:** load uses [CF conventions](http://cfconventions.org/). If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in [NetCDF.jl package](https://github.com/JuliaGeo/NetCDF.jl) or [NCDatasets.jl](https://github.com/Alexander-Barth/NCDatasets.jl) or re-create standartized netCDF files.
 """
-function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
+function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "", dimension::Bool=true)
 
   # TODO this file is a complete mess, but it works. Clean it up!
 
@@ -253,22 +253,24 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   end
 
   # Attribute dimension to data
-  if dataunits == "K" || dataunits == "Kelvin"
-      data = [data][1]u"K"
-  elseif dataunits == "C" || dataunits == "°C" || dataunits == "Celsius"
-      data = [data][1]u"°C"
-  elseif dataunits == "kg m-2 s-1"
-      data = [data][1]u"kg/m^2/s"
-  elseif dataunits == "mm"
-      data = [data][1]u"mm"
-  elseif dataunits == "m s-1"
-      data = [data][1]u"m/s"
-  elseif dataunits == "mm s-1"
-      data = [data][1]u"mm/s"
-  elseif dataunits == "m"
-      data = [data][1]u"m"
-  elseif dataunits == "%"
-      data = [data][1]u"percent"
+  if dimension
+      if dataunits == "K" || dataunits == "Kelvin"
+          data = [data][1]u"K"
+      elseif dataunits == "C" || dataunits == "°C" || dataunits == "Celsius"
+          data = [data][1]u"°C"
+      elseif dataunits == "kg m-2 s-1"
+          data = [data][1]u"kg/m^2/s"
+      elseif dataunits == "mm"
+          data = [data][1]u"mm"
+      elseif dataunits == "m s-1"
+          data = [data][1]u"m/s"
+      elseif dataunits == "mm s-1"
+          data = [data][1]u"mm/s"
+      elseif dataunits == "m"
+          data = [data][1]u"m"
+      elseif dataunits == "%"
+          data = [data][1]u"percent"
+      end
   end
 
   # Create AxisArray from variable "data"
@@ -297,7 +299,7 @@ end
 
 Loads and merge the files contained in the arrar files.
 """
-function load(files::Array{String,1}, vari::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
+function load(files::Array{String,1}, vari::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "", dimension::Bool=true)
 
     nfiles = length(files)
     C = Array{ClimGrid}(undef, nfiles) # initialize # TODO better initialization
@@ -308,7 +310,7 @@ function load(files::Array{String,1}, vari::String; poly = ([]), start_date::Tup
 
     for ifile = 1:nfiles
 
-        C[ifile] = load(files[ifile], vari, poly = poly, start_date=start_date, end_date=end_date, data_units=data_units)
+        C[ifile] = load(files[ifile], vari, poly = poly, start_date=start_date, end_date=end_date, data_units=data_units, dimension=dimension)
         datesort[ifile] = get_timevec(C[ifile])[1]
 
         next!(p)
