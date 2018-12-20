@@ -284,15 +284,16 @@ end
 """
     annualmin(C::ClimGrid)
 
-Annual min of array data.
+Annual minimum of array data.
 
-Let data[i,j] be daily time serie on day i in year j. Calculate the minimum value for year j.
+Let data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.
 """
 function annualmin(C::ClimGrid)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
-  dataout  = zeros(Float64, (size(C.data, 1), size(C.data, 2), length(numYears)))
   datain   = C.data.data
+  dataout  = zeros(typeof(datain[1]), (size(C.data, 1), size(C.data, 2), length(numYears)))
+
 
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
