@@ -41,3 +41,14 @@ D = resample(C, "SON") # hardcoded seasons
 @test_throws ErrorException D = resample(C, "df")
 
 end
+
+@testset "Exportation" begin
+
+    filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
+    C = load(filenc, "tas")
+
+    status = write(C, "test.nc")
+    @test status == true
+    run(`rm test.nc`)
+
+end
