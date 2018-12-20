@@ -115,4 +115,6 @@ function write(C::ClimGrid, filename::String)
     # Close file
     close(ds)
 
+    return true
+
 end
