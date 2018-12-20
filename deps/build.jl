@@ -8,7 +8,12 @@ if lowercase(get(ENV, "CI", "false")) == "true"
     let basepython = get(ENV, "PYTHON", "python2")
         envpath = joinpath(@__DIR__, "env")
         run(`pip install --user virtualenv`)
-        run(`/home/jrun/ClimateTools/.local/bin/virtualenv --python=$basepython $envpath`)
+
+        if Sys.iswindows()
+            run(`/home/jrun/ClimateTools/.local/bin/virtualenv --python=$basepython $envpath`)
+        else
+            run(`virtualenv --python=$basepython $envpath`)
+        end
 
         if Sys.iswindows()
             python = joinpath(envpath, "Scripts", "python.exe")
