@@ -34,10 +34,10 @@ pkg> add ClimateTools # Tagged release
 The entry point of `ClimateTools` is to load data with the `load` function. The return structure of the `load` function is a in-memory representation of the variable contained in the netCDF file.
 
 ```julia
-C = load(filename::String, vari::String; poly::Array, data_units::String, start_date::Tuple, end_date::Tuple)
+C = load(filename::String, vari::String; poly::Array, data_units::String, start_date::Tuple, end_date::Tuple, dimension::Bool=true)
 ```
 
-`load` return a `ClimGrid` type. The `ClimGrid` represent a single variable. In the event of a dataset containing
+`load` return a `ClimGrid` type. The `ClimGrid` represent a single variable. By default, the function tries to attach physical units to the data array by using the [Unitful.jl](https://github.com/ajkeller34/Unitful.jl) package. The advantage behind physical units is that one can subtract a `ClimGrid` with `Kelvin` unit with a `ClimGrid` with `Celsius` unit and get coherent results. Be warned that some operations on some units are not allowed (you cannot "add" Celsius for instance). In the event that a user wants to do some calculations without physical logic, it is possible to load the dataset without the units by specifying `dimension=false` argument. 
 
 Using the optional `poly` argument, the user can provide a polygon and the returned `ClimGrid` will only contains the grid points inside the provided polygon. **The polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).**
 
