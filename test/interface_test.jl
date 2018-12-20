@@ -1,4 +1,8 @@
+using Unitful: K, °C, m, mm, s, kg
+using Unitful: @u_str, ustrip, uconvert
+
 @testset "Interface" begin
+
 # test that load return a ClimGrid type
 file1 = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 file2 = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
@@ -9,8 +13,6 @@ C = load(filenc, "tas")
 
 @test load(filenc, "tas", data_units = "Celsius")[2] == "Celsius"
 @test load(filenc, "pr", data_units = "mm")[2] == "mm"
-@test typeof(load(filenc, "tas")) == ClimGrid{AxisArrays.AxisArray{Float32,3,Array{Float32,3},Tuple{AxisArrays.Axis{:lon,Array{Float32,1}},AxisArrays.Axis{:lat,Array{Float32,1}},AxisArrays.Axis{:time,Array{Union{Missing, DateTimeNoLeap},1}}}}}
-
 
 fileorog = joinpath(dirname(@__FILE__), "data", "orog_fx_GFDL-ESM2G_historicalMisc_r0i0p0.nc")
 orog = load2D(fileorog, "orog")
@@ -31,25 +33,28 @@ orog = load2D(fileorog, "orog", poly = P)
 B = merge(C, C)
 @test size(B.data) == (256, 128, 1) # C being similar, they should not add up, as opposed to vcat
 # Operators +, -, *, /
-B = C + C; @test B[1].data[1, 1, 1] == 438.4457f0
-B = C * C; @test B[1].data[1, 1, 1] == 48058.66f0
+B = C + C; @test B[1].data[1, 1, 1] == 438.4457f0u"K"
+B = C * C; @test B[1].data[1, 1, 1] == 48058.66f0u"K^2"
 B = C / C; @test B[1].data[1, 1, 1] == 1.0f0
-B = C - C; @test B[1].data[1, 1, 1] == 0.0f0
-B = C - 1.0; @test B[1].data[1, 1, 1] == 218.2228546142578
-B = C - 1; @test B[1].data[1, 1, 1] == 218.22285f0
-B = C / 2; @test B[1].data[1, 1, 1] == 109.61143f0
-B = C / 2.2; @test B[1].data[1, 1, 1] == 99.6467520973899
-B = C * 2; @test B[1].data[1, 1, 1] == 438.4457f0
-B = C * 2.2; @test B[1].data[1, 1, 1] == 482.2902801513672
+B = C - C; @test B[1].data[1, 1, 1] == 0.0f0u"K"
+B = C - 1.0u"K"; @test B[1].data[1, 1, 1] == 218.2228546142578u"K"
+B = C - 1u"K"; @test B[1].data[1, 1, 1] == 218.22285f0u"K"
+B = C / 2; @test B[1].data[1, 1, 1] == 109.61143f0u"K"
+B = C / 2u"K"; @test B[1].data[1, 1, 1] == 109.61143f0
+B = C / 2.2; @test B[1].data[1, 1, 1] == 99.6467520973899u"K"
+B = C * 2; @test B[1].data[1, 1, 1] == 438.4457f0u"K"
+B = C * 2u"K"; @test B[1].data[1, 1, 1] == 438.4457f0u"K^2"
+B = C * 2.2; @test B[1].data[1, 1, 1] == 482.2902801513672u"K"
 
-@test ClimateTools.mean(C) == 278.6421f0
-@test ClimateTools.maximum(C) == 309.09613f0
-@test ClimateTools.minimum(C) == 205.24321f0
-@test ClimateTools.std(C) == 21.92836f0
-@test round(ClimateTools.var(C), digits=3) == 480.853f0
+@test ClimateTools.mean(C) == 278.6421f0u"K"
+@test ClimateTools.maximum(C) == 309.09613f0u"K"
+@test ClimateTools.minimum(C) == 205.24321f0u"K"
+@test ClimateTools.std(C) == 21.92836f0u"K"
+@test round(ustrip(ClimateTools.var(C)), digits=3) == 480.853f0
 
 # @test typeof(show(C)) == Dict{Any, Any}
-@test typeof(C[1].data) == Array{Float64,3} || typeof(C[1].data) == Array{Float32,3}
+# @test typeof(C[1].data) == Array{Unitful.Quantity{Float32,Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)},Unitful.FreeUnits{(Unitful.Unit{:Kelvin,Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)}}(0, 1//1),),Unitful.Dimensions{(Unitful.Dimension{:Temperature}(1//1),)}}},3}
+
 @test C[2] == "K"
 @test C[3] == "N/A"
 @test C[4] == "720 ppm stabilization experiment (SRESA1B)"
@@ -83,14 +88,14 @@ P = P'
 C = load(filenc, "tas")
 Csub = spatialsubset(C, P)
 @test size(Csub[1]) == (23, 12, 1)
-@test Csub[1][1, 1, 1] == 294.6609f0
+@test Csub[1][1, 1, 1] == 294.6609f0u"K"
 Csub = spatialsubset(C, P')
 @test size(Csub[1]) == (23, 12, 1)
-@test Csub[1][1, 1, 1] == 294.6609f0
+@test Csub[1][1, 1, 1] == 294.6609f0u"K"
 C = load(filenc, "ua")
 Csub = spatialsubset(C, P)
 @test size(Csub[1]) == (23, 12, 17, 1)
-@test Csub[1][12, 1, 1, 1] == 6.658482f0
+@test Csub[1][12, 1, 1, 1] == 6.658482f0u"m/s"
 @test isnan(Csub[1][1, 1, 1, 1])
 
 poly= [[NaN 10 -10 -10 10 10];[NaN -10 -20 10 10 -10]] # meridian test
@@ -99,7 +104,7 @@ C = load(filenc, "tas", poly=poly)
 # Spatial subset
 C = load(filenc, "tas")
 Csub = temporalsubset(C, (2000, 05, 16, 12, 0, 0), (2000, 05, 16, 12, 0, 0))
-@test Csub[1][1, 1, 1] == 219.22285f0
+@test Csub[1][1, 1, 1] == 219.22285f0u"K"
 @test Csub[1][Axis{:time}][1] == DateTimeNoLeap(2000, 05, 16, 12)
 B = load(filenc, "tas", start_date=(2000, 05, 16, 12), end_date=(2000, 05, 16, 12))
 @test B[1] == C[1]

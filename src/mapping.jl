@@ -92,12 +92,12 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   x, y = m(C.longrid, C.latgrid) # convert longrid and latgrid to projected coordinates
   if surface == :contourf
     # try
-        cs = m[surface](x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
+    cs = m[surface](x, y, ustrip.(data2), ncolors, cmap = cm, vmin=ustrip(vmin), vmax=ustrip(vmax))
     # catch
     #     cs = m[surface](x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
     # end
   else
-    cs = m[surface](x, y, data2, cmap = cm, vmin=vmin, vmax=vmax)
+    cs = m[surface](x, y, ustrip.(data2), cmap = cm, vmin=ustrip(vmin), vmax=ustrip(vmax))
   end
 
   # Colorbar
@@ -211,7 +211,7 @@ end
 
 Plots the spatial average timeserie of ClimGrid `C`.
 """
-function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", gridfig::Bool=true, label::String="", lw=1.5, linestyle="-", xlimit=[], ylimit=[])
+function PyPlot.plot(C::ClimGrid; level=1, poly=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", gridfig::Bool=true, label::String="", lw=1.5, linestyle="-", xlimit=[], ylimit=[])
 
     if !isempty(poly)
         C = spatialsubset(C, poly)
@@ -233,8 +233,13 @@ function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::T
 
     # Spatial mean for each timestep
     for t in 1:length(timevec)
-        datatmp = data[:, :, t]
-        average[t] = Statistics.mean(datatmp[.!isnan.(datatmp)])
+        if ndims(data) == 3
+            datatmp = ustrip.(data[:, :, t])
+            average[t] = Statistics.mean(datatmp[.!isnan.(datatmp)])
+        elseif ndims(data) == 4
+            datatmp = ustrip.(data[:, :, level, t])
+            average[t] = Statistics.mean(datatmp[.!isnan.(datatmp)])
+        end
     end
 
     # figh, ax = subplots()
@@ -243,8 +248,18 @@ function PyPlot.plot(C::ClimGrid; poly=[], start_date::Tuple=(Inf,), end_date::T
         label = C.model
     end
 
+    # Convert timevec to an array of string
+    timevec_str = string.(timevec)
+    if length(timevec) >= 20
+        nb_interval_tmp = length(timevec)/8
+        nb_int = roundup(nb_interval_tmp, 5)
+    else
+        nb_int = 1
+    end
+
     # PLOTTING
-    figh = plot(timevec, average, lw=lw, label=label, linestyle=linestyle)
+    figh = plot(1:length(timevec_str), average, lw=lw, label=label, linestyle=linestyle)
+    xticks(1:nb_int:length(timevec_str), timevec_str[1:nb_int:end], rotation=10)
     if !isempty(xlimit)
         xlim(xlimit[1], xlimit[2])
     end
@@ -297,8 +312,11 @@ end
 Returns an array for mapping purpose. Used internally by [`mapclimgrid`](@ref).
 """
 function timeavg(C, timebeg, timeend, mask, poly, level)
+
     data2 = Array{Float64}(undef, size(C[1], 2), size(C[1], 3))
+
     if ndims(C[1]) == 3
+
       data2 = Array(dropdims(Statistics.mean(C[1][:, :, timebeg:timeend], dims=3), dims=3)) #time mean
 
       # TODO throw error/warning if no grid point inside polygon or mask
@@ -385,4 +403,8 @@ function getunitslabel(C::ClimGrid)
 
     return label
 
+end
+
+function roundup(i,v)
+    return round(Int, i/v)*v
 end

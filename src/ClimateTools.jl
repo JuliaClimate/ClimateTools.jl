@@ -6,7 +6,6 @@ module ClimateTools
 using NetCDF
 using Reexport
 @reexport using NCDatasets
-# using NCDatasets
 using Shapefile
 using AxisArrays
 using NaNMath
@@ -20,6 +19,8 @@ using Polynomials
 using IterTools
 using Statistics
 using Dates
+using Unitful: K, °C, m, mm, s, kg, %
+using Unitful: @u_str, ustrip, uconvert, unit
 import Base.vcat
 import Base.getindex
 import Base.show
@@ -200,6 +201,7 @@ export wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
 export get_timevec, ensemble_mean, daymean, daysum
 export monthmean, monthsum
+export yearmonthdayhour
 export write
 
 end #module

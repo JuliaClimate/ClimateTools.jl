@@ -402,6 +402,8 @@ function timeresolution(timevec::Array{N,1} where N)
             return "1h"
         elseif round(timediff, digits=5) == 365.0 || round(timediff, digits=5) == 366.0 || round(timediff, digits=5) == 360.0
             return "Yearly"
+        elseif timediff == 31.0 || timediff == 30.0 || timediff == 28.0 || timediff == 29.0
+            return "Monthly"
         end
     else
         return "N/A"
@@ -559,3 +561,9 @@ function corrjuliandays(data_vec, date_vec)
     return data_vec2, date_jul2, date_vec2
 
 end
+
+"""
+    yearmonthdayhour(dt::AbstractCFDateTime) -> (Int64, Int64, Int64, Int64)
+Simultaneously return the year, month and day parts of `dt`.
+"""
+yearmonthdayhour(dt::AbstractCFDateTime) = (Dates.year(dt),Dates.month(dt),Dates.day(dt), Dates.hour(dt))

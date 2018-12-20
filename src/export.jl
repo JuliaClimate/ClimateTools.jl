@@ -1,7 +1,7 @@
 """
     write(C::ClimGrid, filename::String)
 
-Write to disk ClimGrid C to netCDF file.
+Write to disk ClimGrid C to netCDF file. Still experimental, some attributes are hardcoded.
 """
 function write(C::ClimGrid, filename::String)
 
@@ -95,7 +95,7 @@ function write(C::ClimGrid, filename::String)
         ds.attrib[iattr] = C.globalattribs[iattr]
     end
 
-    v[:] = C[1].data
+    v[:] = ustrip.(C[1].data)
 
     # Time vector
     nctime[:] = timeout
@@ -114,5 +114,7 @@ function write(C::ClimGrid, filename::String)
 
     # Close file
     close(ds)
+
+    return true
 
 end

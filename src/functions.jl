@@ -277,7 +277,6 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
     elseif ndims(lon) == 2
         grid_mapping = Dict(["grid_mapping_name" => "Curvilinear_grid"])
         dimension_dict = Dict(["lon" => "x", "lat" => "y"])
-
     end
 
 
@@ -296,7 +295,7 @@ function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk
     for t = 1:length(timeorig)
 
         # Points values
-        val = dataorig[:, :, t][:]
+        val = ustrip.(dataorig[:, :, t][:])
 
         # Call scipy griddata
         data_interp = scipy[:griddata](points, val, (londest, latdest), method=method)
@@ -311,6 +310,9 @@ function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk
         next!(p)
 
     end
+    # Apply original units
+    un = get_units(dataorig)
+    OUT = [OUT][1]un
 end
 
 """
@@ -538,7 +540,7 @@ function polyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
         dataout_rshp[k,:] = val
     end
 
-    # 
+    #
     # for k = 1:size(C[1], 2)
     #     Threads.@threads for j = 1:size(C[1], 1)
     #         val = polynomial[j,k](datain[j,k,:])
@@ -551,12 +553,40 @@ function polyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
     return ClimGrid(dataout2; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
+"""
+    periodmean(C::ClimGrid, startdate::Tuple, enddate::Tuple)
+
+Mean of array data over a given period.
+"""
+function periodmean(C::ClimGrid, startdate::Tuple, enddate::Tuple)
+    Csubset = temporalsubset(C, startdate, enddate)
+    datain   = Csubset.data.data
+
+    # Mean and squeeze
+    dataout = Statistics.mean(datain, dims=3)
+
+    # Build output AxisArray
+    FD = buildarray_climato(C, dataout)
+
+    # Return climGrid type containing the indice
+    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
+end
+
 function extension(url::String)
     try
         return match(r"\.[A-Za-z0-9]+$", url).match
     catch
         return ""
     end
+end
+
+"""
+    function get_units(C::ClimGrid)
+
+Returns the adequate units of Unitful of ClimGrid C.
+"""
+function get_units(C)
+    return unit(C[1])
 end
 
 # function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)
