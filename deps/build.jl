@@ -8,30 +8,18 @@ if lowercase(get(ENV, "CI", "false")) == "true"
     let basepython = get(ENV, "PYTHON", "python2")
         envpath = joinpath(@__DIR__, "env")
         run(`pip install --user virtualenv`)
-
-        if Sys.iswindows()
-            run(`/home/jrun/ClimateTools/.local/bin/virtualenv --python=$basepython $envpath`)
-        else
-            run(`virtualenv --python=$basepython $envpath`)
-        end
+        run(`virtualenv --python=$basepython $envpath`)
 
         if Sys.iswindows()
             python = joinpath(envpath, "Scripts", "python.exe")
         else
             python = joinpath(envpath, "bin", "python2")
-            # if Sys.islinux()
-            #     run(`sudo apt get install libnetcdf-dev`)
-            # elseif Sys.isapple()
-            #     run(`sudo apt get install libnetcdf-dev`)
-            # end
         end
-        # run(`sudo apt-get install libnetcdf-dev`)
         run(`$python -m pip install numpy`)
         run(`$python -m pip install scipy`)
         run(`$python -m pip install matplotlib`)
         run(`$python -m pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz`)
-        run(`$python -m pip install git+https://github.com/matplotlib/cmocean`)
-        # run(`$python -m pip install netcdf4`)
+        run(`$python -m pip install git+https://github.com/matplotlib/cmocean`)        
 
         ENV["PYTHON"] = python
         Pkg.build("PyCall")
