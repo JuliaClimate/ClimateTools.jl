@@ -506,43 +506,19 @@ function polyfit(C::ClimGrid)
         polynomial[0] = 0.0
         dataout_rshp[k] = polynomial
 
-    timevec   = get_timevec(C)
-    years     = Dates.year.(timevec)
-    numYears  = unique(years)
-    months    = Dates.month.(timevec)
-    numMonths = unique(months)
-    days    = Dates.day.(timevec)
-    numDays = unique(days)
-    # numDays2 = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-
-    dayfactor = ClimateTools.daymean_factor(C.frequency)
-    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), Int64(size(C[1],3)/dayfactor)))
-    newtime = Array{DateTime}(undef, Int64(size(C[1],3)/dayfactor))
-
-    # loop over year-month-days
-    z = 1
-    for iy in 1:length(numYears)
-        for im in 1:length(numMonths)
-            # numDays =
-            for id in 1:Dates.daysinmonth(Date(string(numYears[iy],"-", numMonths[im])))
-
-                datefind = Date(string(numYears[iy],"-", numMonths[im],"-",numDays[id]), "yyyy-mm-dd")
-                idx = Date.(timevec) .== datefind
-                # idx = searchsortedfirst(years, numYears[iy]):searchsortedlast(years, numYears[iy]) && searchsortedfirst(months, numMonths[im]):searchsortedlast(months, numMonths[im]) && searchsortedfirst(days, numDays[id]):searchsortedlast(days, numDays[id])
-
-                dataout[:, :, z] = Statistics.mean(datain[:, :, idx], dims=3)
-
-
-                # Statistics.mean!(view(dataout, :, :, z), view(datain, :,:, idx), dims=3)
-                newtime[z] = DateTime(datefind)
-                z += 1
-            end
-        end
     end
 
 
-    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
+    # for k = 1:size(C[1], 2)
+    #     Threads.@threads for j = 1:size(C[1], 1)
+    #         y = C[1][j , k, :].data
+    #         polynomial = Polynomials.polyfit(x, y, 4)
+    #         polynomial[0] = 0.0
+    #         dataout[j,k] = polynomial
+    #     end
+    # end
+    return dataout
 end
 
 """
