@@ -801,14 +801,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions/#ClimateTools.periodmean-Tuple{ClimGrid,Tuple,Tuple}",
-    "page": "Index",
-    "title": "ClimateTools.periodmean",
-    "category": "method",
-    "text": "periodmean(C::ClimGrid, startdate::Tuple, enddate::Tuple)\n\nMean of array data over a given period.\n\n\n\n\n\n"
-},
-
-{
     "location": "functions/#ClimateTools.periodmean-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.periodmean",
@@ -965,7 +957,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.yearmonthdayhour",
     "category": "method",
-    "text": "yearmonthdayhour(dt::AbstractCFDateTime) -> (Int64, Int64, Int64, Int64)\n\nSimultaneously return the year, month and day parts of dt.\n\n\n\n\n\n"
+    "text": "yearmonthdayhour(dt::AbstractCFDateTime) -> (Int64, Int64, Int64, Int64)\n\nSimultaneously return the year, month, day and hour parts of dt.\n\n\n\n\n\n"
 },
 
 {
