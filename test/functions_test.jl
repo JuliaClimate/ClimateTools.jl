@@ -60,4 +60,7 @@ longrid, latgrid = ClimateTools.getgrids(C)
 @test ClimateTools.extension("test.nc") == ".nc"
 @test ClimateTools.extension("test.") == ""
 
+dt = DateTimeNoLeap(2000, 01, 01, 23)
+@test yearmonthdayhour(dt) == (2000, 1, 1, 23)
+
 end

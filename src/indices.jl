@@ -13,19 +13,19 @@ function buildarray_climato(C::ClimateTools.ClimGrid, dataout)
     return FD
 end
 
-function buildarray_orig(C::ClimateTools.ClimGrid, dataout)
-    lonsymbol = Symbol(C.dimension_dict["lon"])
-    latsymbol = Symbol(C.dimension_dict["lat"])
-    FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(get_timevec(C)))
-    return FD
-end
-
 function buildarray_resample(C::ClimateTools.ClimGrid, dataout, newtime)
     lonsymbol = Symbol(C.dimension_dict["lon"])
     latsymbol = Symbol(C.dimension_dict["lat"])
     FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(newtime))
     return FD
 end
+
+# function buildarray_orig(C::ClimateTools.ClimGrid, dataout)
+#     lonsymbol = Symbol(C.dimension_dict["lon"])
+#     latsymbol = Symbol(C.dimension_dict["lat"])
+#     FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(get_timevec(C)))
+#     return FD
+# end
 
 """
     prcp1(C::ClimGrid)
@@ -371,15 +371,15 @@ function annualsum(C::ClimGrid)
 end
 
 
-"""
-    spei()
-
-Returns the The Standardized Precipitation Evapotranspiration Index (SPEI).
-
-**Reference**
-Vicente-Serrano, S. M., Beguería, S., & López-Moreno, J. I. (2010). A Multiscalar Drought Index Sensitive to Global Warming: The Standardized Precipitation Evapotranspiration Index. Journal of Climate, 23(7), 1696–1718. https://doi.org/10.1175/2009JCLI2909.1
-"""
-
-function spei()
-
-end
+# """
+#     spei()
+#
+# Returns the The Standardized Precipitation Evapotranspiration Index (SPEI).
+#
+# **Reference**
+# Vicente-Serrano, S. M., Beguería, S., & López-Moreno, J. I. (2010). A Multiscalar Drought Index Sensitive to Global Warming: The Standardized Precipitation Evapotranspiration Index. Journal of Climate, 23(7), 1696–1718. https://doi.org/10.1175/2009JCLI2909.1
+# """
+#
+# function spei()
+#
+# end
