@@ -30,19 +30,20 @@ end
 """
     prcp1(C::ClimGrid)
 
-Annual number with preciptation >= 1 mm. This function returns a ClimGrid.
+Annual number with preciptation >= 1 mm. This function returns a ClimGrid. Input data should be in mm.
 """
+
 function prcp1(C::ClimGrid)
   @argcheck C[9] == "pr"
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = zeros(Int64, (size(C.data, 1), size(C.data, 2), length(numYears)))
-  datain   = C.data.data
+  datain   = ustrip.(C.data.data)
 
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 1u"mm", +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t >= 1, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
