@@ -238,8 +238,9 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # Convert units of optional argument data_units is provided
   if data_units == "Celsius" && (vari == "tas" || vari == "tasmax" || vari == "tasmin") && dataunits == "K"
     data .-= 273.15
-    dataunits = "Celsius"
+    dataunits = "°C"
     varattrib["units"] = "Celsius"
+    @warn "Using Celsius can be problematic for arithmetic operations. Best practice is to keep Kelvin and only convert to Celsius at the end with the overloaded ClimateTools.uconvert function."
   end
 
   if data_units == "mm" && vari == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")

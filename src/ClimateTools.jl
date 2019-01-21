@@ -20,7 +20,8 @@ using IterTools
 using Statistics
 using Dates
 using Unitful: K, °C, m, mm, s, kg, %
-using Unitful: @u_str, ustrip, uconvert, unit
+using Unitful: @u_str, ustrip, uconvert, unit, Units, Quantity
+import Unitful.uconvert
 import Base.vcat
 import Base.getindex
 import Base.show

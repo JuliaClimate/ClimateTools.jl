@@ -42,7 +42,7 @@ function prcp1(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 1, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t >= 1u"mm", +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
@@ -74,7 +74,7 @@ function frostdays(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t < 0, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t < 0u"°C", +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
@@ -106,7 +106,7 @@ function summerdays(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t > 25, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t > 25u"°C", +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
@@ -138,7 +138,7 @@ function icingdays(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t < 0, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t < 0u"°C", +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
@@ -171,7 +171,7 @@ function tropicalnights(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t > 20, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t > 20u"°C", +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
@@ -185,15 +185,23 @@ function tropicalnights(C::ClimGrid)
 end
 
 """
-    customthresover(C::ClimGrid)
+    customthresover(C::ClimGrid, thres)
 
 customthresover, annual number of days over a specified threshold.
 
 Let TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:
 
   TS[i,j] > thres.
+
+Note. The threshold needs to have units specified. For example:
+
+```jldoctest
+julia> using Unitful: @u_str, °C
+julia> thres = 15u"°C"
+15 °C
+```
 """
-function customthresover(C::ClimGrid, thres)
+function customthresover(C::ClimGrid, thres::Quantity)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = fill(NaN, (size(C.data, 1), size(C.data, 2), length(numYears)))
@@ -218,19 +226,27 @@ function customthresover(C::ClimGrid, thres)
   FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable=string("Days over ", thres, " ", C.dataunits), typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable=string("Days over ", thres), typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 """
-    customthresunder(C::ClimGrid)
+    customthresunder(C::ClimGrid, thres::Quantity)
 
-customthresover, annual number of days under a specified threshold.
+customthresunder, annual number of days under a specified threshold.
 
 Let TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:
 
   TS[i,j] < thres.
+
+Note. The threshold needs to have units specified. For example:
+
+```jldoctest
+julia> using Unitful: @u_str, °C
+julia> thres = 15u"°C"
+15 °C
+```
 """
-function customthresunder(C::ClimGrid, thres)
+function customthresunder(C::ClimGrid, thres::Quantity)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   datain   = C.data.data
@@ -249,7 +265,7 @@ function customthresunder(C::ClimGrid, thres)
   FD = buildarray_annual(C, dataout, numYears)
 
   # Return climGrid type containing the indice
-  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable=string("Days under ", thres, " ", C.dataunits), typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits="days", latunits=C.latunits, lonunits=C.lonunits, variable=string("Days under ", thres), typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
 """
@@ -369,17 +385,3 @@ function annualsum(C::ClimGrid)
   # Return climGrid type containing the indice
   return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="annualsum", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
-
-
-# """
-#     spei()
-#
-# Returns the The Standardized Precipitation Evapotranspiration Index (SPEI).
-#
-# **Reference**
-# Vicente-Serrano, S. M., Beguería, S., & López-Moreno, J. I. (2010). A Multiscalar Drought Index Sensitive to Global Warming: The Standardized Precipitation Evapotranspiration Index. Journal of Climate, 23(7), 1696–1718. https://doi.org/10.1175/2009JCLI2909.1
-# """
-#
-# function spei()
-#
-# end

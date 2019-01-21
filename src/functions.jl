@@ -553,6 +553,12 @@ function polyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
     return ClimGrid(dataout2; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
 
+"""
+    extension(url::String)
+
+Returns the file extension of *url*.
+"""
+
 function extension(url::String)
     try
         return match(r"\.[A-Za-z0-9]+$", url).match
@@ -562,12 +568,28 @@ function extension(url::String)
 end
 
 """
-    function get_units(C::ClimGrid)
+    get_units(C::ClimGrid)
 
 Returns the adequate units of Unitful of ClimGrid C.
 """
 function get_units(C)
-    return unit(C[1])
+    return unit(C[1][1,1,1])
+end
+
+"""
+    uconvert(a::Units, C::ClimGrid)
+
+Convert a ClimGrid [`ClimateTools.ClimGrid`](@ref) to different units. The conversion will fail if the target units `a` have a different dimension than the dimension of the quantity `x`.
+"""
+
+function uconvert(a::Units, C::ClimGrid)
+
+    dataconv = uconvert.(a, C[1])
+
+    dataaxis = buildarrayinterface(dataconv, C)
+
+    ClimGrid(dataaxis, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=string(unit(dataconv[1])), latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+
 end
 
 # function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)

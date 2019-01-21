@@ -11,7 +11,7 @@ C = load(files, "tas")
 filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = load(filenc, "tas")
 
-@test load(filenc, "tas", data_units = "Celsius")[2] == "Celsius"
+@test load(filenc, "tas", data_units = "Celsius")[2] == "°C"
 @test load(filenc, "pr", data_units = "mm")[2] == "mm"
 
 fileorog = joinpath(dirname(@__FILE__), "data", "orog_fx_GFDL-ESM2G_historicalMisc_r0i0p0.nc")
