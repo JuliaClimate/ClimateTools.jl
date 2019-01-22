@@ -1,3 +1,4 @@
+using ClimateTools
 using AxisArrays
 # const axes = Base.axes
 using PyPlot
@@ -12,7 +13,7 @@ using Unitful: K, °C, m, mm, s, kg, Pa
 using Unitful: @u_str, ustrip, uconvert
 import Unitful
 using Test
-using ClimateTools
+
 
 
 include("interface_test.jl")
