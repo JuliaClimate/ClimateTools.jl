@@ -260,13 +260,16 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
       elseif dataunits == "C" || dataunits == "°C" || dataunits == "Celsius"
           data = [data][1]°C
       elseif dataunits == "kg m-2 s-1"
-          data = [data][1]kg/m^2/s
+          un = kg/m^2/s
+          data = [data][1]un
       elseif dataunits == "mm"
           data = [data][1]mm
       elseif dataunits == "m s-1"
-          data = [data][1]m/s
+          un = m/s
+          data = [data][1]un
       elseif dataunits == "mm s-1"
-          data = [data][1]mm/s
+          un = mm/s
+          data = [data][1]un
       elseif dataunits == "m"
           data = [data][1]m
       end
