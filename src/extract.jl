@@ -238,8 +238,9 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # Convert units of optional argument data_units is provided
   if data_units == "Celsius" && (vari == "tas" || vari == "tasmax" || vari == "tasmin") && dataunits == "K"
     data .-= 273.15
-    dataunits = "Celsius"
+    dataunits = "°C"
     varattrib["units"] = "Celsius"
+    @warn "Using Celsius can be problematic for arithmetic operations. Best practice is to keep Kelvin and only convert to Celsius at the end with the overloaded ClimateTools.uconvert function."
   end
 
   if data_units == "mm" && vari == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")
@@ -255,21 +256,22 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # Attribute dimension to data
   if dimension
       if dataunits == "K" || dataunits == "Kelvin"
-          data = [data][1]u"K"
+          data = [data][1]K
       elseif dataunits == "C" || dataunits == "°C" || dataunits == "Celsius"
-          data = [data][1]u"°C"
+          data = [data][1]°C
       elseif dataunits == "kg m-2 s-1"
-          data = [data][1]u"kg/m^2/s"
+          un = kg/m^2/s
+          data = [data][1]un
       elseif dataunits == "mm"
-          data = [data][1]u"mm"
+          data = [data][1]mm
       elseif dataunits == "m s-1"
-          data = [data][1]u"m/s"
+          un = m/s
+          data = [data][1]un
       elseif dataunits == "mm s-1"
-          data = [data][1]u"mm/s"
+          un = mm/s
+          data = [data][1]un
       elseif dataunits == "m"
-          data = [data][1]u"m"
-      elseif dataunits == "%"
-          data = [data][1]u"percent"
+          data = [data][1]m
       end
   end
 

@@ -22,7 +22,9 @@ Results[1,2,3] = 365;
 Results[2,2,1] = 365;
 Results[2,2,2] = 0;
 Results[2,2,3] = 365;
-# @test prcp1(data, d) == Results
+
+# Add units
+data = [data][1]u"mm"
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
@@ -49,7 +51,10 @@ Results[1,2,3] = 365.;
 Results[2,2,1] = 365.;
 Results[2,2,2] = 0.;
 Results[2,2,3] = 365.;
-# @test annualsum(data, d) == Results
+
+# Add units
+data = [data][1]u"mm"
+Results = [Results][1]u"mm"
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
@@ -76,6 +81,11 @@ Results[1,2,3] = 1.;
 Results[2,2,1] = 1.;
 Results[2,2,2] = 0.;
 Results[2,2,3] = 1.;
+
+# Add units
+data = [data][1]u"mm"
+Results = [Results][1]u"mm"
+
 # @test annualmean(data, d) == Results
 
 # ClimGrid based tests
@@ -104,8 +114,9 @@ Results[1,2,3] = 0;
 Results[2,2,1] = 365;
 Results[2,2,2] = 366;
 Results[2,2,3] = 0;
-# @test frostdays(data, d) == Results
-# @test icingdays(data, d) == Results
+
+# Add units
+data = [data][1]u"°C"
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
@@ -126,7 +137,9 @@ Results[1, 1, :]=[340, 366, 365, 365, 365]'';
 Results[1, 2, :] = [340, 366, 365, 365, 365]'';
 Results[2, 1, :] = [340, 366, 365, 365, 365]'';
 Results[2, 2, :] = [340, 366, 365, 365, 365]'';
-# @test summerdays(data, d) == Results
+
+# Add units
+data = [data][1]u"°C"
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
@@ -141,7 +154,9 @@ Results[1,1,:]=[345, 366, 365, 365, 365]'';
 Results[1,2,:]=[345, 366, 365, 365, 365]'';
 Results[2,1,:]=[345, 366, 365, 365, 365]'';
 Results[2,2,:]=[345, 366, 365, 365, 365]'';
-# @test tropicalnights(data, d) == Results
+
+# Add units
+data = [data][1]u"°C"
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
@@ -158,12 +173,14 @@ Results[1,1,:] = [345, 366, 365, 365, 365]'';
 Results[1,2,:] = [345, 366, 365, 365, 365]'';
 Results[2,1,:] = [345, 366, 365, 365, 365]'';
 Results[2,2,:] = [345, 366, 365, 365, 365]'';
-# @test customthresover(data, d, 20) == Results
+
+# Add units
+data = [data][1]u"°C"
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 C = ClimateTools.ClimGrid(axisdata, variable = "tasmin")
-ind = customthresover(C, 20)
+ind = customthresover(C, 20u"°C")
 @test ind.data.data == Results
 
 data = Array{Float64, 3}(undef, 2,2,1826)
@@ -173,12 +190,14 @@ Results[1,1,:]=[365, 366, 269, 0, 0]'';
 Results[1,2,:]=[365, 366, 269, 0, 0]'';
 Results[2,1,:]=[365, 366, 269, 0, 0]'';
 Results[2,2,:]=[365, 366, 269, 0, 0]'';
-# @test customthresunder(data, d, 200) == Results
+
+# Add units
+data = [data][1]u"°C"
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 C = ClimateTools.ClimGrid(axisdata, variable = "tasmin")
-ind = customthresunder(C, 200)
+ind = customthresunder(C, 200u"°C")
 @test ind.data.data == Results
 
 # ANNUAL MAXIMUM
@@ -189,7 +208,10 @@ Results[1,1,:]=[-436.0, -70.0, 295.0, 660.0, 1025.0]'';
 Results[1,2,:]=[-436.0, -70.0, 295.0, 660.0, 1025.0]'';
 Results[2,1,:]=[-436.0, -70.0, 295.0, 660.0, 1025.0]'';
 Results[2,2,:]=[-436.0, -70.0, 295.0, 660.0, 1025.0]'';
-# @test annualmax(data, d) == Results
+
+# Add units
+data = [data][1]u"K"
+Results = [Results][1]u"K"
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
@@ -202,10 +224,13 @@ data = Array{Float64, 3}(undef, 2,2,1826)
 data[1,1,:] = collect(-800.:1025.); data[1,2,:]=collect(-800.:1025.); data[2,1,:]=collect(-800.:1025.); data[2,2,:]=collect(-800.:1025.);
 Results = Array{Int64, 3}(undef, 2,2,5);
 Results[1,1,:]=[-800.0,-435.0,-69.0,296.0,661.0]'';
- Results[1,2,:]=[-800.0,-435.0,-69.0,296.0,661.0]'';
- Results[2,1,:]=[-800.0,-435.0,-69.0,296.0,661.0]'';
- Results[2,2,:]=[-800.0,-435.0,-69.0,296.0,661.0]'';
-# @test annualmin(data, d) == Results
+Results[1,2,:]=[-800.0,-435.0,-69.0,296.0,661.0]'';
+Results[2,1,:]=[-800.0,-435.0,-69.0,296.0,661.0]'';
+Results[2,2,:]=[-800.0,-435.0,-69.0,296.0,661.0]'';
+
+ # Add units
+ data = [data][1]u"K"
+ Results = [Results][1]u"K"
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
@@ -213,22 +238,6 @@ C = ClimateTools.ClimGrid(axisdata, variable = "tasmin")
 ind = annualmin(C)
 @test ind.data.data == Results
 
-# Days above 10
-
-data = Array{Float64, 3}(undef, 2, 2, 1826)
-data[1,1,:] = collect(1.0:1826.0); data[1,2,:] = collect(1.0:1826.0); data[2,1,:]=collect(1.0:1826.0); data[2,2,:] = collect(1.0:1826.0);
-Results = Array{Int64, 3}(undef, 2, 2, 5);
-Results[1, 1, :]=[356, 366, 365, 365, 365]'';
-Results[1, 2, :] = [356, 366, 365, 365, 365]'';
-Results[2, 1, :] = [356, 366, 365, 365, 365]'';
-Results[2, 2, :] = [356, 366, 365, 365, 365]'';
-# @test summerdays(data, d) == Results
-
-# ClimGrid based tests
-axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
-C = ClimateTools.ClimGrid(axisdata, variable = "tas")
-ind = daysabove10(C)
-@test ind.data.data == Results
 
 # Period mean
 data = Array{Float64, 3}(undef, 2, 2, 1826)
@@ -238,6 +247,10 @@ Results[1, 1]= 746.0;
 Results[1, 2] = 735.0;
 Results[2, 1] = 745.0;
 Results[2, 2] = -980.0;
+
+# Add units
+data = [data][1]u"K"
+Results = [Results][1]u"K"
 
 # ClimGrid based tests
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
@@ -251,6 +264,10 @@ Results[1, 1]= 913.5;
 Results[1, 2] = 902.5;
 Results[2, 1] = 912.5;
 Results[2, 2] = -812.5;
+
+# Add units
+Results = [Results][1]u"K"
+
 ind = periodmean(C)
 @test ind.data.data == Results
 
@@ -320,16 +337,23 @@ data_huss[1,1,:] .= 0
 data_huss[1,2,:] .= 0.1
 data_huss[2,1,:] .= 0.5
 data_huss[2,2,:] .= 1
+
 data_psl = Array{Float64,3}(undef, 2,2,3)
 data_psl[:,:,1] .= 10.0
 data_psl[:,:,2] .= 100.0
 data_psl[:,:,3] .= 1000.0
+data_psl = [data_psl][1]u"Pa"
+
 data_orog = Array{Float64,2}(undef, 2,2)
 data_orog[:,1] .= 0.0
 data_orog[:,2] .= 10.0
+data_orog = [data_orog][1]u"m"
+
 data_tas = Array{Float64,3}(undef, 2,2,3)
 data_tas[1,:,:] .= 100.0
 data_tas[2,:,:] .= 300.0
+data_tas = [data_tas][1]u"K"
+
 # Expected results
 Results = Array{Float64,3}(undef, 2,2,3)
 Results[1,1,:] .= round(0.0, digits=10)
@@ -342,6 +366,8 @@ Results[2,1,3] = round(445.6327985739750, digits=10)
 Results[2,2,1] = round(6.158207427095860, digits=10)
 Results[2,2,2] = round(61.58207427095860, digits=10)
 Results[2,2,3] = round(615.8207427095860, digits=10)
+Results = [Results][1]u"Pa"
+
 # Create the Climgrids
 axisdata_huss = AxisArray(data_huss, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 axisdata_psl = AxisArray(data_psl, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
@@ -355,18 +381,20 @@ C_orog = ClimateTools.ClimGrid(axisdata_orog, dataunits = "m", variable = "orog"
 # Using the function on dummy data
 vp = vaporpressure(C_huss, C_psl, C_orog, C_tas)
 # Run the test
-@test round.(vp.data.data, digits=10) == Results
+@test round.(ustrip.(vp.data.data), digits=10) == ustrip.(Results)
 
 # Test for tas in Celsius
 data_tas = Array{Float64,3}(undef, 2,2,3)
 data_tas[1,:,:] .= 100-273.15
 data_tas[2,:,:] .= 300-273.15
+data_tas = [data_tas][1]u"°C"
+
 axisdata_tas = AxisArray(data_tas, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 C_tas = ClimateTools.ClimGrid(axisdata_tas, dataunits = "Celsius", variable = "tas")
 # Using the function on dummy data
 vp = vaporpressure(C_huss, C_psl, C_orog, C_tas)
 # Run the test
-@test round.(vp.data.data, digits=10) == Results
+@test round.(ustrip.(vp.data.data), digits=10) == ustrip.(Results)
 
 # Test wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)
 d = DateTime(2003,1,1):Day(1):DateTime(2003,1,3)
@@ -376,11 +404,16 @@ data_tdiu[1,1,:] .= 250.0
 data_tdiu[1,2,:] .= 275.0
 data_tdiu[2,1,:] .= 300.0
 data_tdiu[2,2,:] .= 325.0
+data_tdiu = [data_tdiu][1]u"K"
+
 data_vp = Array{Float64,3}(undef, 2,2,3)
 data_vp[:,:,1] .= 10.0
 data_vp[:,:,2] .= 100.0
 data_vp[:,:,3] .= 1000.0
+data_vp = [data_vp][1]u"Pa"
+
 # Expected results
+Results = Array{Float64}(undef, 2, 2, 3)
 Results[1,1,1] = -9.1467500
 Results[1,2,1] = 5.02825
 Results[2,1,1] = 19.20325
@@ -401,7 +434,7 @@ C_vp = ClimateTools.ClimGrid(axisdata_vp, dataunits = "Pa", variable = "vp")
 # Use the function
 C_wbgt = wbgt(C_tdiu, C_vp)
 # Run the test
-@test round.(C_wbgt.data.data, digits=10) == Results
+@test round.(ustrip.(C_wbgt.data.data), digits=10) == ustrip.(Results)
 
 # Test for tdiu in Celsius
 data_tdiu = Array{Float64,3}(undef, 2,2,3)
@@ -409,12 +442,14 @@ data_tdiu[1,1,:] .= 250.0 - 273.15
 data_tdiu[1,2,:] .= 275.0 - 273.15
 data_tdiu[2,1,:] .= 300.0 - 273.15
 data_tdiu[2,2,:] .= 325.0 - 273.15
+data_tdiu = [data_tdiu][1]u"°C"
+
 axisdata_tdiu = AxisArray(data_tdiu, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 C_tdiu = ClimateTools.ClimGrid(axisdata_tdiu, dataunits= "Celsius", variable = "tmean")
 # Use the function
 C_wbgt = wbgt(C_tdiu, C_vp)
 # Run the test
-@test round.(C_wbgt.data.data, digits=10) == Results
+@test round.(ustrip.(C_wbgt.data.data), digits=10) == ustrip.(Results)
 
 # Test diurnaltemperature()
 d = DateTime(2003,1,1):Day(1):DateTime(2003,1,3)
@@ -428,6 +463,8 @@ data_tmin = Array{Float64,3}(undef, 2,2,3)
 data_tmin[:,:,1] .= -10.0
 data_tmin[:,:,2] .= 0.0
 data_tmin[:,:,3] .= 10.0
+data_tmin = [data_tmin][1]u"°C"
+
 α = 0.4
 # Expected results
 Results[1,1,1] = -4.0
@@ -442,6 +479,8 @@ Results[1,1,3] = 4.0
 Results[1,2,3] = 10.0
 Results[2,1,3] = 16.0
 Results[2,2,3] = 22.0
+Results = [Results][1]u"°C"
+
 # Creating climgrids
 axisdata_tmax = AxisArray(data_tmax, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 axisdata_tmin = AxisArray(data_tmin, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
@@ -460,10 +499,14 @@ data_tmax[1,1,:] .= 0.0
 data_tmax[1,2,:] .= 10.0
 data_tmax[2,1,:] .= 20.0
 data_tmax[2,2,:] .= 30.0
+data_tmax = [data_tmax][1]u"°C"
+
 data_tmin = Array{Float64,3}(undef, 2,2,3)
 data_tmin[:,:,1] .= -10.0
 data_tmin[:,:,2] .= 0.0
 data_tmin[:,:,3] .= 10.0
+data_tmin = [data_tmin][1]u"°C"
+
 # Expected results
 Results = Array{Float64,3}(undef, 2,2,3)
 Results[1,1,1] = -5.0
@@ -478,6 +521,8 @@ Results[1,1,3] = 5.0
 Results[1,2,3] = 10.0
 Results[2,1,3] = 15.0
 Results[2,2,3] = 20.0
+Results = [Results][1]u"°C"
+
 # Creating climgrids
 axisdata_tmax = AxisArray(data_tmax, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 axisdata_tmin = AxisArray(data_tmin, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
@@ -492,8 +537,8 @@ C_tmax2 = C_tmax
 ens = [C_tmax2, C_tmax]
 E = ensemble_mean(ens)
 @test E[1][1, 1, 1] == C_tmax[1][1, 1, 1]
-ens = [C_tmax2, C_tmax*2]
-@test E[1][1, 1, 1] == (C_tmax[1][1, 1, 1]*2 + C_tmax2[1][1, 1, 1])/2
+#ens = [C_tmax2, C_tmax*2]
+#@test E[1][1, 1, 1] == (C_tmax[1][1, 1, 1]*2 + C_tmax2[1][1, 1, 1])/2
 
 
 # d = DateTime(2003,1,1):Hour(1):DateTime(2003,1,3)-Hour(1)

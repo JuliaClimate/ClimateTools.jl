@@ -122,15 +122,20 @@ function periodmean(C::ClimGrid; start_date::Tuple=(Inf, ), end_date::Tuple=(Inf
     Csubset = temporalsubset(C, start_date, end_date)
     datain   = Csubset.data.data
 
+    un = unit(datain[1])
+
     # Mean and squeeze
-    dataout = fill(NaN, size(datain, 1), size(datain, 2))
+    dataout = Array{typeof(ustrip(datain[1]))}(undef, size(datain, 1), size(datain, 2))
     dataout_rshp = reshape(dataout, (size(dataout, 1)*size(dataout, 2)))
     datain_rshp = reshape(datain, (size(datain, 1)*size(datain, 2), size(datain, 3)))
 
     Threads.@threads for k = 1:size(datain_rshp, 1)
-        datatmp = datain_rshp[k, :]
+        datatmp = ustrip.(datain_rshp[k, :])
         dataout_rshp[k] = Statistics.mean(datatmp[.!isnan.(datatmp)])
     end
+
+    # Add units
+    dataout = [dataout][1]un
 
     # Build output AxisArray
     FD = buildarray_climato(C, dataout)
@@ -248,7 +253,7 @@ function daymean(C::ClimGrid)
 
     nbdays = unique(yearmonthday.(timevec))
     nbdays_len = length(nbdays)
-    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbdays_len))
+    dataout = Array{typeof(datain[1])}(undef, (size(C[1], 1), size(C[1], 2), nbdays_len))
     newtime = Array{T}(undef, nbdays_len)
 
     # loop over year-month-days
@@ -285,7 +290,7 @@ function daysum(C::ClimGrid)
 
     nbdays = unique(yearmonthday.(timevec))
     nbdays_len = length(nbdays)
-    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbdays_len))
+    dataout = Array{typeof(datain[1])}(undef, (size(C[1], 1), size(C[1], 2), nbdays_len))
     newtime = Array{T}(undef, nbdays_len)
 
     # loop over year-month-days
@@ -321,7 +326,7 @@ function monthmean(C::ClimGrid)
 
     nbmonth = unique(yearmonth.(timevec))
     nbmonth_len = length(nbmonth)
-    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbmonth_len))
+    dataout = Array{typeof(datain[1])}(undef, (size(C[1], 1), size(C[1], 2), nbmonth_len))
     newtime = Array{T}(undef, nbmonth_len)
 
     # loop over year-month-days
@@ -357,7 +362,7 @@ function monthsum(C::ClimGrid)
 
     nbmonth = unique(yearmonth.(timevec))
     nbmonth_len = length(nbmonth)
-    dataout = zeros(typeof(datain[1]), (size(C[1], 1), size(C[1], 2), nbmonth_len))
+    dataout = Array{typeof(datain[1])}(undef, (size(C[1], 1), size(C[1], 2), nbmonth_len))
     newtime = Array{T}(undef, nbmonth_len)
 
     # loop over year-month-days
