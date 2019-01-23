@@ -169,7 +169,9 @@ function meantemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimG
   @argcheck temperatureminimum[2] == temperaturemaximum[2]
 
   # Calculate the diurnal temperature
-  tmean = (temperatureminimum.data .+ temperaturemaximum.data) ./ 2
+  un = unit(temperatureminimum.data[1])
+  tmean = (ustrip.(temperatureminimum.data) .+ ustrip.(temperaturemaximum.data)) ./ 2
+  tmean = [tmean][1]un
   tmean_array = buildarrayinterface(tmean, temperatureminimum)
 
   # Build dictionary for the variable wbgt
