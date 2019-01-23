@@ -181,6 +181,7 @@ include("analysis.jl")
 
 # Exported functions
 export ClimGrid
+export uconvert
 export inpoly, inpolygrid, meshgrid, inpolyvec, ndgrid
 export findmax, findmin
 export frostdays, summerdays, icingdays, tropicalnights
