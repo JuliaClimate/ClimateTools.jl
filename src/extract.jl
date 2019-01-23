@@ -269,8 +269,6 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
           data = [data][1]mm/s
       elseif dataunits == "m"
           data = [data][1]m
-      elseif dataunits == "%"
-          data = [data][1]u"percent"
       end
   end
 
