@@ -8,7 +8,12 @@ CurrentModule = ClimateTools
 
 Mapping a `ClimGrid` is done by using the [`mapclimgrid`](@ref) function.
 
-![BNU-ESM](assets/BNU.png)
+```julia
+C = load(filenc, "pr", data_units="mm")
+mapclimgrid(C)
+```
+
+![CanESM2](assets/CanESM2.png)
 
 ```@docs
 mapclimgrid

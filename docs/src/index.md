@@ -30,6 +30,8 @@ Where possible, functions are coded to use **multiple threads**. To gain maximum
 * Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)
 * Exportation of results to a CF-compliant netCDF file
 * Support for typical climate models calendars: 360_day, 365_day, Standard, Prolectip Gregorian through [NCDatasets.jl](https://github.com/Alexander-Barth/NCDatasets.jl).
+* Support for physical units through the [Unitful.jl](https://github.com/ajkeller34/Unitful.jl) package.
+
 
 ## Contributors
 

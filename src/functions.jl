@@ -354,34 +354,54 @@ Applies a mask on the array A. Return an AbstractArray{N, n}.
 
 """
 function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} where N)
+    modA = Array{typeof(ustrip(A[1]))}(undef, size(A))
+    # Get unit
+    un = unit(A[1])
     for t = 1:size(A, 4) # time axis
         for lev = 1:size(A, 3) #level axis
-            tmp = A[:, :, lev, t]
+            tmp = ustrip.(A[:, :, lev, t])
             tmp .*= mask # TODO use multiple dispatch of applymask
-            A[:, :, lev, t] = tmp
+            modA[:, :, lev, t] = tmp
         end
     end
-    return A
+    # reapply unit
+    modA = [modA][1]un
+    return modA
 end
 
 function applymask(A::AbstractArray{N,3} where N, mask::AbstractArray{N, 2} where N)
+    modA = Array{typeof(ustrip(A[1]))}(undef, size(A))
+    # Get unit
+    un = unit(A[1])
     for t = 1:size(A, 3) # time axis
-        tmp = A[:, :, t]
+        tmp = ustrip.(A[:, :, t])
         tmp .*= mask # TODO use multiple dispatch of applymask
-        A[:, :, t] = tmp
+        modA[:, :, t] = tmp
     end
-    return A
+    # reapply unit
+    modA = [modA][1]un
+    return modA
 end
 
 function applymask(A::AbstractArray{N,2} where N, mask::AbstractArray{N, 2} where N)
+    modA = Array{typeof(ustrip(A[1]))}(undef, size(A))
+    # Get unit
+    un = unit(A[1])
     @assert ndims(A) == ndims(mask)
-    A .*= mask
-    return A
+    modA = ustrip.(A) .* mask
+    # reapply unit
+    modA = [modA][1]un
+    return modA
 end
 
 function applymask(A::AbstractArray{N,1} where N, mask::AbstractArray{N, 1} where N)
-    A .*= mask
-    return A
+    modA = Array{typeof(ustrip(A[1]))}(undef, size(A))
+    # Get unit
+    un = unit(A[1])
+    modA = ustrip.(A) .* mask
+    # reapply unit
+    modA = [modA][1]un
+    return modA
 end
 
 macro isdefined(var)
