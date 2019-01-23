@@ -77,7 +77,7 @@ function approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid
   # Calculate the estimated surface pressure
   exponent = (-1.0 .* ustrip.(orography.data)) ./ (18400.0 .* ustrip.(daily_temperature.data) ./ 273.15)
   ps_arraytmp = ustrip.(sealevel_pressure.data) .* (10.0.^exponent)
-  ps_arraytmp = [ps_arraytmp][1]u"Pa"
+  ps_arraytmp = [ps_arraytmp][1]Pa
   ps_array = buildarrayinterface(ps_arraytmp, sealevel_pressure)
 
   # Build dictionary for the variable vp
@@ -111,7 +111,7 @@ function wbgt(mean_temperature::ClimGrid, vapor_pressure::ClimGrid)
 
   # Calculate the wbgt
   wbgt_arraytmp = (0.567 .* ustrip.(mean_temperature.data)) + (0.00393 .* ustrip.(vapor_pressure.data)) .+ 3.94
-  wbgt_arraytmp = [wbgt_arraytmp][1]u"°C"
+  wbgt_arraytmp = [wbgt_arraytmp][1]°C
   wbgt_array = buildarrayinterface(wbgt_arraytmp, mean_temperature)
 
   # Build dictionary for the variable wbgt
