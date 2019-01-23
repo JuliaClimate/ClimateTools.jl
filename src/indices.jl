@@ -38,12 +38,12 @@ function prcp1(C::ClimGrid)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = zeros(Int64, (size(C.data, 1), size(C.data, 2), length(numYears)))
-  datain   = ustrip.(C.data.data)
+  datain   = (C.data.data)
 
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 1, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t >= 1mm, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
@@ -75,7 +75,7 @@ function frostdays(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t < 0u"°C", +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t < 0°C, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
@@ -107,7 +107,7 @@ function summerdays(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t > 25u"°C", +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t > 25°C, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
@@ -139,7 +139,7 @@ function icingdays(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t < 0u"°C", +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t < 0°C, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
@@ -172,7 +172,7 @@ function tropicalnights(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t > 20u"°C", +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t > 20°C, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
