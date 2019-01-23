@@ -256,19 +256,19 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # Attribute dimension to data
   if dimension
       if dataunits == "K" || dataunits == "Kelvin"
-          data = [data][1]u"K"
+          data = [data][1]K
       elseif dataunits == "C" || dataunits == "°C" || dataunits == "Celsius"
-          data = [data][1]u"°C"
+          data = [data][1]°C
       elseif dataunits == "kg m-2 s-1"
-          data = [data][1]u"kg/m^2/s"
+          data = [data][1]kg/m^2/s
       elseif dataunits == "mm"
-          data = [data][1]u"mm"
+          data = [data][1]mm
       elseif dataunits == "m s-1"
-          data = [data][1]u"m/s"
+          data = [data][1]m/s
       elseif dataunits == "mm s-1"
-          data = [data][1]u"mm/s"
+          data = [data][1]mm/s
       elseif dataunits == "m"
-          data = [data][1]u"m"
+          data = [data][1]m
       elseif dataunits == "%"
           data = [data][1]u"percent"
       end
