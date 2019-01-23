@@ -537,8 +537,8 @@ C_tmax2 = C_tmax
 ens = [C_tmax2, C_tmax]
 E = ensemble_mean(ens)
 @test E[1][1, 1, 1] == C_tmax[1][1, 1, 1]
-ens = [C_tmax2, C_tmax*2]
-@test E[1][1, 1, 1] == (C_tmax[1][1, 1, 1]*2 + C_tmax2[1][1, 1, 1])/2
+#ens = [C_tmax2, C_tmax*2]
+#@test E[1][1, 1, 1] == (C_tmax[1][1, 1, 1]*2 + C_tmax2[1][1, 1, 1])/2
 
 
 # d = DateTime(2003,1,1):Hour(1):DateTime(2003,1,3)-Hour(1)

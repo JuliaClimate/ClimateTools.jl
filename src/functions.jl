@@ -462,16 +462,29 @@ function ensemble_mean(C; skipnan=true)
 
     # Create list of AxisArrays contained inside the ClimGrids
     # Climref = C[1]
-    axisarrays = Array{ClimGrid}(undef, length(C))
+    axisarrays = Array{Any}(undef, length(C))
+    unitsClims = Array{Any}(undef, length(C))
 
     for k = 1:length(C)
         # datatmp[.!isnan.(datatmp)
-        axisarrays[k] = periodmean(C[k])#[1][.!isnan.(C[k][1])], dims=3)
+        axisarrays[k] = ustrip.(periodmean(C[k])[1])#[1][.!isnan.(C[k][1])], dims=3)
+        unitsClims[k] = unit(C[k][1][1])
+    end
+
+    if length(unique(unitsClims)) != 1
+        throw(error("ClimGrids needs to have the same physical units."))
     end
 
     # ENSEMBLE MEAN
     n = length(axisarrays) # number of members
     dataout = sum(axisarrays) / n # ensemble mean
+
+    # reapply unit
+    dataout = [dataout][1]unitsClims[1]
+
+    # Build AxisArray
+    data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
+
 
     # Ensemble metadata
     globalattribs = Dict()
@@ -482,7 +495,7 @@ function ensemble_mean(C; skipnan=true)
     end
 
     # Return ClimGrid
-    return ClimGrid(dataout[1], longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+    return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
 
 end
 
