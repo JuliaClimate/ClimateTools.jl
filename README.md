@@ -32,6 +32,7 @@ If you'd like to have other climate indices coded, please, submit them through a
 * Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices. [See list](https://balinus.github.io/ClimateTools.jl/stable/indices.html).
 * Regridding of a datasets onto another grid
 * Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)
+* Support for physical units through the [Unitful.jl](https://github.com/ajkeller34/Unitful.jl) package.
 
 ## Getting started
 
