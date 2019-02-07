@@ -529,11 +529,35 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions/#ClimateTools.ensemble_max-Tuple{Any}",
+    "page": "Index",
+    "title": "ClimateTools.ensemble_max",
+    "category": "method",
+    "text": "ensemble_max(C::ClimGrid...)\n\nReturns the Ensemble maximum of climatological means of ClimGrids C..\n\n\n\n\n\n"
+},
+
+{
     "location": "functions/#ClimateTools.ensemble_mean-Tuple{Any}",
     "page": "Index",
     "title": "ClimateTools.ensemble_mean",
     "category": "method",
     "text": "ensemble_mean(C::ClimGrid...)\n\nReturns the Ensemble mean of ClimGrids C..\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions/#ClimateTools.ensemble_min-Tuple{Any}",
+    "page": "Index",
+    "title": "ClimateTools.ensemble_min",
+    "category": "method",
+    "text": "ensemble_min(C::ClimGrid...)\n\nReturns the Ensemble minimum of climatological means of ClimGrids C..\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions/#ClimateTools.ensemble_std-Tuple{Any}",
+    "page": "Index",
+    "title": "ClimateTools.ensemble_std",
+    "category": "method",
+    "text": "ensemble_std(C::ClimGrid...)\n\nReturns the Ensemble standard deviation of climatological means of ClimGrids C..\n\n\n\n\n\n"
 },
 
 {
