@@ -41,3 +41,11 @@ If you'd like to have other climate indices coded, please, submit them through a
 
 * Dashboard tool. This will return the main characteristics of a ClimGrid: maps of minimum, maximum and mean climatological values, seasonal cycle, timeseries of annual maximum, minimum and mean values, etc...
 * Extreme value theory analysis
+
+## Documentation
+
+This documentation was built using [Documenter.jl](https://github.com/JuliaDocs).
+
+```@example
+using Dates # hide
+println("Documentation built $(Dates.now()) with Julia $(VERSION)") # hide
