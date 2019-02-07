@@ -138,6 +138,9 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
     elseif lowercase(region) == "south_quebec" || lowercase(region) == "south_qc"
         m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -75.9, llcrnrlat = 42.6, urcrnrlon = -61.5, urcrnrlat = 49.5, lon_0 = -70, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
 
+    elseif lowercase(region) == "quebec_agricole" || lowercase(region) == "qc_agr"
+        m = basemap[:Basemap](projection = "lcc", resolution="l", llcrnrlon=-80, llcrnrlat=44.2, urcrnrlon=-62.5, urcrnrlat=50.5, lon_0=-72, lat_1=50, rsphere = (6378137.00, 6356752.3142))
+
     elseif lowercase(region) == "quebecnsp" || lowercase(region) == "qcnsp"
         m = basemap[:Basemap](projection = "nsper", resolution= "l", satellite_height = 2000000, lon_0 = -72.5, lat_0 = 55)
 
