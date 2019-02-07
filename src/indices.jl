@@ -196,11 +196,10 @@ Let TS[i,j] be a daily time serie value on day i in year j. Count the number of 
 
 Note. The threshold needs to have units specified. For example:
 
-```jldoctest
 julia> using Unitful: @u_str, °C
 julia> thres = 15u"°C"
 15 °C
-```
+
 """
 function customthresover(C::ClimGrid, thres::Quantity)
   years    = Dates.year.(C.data[Axis{:time}][:])
@@ -241,11 +240,10 @@ Let TS[i,j] be a daily time serie value on day i in year j. Count the number of 
 
 Note. The threshold needs to have units specified. For example:
 
-```jldoctest
 julia> using Unitful: @u_str, °C
 julia> thres = 15u"°C"
 15 °C
-```
+
 """
 function customthresunder(C::ClimGrid, thres::Quantity)
   years    = Dates.year.(C.data[Axis{:time}][:])
