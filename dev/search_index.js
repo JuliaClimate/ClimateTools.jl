@@ -181,7 +181,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "Climate Indices",
     "category": "section",
-    "text": "Here\'s a list of climate indices currently provided by ClimateTools. This list may not be always up-to-date. See here for all exported functions.annualmax\nannualmean\nannualmin\nannualsum\napprox_surfacepressure\ncustomthresover\ncustomthresunder\ndaysabove10\ndiurnaltemperature\nicingdays\nfrostdays\nprcp1\nsummerdays\ntropicalnights\nvaporpressure\nwbgt"
+    "text": "Here\'s a list of climate indices currently provided by ClimateTools. This list may not be always up-to-date. See here for all exported functions.annualmax\nannualmean\nannualmin\nannualsum\napprox_surfacepressure\ncustomthresover\ncustomthresunder\ndiurnaltemperature\nicingdays\nfrostdays\nprcp1\nsummerdays\ntropicalnights\nvaporpressure\nwbgt"
 },
 
 {
