@@ -5,7 +5,7 @@
 
 # Documentation
 
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://balinus.github.io/ClimateTools.jl/stable) [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://balinus.github.io/ClimateTools.jl/latest)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://balinus.github.io/ClimateTools.jl/stable) [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://balinus.github.io/ClimateTools.jl/dev)
 
 ## Overview
 
@@ -36,7 +36,7 @@ If you'd like to have other climate indices coded, please, submit them through a
 
 ## Getting started
 
-*Note. More in-depth documentation is provided in the official documentation (Links: [stable](https://balinus.github.io/ClimateTools.jl/stable/)/[latest](https://balinus.github.io/ClimateTools.jl/latest/)).*
+*Note. More in-depth documentation is provided in the official documentation (Links: [stable](https://balinus.github.io/ClimateTools.jl/stable/)/[latest](https://balinus.github.io/ClimateTools.jl/dev/)).*
 
 ```julia
 using ClimateTools
