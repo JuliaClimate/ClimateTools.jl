@@ -65,6 +65,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "#Documentation-1",
+    "page": "Home",
+    "title": "Documentation",
+    "category": "section",
+    "text": "This documentation was built using Documenter.jl.```@example using Dates # hide println(\"Documentation built Dates.now() with Julia VERSION\") # hide"
+},
+
+{
     "location": "gettingstarted/#",
     "page": "Getting started",
     "title": "Getting started",
