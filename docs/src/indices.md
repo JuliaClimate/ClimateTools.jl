@@ -42,7 +42,6 @@ annualsum
 approx_surfacepressure
 customthresover
 customthresunder
-daysabove10
 diurnaltemperature
 icingdays
 frostdays
