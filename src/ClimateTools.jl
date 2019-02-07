@@ -188,6 +188,7 @@ export frostdays, summerdays, icingdays, tropicalnights
 export daysabove10 #, daysbelow0, degdaysabove, degdaysbelow
 export customthresover, customthresunder, annualmax, annualmin
 export annualmean, annualsum, prcp1, spei
+export ensemble_mean, ensemble_std, ensemble_max, ensemble_min
 export load, load2D
 export regrid, applymask, TransferFunction
 export shapefile_coords, shapefile_coords_poly
@@ -201,9 +202,10 @@ export plot, mapclimgrid
 export merge, vaporpressure, approx_surfacepressure
 export wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
-export get_timevec, ensemble_mean, daymean, daysum
+export get_timevec, daymean, daysum
 export monthmean, monthsum
 export yearmonthdayhour
 export write
+
 
 end #module

@@ -515,7 +515,196 @@ function ensemble_mean(C; skipnan=true)
     end
 
     # Return ClimGrid
-    return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+    return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble mean", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+
+end
+
+"""
+    ensemble_std(C::ClimGrid...)
+
+Returns the Ensemble standard deviation of climatological means of ClimGrids C..
+"""
+function ensemble_std(C; skipnan=true)
+
+    # Create list of AxisArrays contained inside the ClimGrids
+    # Climref = C[1]
+    axisarrays = Array{Any}(undef, length(C))
+    unitsClims = Array{Any}(undef, length(C))
+
+    for k = 1:length(C)
+        # datatmp[.!isnan.(datatmp)
+        axisarrays[k] = ustrip.(periodmean(C[k])[1])#[1][.!isnan.(C[k][1])], dims=3)
+        unitsClims[k] = unit(C[k][1][1])
+    end
+
+    # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
+        if length(unique(unitsClims)) != 1
+            throw(error("ClimGrids needs to have the same physical units."))
+        end
+    # end
+
+    # ENSEMBLE STD
+    dataout = std(axisarrays)
+
+    # reapply unit
+    dataout = [dataout][1]unitsClims[1]
+
+    # Build AxisArray
+    data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
+
+    # Ensemble metadata
+    globalattribs = Dict()
+    globalattribs["history"] = "Ensemble mean"
+    globalattribs["models"] = ""
+    for k = 1:length(C)
+        globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
+    end
+
+    # Return ClimGrid
+    return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble standard deviation", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+
+end
+
+"""
+    ensemble_max(C::ClimGrid...)
+
+Returns the Ensemble maximum of climatological means of ClimGrids C..
+"""
+function ensemble_max(C; skipnan=true)
+
+    # Create list of AxisArrays contained inside the ClimGrids
+    # Climref = C[1]
+    axisarrays = Array{Any}(undef, length(C))
+    unitsClims = Array{Any}(undef, length(C))
+
+    for k = 1:length(C)
+        # datatmp[.!isnan.(datatmp)
+        axisarrays[k] = ustrip.(periodmean(C[k])[1])#[1][.!isnan.(C[k][1])], dims=3)
+        unitsClims[k] = unit(C[k][1][1])
+    end
+
+    # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
+        if length(unique(unitsClims)) != 1
+            throw(error("ClimGrids needs to have the same physical units."))
+        end
+    # end
+
+    # ENSEMBLE STD
+    dataout = maximum(axisarrays)
+
+    # reapply unit
+    dataout = [dataout][1]unitsClims[1]
+
+    # Build AxisArray
+    data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
+
+    # Ensemble metadata
+    globalattribs = Dict()
+    globalattribs["history"] = "Ensemble mean"
+    globalattribs["models"] = ""
+    for k = 1:length(C)
+        globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
+    end
+
+    # Return ClimGrid
+    return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble maximum", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+
+end
+
+"""
+    ensemble_min(C::ClimGrid...)
+
+Returns the Ensemble minimum of climatological means of ClimGrids C..
+"""
+function ensemble_min(C; skipnan=true)
+
+    # Create list of AxisArrays contained inside the ClimGrids
+    # Climref = C[1]
+    axisarrays = Array{Any}(undef, length(C))
+    unitsClims = Array{Any}(undef, length(C))
+
+    for k = 1:length(C)
+        # datatmp[.!isnan.(datatmp)
+        axisarrays[k] = ustrip.(periodmean(C[k])[1])#[1][.!isnan.(C[k][1])], dims=3)
+        unitsClims[k] = unit(C[k][1][1])
+    end
+
+    # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
+        if length(unique(unitsClims)) != 1
+            throw(error("ClimGrids needs to have the same physical units."))
+        end
+    # end
+
+    # ENSEMBLE STD
+    dataout = minimum(axisarrays)
+
+    # reapply unit
+    dataout = [dataout][1]unitsClims[1]
+
+    # Build AxisArray
+    data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
+
+    # Ensemble metadata
+    globalattribs = Dict()
+    globalattribs["history"] = "Ensemble mean"
+    globalattribs["models"] = ""
+    for k = 1:length(C)
+        globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
+    end
+
+    # Return ClimGrid
+    return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble minimum", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+
+end
+
+function maximum(arrays::Array{Any})
+
+    dataout = Array{Any}(undef, size(arrays[1], 1), size(arrays[1], 2))
+    nbsims = length(arrays)
+
+    I = size(arrays[1], 1)
+    J = size(arrays[1], 2)
+
+    for j = 1:J
+        for i = 1:I
+            datatmp = Array{Float64}(undef, nbsims)
+            for k = 1:nbsims
+
+                datatmp[k] = arrays[k][i, j]
+
+
+            end
+            dataout[i, j] = maximum(datatmp)
+        end
+
+    end
+    return dataout
+
+end
+
+
+function minimum(arrays::Array{Any})
+
+    dataout = Array{Any}(undef, size(arrays[1], 1), size(arrays[1], 2))
+    nbsims = length(arrays)
+
+    I = size(arrays[1], 1)
+    J = size(arrays[1], 2)
+
+    for j = 1:J
+        for i = 1:I
+            datatmp = Array{Float64}(undef, nbsims)
+            for k = 1:nbsims
+
+                datatmp[k] = arrays[k][i, j]
+
+
+            end
+            dataout[i, j] = minimum(datatmp)
+        end
+
+    end
+    return dataout
 
 end
 
