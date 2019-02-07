@@ -177,6 +177,126 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "indices/#ClimateTools.annualmax",
+    "page": "Climate Indices",
+    "title": "ClimateTools.annualmax",
+    "category": "function",
+    "text": "annualmax(C::ClimGrid)\n\nAnnual maximum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the highest value for year j.\n\n\n\n\n\n"
+},
+
+{
+    "location": "indices/#ClimateTools.annualmean",
+    "page": "Climate Indices",
+    "title": "ClimateTools.annualmean",
+    "category": "function",
+    "text": "annualmean(C::ClimGrid)\n\nAnnual mean of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Calculate the mean value for year j.\n\n\n\n\n\n"
+},
+
+{
+    "location": "indices/#ClimateTools.annualmin",
+    "page": "Climate Indices",
+    "title": "ClimateTools.annualmin",
+    "category": "function",
+    "text": "annualmin(C::ClimGrid)\n\nAnnual minimum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Extract the lowest value for year j.\n\n\n\n\n\n"
+},
+
+{
+    "location": "indices/#ClimateTools.annualsum",
+    "page": "Climate Indices",
+    "title": "ClimateTools.annualsum",
+    "category": "function",
+    "text": "annualsum(C::ClimGrid)\n\nAnnual sum of array data.\n\nLet data[i,j] be daily time serie on day i in year j. Sums daily values for year j.\n\n\n\n\n\n"
+},
+
+{
+    "location": "indices/#ClimateTools.approx_surfacepressure",
+    "page": "Climate Indices",
+    "title": "ClimateTools.approx_surfacepressure",
+    "category": "function",
+    "text": "  approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the approximated surface pressure (sp) (Pa) using sea level pressure (psl) (Pa), orography (orog) (m), and daily mean temperature (tas) (K).\n\nsp = psl * 10^x\n\nwhere x = frac-orog18400 * tas  27315\n\n\n\n\n\n"
+},
+
+{
+    "location": "indices/#ClimateTools.customthresover",
+    "page": "Climate Indices",
+    "title": "ClimateTools.customthresover",
+    "category": "function",
+    "text": "customthresover(C::ClimGrid, thres)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\nNote. The threshold needs to have units specified. For example:\n\njulia> using Unitful: @u_str, °C julia> thres = 15u\"°C\" 15 °C\n\n\n\n\n\n"
+},
+
+{
+    "location": "indices/#ClimateTools.customthresunder",
+    "page": "Climate Indices",
+    "title": "ClimateTools.customthresunder",
+    "category": "function",
+    "text": "customthresunder(C::ClimGrid, thres::Quantity)\n\ncustomthresunder, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\nNote. The threshold needs to have units specified. For example:\n\njulia> using Unitful: @u_str, °C julia> thres = 15u\"°C\" 15 °C\n\n\n\n\n\n"
+},
+
+{
+    "location": "indices/#ClimateTools.diurnaltemperature",
+    "page": "Climate Indices",
+    "title": "ClimateTools.diurnaltemperature",
+    "category": "function",
+    "text": "diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid, α::Float64)\n\nReturns an estimation of the diurnal temperature (temperature between 7:00 (7am) and 17:00 (5pm)). The estimation is a linear combination of the daily minimum temperature (temperatureminimum) and daily maximum temperature (temperaturemaximum). The value of α has to be estimated seperatly from observations and depends on the location. The daily max and min must be in the same unit and in Celsius or Kelvin The diurnal temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.\n\nTdiu = α * Tmin + (1 - α) * Tmax\n\n\n\n\n\n"
+},
+
+{
+    "location": "indices/#ClimateTools.icingdays",
+    "page": "Climate Indices",
+    "title": "ClimateTools.icingdays",
+    "category": "function",
+    "text": "icingdays(C::ClimGrid)\n\nID, Number of summer days: Annual count of days when TX (daily maximum temperature) < 0 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] < 0 Celsius.\n\n\n\n\n\n"
+},
+
+{
+    "location": "indices/#ClimateTools.frostdays",
+    "page": "Climate Indices",
+    "title": "ClimateTools.frostdays",
+    "category": "function",
+    "text": "frostdays(C::ClimGrid)\n\nFD, Number of frost days: Annual count of days when TN (daily minimum temperature) < 0 Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] < 0 Celsius.\n\n\n\n\n\n"
+},
+
+{
+    "location": "indices/#ClimateTools.prcp1",
+    "page": "Climate Indices",
+    "title": "ClimateTools.prcp1",
+    "category": "function",
+    "text": "prcp1(C::ClimGrid)\n\nAnnual number with preciptation >= 1 mm. This function returns a ClimGrid. Input data should be in mm.\n\n\n\n\n\n"
+},
+
+{
+    "location": "indices/#ClimateTools.summerdays",
+    "page": "Climate Indices",
+    "title": "ClimateTools.summerdays",
+    "category": "function",
+    "text": "summerdays(C::ClimGrid)\n\nSD, Number of summer days: Annual count of days when TX (daily maximum temperature) > 25 degree Celsius.\n\nLet TX[i,j] be daily maximum temperature on day i in year j. Count the number of days where:\n\nTX[i,j] > 25 Celsius.\n\n\n\n\n\n"
+},
+
+{
+    "location": "indices/#ClimateTools.tropicalnights",
+    "page": "Climate Indices",
+    "title": "ClimateTools.tropicalnights",
+    "category": "function",
+    "text": "tropicalnights(C::ClimGrid)\n\nTropicalNights, Number of tropical nights: Annual count of days when TN (daily maximum temperature) > 20 degree Celsius.\n\nLet TN[i,j] be daily minimum temperature on day i in year j. Count the number of days where:\n\nTN[i,j] > 20 Celsius.\n\n\n\n\n\n"
+},
+
+{
+    "location": "indices/#ClimateTools.vaporpressure",
+    "page": "Climate Indices",
+    "title": "ClimateTools.vaporpressure",
+    "category": "function",
+    "text": "vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).\n\nvp = fracq * spq+0622\n\n\n\n\n\nvaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) estimated with the specific humidity (q), the sea level pressure (psl) (Pa), the orography (orog) (m) and the daily mean temperature (tas) (K). An approximation of the surface pressure is first computed by using the sea level pressure, orography and the daily mean temperature (see approx_surfacepressure). Then, vapor pressure is calculated by:\n\nvp = fracq * spq+0622\n\n\n\n\n\n"
+},
+
+{
+    "location": "indices/#ClimateTools.wbgt",
+    "page": "Climate Indices",
+    "title": "ClimateTools.wbgt",
+    "category": "function",
+    "text": "wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)\n\nReturns the simplified wet-bulb global temperature (wbgt) (Celsius) calculated using the vapor pressure (Pa) of the day and the estimated mean diurnal temperature (Celsius; temperature between 7:00 (7am) and 17:00 (5pm)).\n\nwbgt = 0567 * Tday + 000393 * vp + 394\n\n\n\n\n\n"
+},
+
+{
     "location": "indices/#Climate-Indices-2",
     "page": "Climate Indices",
     "title": "Climate Indices",
@@ -710,6 +830,14 @@ var documenterSearchIndex = {"docs": [
     "title": "ClimateTools.polyval",
     "category": "method",
     "text": "polyval(C::ClimGrid, polynomial::Array{Poly{Float64}})\n\nReturns a ClimGrid containing the values, as estimated from polynomial function polyn.\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions/#ClimateTools.prcp1-Tuple{ClimGrid}",
+    "page": "Index",
+    "title": "ClimateTools.prcp1",
+    "category": "method",
+    "text": "prcp1(C::ClimGrid)\n\nAnnual number with preciptation >= 1 mm. This function returns a ClimGrid. Input data should be in mm.\n\n\n\n\n\n"
 },
 
 {
