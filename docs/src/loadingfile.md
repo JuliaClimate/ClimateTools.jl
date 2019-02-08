@@ -1,3 +1,5 @@
+# Importing a dataset
+
 ## Reading a NetCDF file
 
 The entry point of `ClimateTools` is to load data with the `load` function. The return structure of the `load` function is a in-memory representation of the variable contained in the netCDF file.
