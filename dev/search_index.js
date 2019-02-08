@@ -85,7 +85,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Installation",
     "title": "Installation",
     "category": "section",
-    "text": ""
+    "text": "ClimateTools.jl requires some python packages for mapping purpose. it is currently using Basemap under the hood. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the required python packages and build PyCall with the same python distribution."
 },
 
 {
@@ -93,7 +93,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Installation",
     "title": "Approach no. 1 Use main system python distribution",
     "category": "section",
-    "text": "ClimateTools need some Python dependencies for mapping purpose. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the following python modules and build PyCall with the same python distribution.1.1 Python dependenciesmatplotlib (tested with version 2.0.1)\nbasemap (tested with version 1.0.7)\nscipy (tested with version 1.0.1)\ncmoceanNote. Installing Basemap for python 3.6+ seems problematic.1.2 Building PyCall After the confirmation that the Python dependencies can be loaded in Python, the user needs to build PyCall with the same Python version. Alternatively, if PyCall is already built, it may be only a matter of installing the Python dependencies with the PyCall\'s Python version by using pip.ENV[\"PYTHON\"]=\"path_to_python_distribution\"\npkg> build PyCall"
+    "text": "The first approach is to use the system python distribution and ensure that you can import the following packages.1.1 Python dependenciesmatplotlib (tested with version 2.0.1)\nbasemap (tested with version 1.0.7)\nscipy (tested with version 1.0.1)\ncmoceanNote. Installing Basemap for python 3.6+ seems problematic.1.2 Building PyCall After the confirmation that the Python dependencies can be loaded in Python, the user needs to build PyCall with the same Python version. Alternatively, if PyCall is already built, it may be only a matter of installing the Python dependencies with the PyCall\'s Python version by using pip.ENV[\"PYTHON\"]=\"path_to_python_distribution\"\npkg> build PyCall"
 },
 
 {
@@ -101,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Installation",
     "title": "Approach no. 2. Build a python virtual environment and link PyCall.jl to it",
     "category": "section",
-    "text": "One approach to ensure that the right python dependencies are installed is to use a virtual environment. More information can be found in PyCall documentation.2.1 Create a virtual environment with Python 2.7.x.$ virtualenv --python=/usr/bin/python2 /path/to/venv\n$ /path/to/venv/bin/python -m pip install numpy\n$ /path/to/venv/bin/python -m pip install scipy\n$ /path/to/venv/bin/python -m pip install matplotlib\n$ /path/to/venv/bin/python -m pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz\n$ /path/to/venv/bin/python -m pip install git+https://github.com/matplotlib/cmocean2.2 Testing Python installationLaunch newly created virtual env python#bash\n$ /path/to/venv/bin/python # launch virtual env pythonEnsure that you can load the appropriate python packages inside the python interpreter.#python\n>>> import mpl_toolkits.basemap as basemap\n>>> import matplotlib.pyplot as plt\n>>> import cmocean as cm\n>>> import scipy as sc2.3 Build PyCall with the new venv pythonOnce the virtual environment python is tested, it\'s a matter of telling PyCall to use this distribution.# julia\njulia> ENV[\"PYTHON\"] = \"/path/to/venv/bin/python\"\njulia> using Pkg;Pkg.build(\"PyCall\")\njulia> exit()\n# re-enter julia\njulia> using ClimateTools\njulia> using Pkg; Pkg.test(\"ClimateTools\")"
+    "text": "An alternative approach is create a virtual python environment and install the required packages and then link PyCall.jl to this virtual python environment. More information can be found in PyCall documentation.2.1 Create a virtual environment with Python 2.7.x.$ virtualenv --python=/usr/bin/python2 /path/to/venv\n$ /path/to/venv/bin/python -m pip install numpy\n$ /path/to/venv/bin/python -m pip install scipy\n$ /path/to/venv/bin/python -m pip install matplotlib\n$ /path/to/venv/bin/python -m pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz\n$ /path/to/venv/bin/python -m pip install git+https://github.com/matplotlib/cmocean2.2 Testing Python installationLaunch newly created virtual env python#bash\n$ /path/to/venv/bin/python # launch virtual env pythonEnsure that you can load the appropriate python packages inside the python interpreter.#python\n>>> import mpl_toolkits.basemap as basemap\n>>> import matplotlib.pyplot as plt\n>>> import cmocean as cm\n>>> import scipy as sc2.3 Build PyCall with the new venv pythonOnce the virtual environment python is tested, it\'s a matter of telling PyCall to use this distribution.# julia\njulia> ENV[\"PYTHON\"] = \"/path/to/venv/bin/python\"\njulia> using Pkg;Pkg.build(\"PyCall\")\njulia> exit()\n# re-enter julia\njulia> using ClimateTools\njulia> using Pkg; Pkg.test(\"ClimateTools\")"
 },
 
 {
