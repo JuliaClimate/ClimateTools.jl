@@ -16,10 +16,10 @@ matrix:
 matrix:
   allow_failures:
     - julia: nightly
-branches:
-  only:
-    - master
-    - gh-pages
+# branches:
+#   only:
+#     - master
+#     - /^(?i:v)-.*$/
 notifications:
   email: false
 jobs:
