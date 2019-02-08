@@ -2,7 +2,7 @@
 
 ## Installation
 
-## Required dependencies
+### Required dependencies
 
 ClimateTools need some Python dependencies for mapping purpose. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the following python modules and build `PyCall` with the same python distribution.
 
@@ -21,6 +21,45 @@ After the confirmation that the Python dependencies can be loaded in Python, the
 ```julia
 ENV["PYTHON"]="path_to_python_distribution"
 pkg> build PyCall
+```
+
+### (Optional) Building PyCall with a custom python environment
+
+One approach to ensure that the right python dependencies are installed is to use a virtual environment. The following commands can be used for such approach.
+
+**Create a virtual environment with Python 2.7.x.**
+
+```bash
+$ virtualenv --python=/usr/bin/python2 /path/to/venv
+$ /path/to/venv/bin/python -m pip install numpy
+$ /path/to/venv/bin/python -m pip install scipy
+$ /path/to/venv/bin/python -m pip install matplotlib
+$ /path/to/venv/bin/python -m pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz
+$ /path/to/venv/bin/python -m pip install git+https://github.com/matplotlib/cmocean
+```
+
+**Testing Python installation**
+
+```python
+#bash
+$ /path/to/venv/bin/python # launch virtual env python
+#python
+>>> import mpl_toolkits.basemap as basemap
+>>> import matplotlib.pyplot as plt
+>>> import cmocean as cm
+>>> import scipy as sc
+```
+
+**Build PyCall with the new venv python**
+
+```julia
+# julia
+julia> ENV["PYTHON"] = "/path/to/venv/bin/python"
+julia> using Pkg;Pkg.build("PyCall")
+julia> exit
+# re-enter julia
+julia> using ClimateTools
+julia> using Pkg; Pkg.test("ClimateTools")
 ```
 
 ### Installing ClimateTools.jl
