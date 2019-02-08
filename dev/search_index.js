@@ -73,88 +73,88 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "gettingstarted/#",
-    "page": "Getting started",
-    "title": "Getting started",
+    "location": "installation/#",
+    "page": "Installation",
+    "title": "Installation",
     "category": "page",
     "text": ""
 },
 
 {
-    "location": "gettingstarted/#Getting-started-1",
-    "page": "Getting started",
-    "title": "Getting started",
-    "category": "section",
-    "text": ""
-},
-
-{
-    "location": "gettingstarted/#Installation-1",
-    "page": "Getting started",
+    "location": "installation/#Installation-1",
+    "page": "Installation",
     "title": "Installation",
     "category": "section",
     "text": ""
 },
 
 {
-    "location": "gettingstarted/#Approach-no.-1-Use-main-system-python-distribution-1",
-    "page": "Getting started",
+    "location": "installation/#Approach-no.-1-Use-main-system-python-distribution-1",
+    "page": "Installation",
     "title": "Approach no. 1 Use main system python distribution",
     "category": "section",
-    "text": "ClimateTools need some Python dependencies for mapping purpose. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the following python modules and build PyCall with the same python distribution.1.1 Python dependenciesmatplotlib (tested with version 2.0.1)\nbasemap (tested with version 1.0.7)\nscipy (tested with version 1.0.1)\ncmoceanNote2. Installing Basemap for python 3.6+ seems problematic.1.2 Building PyCall After the confirmation that the Python dependencies can be loaded in Python, the user needs to build PyCall with the same Python version. Alternatively, if PyCall is already built, it may be only a matter of installing the Python dependencies with the PyCall\'s Python version by using pip.ENV[\"PYTHON\"]=\"path_to_python_distribution\"\npkg> build PyCall"
+    "text": "ClimateTools need some Python dependencies for mapping purpose. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the following python modules and build PyCall with the same python distribution.1.1 Python dependenciesmatplotlib (tested with version 2.0.1)\nbasemap (tested with version 1.0.7)\nscipy (tested with version 1.0.1)\ncmoceanNote. Installing Basemap for python 3.6+ seems problematic.1.2 Building PyCall After the confirmation that the Python dependencies can be loaded in Python, the user needs to build PyCall with the same Python version. Alternatively, if PyCall is already built, it may be only a matter of installing the Python dependencies with the PyCall\'s Python version by using pip.ENV[\"PYTHON\"]=\"path_to_python_distribution\"\npkg> build PyCall"
 },
 
 {
-    "location": "gettingstarted/#Approach-no.-2.-Build-a-python-virtual-environment-and-link-PyCall.jl-to-it-1",
-    "page": "Getting started",
+    "location": "installation/#Approach-no.-2.-Build-a-python-virtual-environment-and-link-PyCall.jl-to-it-1",
+    "page": "Installation",
     "title": "Approach no. 2. Build a python virtual environment and link PyCall.jl to it",
     "category": "section",
     "text": "One approach to ensure that the right python dependencies are installed is to use a virtual environment. More information can be found in PyCall documentation.2.1 Create a virtual environment with Python 2.7.x.$ virtualenv --python=/usr/bin/python2 /path/to/venv\n$ /path/to/venv/bin/python -m pip install numpy\n$ /path/to/venv/bin/python -m pip install scipy\n$ /path/to/venv/bin/python -m pip install matplotlib\n$ /path/to/venv/bin/python -m pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz\n$ /path/to/venv/bin/python -m pip install git+https://github.com/matplotlib/cmocean2.2 Testing Python installationLaunch newly created virtual env python#bash\n$ /path/to/venv/bin/python # launch virtual env pythonEnsure that you can load the appropriate python packages inside the python interpreter.#python\n>>> import mpl_toolkits.basemap as basemap\n>>> import matplotlib.pyplot as plt\n>>> import cmocean as cm\n>>> import scipy as sc2.3 Build PyCall with the new venv pythonOnce the virtual environment python is tested, it\'s a matter of telling PyCall to use this distribution.# julia\njulia> ENV[\"PYTHON\"] = \"/path/to/venv/bin/python\"\njulia> using Pkg;Pkg.build(\"PyCall\")\njulia> exit()\n# re-enter julia\njulia> using ClimateTools\njulia> using Pkg; Pkg.test(\"ClimateTools\")"
 },
 
 {
-    "location": "gettingstarted/#Installing-ClimateTools.jl-1",
-    "page": "Getting started",
+    "location": "installation/#Installing-ClimateTools.jl-1",
+    "page": "Installation",
     "title": "Installing ClimateTools.jl",
     "category": "section",
     "text": "pkg> add ClimateTools # Tagged release"
 },
 
 {
-    "location": "gettingstarted/#Reading-a-NetCDF-file-1",
-    "page": "Getting started",
+    "location": "loadingfile/#",
+    "page": "-",
+    "title": "-",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "loadingfile/#Reading-a-NetCDF-file-1",
+    "page": "-",
     "title": "Reading a NetCDF file",
     "category": "section",
     "text": "The entry point of ClimateTools is to load data with the load function. The return structure of the load function is a in-memory representation of the variable contained in the netCDF file.C = load(filename::String, vari::String; poly::Array, data_units::String, start_date::Tuple, end_date::Tuple, dimension::Bool=true)load return a ClimGrid type. The ClimGrid represent a single variable. By default, the function tries to attach physical units to the data array by using the Unitful.jl package. The advantage behind physical units is that one can subtract a ClimGrid with Kelvin unit with a ClimGrid with Celsius unit and get coherent results. Be warned that some operations on some units are not allowed (you cannot \"add\" Celsius for instance). In the event that a user wants to do some calculations without physical logic, it is possible to load the dataset without the units by specifying dimension=false argument.Using the optional poly argument, the user can provide a polygon and the returned ClimGrid will only contains the grid points inside the provided polygon. The polygon provided should be in the -180, +180 longitude format. If the polygon crosses the International Date Line, the polygon should be splitted in multiple parts (i.e. multi-polygons).start_date and end_date can also be provided. It is useful when climate simulations file spans multiple decades/centuries and only a temporal subset is needed. Dates should be provided as a Tuple of the form (year, month, day, hour, minute, seconds), where only year is mandatory (e.g. (2000,) can be provided and will defaults to (2000, 01, 01)).For some variable, the optional keyword argument data_units can be provided. For example, precipitation in climate models are usually provided as kg/m^2/s. By specifying data_units = mm, the load function returns accumulation at the data time resolution. Similarly, the user can provide Celsius as data_units and load will return Celsius instead of Kelvin.struct ClimGrid\n  data::AxisArray # Data\n  longrid::AbstractArray{N,2} where N # the longitude grid\n  latgrid::AbstractArray{N,2} where N # the latitude grid\n  msk::Array{N, 2} where N # Data mask (NaNs and 1.0)\n  grid_mapping::Dict#{String, Any} # bindings for native grid\n  dimension_dict::Dict\n  model::String\n  frequency::String # Day, month, years\n  experiment::String # Historical, RCP4.5, RCP8.5, etc.\n  run::String\n  project::String # CORDEX, CMIP5, etc.\n  institute::String # UQAM, DMI, etc.\n  filename::String # Path of the original file\n  dataunits::String # Celsius, kelvin, etc.\n  latunits::String # latitude coordinate unit\n  lonunits::String # longitude coordinate unit\n  variable::String # Type of variable (i.e. can be the same as \"typeofvar\", but it is changed when calculating indices)\n  typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)\n  typeofcal::String # Calendar type\n  timeattrib::Dict # Time attributes (e.g. days since ... )\n  varattribs::Dict # Variable attributes dictionary\n  globalattribs::Dict # Global attributes dictionary\nend"
 },
 
 {
-    "location": "gettingstarted/#Subsetting-1",
-    "page": "Getting started",
+    "location": "loadingfile/#Subsetting-1",
+    "page": "-",
     "title": "Subsetting",
     "category": "section",
     "text": "Once the data is loaded in a ClimGrid struct, options to further subset the data are available."
 },
 
 {
-    "location": "gettingstarted/#Spatial-1",
-    "page": "Getting started",
+    "location": "loadingfile/#Spatial-1",
+    "page": "-",
     "title": "Spatial",
     "category": "section",
     "text": "spatialsubset function acts on ClimGrid type and subset the data through a spatial subset using a provided polygon. The function returns a ClimGrid. Polygons needs to be on a -180, +180 longitude coordinates, as data coordinates defaults to such grid. For instance, global models are often on a 0-360 degrees grid but the load function shift the data onto a -180,+180 coordinates.C = spatialsubset(C::ClimGrid, poly:Array{N, 2} where N)"
 },
 
 {
-    "location": "gettingstarted/#Temporal-1",
-    "page": "Getting started",
+    "location": "loadingfile/#Temporal-1",
+    "page": "-",
     "title": "Temporal",
     "category": "section",
     "text": "Temporal subset of the data is also possible with the temporalsubset function:C = temporalsubset(C::ClimGrid, startdate::Tuple, enddate::Tuple)"
 },
 
 {
-    "location": "gettingstarted/#Discontinuous-temporal-(e.g.-resampling)-1",
-    "page": "Getting started",
+    "location": "loadingfile/#Discontinuous-temporal-(e.g.-resampling)-1",
+    "page": "-",
     "title": "Discontinuous temporal (e.g. resampling)",
     "category": "section",
     "text": "It is also possible to only keep a given non-continuous period for a given timeframe. For example, we might be interested in keeping only northern summer months (June-July-August) from a continuous ClimGrid covering 1961-2100. resample returns such a subsetted ClimGrid.Csub = resample(C, \"JJA\") # hardcoded ClimateTools\'s season\nCsub = resample(C, 6, 8) # custom subset example for June-July-August\nCsub = resample(C, 1, 2) # custom subset example for January-February"
