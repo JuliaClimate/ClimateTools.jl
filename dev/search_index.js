@@ -69,7 +69,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Documentation",
     "category": "section",
-    "text": "This documentation was built using Documenter.jl.```@example using Dates # hide println(\"Documentation built Dates.now() with Julia VERSION\") # hide"
+    "text": "This documentation was built using Documenter.jl.using Dates # hide\nprintln(\"Documentation built $(Dates.now()) with Julia $(VERSION)\") # hide"
 },
 
 {
