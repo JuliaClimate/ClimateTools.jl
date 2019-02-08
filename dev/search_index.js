@@ -105,6 +105,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "gettingstarted/#(Optional)-Building-PyCall-with-a-custom-python-environment-1",
+    "page": "Getting started",
+    "title": "(Optional) Building PyCall with a custom python environment",
+    "category": "section",
+    "text": "One approach to ensure that the right python dependencies are installed is to use a virtual environment. The following commands can be used for such approach.Create a virtual environment with Python 2.7.x.$ virtualenv --python=/usr/bin/python2 /path/to/venv\n$ /path/to/venv/bin/python -m pip install numpy\n$ /path/to/venv/bin/python -m pip install scipy\n$ /path/to/venv/bin/python -m pip install matplotlib\n$ /path/to/venv/bin/python -m pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz\n$ /path/to/venv/bin/python -m pip install git+https://github.com/matplotlib/cmoceanTesting Python installation#bash\n$ /path/to/venv/bin/python # launch virtual env python\n#python\n>>> import mpl_toolkits.basemap as basemap\n>>> import matplotlib.pyplot as plt\n>>> import cmocean as cm\n>>> import scipy as scBuild PyCall with the new venv python# julia\njulia> ENV[\"PYTHON\"] = \"/path/to/venv/bin/python\"\njulia> using Pkg;Pkg.build(\"PyCall\")\njulia> exit\n# re-enter julia\njulia> using ClimateTools\njulia> using Pkg; Pkg.test(\"ClimateTools\")"
+},
+
+{
     "location": "gettingstarted/#Installing-ClimateTools.jl-1",
     "page": "Getting started",
     "title": "Installing ClimateTools.jl",
