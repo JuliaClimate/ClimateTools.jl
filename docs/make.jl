@@ -77,7 +77,7 @@ makedocs(sitename = "ClimateTools.jl",
     pages = [
        "index.md",
        "installation.md",
-       "loadingfiles.md",
+       "loadingfile.md",
        "indices.md",
        "interpolation.md",
        "biascorrection.md",
