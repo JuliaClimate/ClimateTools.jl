@@ -1,8 +1,10 @@
 # Installation
 
+ClimateTools.jl requires some python packages for mapping purpose. it is currently using Basemap under the hood. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the required python packages and build `PyCall` with the same python distribution.
+
 ## Approach no. 1 Use main system python distribution
 
-ClimateTools need some Python dependencies for mapping purpose. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the following python modules and build `PyCall` with the same python distribution.
+The first approach is to use the system python distribution and ensure that you can import the following packages.
 
 **1.1 Python dependencies**
 
@@ -23,7 +25,7 @@ pkg> build PyCall
 
 ## Approach no. 2. Build a python virtual environment and link PyCall.jl to it
 
-One approach to ensure that the right python dependencies are installed is to use a virtual environment. More information can be found in [PyCall](https://github.com/JuliaPy/PyCall.jl) documentation.
+An alternative approach is create a virtual python environment and install the required packages and then link PyCall.jl to this virtual python environment. More information can be found in [PyCall](https://github.com/JuliaPy/PyCall.jl) documentation.
 
 **2.1 Create a virtual environment with Python 2.7.x.**
 
