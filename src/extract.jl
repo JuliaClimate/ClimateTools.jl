@@ -340,7 +340,7 @@ end
 
 Returns a 2D array. Should be used for *fixed* data, such as orography
 """
-function load2D(file::String, vari::String; poly=[], data_units::String="")
+function load2D(file::String, vari::String; poly=[], data_units::String="", dimension::Bool=true)
     # Get attributes
     ncI = NetCDF.ncinfo(file);
     attribs = NetCDF.ncinfo(file).gatts;
@@ -534,6 +534,13 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
     if rotatedgrid
         longrid = longrid_flip
         lon_raw = lon_raw_flip
+    end
+
+    # Add units
+    if dimension
+        if dataunits == "m"
+            data = [data][1]m
+        end
     end
 
     # Convert data to AxisArray
