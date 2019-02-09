@@ -1,6 +1,6 @@
-# Importing a dataset
+# Datasets
 
-## Reading a NetCDF file
+## Importing a NetCDF dataset
 
 The entry point of `ClimateTools` is to load data with the `load` function. The return structure of the `load` function is a in-memory representation of the variable contained in the netCDF file.
 
@@ -43,7 +43,7 @@ struct ClimGrid
 end
 ```
 
-## Subsetting
+## Manipulations
 
 Once the data is loaded in a `ClimGrid` struct, options to further subset the data are available.
 
