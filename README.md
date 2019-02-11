@@ -13,13 +13,9 @@
 
 This package is a collection of commonly-used tools in Climate science. Basics of climate field analysis will be covered, with some forays into exploratory techniques. The package is aimed to ease the typical steps of analysis climate models outputs and gridded datasets (support for weather stations is a work-in-progress).
 
-This package is registered on METADATA.jl and can be added and updated with `Pkg` commands. See Documentation for Python's dependencies (for mapping features).
+ClimateTools.jl is registered on METADATA.jl and can be added and updated with `Pkg` commands. See [installation documentation](https://balinus.github.io/ClimateTools.jl/dev/installation/) for detailed installation instructions and Python's dependencies (for mapping features).
 
-```julia
-pkg> add ClimateTools
-```
-
-The climate indices and bias correction functions are coded to leverage **multiple threads**. To gain maximum performance, use (bash shell Linux/MacOSX) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.THREADS`.
+The climate indices and bias correction functions are coded to leverage **multiple threads**. To gain maximum performance, use (bash shell Linux/MacOSX) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.THREADS`. This is especially useful for bias correction.
 
 ## Contributors
 
