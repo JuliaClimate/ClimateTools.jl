@@ -87,6 +87,7 @@ status, figh = mapclimgrid(C);@test status == true; PyPlot.close() # feeding a 4
 regions = ["World", "WorldAz", "WorldEck4", "Canada", "Quebec", "Quebec_agricole", "South_Quebec", "QuebecNSP", "Americas", "NorthAmerica", "SouthAmerica", "Greenwich", "Outaouais", "Laurentides", "Estrie", "Arctic", "Antarctic", "Africa", "Europe"]
 
 for iregion in regions
+    println(iregion)
     status, figh = mapclimgrid(region=iregion);@test status == true; PyPlot.close()
 end
 
