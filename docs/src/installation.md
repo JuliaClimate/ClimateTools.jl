@@ -23,7 +23,29 @@ ENV["PYTHON"]="path_to_python_distribution"
 pkg> build PyCall
 ```
 
-## Approach no. 2. Build a python virtual environment and link PyCall.jl to it
+## Approach no. 2a. Use a Conda virtual environment and link PyCall.jl to it
+
+An alternative approach is create a virtual python environment with conda and install the required packages and then link PyCall.jl to this virtual python environment. More information can be found in [PyCall](https://github.com/JuliaPy/PyCall.jl) documentation.
+
+**2.1 Create a virtual environment with Conda**
+
+```bash
+$ conda create -name ClimateTools pytyhon=3.6
+$ conda activate ClimateTools
+$ pip install numpy scipy matplotlib
+$ conda install -c anaconda basemap
+$ pip install cmocean
+```
+
+Once those packages are installed, you need to tell PyCall.jl (in Julia) to use this conda environement in Julia.
+
+```julia
+julia> using PyCall
+julia> ENV["PYTHON"]="...PATH TO CONDA PYTHON..."
+julia> using Pkg; Pkg.build("PyCall")
+```
+
+## Approach no. 2b. Build a python virtual environment with `virtualenv` and link PyCall.jl to it
 
 An alternative approach is create a virtual python environment and install the required packages and then link PyCall.jl to this virtual python environment. More information can be found in [PyCall](https://github.com/JuliaPy/PyCall.jl) documentation.
 
