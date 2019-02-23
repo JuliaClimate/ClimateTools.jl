@@ -97,9 +97,17 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "installation/#Approach-no.-2.-Build-a-python-virtual-environment-and-link-PyCall.jl-to-it-1",
+    "location": "installation/#Approach-no.-2a.-Use-a-Conda-virtual-environment-and-link-PyCall.jl-to-it-1",
     "page": "Installation",
-    "title": "Approach no. 2. Build a python virtual environment and link PyCall.jl to it",
+    "title": "Approach no. 2a. Use a Conda virtual environment and link PyCall.jl to it",
+    "category": "section",
+    "text": "An alternative approach is create a virtual python environment with conda and install the required packages and then link PyCall.jl to this virtual python environment. More information can be found in PyCall documentation.2.1 Create a virtual environment with Conda$ conda create -name ClimateTools pytyhon=3.6\n$ conda activate ClimateTools\n$ pip install numpy scipy matplotlib\n$ conda install -c anaconda basemap\n$ pip install cmoceanOnce those packages are installed, you need to tell PyCall.jl (in Julia) to use this conda environement in Julia.julia> using PyCall\njulia> ENV[\"PYTHON\"]=\"...PATH TO CONDA PYTHON...\"\njulia> using Pkg; Pkg.build(\"PyCall\")"
+},
+
+{
+    "location": "installation/#Approach-no.-2b.-Build-a-python-virtual-environment-with-virtualenv-and-link-PyCall.jl-to-it-1",
+    "page": "Installation",
+    "title": "Approach no. 2b. Build a python virtual environment with virtualenv and link PyCall.jl to it",
     "category": "section",
     "text": "An alternative approach is create a virtual python environment and install the required packages and then link PyCall.jl to this virtual python environment. More information can be found in PyCall documentation.2.1 Create a virtual environment with Python 2.7.x.$ virtualenv --python=/usr/bin/python2 /path/to/venv\n$ /path/to/venv/bin/python -m pip install numpy\n$ /path/to/venv/bin/python -m pip install scipy\n$ /path/to/venv/bin/python -m pip install matplotlib\n$ /path/to/venv/bin/python -m pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz\n$ /path/to/venv/bin/python -m pip install git+https://github.com/matplotlib/cmocean2.2 Testing Python installationLaunch newly created virtual env python#bash\n$ /path/to/venv/bin/python # launch virtual env pythonEnsure that you can load the appropriate python packages inside the python interpreter.#python\n>>> import mpl_toolkits.basemap as basemap\n>>> import matplotlib.pyplot as plt\n>>> import cmocean as cm\n>>> import scipy as sc2.3 Build PyCall with the new venv pythonOnce the virtual environment python is tested, it\'s a matter of telling PyCall to use this distribution.# julia\njulia> ENV[\"PYTHON\"] = \"/path/to/venv/bin/python\"\njulia> using Pkg;Pkg.build(\"PyCall\")\njulia> exit()\n# re-enter julia\njulia> using ClimateTools\njulia> using Pkg; Pkg.test(\"ClimateTools\")"
 },
