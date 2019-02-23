@@ -148,7 +148,7 @@ C = regrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N, 1})
 
 ### Bias-correction
 
-See [Documentation](https://balinus.github.io/ClimateTools.jl/stable/biascorrection.html).
+See [Documentation](https://balinus.github.io/ClimateTools.jl/stable/biascorrection/).
 
 ### Merging ClimGrids
 
