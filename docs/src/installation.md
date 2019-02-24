@@ -25,9 +25,9 @@ pkg> build PyCall
 
 ## Approach no. 2a. Use a Conda virtual environment and link PyCall.jl to it
 
-An alternative approach is create a virtual python environment with conda and install the required packages and then link PyCall.jl to this virtual python environment. More information can be found in [PyCall](https://github.com/JuliaPy/PyCall.jl) documentation.
+If the main system python distribution is not set-up properly, the recommended approach is to use a Conda environment. Basemap is much easier to install through this approach. The is simply a matter of creating a virtual python environment with conda and installing the required packages and then linking Julia's PyCall.jl package to this virtual conda environment. More information can be found in [PyCall](https://github.com/JuliaPy/PyCall.jl) documentation for custom Conda environment.
 
-**2.1 Create a virtual environment with Conda**
+**2.1a Create a virtual environment with Conda**
 
 ```bash
 $ conda create -name ClimateTools pytyhon=3.6
@@ -35,21 +35,22 @@ $ conda activate ClimateTools
 $ pip install numpy scipy matplotlib
 $ conda install -c anaconda basemap
 $ pip install cmocean
+$ which python # gives you the path of Conda virtual environment to use in the next steps.
 ```
 
 Once those packages are installed, you need to tell PyCall.jl (in Julia) to use this conda environement in Julia.
 
 ```julia
 julia> using PyCall
-julia> ENV["PYTHON"]="...PATH TO CONDA PYTHON..."
+julia> ENV["PYTHON"]="...PATH TO CONDA PYTHON..." # find the path with "which python" at previous step
 julia> using Pkg; Pkg.build("PyCall")
 ```
 
 ## Approach no. 2b. Build a python virtual environment with `virtualenv` and link PyCall.jl to it
 
-An alternative approach is create a virtual python environment and install the required packages and then link PyCall.jl to this virtual python environment. More information can be found in [PyCall](https://github.com/JuliaPy/PyCall.jl) documentation.
+This is another way to install the required python package. This approach is less recommended than `Approach no. 2a`. This approach consist of using `virtualenv` command and install the required packages inside this virtual env and then link PyCall.jl to this virtual python environment. More information can be found in [PyCall](https://github.com/JuliaPy/PyCall.jl) documentation.
 
-**2.1 Create a virtual environment with Python 2.7.x.**
+**2.1b Create a virtual environment with Python 2.7.x.**
 
 ```bash
 $ virtualenv --python=/usr/bin/python2 /path/to/venv
@@ -62,7 +63,7 @@ $ /path/to/venv/bin/python -m pip install git+https://github.com/matplotlib/cmoc
 
 **2.2 Testing Python installation**
 
-Launch newly created virtual env python
+no matter the approach used, it is recommended to test the python environment and see if you can import the required python packages in the newly created virtual env python.
 
 ```python
 #bash
@@ -93,6 +94,8 @@ julia> using Pkg; Pkg.test("ClimateTools")
 ```
 
 ## Installing ClimateTools.jl
+
+once the python dependencies are properly installed you can then install ClimateTools in Julia.
 
 ```julia
 pkg> add ClimateTools # Tagged release
