@@ -85,7 +85,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Installation",
     "title": "Installation",
     "category": "section",
-    "text": "ClimateTools.jl requires some python packages for mapping purpose. it is currently using Basemap under the hood. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the required python packages and build PyCall with the same python distribution."
+    "text": "ClimateTools.jl requires some python packages for mapping purpose and is currently using Basemap under the hood. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the required python packages and build PyCall with the same python distribution."
 },
 
 {
@@ -101,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Installation",
     "title": "Approach no. 2a. Use a Conda virtual environment and link PyCall.jl to it",
     "category": "section",
-    "text": "If the main system python distribution is not set-up properly, the recommended approach is to use a Conda environment. Basemap is much easier to install through this approach. The is simply a matter of creating a virtual python environment with conda and installing the required packages and then linking Julia\'s PyCall.jl package to this virtual conda environment. More information can be found in PyCall documentation for custom Conda environment.2.1a Create a virtual environment with Conda$ conda create -name ClimateTools pytyhon=3.6\n$ conda activate ClimateTools\n$ pip install numpy scipy matplotlib\n$ conda install -c anaconda basemap\n$ pip install cmocean\n$ which python # gives you the path of Conda virtual environment to use in the next steps.Once those packages are installed, you need to tell PyCall.jl (in Julia) to use this conda environement in Julia.julia> using PyCall\njulia> ENV[\"PYTHON\"]=\"...PATH TO CONDA PYTHON...\" # find the path with \"which python\" at previous step\njulia> using Pkg; Pkg.build(\"PyCall\")"
+    "text": "If the main system python distribution is not set-up properly, the recommended approach is to use a Conda environment. Basemap is much easier to install through this approach. The is simply a matter of creating a virtual python environment with conda and installing the required packages and then linking Julia\'s PyCall.jl package to this virtual conda environment. More information can be found in PyCall documentation for custom Conda environment.2.1a Create a virtual environment with Conda$ conda create -name ClimateTools python=3.6\n$ conda activate ClimateTools\n$ pip install numpy scipy matplotlib\n$ conda install -c anaconda basemap\n$ pip install cmocean\n$ which python # gives you the path of Conda virtual environment to use in the next steps.Once those packages are installed, you need to tell PyCall.jl (in Julia) to use this conda environement in Julia.julia> using PyCall\njulia> ENV[\"PYTHON\"]=\"...PATH TO CONDA PYTHON...\" # find the path with \"which python\" at previous step\njulia> using Pkg; Pkg.build(\"PyCall\")"
 },
 
 {
