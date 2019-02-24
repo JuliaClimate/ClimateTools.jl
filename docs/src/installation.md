@@ -13,7 +13,7 @@ The first approach is to use the system python distribution and ensure that you 
 * scipy (tested with version 1.0.1)
 * cmocean
 
-*Note. Installing Basemap for python 3.6+ seems problematic.*
+*Note. Installing Basemap with `pip` for python 3.6+ seems problematic. See approach no 2a below for an installation with Anaconda*
 
 **1.2 Building PyCall**
 After the confirmation that the Python dependencies can be loaded in Python, the user needs to build PyCall with the same Python version. Alternatively, if PyCall is already built, it may be only a matter of installing the Python dependencies with the PyCall's Python version by using `pip`.
