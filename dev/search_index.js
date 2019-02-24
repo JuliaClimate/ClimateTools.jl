@@ -93,7 +93,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Installation",
     "title": "Approach no. 1 Use main system python distribution",
     "category": "section",
-    "text": "The first approach is to use the system python distribution and ensure that you can import the following packages.1.1 Python dependenciesmatplotlib (tested with version 2.0.1)\nbasemap (tested with version 1.0.7)\nscipy (tested with version 1.0.1)\ncmoceanNote. Installing Basemap for python 3.6+ seems problematic.1.2 Building PyCall After the confirmation that the Python dependencies can be loaded in Python, the user needs to build PyCall with the same Python version. Alternatively, if PyCall is already built, it may be only a matter of installing the Python dependencies with the PyCall\'s Python version by using pip.ENV[\"PYTHON\"]=\"path_to_python_distribution\"\npkg> build PyCall"
+    "text": "The first approach is to use the system python distribution and ensure that you can import the following packages.1.1 Python dependenciesmatplotlib (tested with version 2.0.1)\nbasemap (tested with version 1.0.7)\nscipy (tested with version 1.0.1)\ncmoceanNote. Installing Basemap with pip for python 3.6+ seems problematic. See approach no 2a below for an installation with Anaconda1.2 Building PyCall After the confirmation that the Python dependencies can be loaded in Python, the user needs to build PyCall with the same Python version. Alternatively, if PyCall is already built, it may be only a matter of installing the Python dependencies with the PyCall\'s Python version by using pip.ENV[\"PYTHON\"]=\"path_to_python_distribution\"\npkg> build PyCall"
 },
 
 {
