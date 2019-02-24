@@ -1,6 +1,6 @@
 # Installation
 
-ClimateTools.jl requires some python packages for mapping purpose. it is currently using Basemap under the hood. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the required python packages and build `PyCall` with the same python distribution.
+ClimateTools.jl requires some python packages for mapping purpose and is currently using Basemap under the hood. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the required python packages and build `PyCall` with the same python distribution.
 
 ## Approach no. 1 Use main system python distribution
 
@@ -30,7 +30,7 @@ If the main system python distribution is not set-up properly, the recommended a
 **2.1a Create a virtual environment with Conda**
 
 ```bash
-$ conda create -name ClimateTools pytyhon=3.6
+$ conda create -name ClimateTools python=3.6
 $ conda activate ClimateTools
 $ pip install numpy scipy matplotlib
 $ conda install -c anaconda basemap
