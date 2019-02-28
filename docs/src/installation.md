@@ -2,18 +2,30 @@
 
 ClimateTools.jl requires some python packages for mapping purpose and is currently using Basemap under the hood. To ensure that ClimateTools works properly, it is recommended to use a Python distribution that can properly load the required python packages and build `PyCall` with the same python distribution.
 
-## Approach no. 1 Use main system python distribution
+## Approach no. 1 Use Anaconda or main system python distribution
 
-The first approach is to use the system python distribution and ensure that you can import the following packages.
+The first approach is to use Anaconda or the system python distribution and ensure that you can import the following packages. By far, the easiest solution is to use Anaconda, which can easily install the Basemap dependency.
 
 **1.1 Python dependencies**
 
-* matplotlib (tested with version 2.0.1)
-* basemap (tested with version 1.0.7)
-* scipy (tested with version 1.0.1)
+* matplotlib
+* basemap
+* scipy
 * cmocean
 
-*Note. Installing Basemap with `pip` for python 3.6+ seems problematic. See approach no 2a below for an installation with Anaconda*
+**1.2 Testing Python installation**
+
+No matter the approach used, it is recommended to test the python environment and see if you can import the required python packages.
+
+```python
+#python
+>>> import mpl_toolkits.basemap as basemap
+>>> import matplotlib.pyplot as plt
+>>> import cmocean as cm
+>>> import scipy as sc
+```
+
+*Note. Installing Basemap with `pip` for python 3.6+ seems problematic. That is why it is strongly suggested to use Anaconda distribution. See approach no 2a below for an installation with Anaconda*
 
 **1.2 Building PyCall**
 After the confirmation that the Python dependencies can be loaded in Python, the user needs to build PyCall with the same Python version. Alternatively, if PyCall is already built, it may be only a matter of installing the Python dependencies with the PyCall's Python version by using `pip`.
@@ -35,6 +47,7 @@ $ conda activate ClimateTools
 $ pip install numpy scipy matplotlib
 $ conda install -c anaconda basemap
 $ pip install cmocean
+$ conda install -c conda-forge basemap-data-hires # optional. For high-resolution maps
 $ which python # gives you the path of Conda virtual environment to use in the next steps.
 ```
 
@@ -59,24 +72,6 @@ $ /path/to/venv/bin/python -m pip install scipy
 $ /path/to/venv/bin/python -m pip install matplotlib
 $ /path/to/venv/bin/python -m pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz
 $ /path/to/venv/bin/python -m pip install git+https://github.com/matplotlib/cmocean
-```
-
-**2.2 Testing Python installation**
-
-no matter the approach used, it is recommended to test the python environment and see if you can import the required python packages in the newly created virtual env python.
-
-```python
-#bash
-$ /path/to/venv/bin/python # launch virtual env python
-```
-Ensure that you can load the appropriate python packages inside the python interpreter.
-
-```python
-#python
->>> import mpl_toolkits.basemap as basemap
->>> import matplotlib.pyplot as plt
->>> import cmocean as cm
->>> import scipy as sc
 ```
 
 **2.3 Build PyCall with the new venv python**
