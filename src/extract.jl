@@ -33,14 +33,14 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   frequency = ClimateTools.frequency_var(attribs_dataset)
   runsim = ClimateTools.runsim_id(attribs_dataset)
 
-  dataunits = ds[vari].attrib["units"]
-  latunits = ds["lat"].attrib["units"]
-  lonunits = ds["lon"].attrib["units"]
-  caltype = ds["time"].attrib["calendar"]
-
   # Get dimensions names
   latname = getdim_lat(ds)
   lonname = getdim_lon(ds)
+
+  dataunits = ds[vari].attrib["units"]
+  latunits = ds[latname].attrib["units"]
+  lonunits = ds[lonname].attrib["units"]
+  caltype = ds["time"].attrib["calendar"]
 
   # Create dict with latname and lonname
   dimension_dict = Dict(["lon" => lonname, "lat" => latname])
@@ -572,6 +572,8 @@ function getdim_lat(ds::NCDatasets.Dataset)
         return "rlat"
     elseif sum(keys(ds.dim) .== "lat") == 1
         return "lat"
+    elseif sum(keys(ds.dim) .== "latitude") == 1
+        return "latitude"
     elseif sum(keys(ds.dim) .== "y") == 1
         return "y"
     elseif sum(keys(ds.dim) .== "yc") == 1
@@ -588,6 +590,8 @@ function getdim_lon(ds::NCDatasets.Dataset)
         return "rlon"
     elseif sum(keys(ds.dim) .== "lon") == 1
         return "lon"
+    elseif sum(keys(ds.dim) .== "longitude") == 1
+        return "longitude"
     elseif sum(keys(ds.dim) .== "x") == 1
         return "x"
     elseif sum(keys(ds.dim) .== "xc") == 1
