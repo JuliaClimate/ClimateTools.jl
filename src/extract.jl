@@ -34,8 +34,8 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   runsim = ClimateTools.runsim_id(attribs_dataset)
 
   # Get dimensions names
-  latname = getdim_lat(ds)
-  lonname = getdim_lon(ds)
+  latname, latstatus = getdim_lat(ds)
+  lonname, lonstatus = getdim_lon(ds)
 
   dataunits = ds[vari].attrib["units"]
   latunits = ds[latname].attrib["units"]
@@ -51,14 +51,14 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # Get variable attributes
   varattrib = Dict(ds[vari].attrib)
 
-  if (latname != "lat" && lonname != "lon") ||  (latname != "latitude" && lonname != "longitude") # means we don't have a "regular" grid
+  if latstatus # means we don't have a "regular" grid
       latgrid = NetCDF.ncread(file, latname)
       longrid = NetCDF.ncread(file, lonname)
 
       # Ensure we have a grid
       if ndims(latgrid) == 1 && ndims(longrid) == 1
           longrid, latgrid = ndgrid(lon_raw, lat_raw)
-          map_attrib = Dict(["grid_mapping" => "Regular_longitude_latitude"])          
+          map_attrib = Dict(["grid_mapping" => "Regular_longitude_latitude"])
       end
 
       if ClimateTools.@isdefined varattrib["grid_mapping"]
@@ -345,7 +345,7 @@ end
 """
     load2D(file::String, vari::String; poly=[], data_units::String="")
 
-Returns a 2D array. Should be used for *fixed* data, such as orography
+Returns a 2D array. Should be used for *fixed* data, such as orography. 
 """
 function load2D(file::String, vari::String; poly=[], data_units::String="", dimension::Bool=true)
     # Get attributes
@@ -362,13 +362,13 @@ function load2D(file::String, vari::String; poly=[], data_units::String="", dime
     frequency = ClimateTools.frequency_var(attribs_dataset)
     runsim = ClimateTools.runsim_id(attribs_dataset)
 
-    dataunits = ds[vari].attrib["units"]
-    latunits = ds["lat"].attrib["units"]
-    lonunits = ds["lon"].attrib["units"]
-
     # Get dimensions names
-    latname = getdim_lat(ds)
-    lonname = getdim_lon(ds)
+    latname, latstatus = getdim_lat(ds)
+    lonname, lonstatus = getdim_lon(ds)
+
+    dataunits = ds[vari].attrib["units"]
+    latunits = ds[latname].attrib["units"]
+    lonunits = ds[lonname].attrib["units"]
 
     # Create dict with latname and lonname
     dimension_dict = Dict(["lon" => lonname, "lat" => latname])
@@ -379,7 +379,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="", dime
     # Get variable attributes
     varattrib = Dict(ds[vari].attrib)
 
-    if latname != "lat" && lonname != "lon" # means we don't have a "regular" grid
+    if latstatus # means we don't have a "regular" grid
         latgrid = NetCDF.ncread(file, "lat")
         longrid = NetCDF.ncread(file, "lon")
         if ClimateTools.@isdefined varattrib["grid_mapping"]
@@ -573,36 +573,46 @@ frequency_var(attrib::NCDatasets.Attributes) = get(attrib,"frequency","N/A")
 runsim_id(attrib::NCDatasets.Attributes) = get(attrib, "parent_experiment_rip", get(attrib,"driving_model_ensemble_member","N/A"))
 
 
+"""
+    getdim_lat(ds::NCDatasets.Dataset)
+
+Returns the name of the "latitude" dimension and the status related to a regular grid. The latitude dimension is usually "latitude", "lat", "y", "yc", "rlat".
+"""
 function getdim_lat(ds::NCDatasets.Dataset)
 
     if sum(keys(ds.dim) .== "rlat") == 1
-        return "rlat"
+        return "rlat", true
     elseif sum(keys(ds.dim) .== "lat") == 1
-        return "lat"
+        return "lat", false
     elseif sum(keys(ds.dim) .== "latitude") == 1
-        return "latitude"
+        return "latitude", false
     elseif sum(keys(ds.dim) .== "y") == 1
-        return "y"
+        return "y", true
     elseif sum(keys(ds.dim) .== "yc") == 1
-        return "yc"
+        return "yc", true
     else
         error("Manually verify x/lat dimension name")
     end
 
 end
 
+"""
+    getdim_lon(ds::NCDatasets.Dataset)
+
+Returns the name of the "longitude" dimension and the status related to a regular grid. The longitude dimension is usually "longitue", "lon", "x", "xc", "rlon".
+"""
 function getdim_lon(ds::NCDatasets.Dataset)
 
     if sum(keys(ds.dim) .== "rlon") == 1
-        return "rlon"
+        return "rlon", true
     elseif sum(keys(ds.dim) .== "lon") == 1
-        return "lon"
+        return "lon", false
     elseif sum(keys(ds.dim) .== "longitude") == 1
-        return "longitude"
+        return "longitude", false
     elseif sum(keys(ds.dim) .== "x") == 1
-        return "x"
+        return "x", false
     elseif sum(keys(ds.dim) .== "xc") == 1
-        return "xc"
+        return "xc", false
     else
         error("Manually verify x/lat dimension name")
     end
