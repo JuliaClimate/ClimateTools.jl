@@ -51,9 +51,16 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # Get variable attributes
   varattrib = Dict(ds[vari].attrib)
 
-  if latname != "lat" && lonname != "lon" # means we don't have a "regular" grid
-      latgrid = NetCDF.ncread(file, "lat")
-      longrid = NetCDF.ncread(file, "lon")
+  if (latname != "lat" && lonname != "lon") ||  (latname != "latitude" && lonname != "longitude") # means we don't have a "regular" grid
+      latgrid = NetCDF.ncread(file, latname)
+      longrid = NetCDF.ncread(file, lonname)
+
+      # Ensure we have a grid
+      if ndims(latgrid) == 1 && ndims(longrid) == 1
+          longrid, latgrid = ndgrid(lon_raw, lat_raw)
+          map_attrib = Dict(["grid_mapping" => "Regular_longitude_latitude"])          
+      end
+
       if ClimateTools.@isdefined varattrib["grid_mapping"]
           map_dim = varattrib["grid_mapping"]
           map_attrib = Dict(ds[map_dim].attrib)
