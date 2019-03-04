@@ -278,7 +278,7 @@ function PyPlot.plot(C::ClimGrid; level=1, poly=[], start_date::Tuple=(Inf,), en
     end
     title(titlestr)
     if gridfig
-        grid("on")
+        grid(true)
     end
 
     return true, figh
