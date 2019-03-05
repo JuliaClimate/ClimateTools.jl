@@ -76,13 +76,23 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # =====================
   # TIME
   # Get time resolution
-  rez = ClimateTools.timeresolution(NetCDF.ncread(file, "time"))
-  if frequency == "N/A"
-    frequency = rez
+  timeV = ds["time"][:]
+  if frequency == "N/A" || !ClimateTools.@isdefined frequency
+      try
+          try
+              frequency = string(diff(timeV)[2])
+          catch
+              frequency = string(diff(timeV)[1])
+          end
+      catch
+          frequency = "N/A"
+      end
   end
+  # rez = ClimateTools.timeresolution(NetCDF.ncread(file, "time"))
+
 
   timeattrib = Dict(ds["time"].attrib)
-  timeV = ds["time"][:]
+
   T = typeof(timeV[1])
 
   idxtimebeg, idxtimeend = ClimateTools.timeindex(timeV, start_date, end_date, T)
@@ -108,7 +118,8 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # ===================
   # GET DATA
   # data = ds[variable]
-  data_pointer = NetCDF.open(file, vari)
+  # data_pointer = NetCDF.open(file, vari)
+  data_pointer = ds[vari]
   if !isempty(poly)
 
     # Test to see if the polygon crosses the meridian
@@ -223,19 +234,25 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     if rotatedgrid
 
         # Flip data "west-east"
-        data_final = ClimateTools.permute_west_east(data_ext, longrid)
+        data = ClimateTools.permute_west_east(data_ext, longrid)
 
     else
-        data_final = data_ext
+        data = data_ext
     end
 
   end
 
-  # # Replace fillvalues with NaN
-  fillval = NetCDF.ncgetatt(file, vari, "_FillValue")
-  data_final[data_final .== fillval] .= NaN
+  # Replace missing with NaN
+  replace_missing!(data)
+  # Convert
+  T = typeof(data[1])
+  data = Array{T}(data)
 
-  data = data_final
+  # # # Replace fillvalues with NaN
+  # fillval = NetCDF.ncgetatt(file, vari, "_FillValue")
+  # data_final[data_final .== fillval] .= NaN
+
+  # data = data_final
 
   if rotatedgrid
       longrid .= longrid_flip
@@ -345,7 +362,7 @@ end
 """
     load2D(file::String, vari::String; poly=[], data_units::String="")
 
-Returns a 2D array. Should be used for *fixed* data, such as orography. 
+Returns a 2D array. Should be used for *fixed* data, such as orography.
 """
 function load2D(file::String, vari::String; poly=[], data_units::String="", dimension::Bool=true)
     # Get attributes

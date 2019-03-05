@@ -354,9 +354,11 @@ Applies a mask on the array A. Return an AbstractArray{N, n}.
 
 """
 function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} where N)
+
     modA = Array{typeof(ustrip(A[1]))}(undef, size(A))
     # Get unit
-    un = unit(A[1])
+    units_all = unique(unit.(A))
+    un = units_all[.!ismissing.(units_all)]
     for t = 1:size(A, 4) # time axis
         for lev = 1:size(A, 3) #level axis
             tmp = ustrip.(A[:, :, lev, t])
@@ -365,42 +367,47 @@ function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} wher
         end
     end
     # reapply unit
-    modA = [modA][1]un
+    modA = [modA][1]un[1]
     return modA
 end
 
 function applymask(A::AbstractArray{N,3} where N, mask::AbstractArray{N, 2} where N)
     modA = Array{typeof(ustrip(A[1]))}(undef, size(A))
     # Get unit
-    un = unit(A[1])
+    units_all = unique(unit.(A))
+    un = units_all[.!ismissing.(units_all)]
+
     for t = 1:size(A, 3) # time axis
         tmp = ustrip.(A[:, :, t])
         tmp .*= mask # TODO use multiple dispatch of applymask
         modA[:, :, t] = tmp
     end
     # reapply unit
-    modA = [modA][1]un
+    modA = [modA][1]un[1]
     return modA
 end
 
 function applymask(A::AbstractArray{N,2} where N, mask::AbstractArray{N, 2} where N)
     modA = Array{typeof(ustrip(A[1]))}(undef, size(A))
     # Get unit
-    un = unit(A[1])
+    units_all = unique(unit.(A))
+    un = units_all[.!ismissing.(units_all)]
+
     @assert ndims(A) == ndims(mask)
     modA = ustrip.(A) .* mask
     # reapply unit
-    modA = [modA][1]un
+    modA = [modA][1]un[1]
     return modA
 end
 
 function applymask(A::AbstractArray{N,1} where N, mask::AbstractArray{N, 1} where N)
     modA = Array{typeof(ustrip(A[1]))}(undef, size(A))
     # Get unit
-    un = unit(A[1])
+    units_all = unique(unit.(A))
+    un = units_all[.!ismissing.(units_all)]
     modA = ustrip.(A) .* mask
     # reapply unit
-    modA = [modA][1]un
+    modA = [modA][1]un[1]
     return modA
 end
 
@@ -812,6 +819,17 @@ function uconvert(a::Units, C::ClimGrid)
 
     ClimGrid(dataaxis, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=string(unit(dataconv[1])), latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
+end
+
+"""
+    replace_missing(A::AbstractArray)
+
+Replace missing value with NaN.
+"""
+function replace_missing!(A::AbstractArray)
+
+    idx = findall(ismissing, A)
+    A[idx] .= NaN
 end
 
 # function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)
