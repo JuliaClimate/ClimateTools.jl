@@ -92,11 +92,8 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
 
   timeattrib = Dict(ds["time"].attrib)
-
   T = typeof(timeV[1])
-
   idxtimebeg, idxtimeend = ClimateTools.timeindex(timeV, start_date, end_date, T)
-
   timeV = timeV[idxtimebeg:idxtimeend]
 
   # ==================
@@ -139,6 +136,8 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
     #Extract data based on mask
     data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
+    replace_missing!(data_ext)
+    convert!(data_ext)
 
     #new mask (e.g. representing the region of the polygon)
     # idlon, idlat = findn(.!isnan.(msk))
@@ -179,7 +178,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
             longrid_flip = ClimateTools.shiftgrid_180_west_east(longrid)
 
-            data_final = permute_west_east(data_mask, longrid)#idxwest, idxeast)
+            data = permute_west_east(data_mask, longrid)#idxwest, idxeast)
             msk = ClimateTools.permute_west_east(msk, longrid)
 
             # TODO Try to trim padding when meridian is crossed and model was on a 0-360 coords
@@ -200,7 +199,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
             #     data = applymask(data, msk)
 
         else
-            data_final = data_mask
+            data = data_mask
         end
 
     else
@@ -218,10 +217,10 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
             lon_raw_flip = shiftvector_180_east_west(lon_raw)
 
-            data_final = permute_west_east(data_mask, longrid)#idxwest, idxeast)
+            data = permute_west_east(data_mask, longrid)#idxwest, idxeast)
             msk = ClimateTools.permute_west_east(msk, longrid)
         else
-            data_final = data_mask
+            data = data_mask
         end
 
     end
@@ -230,6 +229,8 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
       msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
       data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
+      replace_missing!(data_ext)
+      convert!(data_ext)
 
     if rotatedgrid
 
@@ -244,9 +245,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   # Replace missing with NaN
   replace_missing!(data)
-  # Convert
-  T = typeof(data[1])
-  data = Array{T}(data)
+  convert!(data)
 
   # # # Replace fillvalues with NaN
   # fillval = NetCDF.ncgetatt(file, vari, "_FillValue")
@@ -450,6 +449,8 @@ function load2D(file::String, vari::String; poly=[], data_units::String="", dime
 
       #Extract data based on mask
       data_ext = ClimateTools.extractdata2D(data_pointer, msk)
+      replace_missing!(data_ext)
+      convert!(data_ext)
 
       begin
         I = Base.findall(!isnan, msk)
@@ -540,6 +541,8 @@ function load2D(file::String, vari::String; poly=[], data_units::String="", dime
     elseif isempty(poly) # no polygon clipping
         msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
         data_ext = extractdata2D(data_pointer, msk)
+        replace_missing!(data_ext)
+        convert!(data_ext)
 
       if rotatedgrid
           # Flip data "west-east"

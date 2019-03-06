@@ -70,7 +70,7 @@ $ virtualenv --python=/usr/bin/python2 /path/to/venv
 $ /path/to/venv/bin/python -m pip install numpy
 $ /path/to/venv/bin/python -m pip install scipy
 $ /path/to/venv/bin/python -m pip install matplotlib
-$ /path/to/venv/bin/python -m pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz
+$ /path/to/venv/bin/python -m pip install https://github.com/matplotlib/basemap/archive/master.zip
 $ /path/to/venv/bin/python -m pip install git+https://github.com/matplotlib/cmocean
 ```
 

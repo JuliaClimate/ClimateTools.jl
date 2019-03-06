@@ -355,7 +355,9 @@ Applies a mask on the array A. Return an AbstractArray{N, n}.
 """
 function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} where N)
 
-    modA = Array{typeof(ustrip(A[1]))}(undef, size(A))
+    T = typeof(ustrip(A[.!ismissing.(A)][1]))
+    modA = Array{T}(undef, size(A))
+
     # Get unit
     units_all = unique(unit.(A))
     un = units_all[.!ismissing.(units_all)]
@@ -372,7 +374,10 @@ function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} wher
 end
 
 function applymask(A::AbstractArray{N,3} where N, mask::AbstractArray{N, 2} where N)
-    modA = Array{typeof(ustrip(A[1]))}(undef, size(A))
+
+    T = typeof(ustrip(A[.!ismissing.(A)][1]))
+    modA = Array{T}(undef, size(A))
+
     # Get unit
     units_all = unique(unit.(A))
     un = units_all[.!ismissing.(units_all)]
@@ -388,7 +393,10 @@ function applymask(A::AbstractArray{N,3} where N, mask::AbstractArray{N, 2} wher
 end
 
 function applymask(A::AbstractArray{N,2} where N, mask::AbstractArray{N, 2} where N)
-    modA = Array{typeof(ustrip(A[1]))}(undef, size(A))
+
+    T = typeof(ustrip(A[.!ismissing.(A)][1]))
+    modA = Array{T}(undef, size(A))
+
     # Get unit
     units_all = unique(unit.(A))
     un = units_all[.!ismissing.(units_all)]
@@ -401,7 +409,10 @@ function applymask(A::AbstractArray{N,2} where N, mask::AbstractArray{N, 2} wher
 end
 
 function applymask(A::AbstractArray{N,1} where N, mask::AbstractArray{N, 1} where N)
-    modA = Array{typeof(ustrip(A[1]))}(undef, size(A))
+
+    T = typeof(ustrip(A[.!ismissing.(A)][1]))
+    modA = Array{T}(undef, size(A))
+
     # Get unit
     units_all = unique(unit.(A))
     un = units_all[.!ismissing.(units_all)]
@@ -822,14 +833,30 @@ function uconvert(a::Units, C::ClimGrid)
 end
 
 """
-    replace_missing(A::AbstractArray)
+    replace_missing!(A::AbstractArray)
 
-Replace missing value with NaN.
+Replace missing value in array A with NaNs.
 """
 function replace_missing!(A::AbstractArray)
 
     idx = findall(ismissing, A)
-    A[idx] .= NaN
+    if !isempty(idx)
+        A[idx] .= NaN
+    end
+    return A
+end
+
+"""
+    convert!(A::AbstractArray)
+
+Convert the array A to a single type, removing the missing union.
+"""
+function convert!(A::AbstractArray)
+
+    # Convert
+    T = typeof(A[1])
+    A = Array{T}(A)
+
 end
 
 # function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)
