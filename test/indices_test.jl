@@ -273,7 +273,7 @@ ind = periodmean(C)
 
 # Daymean
 raw = collect(0:0.25:1459.75) # 6hr data
-d = timedecode(raw, "days since 2000-01-01", "noleap")
+d = NCDatasets.timedecode(raw, "days since 2000-01-01", "noleap")
 
 data = Array{Float64}(undef, 2, 2, 5840)
 data[1, 1, :] = collect(1:5840)

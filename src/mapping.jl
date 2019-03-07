@@ -48,7 +48,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
     if C[10] == "pr" || C[10]=="huss"
       # cm = "YlGnBu"
       cm = cmocean[:cm][:deep]
-    elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin" || C[10] == "wbgtmean" || C[10] == "wbgtmax"
+  elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin" || C[10] == "wbgtmean" || C[10] == "wbgtmax" || C[10]=="t2m"
       cm = "RdYlBu_r"
     elseif C[10]=="psl" || C[10]=="vp" # pressure
       cm = cmocean[:cm][:deep_r]
@@ -269,7 +269,7 @@ function PyPlot.plot(C::ClimGrid; level=1, poly=[], start_date::Tuple=(Inf,), en
     if !isempty(ylimit)
         ylim(ylimit[1], ylimit[2])
     end
-    xlabel("Time")
+    # xlabel("Time")
     ylabel(C.dataunits)
     legend()
     # xticks(timevec[1:20:end])
@@ -278,7 +278,7 @@ function PyPlot.plot(C::ClimGrid; level=1, poly=[], start_date::Tuple=(Inf,), en
     end
     title(titlestr)
     if gridfig
-        grid("on")
+        grid(true)
     end
 
     return true, figh
