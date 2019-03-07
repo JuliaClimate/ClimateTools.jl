@@ -109,7 +109,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Installation",
     "title": "Approach no. 2b. Build a python virtual environment with virtualenv and link PyCall.jl to it",
     "category": "section",
-    "text": "This is another way to install the required python package. This approach is less recommended than Approach no. 2a. This approach consist of using virtualenv command and install the required packages inside this virtual env and then link PyCall.jl to this virtual python environment. More information can be found in PyCall documentation.2.1b Create a virtual environment with Python 2.7.x.$ virtualenv --python=/usr/bin/python2 /path/to/venv\n$ /path/to/venv/bin/python -m pip install numpy\n$ /path/to/venv/bin/python -m pip install scipy\n$ /path/to/venv/bin/python -m pip install matplotlib\n$ /path/to/venv/bin/python -m pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz\n$ /path/to/venv/bin/python -m pip install git+https://github.com/matplotlib/cmocean2.3 Build PyCall with the new venv pythonOnce the virtual environment python is tested, it\'s a matter of telling PyCall to use this distribution.# julia\njulia> ENV[\"PYTHON\"] = \"/path/to/venv/bin/python\"\njulia> using Pkg;Pkg.build(\"PyCall\")\njulia> exit()\n# re-enter julia\njulia> using ClimateTools\njulia> using Pkg; Pkg.test(\"ClimateTools\")"
+    "text": "This is another way to install the required python package. This approach is less recommended than Approach no. 2a. This approach consist of using virtualenv command and install the required packages inside this virtual env and then link PyCall.jl to this virtual python environment. More information can be found in PyCall documentation.2.1b Create a virtual environment with Python 2.7.x.$ virtualenv --python=/usr/bin/python2 /path/to/venv\n$ /path/to/venv/bin/python -m pip install numpy\n$ /path/to/venv/bin/python -m pip install scipy\n$ /path/to/venv/bin/python -m pip install matplotlib\n$ /path/to/venv/bin/python -m pip install https://github.com/matplotlib/basemap/archive/master.zip\n$ /path/to/venv/bin/python -m pip install git+https://github.com/matplotlib/cmocean2.3 Build PyCall with the new venv pythonOnce the virtual environment python is tested, it\'s a matter of telling PyCall to use this distribution.# julia\njulia> ENV[\"PYTHON\"] = \"/path/to/venv/bin/python\"\njulia> using Pkg;Pkg.build(\"PyCall\")\njulia> exit()\n# re-enter julia\njulia> using ClimateTools\njulia> using Pkg; Pkg.test(\"ClimateTools\")"
 },
 
 {
@@ -737,6 +737,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions/#ClimateTools.getdim_lat-Tuple{Dataset}",
+    "page": "Index",
+    "title": "ClimateTools.getdim_lat",
+    "category": "method",
+    "text": "getdim_lat(ds::NCDatasets.Dataset)\n\nReturns the name of the \"latitude\" dimension and the status related to a regular grid. The latitude dimension is usually \"latitude\", \"lat\", \"y\", \"yc\", \"rlat\".\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions/#ClimateTools.getdim_lon-Tuple{Dataset}",
+    "page": "Index",
+    "title": "ClimateTools.getdim_lon",
+    "category": "method",
+    "text": "getdim_lon(ds::NCDatasets.Dataset)\n\nReturns the name of the \"longitude\" dimension and the status related to a regular grid. The longitude dimension is usually \"longitue\", \"lon\", \"x\", \"xc\", \"rlon\".\n\n\n\n\n\n"
+},
+
+{
     "location": "functions/#ClimateTools.icingdays-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.icingdays",
@@ -781,7 +797,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.load2D",
     "category": "method",
-    "text": "load2D(file::String, vari::String; poly=[], data_units::String=\"\")\n\nReturns a 2D array. Should be used for fixed data, such as orography\n\n\n\n\n\n"
+    "text": "load2D(file::String, vari::String; poly=[], data_units::String=\"\")\n\nReturns a 2D array. Should be used for fixed data, such as orography.\n\n\n\n\n\n"
 },
 
 {
@@ -993,11 +1009,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions/#ClimateTools.yearmonthdayhour-Tuple{AbstractCFDateTime}",
+    "location": "functions/#ClimateTools.yearmonthdayhour-Union{Tuple{DT}, Tuple{DT}} where DT<:Dates.TimeType",
     "page": "Index",
     "title": "ClimateTools.yearmonthdayhour",
     "category": "method",
-    "text": "yearmonthdayhour(dt::AbstractCFDateTime) -> (Int64, Int64, Int64, Int64)\n\nSimultaneously return the year, month, day and hour parts of dt.\n\n\n\n\n\n"
+    "text": "yearmonthdayhour(dt::AbstractCFDateTime) -> (Int64, Int64, Int64, Int64)\n\nSimultaneously return the year, month, day and hour parts of dt. Author: Alexander-Barth (Github)\n\n\n\n\n\n"
 },
 
 {

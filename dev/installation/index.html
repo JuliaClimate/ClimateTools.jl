@@ -16,7 +16,7 @@ julia&gt; using Pkg; Pkg.build(&quot;PyCall&quot;)</code></pre><h2><a class="nav
 $ /path/to/venv/bin/python -m pip install numpy
 $ /path/to/venv/bin/python -m pip install scipy
 $ /path/to/venv/bin/python -m pip install matplotlib
-$ /path/to/venv/bin/python -m pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz
+$ /path/to/venv/bin/python -m pip install https://github.com/matplotlib/basemap/archive/master.zip
 $ /path/to/venv/bin/python -m pip install git+https://github.com/matplotlib/cmocean</code></pre><p><strong>2.3 Build PyCall with the new venv python</strong></p><p>Once the virtual environment python is tested, it&#39;s a matter of telling PyCall to use this distribution.</p><pre><code class="language-julia"># julia
 julia&gt; ENV[&quot;PYTHON&quot;] = &quot;/path/to/venv/bin/python&quot;
 julia&gt; using Pkg;Pkg.build(&quot;PyCall&quot;)
