@@ -893,7 +893,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.qqmap",
     "category": "method",
-    "text": "qqmap(obs::Array{N, 1} where N, ref::Array{N, 1} where N, fut::Array{N, 1} where N; method=\"Additive\", detrend=true, window=15, rankn=50, thresnan=0.1, keep_original=false, interp::Function = Linear(), extrap::Function = Flat())\n\nQuantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.\n\n\n\n\n\n"
+    "text": "qqmap(obs::Array{N, 1} where N, ref::Array{N, 1} where N, fut::Array{N, 1} where N; method=\"Additive\", detrend=true, window=15, rankn=50, thresnan=0.1, keep_original=false, interp::Function=Linear(), extrap::Function=Flat())\n\nQuantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.\n\n\n\n\n\n"
 },
 
 {
