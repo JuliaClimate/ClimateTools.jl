@@ -150,7 +150,8 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
                 sf_refP .= obsP .- refP
                 itp = interpolate((refP,), sf_refP, Gridded(interp))
                 itp = extrapolate(itp, extrap) # add extrapolation
-                futnew = itp(futval) .+ futval
+                dataout[idxfut] .= itp(futval) .+ futval
+                # futnew = itp(futval) .+ futval
 
             elseif lowercase(method) == "multiplicative" # used for precipitation
                 sf_refP .= obsP ./ refP
@@ -158,15 +159,15 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
                 sf_refP[isnan.(sf_refP)] .= eps(1.0)
                 itp = interpolate((refP,), sf_refP, Gridded(interp))
                 itp = extrapolate(itp, extrap) # add extrapolation
-                futnew = itp(futval) .* futval
+                dataout[idxfut] .= itp(futval) .* futval
 
-                futnew[isnan.(futnew)] .= 0.0
+                # futnew[isnan.(futnew)] .= 0.0
 
             else
                 error("Wrong method")
             end
             # Replace values with new ones
-            dataout[idxfut] = futnew
+            # dataout[idxfut] = futnew
         else
 
             if keep_original
