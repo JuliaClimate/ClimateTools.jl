@@ -75,7 +75,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     dataoutin = reshape(dataout, (size(dataout, 1)*size(dataout, 2), size(dataout, 3)))
 
     # Looping over grid points using multiple-dispatch calls to qqmap
-    for k = 1:size(obsin, 1)
+    Threads.@threads for k = 1:size(obsin, 1)
 
         obsvec = obsin[k,:]
         refvec = refin[k,:]
