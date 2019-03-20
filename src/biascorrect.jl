@@ -75,7 +75,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     dataoutin = reshape(dataout, (size(dataout, 1)*size(dataout, 2), size(dataout, 3)))
 
     # Looping over grid points using multiple-dispatch calls to qqmap
-    Threads.@threads for k = 1:size(obsin, 1)
+    for k = 1:size(obsin, 1)
 
         obsvec = obsin[k,:]
         refvec = refin[k,:]
@@ -110,6 +110,10 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
 
     # range over which quantiles are estimated
     P = range(0.01, stop=0.99, length=rankn)
+    obsP = similar(obsvec, length(P))
+    refP = similar(refvec, length(P))
+    sf_refP = similar(refvec, length(P))
+
 
     # Get correct julian days (e.g. we can't have a mismatch of calendars between observed and models ref/fut. For instance, julian day 200 is not the same for a Standard calendar and a NoLeap calendar in a leap year)
     obsvec2, obs_jul, ~ = ClimateTools.corrjuliandays(obsvec, datevec_obs)
@@ -139,17 +143,17 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
         if (sum(isnan.(obsval)) < (length(obsval) * thresnan)) & (sum(isnan.(refval)) < (length(refval) * thresnan)) & (sum(isnan.(futval)) < (length(futval) * thresnan))
 
             # Estimate quantiles for obs and ref for ijulian
-            obsP = quantile(obsval[.!isnan.(obsval)], P)
-            refP = quantile(refval[.!isnan.(refval)], P)
+            quantile!(obsP, obsval[.!isnan.(obsval)], P, sorted=false)
+            quantile!(refP, refval[.!isnan.(refval)], P, sorted=false)
 
             if lowercase(method) == "additive" # used for temperature
-                sf_refP = obsP - refP
+                sf_refP .= obsP .- refP
                 itp = interpolate((refP,), sf_refP, Gridded(interp))
                 itp = extrapolate(itp, extrap) # add extrapolation
                 futnew = itp(futval) .+ futval
 
             elseif lowercase(method) == "multiplicative" # used for precipitation
-                sf_refP = obsP ./ refP
+                sf_refP .= obsP ./ refP
                 sf_refP[sf_refP .< 0] .= eps(1.0)
                 sf_refP[isnan.(sf_refP)] .= eps(1.0)
                 itp = interpolate((refP,), sf_refP, Gridded(interp))
