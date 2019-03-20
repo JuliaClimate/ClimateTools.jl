@@ -75,7 +75,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     dataoutin = reshape(dataout, (size(dataout, 1)*size(dataout, 2), size(dataout, 3)))
 
     # Looping over grid points using multiple-dispatch calls to qqmap
-    for k = 1:size(obsin, 1)
+    Threads.@threads for k = 1:size(obsin, 1)
 
         obsvec = obsin[k,:]
         refvec = refin[k,:]
@@ -106,7 +106,7 @@ end
 Quantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.
 
 """
-function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec::Array{N, 1} where N, days, datevec_obs, datevec_ref, datevec_fut; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
+function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::Array{N,1} where N, days, datevec_obs, datevec_ref, datevec_fut; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
 
     # range over which quantiles are estimated
     P = range(0.01, stop=0.99, length=rankn)
@@ -136,9 +136,9 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
 
         # rng = MersenneTwister(1234)
 
-        obsval = obsvec2[idxobs] .+ eps(1.0) # values to use as ground truth
-        refval = refvec2[idxref] .+ eps(1.0)# values to use as reference for sim
-        futval = futvec2[idxfut] .+ eps(1.0) # values to correct
+        obsval = obsvec2[idxobs]# .+ eps(1.0) # values to use as ground truth
+        refval = refvec2[idxref]# .+ eps(1.0)# values to use as reference for sim
+        futval = futvec2[idxfut]# .+ eps(1.0) # values to correct
 
         if (sum(isnan.(obsval)) < (length(obsval) * thresnan)) & (sum(isnan.(refval)) < (length(refval) * thresnan)) & (sum(isnan.(futval)) < (length(futval) * thresnan))
 
