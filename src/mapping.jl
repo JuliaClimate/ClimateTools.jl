@@ -90,11 +90,11 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   status, fig, ax, m = mapclimgrid(region=region, states=states, llon=llon, rlon=rlon, slat=slat, nlat=nlat)
 
   x, y = m(C.longrid, C.latgrid) # convert longrid and latgrid to projected coordinates
-  
+
   if surface == :contourf
-    cs = m.contourf(x, y, ustrip.(data2), ncolors, cmap = cm, vmin=ustrip(vmin), vmax=ustrip(vmax))
+    cs = m.contourf(x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
   elseif surface == :pcolormesh
-    cs = m.pcolormesh(x, y, ustrip.(data2), cmap = cm, vmin=ustrip(vmin), vmax=ustrip(vmax))
+    cs = m.pcolormesh(x, y, data2, cmap = cm, vmin=vmin, vmax=vmax)
   else
     error("This type of surface is not supported. File an issue on https://github.com/Balinus/ClimateTools.jl/issues")
   end
@@ -236,10 +236,10 @@ function PyPlot.plot(C::ClimGrid; level=1, poly=[], start_date::Tuple=(Inf,), en
     # Spatial mean for each timestep
     for t in 1:length(timevec)
         if ndims(data) == 3
-            datatmp = ustrip.(data[:, :, t])
+            datatmp = data[:, :, t]
             average[t] = Statistics.mean(datatmp[.!isnan.(datatmp)])
         elseif ndims(data) == 4
-            datatmp = ustrip.(data[:, :, level, t])
+            datatmp = data[:, :, level, t]
             average[t] = Statistics.mean(datatmp[.!isnan.(datatmp)])
         end
     end

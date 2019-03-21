@@ -271,6 +271,7 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
     # Construct AxisArrays and ClimGrid struct from array OUT
     dataOut = AxisArray(OUT, Axis{:x}(dimx), Axis{:y}(dimy), Axis{:time}(timeorig))
     msk = Array{Float64}(ones((size(OUT, 1), size(OUT, 2))))
+
     if ndims(lon) == 1
         grid_mapping = Dict(["grid_mapping_name" => "Regular_longitude_latitude"])
         dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
@@ -278,7 +279,6 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
         grid_mapping = Dict(["grid_mapping_name" => "Curvilinear_grid"])
         dimension_dict = Dict(["lon" => "x", "lat" => "y"])
     end
-
 
     C = ClimateTools.ClimGrid(dataOut, longrid=londest, latgrid=latdest, msk=msk, grid_mapping=grid_mapping, dimension_dict=dimension_dict, timeattrib=A.timeattrib, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits="degrees_north", lonunits="degrees_east", variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
 
@@ -295,7 +295,7 @@ function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk
     for t = 1:length(timeorig)
 
         # Points values
-        val = ustrip.(dataorig[:, :, t][:])
+        val = dataorig[:, :, t][:]
 
         # Call scipy griddata
         data_interp = scipy.griddata(points, val, (londest, latdest), method=method)
@@ -310,9 +310,7 @@ function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk
         next!(p)
 
     end
-    # Apply original units
-    un = get_units(dataorig)
-    OUT = [OUT][1]un
+
 end
 
 """
@@ -355,70 +353,70 @@ Applies a mask on the array A. Return an AbstractArray{N, n}.
 """
 function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} where N)
 
-    T = typeof(ustrip(A[.!ismissing.(A)][1]))
+    T = typeof(A[.!ismissing.(A)][1])
     modA = Array{T}(undef, size(A))
 
-    # Get unit
-    units_all = unique(unit.(A))
-    un = units_all[.!ismissing.(units_all)]
+    # # Get unit
+    # units_all = unique(unit.(A))
+    # un = units_all[.!ismissing.(units_all)]
     for t = 1:size(A, 4) # time axis
         for lev = 1:size(A, 3) #level axis
-            tmp = ustrip.(A[:, :, lev, t])
+            tmp = A[:, :, lev, t]
             tmp .*= mask # TODO use multiple dispatch of applymask
             modA[:, :, lev, t] = tmp
         end
     end
-    # reapply unit
-    modA = [modA][1]un[1]
+    # # reapply unit
+    # modA = [modA][1]un[1]
     return modA
 end
 
 function applymask(A::AbstractArray{N,3} where N, mask::AbstractArray{N, 2} where N)
 
-    T = typeof(ustrip(A[.!ismissing.(A)][1]))
+    T = typeof(A[.!ismissing.(A)][1])
     modA = Array{T}(undef, size(A))
 
-    # Get unit
-    units_all = unique(unit.(A))
-    un = units_all[.!ismissing.(units_all)]
+    # # Get unit
+    # units_all = unique(unit.(A))
+    # un = units_all[.!ismissing.(units_all)]
 
     for t = 1:size(A, 3) # time axis
-        tmp = ustrip.(A[:, :, t])
+        tmp = A[:, :, t]
         tmp .*= mask # TODO use multiple dispatch of applymask
         modA[:, :, t] = tmp
     end
     # reapply unit
-    modA = [modA][1]un[1]
+    # modA = [modA][1]un[1]
     return modA
 end
 
 function applymask(A::AbstractArray{N,2} where N, mask::AbstractArray{N, 2} where N)
 
-    T = typeof(ustrip(A[.!ismissing.(A)][1]))
+    T = typeof(A[.!ismissing.(A)][1])
     modA = Array{T}(undef, size(A))
 
-    # Get unit
-    units_all = unique(unit.(A))
-    un = units_all[.!ismissing.(units_all)]
+    # # Get unit
+    # units_all = unique(unit.(A))
+    # un = units_all[.!ismissing.(units_all)]
 
     @assert ndims(A) == ndims(mask)
-    modA = ustrip.(A) .* mask
+    modA = A .* mask
     # reapply unit
-    modA = [modA][1]un[1]
+    # modA = [modA][1]un[1]
     return modA
 end
 
 function applymask(A::AbstractArray{N,1} where N, mask::AbstractArray{N, 1} where N)
 
-    T = typeof(ustrip(A[.!ismissing.(A)][1]))
+    T = typeof(A[.!ismissing.(A)][1])
     modA = Array{T}(undef, size(A))
 
-    # Get unit
-    units_all = unique(unit.(A))
-    un = units_all[.!ismissing.(units_all)]
-    modA = ustrip.(A) .* mask
+    # # Get unit
+    # units_all = unique(unit.(A))
+    # un = units_all[.!ismissing.(units_all)]
+    modA = A .* mask
     # reapply unit
-    modA = [modA][1]un[1]
+    # modA = [modA][1]un[1]
     return modA
 end
 
@@ -501,24 +499,24 @@ function ensemble_mean(C; skipnan=true)
     # Create list of AxisArrays contained inside the ClimGrids
     # Climref = C[1]
     axisarrays = Array{Any}(undef, length(C))
-    unitsClims = Array{Any}(undef, length(C))
+    # unitsClims = Array{Any}(undef, length(C))
 
     for k = 1:length(C)
         # datatmp[.!isnan.(datatmp)
-        axisarrays[k] = ustrip.(periodmean(C[k])[1])#[1][.!isnan.(C[k][1])], dims=3)
-        unitsClims[k] = unit(C[k][1][1])
+        axisarrays[k] = periodmean(C[k])[1]#[1][.!isnan.(C[k][1])], dims=3)
+        # unitsClims[k] = unit(C[k][1][1])
     end
 
-    if length(unique(unitsClims)) != 1
-        throw(error("ClimGrids needs to have the same physical units."))
-    end
+    # if length(unique(unitsClims)) != 1
+    #     throw(error("ClimGrids needs to have the same physical units."))
+    # end
 
     # ENSEMBLE MEAN
     n = length(axisarrays) # number of members
     dataout = sum(axisarrays) / n # ensemble mean
 
-    # reapply unit
-    dataout = [dataout][1]unitsClims[1]
+    # # reapply unit
+    # dataout = [dataout][1]unitsClims[1]
 
     # Build AxisArray
     data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
@@ -547,25 +545,25 @@ function ensemble_std(C; skipnan=true)
     # Create list of AxisArrays contained inside the ClimGrids
     # Climref = C[1]
     axisarrays = Array{Any}(undef, length(C))
-    unitsClims = Array{Any}(undef, length(C))
+    # unitsClims = Array{Any}(undef, length(C))
 
     for k = 1:length(C)
         # datatmp[.!isnan.(datatmp)
-        axisarrays[k] = ustrip.(periodmean(C[k])[1])#[1][.!isnan.(C[k][1])], dims=3)
-        unitsClims[k] = unit(C[k][1][1])
+        axisarrays[k] = periodmean(C[k])[1]#[1][.!isnan.(C[k][1])], dims=3)
+        # unitsClims[k] = unit(C[k][1][1])
     end
 
     # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
-        if length(unique(unitsClims)) != 1
-            throw(error("ClimGrids needs to have the same physical units."))
-        end
+        # if length(unique(unitsClims)) != 1
+        #     throw(error("ClimGrids needs to have the same physical units."))
+        # end
     # end
 
     # ENSEMBLE STD
     dataout = std(axisarrays)
 
-    # reapply unit
-    dataout = [dataout][1]unitsClims[1]
+    # # reapply unit
+    # dataout = [dataout][1]unitsClims[1]
 
     # Build AxisArray
     data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
@@ -593,25 +591,25 @@ function ensemble_max(C; skipnan=true)
     # Create list of AxisArrays contained inside the ClimGrids
     # Climref = C[1]
     axisarrays = Array{Any}(undef, length(C))
-    unitsClims = Array{Any}(undef, length(C))
+    # unitsClims = Array{Any}(undef, length(C))
 
     for k = 1:length(C)
         # datatmp[.!isnan.(datatmp)
-        axisarrays[k] = ustrip.(periodmean(C[k])[1])#[1][.!isnan.(C[k][1])], dims=3)
-        unitsClims[k] = unit(C[k][1][1])
+        axisarrays[k] = periodmean(C[k])[1]#[1][.!isnan.(C[k][1])], dims=3)
+        # unitsClims[k] = unit(C[k][1][1])
     end
 
     # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
-        if length(unique(unitsClims)) != 1
-            throw(error("ClimGrids needs to have the same physical units."))
-        end
+        # if length(unique(unitsClims)) != 1
+        #     throw(error("ClimGrids needs to have the same physical units."))
+        # end
     # end
 
     # ENSEMBLE MAX
     dataout = maximum(axisarrays)
 
-    # reapply unit
-    dataout = [dataout][1]unitsClims[1]
+    # # reapply unit
+    # dataout = [dataout][1]unitsClims[1]
 
     # Build AxisArray
     data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
@@ -639,25 +637,25 @@ function ensemble_min(C; skipnan=true)
     # Create list of AxisArrays contained inside the ClimGrids
     # Climref = C[1]
     axisarrays = Array{Any}(undef, length(C))
-    unitsClims = Array{Any}(undef, length(C))
+    # unitsClims = Array{Any}(undef, length(C))
 
     for k = 1:length(C)
         # datatmp[.!isnan.(datatmp)
-        axisarrays[k] = ustrip.(periodmean(C[k])[1])#[1][.!isnan.(C[k][1])], dims=3)
-        unitsClims[k] = unit(C[k][1][1])
+        axisarrays[k] = periodmean(C[k])[1]#[1][.!isnan.(C[k][1])], dims=3)
+        # unitsClims[k] = unit(C[k][1][1])
     end
 
     # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
-        if length(unique(unitsClims)) != 1
-            throw(error("ClimGrids needs to have the same physical units."))
-        end
+        # if length(unique(unitsClims)) != 1
+        #     throw(error("ClimGrids needs to have the same physical units."))
+        # end
     # end
 
     # ENSEMBLE MIN
     dataout = minimum(axisarrays)
 
-    # reapply unit
-    dataout = [dataout][1]unitsClims[1]
+    # # reapply unit
+    # dataout = [dataout][1]unitsClims[1]
 
     # Build AxisArray
     data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
@@ -807,30 +805,30 @@ function extension(url::String)
     end
 end
 
-"""
-    get_units(C::ClimGrid)
+# """
+#     get_units(C::ClimGrid)
+#
+# Returns the adequate units of Unitful of ClimGrid C.
+# """
+# function get_units(C)
+#     return unit(C[1][1,1,1])
+# end
 
-Returns the adequate units of Unitful of ClimGrid C.
-"""
-function get_units(C)
-    return unit(C[1][1,1,1])
-end
-
-"""
-    uconvert(a::Units, C::ClimGrid)
-
-Convert a ClimGrid [`ClimateTools.ClimGrid`](@ref) to different units. The conversion will fail if the target units `a` have a different dimension than the dimension of the quantity `x`.
-"""
-
-function uconvert(a::Units, C::ClimGrid)
-
-    dataconv = uconvert.(a, C[1])
-
-    dataaxis = buildarrayinterface(dataconv, C)
-
-    ClimGrid(dataaxis, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=string(unit(dataconv[1])), latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
-
-end
+# """
+#     uconvert(a::Units, C::ClimGrid)
+#
+# Convert a ClimGrid [`ClimateTools.ClimGrid`](@ref) to different units. The conversion will fail if the target units `a` have a different dimension than the dimension of the quantity `x`.
+# """
+#
+# function uconvert(a::Units, C::ClimGrid)
+#
+#     dataconv = uconvert.(a, C[1])
+#
+#     dataaxis = buildarrayinterface(dataconv, C)
+#
+#     ClimGrid(dataaxis, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=string(unit(dataconv[1])), latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+#
+# end
 
 """
     replace_missing!(A::AbstractArray)
@@ -858,6 +856,28 @@ function convert!(A::AbstractArray)
     A = Array{T}(A)
 
 end
+
+# """
+#     getunit(C::ClimGrid)
+#
+# Returns the physical unit of ClimGrid C
+# """
+# function getunit(C::ClimGrid)
+#     # Get unit
+#     units_all = unique(unit.(C[1]))
+#     return un = units_all[.!ismissing.(units_all)]
+# end
+#
+# """
+#     getunit(A::AbstractArray)
+#
+# Returns the physical unit of AbstractArray A
+# """
+# function getunit(A::AbstractArray)
+#     # Get unit
+#     units_all = unique(unit.(A))
+#     return un = units_all[.!ismissing.(units_all)]
+# end
 
 # function rot2lonlat(lon, lat, SP_lon, SP_lat; northpole = true)
 #

@@ -26,25 +26,27 @@ The quantile-quantile transfer function between **ref** and **obs** is etimated 
 """
 function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
     # Remove trend if specified
-    if detrend == true
-        # Obs
-        obs = ClimateTools.correctdate(obs) # Removes 29th February
-        obs_polynomials = ClimateTools.polyfit(obs)
-        obs = obs - ClimateTools.polyval(obs, obs_polynomials)
-        # Ref
-        ref = ClimateTools.correctdate(ref) # Removes 29th February
-        ref_polynomials = ClimateTools.polyfit(ref)
-        ref = ref - ClimateTools.polyval(ref, ref_polynomials)
-        # Fut
-        fut = ClimateTools.correctdate(fut) # Removes 29th February
-        fut_polynomials = ClimateTools.polyfit(fut)
-        poly_values = ClimateTools.polyval(fut, fut_polynomials)
-        fut = fut - poly_values
-    end
 
     # Consistency checks # TODO add more checks for grid definition
     @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
     @argcheck size(obs[1], 2) == size(ref[1], 2) == size(fut[1], 2)
+
+
+    if detrend == true
+        # Obs
+        obs = ClimateTools.dropfeb29(obs) # Removes 29th February
+        obs_polynomials = ClimateTools.polyfit(obs)
+        obs = obs - ClimateTools.polyval(obs, obs_polynomials)
+        # Ref
+        ref = ClimateTools.dropfeb29(ref) # Removes 29th February
+        ref_polynomials = ClimateTools.polyfit(ref)
+        ref = ref - ClimateTools.polyval(ref, ref_polynomials)
+        # Fut
+        fut = ClimateTools.dropfeb29(fut) # Removes 29th February
+        fut_polynomials = ClimateTools.polyfit(fut)
+        poly_values = ClimateTools.polyval(fut, fut_polynomials)
+        fut = fut - poly_values
+    end
 
     #Get date vectors
     datevec_obs = get_timevec(obs) # [1][Axis{:time}][:]
@@ -59,6 +61,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
 
     # Prepare output array (replicating data type of fut ClimGrid)
     dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{typeof(fut[1].data[1]), T} where T
+    # dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{typeof(fut[1].data[1]), T} where T
 
     if minimum(ref_jul) == 1 && maximum(ref_jul) == 365
         days = 1:365
@@ -156,7 +159,7 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
             elseif lowercase(method) == "multiplicative" # used for precipitation
                 sf_refP .= obsP ./ refP
                 sf_refP[sf_refP .< 0] .= eps(1.0)
-                sf_refP[isnan.(sf_refP)] .= eps(1.0)
+                sf_refP[isnan.(sf_refP)] .= 1.0
                 itp = interpolate((refP,), sf_refP, Gridded(interp))
                 itp = extrapolate(itp, extrap) # add extrapolation
                 dataout[idxfut] .= itp(futval) .* futval
@@ -208,10 +211,10 @@ end
 # function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method::String="Additive", detrend::Bool = true, window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat())
 #     # Remove trend if specified
 #     if detrend == true
-#         obs = ClimateTools.correctdate(obs) # Removes 29th February
+#         obs = ClimateTools.dropfeb29(obs) # Removes 29th February
 #         obs_polynomials = ClimateTools.polyfit(obs)
 #         obs = obs - ClimateTools.polyval(obs, obs_polynomials)
-#         ref = ClimateTools.correctdate(ref) # Removes 29th February
+#         ref = ClimateTools.dropfeb29(ref) # Removes 29th February
 #         ref_polynomials = ClimateTools.polyfit(ref)
 #         ref = ref - ClimateTools.polyval(ref, ref_polynomials)
 #     end
@@ -312,7 +315,7 @@ end
 # """
 # function qqmap(fut::ClimGrid, ITP::TransferFunction)
 #     if ITP.detrend == true
-#         fut = correctdate(fut) # Removes 29th February
+#         fut = dropfeb29(fut) # Removes 29th February
 #         fut_polynomials = polyfit(fut)
 #         poly_values = polyval(fut, fut_polynomials)
 #         fut = fut - poly_values

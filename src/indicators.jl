@@ -46,7 +46,7 @@ function vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid,
 
   # Convert to Kelvin if necessery
   if daily_temperature[2] == "Celsius" || daily_temperature[2] == "°C"
-    daily_temperature = uconvert(K, daily_temperature)
+    daily_temperature = daily_temperature + 273.15
   end
 
   # Calculate the estimated surface pressure
@@ -75,9 +75,9 @@ function approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid
   @argcheck daily_temperature[9] == "tas"
 
   # Calculate the estimated surface pressure
-  exponent = (-1.0 .* ustrip.(orography.data)) ./ (18400.0 .* ustrip.(daily_temperature.data) ./ 273.15)
-  ps_arraytmp = ustrip.(sealevel_pressure.data) .* (10.0.^exponent)
-  ps_arraytmp = [ps_arraytmp][1]Pa
+  exponent = (-1.0 .* orography.data) ./ (18400.0 .* daily_temperature.data ./ 273.15)
+  ps_arraytmp = sealevel_pressure.data .* (10.0.^exponent)
+  # ps_arraytmp = [ps_arraytmp][1]Pa
   ps_array = buildarrayinterface(ps_arraytmp, sealevel_pressure)
 
   # Build dictionary for the variable vp
@@ -106,12 +106,12 @@ function wbgt(mean_temperature::ClimGrid, vapor_pressure::ClimGrid)
 
   # Convert to Celsius if necessery
   if mean_temperature[2] == "K"
-    mean_temperature = uconvert(°C, mean_temperature)#-= 273.15
+    mean_temperature = mean_temperature - 273.15
   end
 
   # Calculate the wbgt
-  wbgt_arraytmp = (0.567 .* ustrip.(mean_temperature.data)) + (0.00393 .* ustrip.(vapor_pressure.data)) .+ 3.94
-  wbgt_arraytmp = [wbgt_arraytmp][1]°C
+  wbgt_arraytmp = (0.567 .* mean_temperature.data) + (0.00393 .* vapor_pressure.data) .+ 3.94
+  # wbgt_arraytmp = [wbgt_arraytmp][1]°C
   wbgt_array = buildarrayinterface(wbgt_arraytmp, mean_temperature)
 
   # Build dictionary for the variable wbgt
@@ -139,9 +139,9 @@ function diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::Cl
   @argcheck temperatureminimum[2] == temperaturemaximum[2]
 
   # Calculate the diurnal temperature
-  tdiu = α .*ustrip.(temperatureminimum.data) + (1-α) .* ustrip.(temperaturemaximum.data)
-  un = get_units(temperatureminimum)
-  tdiu = [tdiu][1]un
+  tdiu = α .*temperatureminimum.data + (1-α) .* temperaturemaximum.data
+  # un = get_units(temperatureminimum)
+  # tdiu = [tdiu][1]un
   tdiu_array = buildarrayinterface(tdiu, temperatureminimum)
 
   # Build dictionary for the variable wbgt
@@ -169,9 +169,9 @@ function meantemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimG
   @argcheck temperatureminimum[2] == temperaturemaximum[2]
 
   # Calculate the diurnal temperature
-  un = unit(temperatureminimum.data[1])
-  tmean = (ustrip.(temperatureminimum.data) .+ ustrip.(temperaturemaximum.data)) ./ 2
-  tmean = [tmean][1]un
+  # un = unit(temperatureminimum.data[1])
+  tmean = (temperatureminimum.data .+ temperaturemaximum.data) ./ 2
+  # tmean = [tmean][1]un
   tmean_array = buildarrayinterface(tmean, temperatureminimum)
 
   # Build dictionary for the variable wbgt
