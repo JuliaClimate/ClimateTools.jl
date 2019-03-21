@@ -253,7 +253,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.customthresover",
     "category": "function",
-    "text": "customthresover(C::ClimGrid, thres)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\nNote. The threshold needs to have units specified. For example:\n\njulia> using Unitful: @u_str, °C julia> thres = 15u\"°C\" 15 °C\n\n\n\n\n\n"
+    "text": "customthresover(C::ClimGrid, thres)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\n\n\n\n\n"
 },
 
 {
@@ -261,7 +261,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.customthresunder",
     "category": "function",
-    "text": "customthresunder(C::ClimGrid, thres::Quantity)\n\ncustomthresunder, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\nNote. The threshold needs to have units specified. For example:\n\njulia> using Unitful: @u_str, °C julia> thres = 15u\"°C\" 15 °C\n\n\n\n\n\n"
+    "text": "customthresunder(C::ClimGrid, thres)\n\ncustomthresunder, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\n\n\n\n\n"
 },
 
 {
@@ -641,19 +641,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions/#ClimateTools.customthresover-Tuple{ClimGrid,Unitful.Quantity}",
+    "location": "functions/#ClimateTools.customthresover-Tuple{ClimGrid,Any}",
     "page": "Index",
     "title": "ClimateTools.customthresover",
     "category": "method",
-    "text": "customthresover(C::ClimGrid, thres)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\nNote. The threshold needs to have units specified. For example:\n\njulia> using Unitful: @u_str, °C julia> thres = 15u\"°C\" 15 °C\n\n\n\n\n\n"
+    "text": "customthresover(C::ClimGrid, thres)\n\ncustomthresover, annual number of days over a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] > thres.\n\n\n\n\n\n"
 },
 
 {
-    "location": "functions/#ClimateTools.customthresunder-Tuple{ClimGrid,Unitful.Quantity}",
+    "location": "functions/#ClimateTools.customthresunder-Tuple{ClimGrid,Any}",
     "page": "Index",
     "title": "ClimateTools.customthresunder",
     "category": "method",
-    "text": "customthresunder(C::ClimGrid, thres::Quantity)\n\ncustomthresunder, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\nNote. The threshold needs to have units specified. For example:\n\njulia> using Unitful: @u_str, °C julia> thres = 15u\"°C\" 15 °C\n\n\n\n\n\n"
+    "text": "customthresunder(C::ClimGrid, thres)\n\ncustomthresunder, annual number of days under a specified threshold.\n\nLet TS[i,j] be a daily time serie value on day i in year j. Count the number of days where:\n\nTS[i,j] < thres.\n\n\n\n\n\n"
 },
 
 {
