@@ -52,8 +52,12 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   varattrib = Dict(ds[vari].attrib)
 
   if latstatus # means we don't have a "regular" grid
-      latgrid = NetCDF.ncread(file, latname)
-      longrid = NetCDF.ncread(file, lonname)
+      # Get names of grid
+      latgrid_name = latgridname(ds)
+      longrid_name = longridname(ds)
+
+      latgrid = NetCDF.ncread(file, latgrid_name)
+      longrid = NetCDF.ncread(file, longrid_name)
 
       # Ensure we have a grid
       if ndims(latgrid) == 1 && ndims(longrid) == 1
@@ -88,8 +92,6 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
           frequency = "N/A"
       end
   end
-  # rez = ClimateTools.timeresolution(NetCDF.ncread(file, "time"))
-
 
   timeattrib = Dict(ds["time"].attrib)
   T = typeof(timeV[1])
@@ -396,8 +398,13 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
     varattrib = Dict(ds[vari].attrib)
 
     if latstatus # means we don't have a "regular" grid
-        latgrid = NetCDF.ncread(file, "lat")
-        longrid = NetCDF.ncread(file, "lon")
+        # Get names of grid
+        latgrid_name = latgridname(ds)
+        longrid_name = longridname(ds)
+
+        latgrid = NetCDF.ncread(file, latgrid_name)
+        longrid = NetCDF.ncread(file, longrid_name)
+        
         if ClimateTools.@isdefined varattrib["grid_mapping"]
             map_dim = varattrib["grid_mapping"]
             map_attrib = Dict(ds[map_dim].attrib)
@@ -630,6 +637,38 @@ function getdim_lon(ds::NCDatasets.Dataset)
         error("Manually verify x/lat dimension name")
     end
 
+end
+
+"""
+    latgridname(ds::NCDatasets.Dataset)
+
+Returns the name of the latitude grid when datasets is not on a rectangular grid.
+"""
+function latgridname(ds::NCDatasets.Dataset)
+
+    if in("lat", keys(ds))
+        return "lat"
+    elseif in("latitude", keys(ds))
+        return "latitude"
+    else
+        error("Variable name is not supported. File an issue on https://github.com/Balinus/ClimateTools.jl/issues")
+    end
+end
+
+"""
+    longridname(ds::NCDatasets.Dataset)
+
+Returns the name of the longitude grid when datasets is not on a rectangular grid.
+"""
+function longridname(ds::NCDatasets.Dataset)
+
+    if in("lon", keys(ds))
+        return "lon"
+    elseif in("longitude", keys(ds))
+        return "longitude"
+    else
+        error("Variable name is not supported. File an issue on https://github.com/Balinus/ClimateTools.jl/issues")
+    end
 end
 
 
