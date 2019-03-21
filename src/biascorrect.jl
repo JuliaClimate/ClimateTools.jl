@@ -26,25 +26,27 @@ The quantile-quantile transfer function between **ref** and **obs** is etimated 
 """
 function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
     # Remove trend if specified
-    if detrend == true
-        # Obs
-        obs = ClimateTools.correctdate(obs) # Removes 29th February
-        obs_polynomials = ClimateTools.polyfit(obs)
-        obs = obs - ClimateTools.polyval(obs, obs_polynomials)
-        # Ref
-        ref = ClimateTools.correctdate(ref) # Removes 29th February
-        ref_polynomials = ClimateTools.polyfit(ref)
-        ref = ref - ClimateTools.polyval(ref, ref_polynomials)
-        # Fut
-        fut = ClimateTools.correctdate(fut) # Removes 29th February
-        fut_polynomials = ClimateTools.polyfit(fut)
-        poly_values = ClimateTools.polyval(fut, fut_polynomials)
-        fut = fut - poly_values
-    end
 
     # Consistency checks # TODO add more checks for grid definition
     @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
     @argcheck size(obs[1], 2) == size(ref[1], 2) == size(fut[1], 2)
+
+
+    if detrend == true
+        # Obs
+        obs = ClimateTools.dropfeb29(obs) # Removes 29th February
+        obs_polynomials = ClimateTools.polyfit(obs)
+        obs = obs - ClimateTools.polyval(obs, obs_polynomials)
+        # Ref
+        ref = ClimateTools.dropfeb29(ref) # Removes 29th February
+        ref_polynomials = ClimateTools.polyfit(ref)
+        ref = ref - ClimateTools.polyval(ref, ref_polynomials)
+        # Fut
+        fut = ClimateTools.dropfeb29(fut) # Removes 29th February
+        fut_polynomials = ClimateTools.polyfit(fut)
+        poly_values = ClimateTools.polyval(fut, fut_polynomials)
+        fut = fut - poly_values
+    end
 
     #Get date vectors
     datevec_obs = get_timevec(obs) # [1][Axis{:time}][:]
@@ -59,6 +61,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
 
     # Prepare output array (replicating data type of fut ClimGrid)
     dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{typeof(fut[1].data[1]), T} where T
+    # dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{typeof(fut[1].data[1]), T} where T
 
     if minimum(ref_jul) == 1 && maximum(ref_jul) == 365
         days = 1:365
@@ -88,6 +91,9 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     lonsymbol = Symbol(fut.dimension_dict["lon"])
     latsymbol = Symbol(fut.dimension_dict["lat"])
 
+    # Apply mask
+    dataout = applymask(dataout, obs.msk)
+
     dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}][:]), Axis{latsymbol}(fut[1][Axis{latsymbol}][:]),Axis{:time}(datevec_fut2))
 
     C = ClimGrid(dataout2; longrid=fut.longrid, latgrid=fut.latgrid, msk=fut.msk, grid_mapping=fut.grid_mapping, dimension_dict=fut.dimension_dict, timeattrib=fut.timeattrib, model=fut.model, frequency=fut.frequency, experiment=fut.experiment, run=fut.run, project=fut.project, institute=fut.institute, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal, varattribs=fut.varattribs, globalattribs=fut.globalattribs)
@@ -106,10 +112,14 @@ end
 Quantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.
 
 """
-function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec::Array{N, 1} where N, days, datevec_obs, datevec_ref, datevec_fut; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
+function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::Array{N,1} where N, days, datevec_obs, datevec_ref, datevec_fut; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
 
     # range over which quantiles are estimated
     P = range(0.01, stop=0.99, length=rankn)
+    obsP = similar(obsvec, length(P))
+    refP = similar(refvec, length(P))
+    sf_refP = similar(refvec, length(P))
+
 
     # Get correct julian days (e.g. we can't have a mismatch of calendars between observed and models ref/fut. For instance, julian day 200 is not the same for a Standard calendar and a NoLeap calendar in a leap year)
     obsvec2, obs_jul, ~ = ClimateTools.corrjuliandays(obsvec, datevec_obs)
@@ -132,37 +142,39 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
 
         # rng = MersenneTwister(1234)
 
-        obsval = obsvec2[idxobs] .+ eps(1.0) # values to use as ground truth
-        refval = refvec2[idxref] .+ eps(1.0)# values to use as reference for sim
-        futval = futvec2[idxfut] .+ eps(1.0) # values to correct
+        obsval = obsvec2[idxobs]# .+ eps(1.0) # values to use as ground truth
+        refval = refvec2[idxref]# .+ eps(1.0)# values to use as reference for sim
+        futval = futvec2[idxfut]# .+ eps(1.0) # values to correct
 
         if (sum(isnan.(obsval)) < (length(obsval) * thresnan)) & (sum(isnan.(refval)) < (length(refval) * thresnan)) & (sum(isnan.(futval)) < (length(futval) * thresnan))
 
             # Estimate quantiles for obs and ref for ijulian
-            obsP = quantile(obsval[.!isnan.(obsval)], P)
-            refP = quantile(refval[.!isnan.(refval)], P)
+            quantile!(obsP, obsval[.!isnan.(obsval)], P, sorted=false)
+            quantile!(refP, refval[.!isnan.(refval)], P, sorted=false)
 
             if lowercase(method) == "additive" # used for temperature
-                sf_refP = obsP - refP
+                sf_refP .= obsP .- refP
                 itp = interpolate((refP,), sf_refP, Gridded(interp))
                 itp = extrapolate(itp, extrap) # add extrapolation
-                futnew = itp(futval) .+ futval
+                # dataout[idxfut] .= itp(futval) .+ futval
+                futval .= itp(futval) .+ futval
 
             elseif lowercase(method) == "multiplicative" # used for precipitation
-                sf_refP = obsP ./ refP
+                sf_refP .= obsP ./ refP
                 sf_refP[sf_refP .< 0] .= eps(1.0)
-                sf_refP[isnan.(sf_refP)] .= eps(1.0)
+                sf_refP[isnan.(sf_refP)] .= 1.0#eps(1.0)#1.0
                 itp = interpolate((refP,), sf_refP, Gridded(interp))
                 itp = extrapolate(itp, extrap) # add extrapolation
-                futnew = itp(futval) .* futval
+                futval .= itp(futval) .* futval
+                # dataout[idxfut] .= itp(futval) .* futval
 
-                futnew[isnan.(futnew)] .= 0.0
+                futval[isnan.(futval)] .= 0.0
 
             else
                 error("Wrong method")
             end
             # Replace values with new ones
-            dataout[idxfut] = futnew
+            dataout[idxfut] .= futval
         else
 
             if keep_original
@@ -174,6 +186,8 @@ function qqmap(obsvec::Array{N, 1} where N, refvec::Array{N, 1} where N, futvec:
             end
         end
     end
+
+    # dataout[isnan.(dataout)] .= 0.0
 
     return dataout
 
@@ -203,10 +217,10 @@ end
 # function qqmaptf(obs::ClimGrid, ref::ClimGrid; partition::Float64 = 1.0, method::String="Additive", detrend::Bool = true, window::Int64=15, rankn::Int64=50, interp = Linear(), extrap = Flat())
 #     # Remove trend if specified
 #     if detrend == true
-#         obs = ClimateTools.correctdate(obs) # Removes 29th February
+#         obs = ClimateTools.dropfeb29(obs) # Removes 29th February
 #         obs_polynomials = ClimateTools.polyfit(obs)
 #         obs = obs - ClimateTools.polyval(obs, obs_polynomials)
-#         ref = ClimateTools.correctdate(ref) # Removes 29th February
+#         ref = ClimateTools.dropfeb29(ref) # Removes 29th February
 #         ref_polynomials = ClimateTools.polyfit(ref)
 #         ref = ref - ClimateTools.polyval(ref, ref_polynomials)
 #     end
@@ -307,7 +321,7 @@ end
 # """
 # function qqmap(fut::ClimGrid, ITP::TransferFunction)
 #     if ITP.detrend == true
-#         fut = correctdate(fut) # Removes 29th February
+#         fut = dropfeb29(fut) # Removes 29th February
 #         fut_polynomials = polyfit(fut)
 #         poly_values = polyval(fut, fut_polynomials)
 #         fut = fut - poly_values

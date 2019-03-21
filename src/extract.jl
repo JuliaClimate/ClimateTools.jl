@@ -13,7 +13,7 @@ Temporal subsetting can be done by providing start_date and end-date Tuples of l
 
 **Note:** load uses [CF conventions](http://cfconventions.org/). If you are unable to read the netCDF file with load, the user will need to read it with low-level functions available in [NetCDF.jl package](https://github.com/JuliaGeo/NetCDF.jl) or [NCDatasets.jl](https://github.com/Alexander-Barth/NCDatasets.jl) or re-create standartized netCDF files.
 """
-function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "", dimension::Bool=true)
+function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "")
 
   # TODO this file is a complete mess, but it works. Clean it up!
 
@@ -52,8 +52,12 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   varattrib = Dict(ds[vari].attrib)
 
   if latstatus # means we don't have a "regular" grid
-      latgrid = NetCDF.ncread(file, latname)
-      longrid = NetCDF.ncread(file, lonname)
+      # Get names of grid
+      latgrid_name = latgridname(ds)
+      longrid_name = longridname(ds)
+
+      latgrid = NetCDF.ncread(file, latgrid_name)
+      longrid = NetCDF.ncread(file, longrid_name)
 
       # Ensure we have a grid
       if ndims(latgrid) == 1 && ndims(longrid) == 1
@@ -88,8 +92,6 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
           frequency = "N/A"
       end
   end
-  # rez = ClimateTools.timeresolution(NetCDF.ncread(file, "time"))
-
 
   timeattrib = Dict(ds["time"].attrib)
   T = typeof(timeV[1])
@@ -276,27 +278,27 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     varattrib["units"] = "mm"
   end
 
-  # Attribute dimension to data
-  if dimension
-      if dataunits == "K" || dataunits == "Kelvin"
-          data = [data][1]K
-      elseif dataunits == "C" || dataunits == "°C" || dataunits == "Celsius"
-          data = [data][1]°C
-      elseif dataunits == "kg m-2 s-1"
-          un = kg/m^2/s
-          data = [data][1]un
-      elseif dataunits == "mm"
-          data = [data][1]mm
-      elseif dataunits == "m s-1"
-          un = m/s
-          data = [data][1]un
-      elseif dataunits == "mm s-1"
-          un = mm/s
-          data = [data][1]un
-      elseif dataunits == "m"
-          data = [data][1]m
-      end
-  end
+  # # Attribute dimension to data
+  # if dimension
+  #     if dataunits == "K" || dataunits == "Kelvin"
+  #         data = [data][1]K
+  #     elseif dataunits == "C" || dataunits == "°C" || dataunits == "Celsius"
+  #         data = [data][1]°C
+  #     elseif dataunits == "kg m-2 s-1"
+  #         un = kg/m^2/s
+  #         data = [data][1]un
+  #     elseif dataunits == "mm"
+  #         data = [data][1]mm
+  #     elseif dataunits == "m s-1"
+  #         un = m/s
+  #         data = [data][1]un
+  #     elseif dataunits == "mm s-1"
+  #         un = mm/s
+  #         data = [data][1]un
+  #     elseif dataunits == "m"
+  #         data = [data][1]m
+  #     end
+  # end
 
   # Create AxisArray from variable "data"
   if ndims(data) == 3
@@ -324,7 +326,7 @@ end
 
 Loads and merge the files contained in the arrar files.
 """
-function load(files::Array{String,1}, vari::String; poly = ([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String = "", dimension::Bool=true)
+function load(files::Array{String,1}, vari::String; poly=([]), start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), data_units::String="")
 
     nfiles = length(files)
     C = Array{ClimGrid}(undef, nfiles) # initialize # TODO better initialization
@@ -335,7 +337,7 @@ function load(files::Array{String,1}, vari::String; poly = ([]), start_date::Tup
 
     for ifile = 1:nfiles
 
-        C[ifile] = load(files[ifile], vari, poly = poly, start_date=start_date, end_date=end_date, data_units=data_units, dimension=dimension)
+        C[ifile] = load(files[ifile], vari, poly = poly, start_date=start_date, end_date=end_date, data_units=data_units)
         datesort[ifile] = get_timevec(C[ifile])[1]
 
         next!(p)
@@ -363,7 +365,7 @@ end
 
 Returns a 2D array. Should be used for *fixed* data, such as orography.
 """
-function load2D(file::String, vari::String; poly=[], data_units::String="", dimension::Bool=true)
+function load2D(file::String, vari::String; poly=[], data_units::String="")
     # Get attributes
     ncI = NetCDF.ncinfo(file);
     attribs = NetCDF.ncinfo(file).gatts;
@@ -396,8 +398,13 @@ function load2D(file::String, vari::String; poly=[], data_units::String="", dime
     varattrib = Dict(ds[vari].attrib)
 
     if latstatus # means we don't have a "regular" grid
-        latgrid = NetCDF.ncread(file, "lat")
-        longrid = NetCDF.ncread(file, "lon")
+        # Get names of grid
+        latgrid_name = latgridname(ds)
+        longrid_name = longridname(ds)
+
+        latgrid = NetCDF.ncread(file, latgrid_name)
+        longrid = NetCDF.ncread(file, longrid_name)
+        
         if ClimateTools.@isdefined varattrib["grid_mapping"]
             map_dim = varattrib["grid_mapping"]
             map_attrib = Dict(ds[map_dim].attrib)
@@ -563,13 +570,6 @@ function load2D(file::String, vari::String; poly=[], data_units::String="", dime
         lon_raw = lon_raw_flip
     end
 
-    # Add units
-    if dimension
-        if dataunits == "m"
-            data = [data][1]m
-        end
-    end
-
     # Convert data to AxisArray
     dataOut = AxisArray(data, Axis{Symbol(lonname)}(lon_raw), Axis{Symbol(latname)}(lat_raw))
 
@@ -637,6 +637,38 @@ function getdim_lon(ds::NCDatasets.Dataset)
         error("Manually verify x/lat dimension name")
     end
 
+end
+
+"""
+    latgridname(ds::NCDatasets.Dataset)
+
+Returns the name of the latitude grid when datasets is not on a rectangular grid.
+"""
+function latgridname(ds::NCDatasets.Dataset)
+
+    if in("lat", keys(ds))
+        return "lat"
+    elseif in("latitude", keys(ds))
+        return "latitude"
+    else
+        error("Variable name is not supported. File an issue on https://github.com/Balinus/ClimateTools.jl/issues")
+    end
+end
+
+"""
+    longridname(ds::NCDatasets.Dataset)
+
+Returns the name of the longitude grid when datasets is not on a rectangular grid.
+"""
+function longridname(ds::NCDatasets.Dataset)
+
+    if in("lon", keys(ds))
+        return "lon"
+    elseif in("longitude", keys(ds))
+        return "longitude"
+    else
+        error("Variable name is not supported. File an issue on https://github.com/Balinus/ClimateTools.jl/issues")
+    end
 end
 
 

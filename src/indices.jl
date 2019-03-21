@@ -42,7 +42,7 @@ function prcp1(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t >= 1mm, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t >= 1, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
@@ -74,7 +74,7 @@ function frostdays(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t < 0°C, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t < 0, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
@@ -106,7 +106,7 @@ function summerdays(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t > 25°C, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t > 25, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
@@ -138,7 +138,7 @@ function icingdays(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t < 0°C, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t < 0, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
@@ -171,7 +171,7 @@ function tropicalnights(C::ClimGrid)
   # Indice calculation
   Threads.@threads for i in 1:length(numYears)
     idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    Base.mapreducedim!(t -> t > 20°C, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
+    Base.mapreducedim!(t -> t > 20, +, view(dataout, :, :, i:i), view(datain, :,:, idx))
   end
 
   # Apply mask
@@ -193,14 +193,9 @@ Let TS[i,j] be a daily time serie value on day i in year j. Count the number of 
 
   TS[i,j] > thres.
 
-Note. The threshold needs to have units specified. For example:
-
-julia> using Unitful: @u_str, °C
-julia> thres = 15u"°C"
-15 °C
 
 """
-function customthresover(C::ClimGrid, thres::Quantity)
+function customthresover(C::ClimGrid, thres)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   dataout  = fill(NaN, (size(C.data, 1), size(C.data, 2), length(numYears)))
@@ -229,7 +224,7 @@ function customthresover(C::ClimGrid, thres::Quantity)
 end
 
 """
-    customthresunder(C::ClimGrid, thres::Quantity)
+    customthresunder(C::ClimGrid, thres)
 
 customthresunder, annual number of days under a specified threshold.
 
@@ -237,14 +232,8 @@ Let TS[i,j] be a daily time serie value on day i in year j. Count the number of 
 
   TS[i,j] < thres.
 
-Note. The threshold needs to have units specified. For example:
-
-julia> using Unitful: @u_str, °C
-julia> thres = 15u"°C"
-15 °C
-
 """
-function customthresunder(C::ClimGrid, thres::Quantity)
+function customthresunder(C::ClimGrid, thres)
   years    = Dates.year.(C.data[Axis{:time}][:])
   numYears = unique(years)
   datain   = C.data.data

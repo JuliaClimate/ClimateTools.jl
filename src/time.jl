@@ -122,20 +122,20 @@ function periodmean(C::ClimGrid; start_date::Tuple=(Inf, ), end_date::Tuple=(Inf
     Csubset = temporalsubset(C, start_date, end_date)
     datain   = Csubset.data.data
 
-    un = unit(datain[1])
+    # un = unit(datain[1])
 
     # Mean and squeeze
-    dataout = Array{typeof(ustrip(datain[1]))}(undef, size(datain, 1), size(datain, 2))
+    dataout = Array{typeof(datain[1])}(undef, size(datain, 1), size(datain, 2))
     dataout_rshp = reshape(dataout, (size(dataout, 1)*size(dataout, 2)))
     datain_rshp = reshape(datain, (size(datain, 1)*size(datain, 2), size(datain, 3)))
 
     Threads.@threads for k = 1:size(datain_rshp, 1)
-        datatmp = ustrip.(datain_rshp[k, :])
+        datatmp =datain_rshp[k, :]
         dataout_rshp[k] = Statistics.mean(datatmp[.!isnan.(datatmp)])
     end
 
-    # Add units
-    dataout = [dataout][1]un
+    # # Add units
+    # dataout = [dataout][1]un
 
     # Build output AxisArray
     FD = buildarray_climato(C, dataout)
@@ -246,9 +246,7 @@ Returns the daily average given a sub-daily ClimGrid.
 function daymean(C::ClimGrid)
 
     datain = C[1].data
-
     timevec   = get_timevec(C)
-
     T = typeof(timevec[1])
 
     nbdays = unique(yearmonthday.(timevec))
@@ -283,9 +281,7 @@ Returns the daily sum given a sub-daily ClimGrid C.
 function daysum(C::ClimGrid)
 
     datain = C[1].data
-
     timevec   = get_timevec(C)
-
     T = typeof(timevec[1])
 
     nbdays = unique(yearmonthday.(timevec))
@@ -318,10 +314,9 @@ end
 Returns monthly means of ClimGrid C.
 """
 function monthmean(C::ClimGrid)
+
     datain = C[1].data
-
     timevec = get_timevec(C)
-
     T = typeof(timevec[1])
 
     nbmonth = unique(yearmonth.(timevec))
@@ -354,10 +349,9 @@ end
 Returns monthly sums of ClimGrid C.
 """
 function monthsum(C::ClimGrid)
+
     datain = C[1].data
-
     timevec = get_timevec(C)
-
     T = typeof(timevec[1])
 
     nbmonth = unique(yearmonth.(timevec))
@@ -464,11 +458,11 @@ function daymean_factor(rez::String)
 end
 
 """
-    correctdate(C::ClimGrid)
+    dropfeb29(C::ClimGrid)
 
 Removes february 29th. Needed for bias correction.
 """
-function correctdate(C::ClimGrid)
+function dropfeb29(C::ClimGrid)
     date_vec = get_timevec(C) # [1][Axis{:time}][:]
     f = typeof(date_vec[1])
     feb29th = (Dates.month.(date_vec) .== Dates.month(f(2000, 2, 2))) .& (Dates.day.(date_vec) .== Dates.day(29))

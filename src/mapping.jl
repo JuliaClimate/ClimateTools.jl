@@ -47,13 +47,13 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   if isempty(cm)
     if C[10] == "pr" || C[10]=="huss"
       # cm = "YlGnBu"
-      cm = cmocean[:cm][:deep]
+      cm = cmocean.cm.deep
   elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin" || C[10] == "wbgtmean" || C[10] == "wbgtmax" || C[10]=="t2m"
       cm = "RdYlBu_r"
     elseif C[10]=="psl" || C[10]=="vp" # pressure
-      cm = cmocean[:cm][:deep_r]
+      cm = cmocean.cm.deep_r
     elseif C[10]=="ua" # wind
-      cm = cmocean[:cm][:balance]
+      cm = cmocean.cm.balance
     else
       cm = "viridis"
     end
@@ -69,10 +69,10 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   elseif surface == :pcolormesh
       N = ncolors
   end
-  cmap = mpl[:cm][:get_cmap](cm)
+  cmap = mpl.cm.get_cmap(cm)
   colorlist = cmap(range(0, stop=1, length=N))
   # #
-  cm = mpl[:colors][:LinearSegmentedColormap][:from_list]("cm_custom", colorlist, N)
+  cm = mpl.colors.LinearSegmentedColormap.from_list("cm_custom", colorlist, N)
 
   # =================
   # PLOT DATA
@@ -90,14 +90,13 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   status, fig, ax, m = mapclimgrid(region=region, states=states, llon=llon, rlon=rlon, slat=slat, nlat=nlat)
 
   x, y = m(C.longrid, C.latgrid) # convert longrid and latgrid to projected coordinates
+
   if surface == :contourf
-    # try
-    cs = m[surface](x, y, ustrip.(data2), ncolors, cmap = cm, vmin=ustrip(vmin), vmax=ustrip(vmax))
-    # catch
-    #     cs = m[surface](x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
-    # end
+    cs = m.contourf(x, y, data2, ncolors, cmap = cm, vmin=vmin, vmax=vmax)
+  elseif surface == :pcolormesh
+    cs = m.pcolormesh(x, y, data2, cmap = cm, vmin=vmin, vmax=vmax)
   else
-    cs = m[surface](x, y, ustrip.(data2), cmap = cm, vmin=ustrip(vmin), vmax=ustrip(vmax))
+    error("This type of surface is not supported. File an issue on https://github.com/Balinus/ClimateTools.jl/issues")
   end
 
   # Colorbar
@@ -130,78 +129,78 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
     fig, ax = subplots()
 
     if lowercase(region) == "canada" || lowercase(region) == "ca"
-        m = basemap[:Basemap](projection = "lcc", resolution = "l", width=6500000,height=5000000, lat_0 = 62, lon_0 = -95, lat_1 = 45., lat_2 = 55, rsphere = (6378137.00, 6356752.3142))
+        m = basemap.Basemap(projection = "lcc", resolution = "l", width=6500000,height=5000000, lat_0 = 62, lon_0 = -95, lat_1 = 45., lat_2 = 55, rsphere = (6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "quebec" || lowercase(region) == "qc"
-        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -80.5, llcrnrlat = 41., urcrnrlon = -50.566, urcrnrlat = 62.352, lon_0 = -70, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
+        m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -80.5, llcrnrlat = 41., urcrnrlon = -50.566, urcrnrlat = 62.352, lon_0 = -70, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "south_quebec" || lowercase(region) == "south_qc"
-        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -75.9, llcrnrlat = 42.6, urcrnrlon = -61.5, urcrnrlat = 49.5, lon_0 = -70, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
+        m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -75.9, llcrnrlat = 42.6, urcrnrlon = -61.5, urcrnrlat = 49.5, lon_0 = -70, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "quebec_agricole" || lowercase(region) == "qc_agr"
-        m = basemap[:Basemap](projection = "lcc", resolution="l", llcrnrlon=-80, llcrnrlat=44.2, urcrnrlon=-62.5, urcrnrlat=50.5, lon_0=-72, lat_1=50, rsphere = (6378137.00, 6356752.3142))
+        m = basemap.Basemap(projection = "lcc", resolution="l", llcrnrlon=-80, llcrnrlat=44.2, urcrnrlon=-62.5, urcrnrlat=50.5, lon_0=-72, lat_1=50, rsphere = (6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "quebecnsp" || lowercase(region) == "qcnsp"
-        m = basemap[:Basemap](projection = "nsper", resolution= "l", satellite_height = 2000000, lon_0 = -72.5, lat_0 = 55)
+        m = basemap.Basemap(projection = "nsper", resolution= "l", satellite_height = 2000000, lon_0 = -72.5, lat_0 = 55)
 
     elseif lowercase(region) == "americas" || lowercase(region) == "ams"
-        m = basemap[:Basemap](projection = "omerc", resolution = "c", width=14000000, height=17000000, lon_0 = -100, lat_0 =    15, lon_1 = -45, lon_2 = -120, lat_1 = -55, lat_2 = 70)
+        m = basemap.Basemap(projection = "omerc", resolution = "c", width=14000000, height=17000000, lon_0 = -100, lat_0 =    15, lon_1 = -45, lon_2 = -120, lat_1 = -55, lat_2 = 70)
 
     elseif lowercase(region) == "arctic" || lowercase(region) == "aps"
-        m = basemap[:Basemap](projection = "npstere", resolution = "l", boundinglat = 47, lon_0 = 255)
+        m = basemap.Basemap(projection = "npstere", resolution = "l", boundinglat = 47, lon_0 = 255)
 
     elseif lowercase(region) == "antarctic" || lowercase(region) == "aaps"
-        m = basemap[:Basemap](projection = "spstere", resolution = "l", boundinglat = -60, lon_0 = 210)
+        m = basemap.Basemap(projection = "spstere", resolution = "l", boundinglat = -60, lon_0 = 210)
 
     elseif lowercase(region) == "greenwich" || lowercase(region) == "gr"
-        m = basemap[:Basemap](projection = "omerc", resolution = "c", width=9000000, height=15000000, lon_0 = 10, lat_0 = 25, lon_1 = -10, lon_2 = 20, lat_1 = -75, lat_2 = 30)
+        m = basemap.Basemap(projection = "omerc", resolution = "c", width=9000000, height=15000000, lon_0 = 10, lat_0 = 25, lon_1 = -10, lon_2 = 20, lat_1 = -75, lat_2 = 30)
 
     elseif lowercase(region) == "europe" || lowercase(region) == "eu"
-        m = basemap[:Basemap](projection = "lcc", resolution = "l", width = 6800000, height = 4700000, lat_0 = 53, lon_0 = 20, lat_1 = 33, lat_2 = 50, rsphere = (6378137.00, 6356752.3142))
+        m = basemap.Basemap(projection = "lcc", resolution = "l", width = 6800000, height = 4700000, lat_0 = 53, lon_0 = 20, lat_1 = 33, lat_2 = 50, rsphere = (6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "northamerica" || lowercase(region) == "na"
-        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, lon_0 = -95, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
+        m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, lon_0 = -95, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "southamerica" || lowercase(region) == "sa"
-        m = basemap[:Basemap](projection = "lcc", resolution = "l", llcrnrlon = -110., llcrnrlat = -55., urcrnrlon = -30., urcrnrlat = 17., lon_0 = -60, lat_1 = -20, rsphere = (6378137.00, 6356752.3142))
+        m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -110., llcrnrlat = -55., urcrnrlon = -30., urcrnrlat = 17., lon_0 = -60, lat_1 = -20, rsphere = (6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "world" || lowercase(region) == "w"
-        m = basemap[:Basemap](projection = "cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180)
+        m = basemap.Basemap(projection = "cyl", resolution = "c", llcrnrlat = -90, urcrnrlat = 90, llcrnrlon = -180, urcrnrlon = 180)
 
     elseif lowercase(region) == "worldaz" || lowercase(region) == "waz"
-        m = basemap[:Basemap](projection = "aeqd", resolution = "c", width = 28000000, height = 28000000, lon_0 = -75, lat_0 = 45)
+        m = basemap.Basemap(projection = "aeqd", resolution = "c", width = 28000000, height = 28000000, lon_0 = -75, lat_0 = 45)
 
     elseif lowercase(region) == "worldeck4" || lowercase(region) == "weck4"
-        m = basemap[:Basemap](projection="eck4", resolution = "c", lon_0 = 0)
+        m = basemap.Basemap(projection="eck4", resolution = "c", lon_0 = 0)
 
     elseif lowercase(region) == "outaouais"
-        m = basemap[:Basemap](projection="lcc", resolution="h", llcrnrlon=-78.5, llcrnrlat=45., urcrnrlon=-73.866, urcrnrlat=48.0, lon_0=-75, lat_1=44, rsphere=(6378137.00, 6356752.3142))
+        m = basemap.Basemap(projection="lcc", resolution="h", llcrnrlon=-78.5, llcrnrlat=45., urcrnrlon=-73.866, urcrnrlat=48.0, lon_0=-75, lat_1=44, rsphere=(6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "laurentides"
-        m = basemap[:Basemap](projection="lcc", resolution="h", llcrnrlon=-76.5, llcrnrlat=45., urcrnrlon=-72.866, urcrnrlat=48.0, lon_0=-73.5, lat_1=44, rsphere=(6378137.00, 6356752.3142))
+        m = basemap.Basemap(projection="lcc", resolution="h", llcrnrlon=-76.5, llcrnrlat=45., urcrnrlon=-72.866, urcrnrlat=48.0, lon_0=-73.5, lat_1=44, rsphere=(6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "estrie"
-        m = basemap[:Basemap](projection="lcc", resolution="h", llcrnrlon=-73.0, llcrnrlat=44.5, urcrnrlon=-70.0, urcrnrlat=46.3, lon_0=-71.0, lat_1=45, rsphere=(6378137.00, 6356752.3142))
+        m = basemap.Basemap(projection="lcc", resolution="h", llcrnrlon=-73.0, llcrnrlat=44.5, urcrnrlon=-70.0, urcrnrlat=46.3, lon_0=-71.0, lat_1=45, rsphere=(6378137.00, 6356752.3142))
 
     elseif region == "auto"
-        m = basemap[:Basemap](projection="cyl", resolution = "c", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon)
+        m = basemap.Basemap(projection="cyl", resolution = "c", llcrnrlat = slat, urcrnrlat = nlat, llcrnrlon = llon, urcrnrlon = rlon)
     end
 
     # Draw the map properties
-    m[:drawcoastlines](linewidth = 0.6)
-    m[:drawcountries](linewidth = 0.6)
+    m.drawcoastlines(linewidth = 0.6)
+    m.drawcountries(linewidth = 0.6)
 
     if states
-        m[:drawstates](linewidth = 0.2)
+        m.drawstates(linewidth = 0.2)
     end
 
     if lowercase(region) != "quebecnsp" || lowercase(region) != "qcnsp"
       if lowercase(region) == "antarctic" || lowercase(region) == "aaps"
         # Is there a Julia eqvlnt to Py's 'if object not in list'?
-          m[:drawmeridians](0:30:360.0, labels = [1,1,1,1], fontsize = 8, linewidth = 0)
+          m.drawmeridians(0:30:360.0, labels = [1,1,1,1], fontsize = 8, linewidth = 0)
       else
-          m[:drawparallels](-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6)
-          m[:drawmeridians](0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5)
+          m.drawparallels(-90:10.0:90, labels = [1,0,0,0], fontsize = 8, linewidth = 0.6)
+          m.drawmeridians(0:30:360.0, labels = [0,0,0,1], fontsize = 8, linewidth = 0.5)
       end
     end
 
@@ -237,10 +236,10 @@ function PyPlot.plot(C::ClimGrid; level=1, poly=[], start_date::Tuple=(Inf,), en
     # Spatial mean for each timestep
     for t in 1:length(timevec)
         if ndims(data) == 3
-            datatmp = ustrip.(data[:, :, t])
+            datatmp = data[:, :, t]
             average[t] = Statistics.mean(datatmp[.!isnan.(datatmp)])
         elseif ndims(data) == 4
-            datatmp = ustrip.(data[:, :, level, t])
+            datatmp = data[:, :, level, t]
             average[t] = Statistics.mean(datatmp[.!isnan.(datatmp)])
         end
     end

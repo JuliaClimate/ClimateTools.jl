@@ -45,6 +45,7 @@ function Base.:+(A::ClimGrid, k)
 end
 
 function Base.:-(A::ClimGrid, B::ClimGrid)
+
     axisArraytmp = A.data .- B.data
 
     axisArray = buildarrayinterface(axisArraytmp, A)
@@ -61,6 +62,7 @@ function Base.:-(A::ClimGrid, k)
 end
 
 function Base.:*(A::ClimGrid, B::ClimGrid)
+
     axisArraytmp = A.data .* B.data
 
     axisArray = buildarrayinterface(axisArraytmp, A)
