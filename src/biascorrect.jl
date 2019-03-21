@@ -91,6 +91,9 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     lonsymbol = Symbol(fut.dimension_dict["lon"])
     latsymbol = Symbol(fut.dimension_dict["lat"])
 
+    # Apply mask
+    dataout = applymask(dataout, obs.msk)
+
     dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}][:]), Axis{latsymbol}(fut[1][Axis{latsymbol}][:]),Axis{:time}(datevec_fut2))
 
     C = ClimGrid(dataout2; longrid=fut.longrid, latgrid=fut.latgrid, msk=fut.msk, grid_mapping=fut.grid_mapping, dimension_dict=fut.dimension_dict, timeattrib=fut.timeattrib, model=fut.model, frequency=fut.frequency, experiment=fut.experiment, run=fut.run, project=fut.project, institute=fut.institute, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal, varattribs=fut.varattribs, globalattribs=fut.globalattribs)
@@ -153,24 +156,25 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
                 sf_refP .= obsP .- refP
                 itp = interpolate((refP,), sf_refP, Gridded(interp))
                 itp = extrapolate(itp, extrap) # add extrapolation
-                dataout[idxfut] .= itp(futval) .+ futval
-                # futnew = itp(futval) .+ futval
+                # dataout[idxfut] .= itp(futval) .+ futval
+                futval .= itp(futval) .+ futval
 
             elseif lowercase(method) == "multiplicative" # used for precipitation
                 sf_refP .= obsP ./ refP
                 sf_refP[sf_refP .< 0] .= eps(1.0)
-                sf_refP[isnan.(sf_refP)] .= 1.0
+                sf_refP[isnan.(sf_refP)] .= 1.0#eps(1.0)#1.0
                 itp = interpolate((refP,), sf_refP, Gridded(interp))
                 itp = extrapolate(itp, extrap) # add extrapolation
-                dataout[idxfut] .= itp(futval) .* futval
+                futval .= itp(futval) .* futval
+                # dataout[idxfut] .= itp(futval) .* futval
 
-                # futnew[isnan.(futnew)] .= 0.0
+                futval[isnan.(futval)] .= 0.0
 
             else
                 error("Wrong method")
             end
             # Replace values with new ones
-            # dataout[idxfut] = futnew
+            dataout[idxfut] .= futval
         else
 
             if keep_original
@@ -182,6 +186,8 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
             end
         end
     end
+
+    # dataout[isnan.(dataout)] .= 0.0
 
     return dataout
 
