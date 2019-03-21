@@ -607,7 +607,7 @@ function ensemble_max(C; skipnan=true)
         end
     # end
 
-    # ENSEMBLE STD
+    # ENSEMBLE MAX
     dataout = maximum(axisarrays)
 
     # reapply unit
@@ -653,7 +653,7 @@ function ensemble_min(C; skipnan=true)
         end
     # end
 
-    # ENSEMBLE STD
+    # ENSEMBLE MIN
     dataout = minimum(axisarrays)
 
     # reapply unit

@@ -534,9 +534,33 @@ C_mean = meantemperature(C_tmin, C_tmax)
 @test C_mean.data.data == Results
 
 C_tmax2 = C_tmax
-ens = [C_tmax2, C_tmax]
+ens = [C_tmax2, C_tmax, C_tmax, C_tmax, C_tmax]
 E = ensemble_mean(ens)
 @test E[1][1, 1, 1] == C_tmax[1][1, 1, 1]
+
+E = ensemble_std(ens)
+@test ustrip(E[1][1, 1, 1]) == std([ustrip(C_tmax[1][1,1,1]), ustrip(C_tmax[1][1,1,1]), ustrip(C_tmax[1][1,1,1]), ustrip(C_tmax[1][1, 1, 1]), ustrip(C_tmax[1][1,1,1])])
+
+d = DateTime(2003,1,1):Day(1):DateTime(2003,1,3)
+# Dummy data
+data_tmax = Array{Float64,3}(undef, 2,2,3)
+data_tmax[1,1,:] .= 0.0
+data_tmax[1,2,:] .= 10.0
+data_tmax[2,1,:] .= 20.0
+data_tmax[2,2,:] .= 30.0
+data_tmax = [data_tmax][1]u"K"
+
+axisdata_tmax = AxisArray(data_tmax, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
+C_tmax = ClimateTools.ClimGrid(axisdata_tmax, dataunits= "Kelvin", variable = "tasmax", frequency="day")
+
+ens = [C_tmax2 + 2K, C_tmax, C_tmax, C_tmax, C_tmax]
+E = ensemble_max(ens)
+@test E[1][1,1,1] == ens[1][1][1,1,1]
+
+E = ensemble_min(ens)
+@test E[1][1,1,1] == ens[2][1][1,1,1]
+
+
 #ens = [C_tmax2, C_tmax*2]
 #@test E[1][1, 1, 1] == (C_tmax[1][1, 1, 1]*2 + C_tmax2[1][1, 1, 1])/2
 

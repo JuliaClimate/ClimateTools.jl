@@ -61,6 +61,8 @@ function Base.:-(A::ClimGrid, k)
 end
 
 function Base.:*(A::ClimGrid, B::ClimGrid)
+
+    un = unit(A[1][1,1,1])
     axisArraytmp = A.data .* B.data
 
     axisArray = buildarrayinterface(axisArraytmp, A)
