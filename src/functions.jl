@@ -298,7 +298,7 @@ function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk
         val = ustrip.(dataorig[:, :, t][:])
 
         # Call scipy griddata
-        data_interp = scipy[:griddata](points, val, (londest, latdest), method=method)
+        data_interp = scipy.griddata(points, val, (londest, latdest), method=method)
 
         # Apply mask from ClimGrid destination
         if !isempty(msk)
