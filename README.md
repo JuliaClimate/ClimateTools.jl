@@ -11,7 +11,7 @@
 
 *Note. Now compatible with Julia 1.0!*
 
-ClimateTools.jl is a collection of commonly-used tools in Climate science. Basics of climate field analysis will be covered, with some forays into exploratory techniques. The package is aimed to ease the typical steps of analysis climate models outputs and gridded datasets (support for weather stations is a work-in-progress).
+ClimateTools.jl is a collection of commonly-used tools in Climate science. Basics of climate field analysis are covered, with some forays into exploratory techniques associated with climate scenarios design. The package is aimed to ease the typical steps of analysis climate models outputs and gridded datasets (support for weather stations is a work-in-progress).
 
 ClimateTools.jl is registered on METADATA.jl and can be added and updated with `Pkg` commands. See [installation documentation](https://balinus.github.io/ClimateTools.jl/dev/installation/) for detailed installation instructions and Python's dependencies (for mapping features).
 
@@ -122,7 +122,9 @@ More than 20 climate indices are available in the package, such as the annual nu
 ind = annualmax(C::ClimGrid)
 ```
 
-Which returns another `ClimGrid`. You can also map this `ClimGrid` with the `mapclimgrid` function and returns the climatological mean of the annual maximum (e.g. daily precipitation in the example below). A list of indices can be found in the documentation and in the `functions.jl` source code.
+Which returns another `ClimGrid`. You can also map this `ClimGrid` with the `mapclimgrid` function and returns the climatological mean of the annual maximum (e.g. daily precipitation in the example below). From the figure, we clearly sees the monsoon regions (India) and region with wind-driven precipitations (e.g. western sides of the oceans).
+
+A list of indices can be found in the documentation and in the `functions.jl` source code.
 
 <p align="center">
   <img src="https://cloud.githubusercontent.com/assets/3630311/23873133/59b85c08-0807-11e7-967b-7cc7d28aada0.png?raw=true" width="771" height="388" alt="Precipitation example"/>
