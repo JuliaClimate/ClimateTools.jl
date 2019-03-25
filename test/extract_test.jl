@@ -51,4 +51,63 @@ end
     @test status == true
     run(`rm test.nc`)
 
+    status = write(C, "test")
+    @test status == true
+    run(`rm test.nc`)
+
+    # Custom ClimGrid
+    data = Float32.(rand(2,2, 365))
+    timev = DateTimeNoLeap(2001, 01, 01):Day(1):DateTimeNoLeap(2001, 12, 31)
+    rlon = collect(range(20.0, stop=21.0))
+    rlat = collect(range(40.0, stop=41.0))
+    longrid, latgrid = ndgrid(rlon, rlat)
+    variable = "pr"
+    A = AxisArray(data, Axis{:rlon}(rlon), Axis{:rlat}(rlat), Axis{:time}(timev))
+    dimension_dict = Dict(["lat" => "rlat", "lon" => "rlon"])
+
+    timeattrib = Dict(["units" => "days since 2001-1-1",
+    "calendar" => "365_day",
+    "axis" => "T",
+    "standard_name" => "time"])
+
+    varattrib = Dict(["standard_name" => "precipitation_flux",
+    "units" => "kg m-2 s-1"])
+
+    globalattribs = Dict(["title"                 => "CanESM2 model output prepared for CMIP5 historical",
+  "branch_time"           => 135415.0,
+  "physics_version"       => 1,
+  "tracking_id"           => "97542c1e-3841-4a49-bc21-76d6edb9fa1d",
+  "branch_time_YMDH"      => "2221:01:01:00",
+  "modeling_realm"        => "atmos",
+  "creation_date"         => "2011-04-09T02:32:12Z",
+  "history"               => "",
+  "table_id"              => "Table day (28 March 2011) f9d6cfec5981bb8be1801b35a81002f0",
+  "CCCma_runid"           => "IDE",
+  "project_id"            => "CMIP5",
+  "experiment"            => "historical",
+  "forcing"               => "GHG,Oz,SA,BC,OC,LU,Sl,Vl (GHG includes CO2,CH4,N2O,CFC11,effective CFC12)",
+  "contact"               => "cccma_info@ec.gc.ca",
+  "Conventions"           => "CF-1.4",
+  "institute_id"          => "CCCma",
+  "parent_experiment_rip" => "r1i1p1",
+  "experiment_id"         => "historical",
+  "model_id"              => "CanESM2",
+  "frequency"             => "day"])
+
+  grid_mapping = Dict(["grid_mapping" => "Rotated_pole"])
+
+  C = ClimGrid(A, variable=variable, longrid=longrid, latgrid=latgrid, dimension_dict=dimension_dict, timeattrib=timeattrib, varattribs=varattrib, globalattribs=globalattribs, grid_mapping=grid_mapping)
+
+  status = write(C, "test.nc")
+  @test status == true
+  run(`rm test.nc`)
+
+  # grid_mapping = Dict(["grid_mapping_name" => "Rotated_pole"])
+  #
+  # C = ClimGrid(A, variable=variable, longrid=longrid, latgrid=latgrid, dimension_dict=dimension_dict, timeattrib=timeattrib, varattribs=varattrib, globalattribs=globalattribs, grid_mapping=grid_mapping)
+  #
+  # status = write(C, "test.nc")
+  # @test status == true
+  # run(`rm test.nc`)
+
 end

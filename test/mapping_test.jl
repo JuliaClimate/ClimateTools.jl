@@ -144,4 +144,9 @@ status, figh = plot(C, poly=P); @test status == true; PyPlot.close()
 status, figh = plot(C, start_date=(2003, 01, 10), end_date=(2003, 05, 12)); @test status==true;PyPlot.close()
 status, figh = plot(C, label = "dummy", titlestr="dummytest", gridfig=true); @test status == true; PyPlot.close()
 
+status, figh = hist(C); @test status == true; PyPlot.close()
+status, figh = hist(C, poly=P); @test status == true; PyPlot.close()
+status, figh = hist(C, start_date=(2003, 01, 10), end_date=(2003, 05, 12)); @test status==true;PyPlot.close()
+status, figh = hist(C, label = "dummy", titlestr="dummytest", gridfig=false); @test status == true; PyPlot.close()
+
 end

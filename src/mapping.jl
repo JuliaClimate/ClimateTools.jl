@@ -285,6 +285,48 @@ function PyPlot.plot(C::ClimGrid; level=1, poly=[], start_date::Tuple=(Inf,), en
 end
 
 """
+    hist(C::ClimGrid; bins::Int=10, level=1, range_x=[], poly=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", gridfig::Bool=true, label::String="", ylimit=[])
+"""
+function PyPlot.hist(C::ClimGrid; bins::Int=10, level=1, range_x=[], poly=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", gridfig::Bool=true, label::String="", ylimit=[])
+
+    if !isempty(poly)
+        C = spatialsubset(C, poly)
+    end
+    if !isinf(start_date[1]) || !isinf(end_date[1])
+        C = temporalsubset(C, start_date, end_date)
+    end
+
+    if isempty(label)
+        label = C.model
+    end
+
+    # PLOTTING
+    if gridfig
+        grid(true)
+    end
+    if isempty(range_x)
+        range_x = (findmin(C, skipnan=true)[1], findmax(C, skipnan=true)[1])
+    end
+
+    figh = hist(C[1].data[:], bins=bins, label=label, range=range_x)
+
+    if !isempty(ylimit)
+        ylim(ylimit[1], ylimit[2])
+    end
+    # xlabel("Time")
+    ylabel("Frequency")
+    legend()
+    # xticks(timevec[1:20:end])
+    if isempty(titlestr)
+        titlestr = C.variable
+    end
+    title(titlestr)
+
+    return true, figh
+
+end
+
+"""
     getcslimits(caxis, data, C)
 
 Returns minimum and maximum values of the colorscale axis. Used internally by [`mapclimgrid`](@ref).
