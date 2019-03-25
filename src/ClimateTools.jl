@@ -197,7 +197,7 @@ export permute_west_east
 export getdim_lat, getdim_lon, isdefined, extractpoly
 export polyfit, polyval
 export @isdefined
-export plot, mapclimgrid
+export plot, mapclimgrid, hist
 export merge, vaporpressure, approx_surfacepressure
 export wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
