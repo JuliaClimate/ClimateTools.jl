@@ -1017,6 +1017,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions/#PyPlot.hist-Tuple{ClimGrid}",
+    "page": "Index",
+    "title": "PyPlot.hist",
+    "category": "method",
+    "text": "hist(C::ClimGrid; bins::Int=10, level=1, range_x=[], poly=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String=\"\", gridfig::Bool=true, label::String=\"\", ylimit=[])\n\n\n\n\n\n"
+},
+
+{
     "location": "functions/#PyPlot.plot-Tuple{ClimGrid}",
     "page": "Index",
     "title": "PyPlot.plot",
