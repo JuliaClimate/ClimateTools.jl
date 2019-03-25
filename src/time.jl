@@ -503,7 +503,6 @@ Removes 29th february and correct the associated julian days.
 function corrjuliandays(data_vec, date_vec)
 
     # Eliminate February 29th (small price to pay for simplicity and does not affect significantly quantile estimations)
-
     feb29th = (Dates.month.(date_vec) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(date_vec) .== Dates.day(29))
 
     date_jul = Dates.dayofyear.(date_vec)
@@ -511,51 +510,21 @@ function corrjuliandays(data_vec, date_vec)
     # identify leap years
     leap_years = leapyears(date_vec)
 
-    if sum(feb29th) >= 1 # leapyears
-
-        for iyear in leap_years
-
-            days = date_jul[Dates.year.(date_vec) .== iyear] # days for iyear
-
-            if days[1] >=60 # if the year starts after Feb 29th
-                k1 = something(findfirst(isequal(iyear), Dates.year.(date_vec)), 0)
-                # k1 = findfirst(Dates.year.(date_vec), iyear) # k1 is the first day
-            else
-                k1 = something(findfirst(isequal(iyear), Dates.year.(date_vec)), 0) + 60 -days[1]
-                # k1 = findfirst(Dates.year.(date_vec), iyear) + 60 - days[1] # else k1 (60-first_julian_day) of the year
-            end
-            k2 = something(findlast(isequal(iyear), Dates.year.(date_vec)), 0)
-            # k2 = findlast(Dates.year.(date_vec), iyear) #+ length(days) - 1 #the end of the year is idx of the first day + number of days in the year - 1
-            # k = findfirst(Dates.year.(date_vec), iyear) + 59
-            date_jul[k1:k2] .-= 1
+    for iyear in leap_years
+        days = date_jul[Dates.year.(date_vec) .== iyear] # days for iyear
+        if days[1] >= 60 # if the year starts after Feb 29th
+            k1 = something(findfirst(isequal(iyear), Dates.year.(date_vec)), 0)
+        else
+            k1 = something(findfirst(isequal(iyear), Dates.year.(date_vec)), 0) + 60 - days[1]
         end
-
-        date_vec2 = date_vec[.!feb29th]
-        data_vec2 = data_vec[.!feb29th]
-        date_jul2 = date_jul[.!feb29th]
-
-    elseif sum(feb29th) == 0 # not a leapyears
-
-        for iyear in leap_years
-            days = date_jul[Dates.year.(date_vec) .== iyear] # days for iyear
-            if days[1] >= 60 # if the year starts after Feb 29th
-                k1 = something(findfirst(isequal(iyear), Dates.year.(date_vec)), 0)
-                # k1 = findfirst(Dates.year.(date_vec), iyear) # k1 is the first day
-            else
-                k1 = something(findfirst(isequal(iyear), Dates.year.(date_vec)), 0) + 60 - days[1]
-                # k1 = findfirst(Dates.year.(date_vec), iyear) + 60 - days[1] # else k1 (60-first_julian_day) of the year
-            end
-            k2 = something(findlast(isequal(iyear), Dates.year.(date_vec)), 0)
-            # k2 = findlast(Dates.year.(date_vec), iyear) #+ length(days) - 1 #the end of the year is idx of the first day + number of days in the year - 1
-            # k = findfirst(Dates.year.(date_vec), iyear) + 59
-            date_jul[k1:k2] .-= 1
-        end
-
-        date_vec2 = date_vec[.!feb29th]
-        data_vec2 = data_vec[.!feb29th]
-        date_jul2 = date_jul[.!feb29th]
-
+        k2 = something(findlast(isequal(iyear), Dates.year.(date_vec)), 0)
+        date_jul[k1:k2] .-= 1
     end
+
+    # remove 29th feb entries (if any)
+    date_vec2 = date_vec[.!feb29th]
+    data_vec2 = data_vec[.!feb29th]
+    date_jul2 = date_jul[.!feb29th]
 
     return data_vec2, date_jul2, date_vec2
 
