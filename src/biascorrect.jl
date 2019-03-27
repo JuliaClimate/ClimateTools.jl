@@ -155,6 +155,8 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
                 # dataout[idxfut] .= itp(futval) .+ futval
                 futval .= itp(futval) .+ futval
 
+                futval[isnan.(futval)] .= 0.0
+
             elseif lowercase(method) == "multiplicative" # used for precipitation
                 sf_refP .= obsP ./ refP
                 sf_refP[sf_refP .< 0] .= eps(1.0)
@@ -175,7 +177,7 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
 
             if keep_original
                 # # Replace values with original ones (i.e. too may NaN values for robust quantile estimation)
-                dataout[idxfut] = futval
+                dataout[idxfut] .= futval
             else
                 dataout[idxfut] .= NaN
                 # DO NOTHING (e.g. if there is no reference, we want NaNs and not original values)
