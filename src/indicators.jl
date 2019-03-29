@@ -99,9 +99,10 @@ Returns the simplified wet-bulb global temperature (*wbgt*) (Celsius) calculated
 
 """
 function wbgt(mean_temperature::ClimGrid, vapor_pressure::ClimGrid)
-  @argcheck in(mean_temperature[9], ["tmean", "tasmax", "tasmin"])
+  
+  @argcheck istemperature(mean_temperature)#[2], ["Celsius", "K", "°C"])
   @argcheck vapor_pressure[9] == "vp"
-  @argcheck in(mean_temperature[2], ["Celsius", "K", "°C"])
+  @argcheck istemperature_units(mean_temperature)#[2], ["Celsius", "K", "°C"])
   @argcheck vapor_pressure[2] == "Pa"
 
   # Convert to Celsius if necessery
@@ -134,8 +135,8 @@ Returns an estimation of the diurnal temperature (temperature between 7:00 (7am)
 function diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid, α::Float64)
   @argcheck temperatureminimum[9] == "tasmin"
   @argcheck temperaturemaximum[9] == "tasmax"
-  @argcheck in(temperatureminimum[2], ["Celsius", "K", "°C"])
-  @argcheck in(temperaturemaximum[2], ["Celsius", "K", "°C"])
+  @argcheck istemperature_units(temperatureminimum)#[2], ["Celsius", "K", "°C"])
+  @argcheck istemperature_units(temperaturemaximum)#[2], ["Celsius", "K", "°C"])
   @argcheck temperatureminimum[2] == temperaturemaximum[2]
 
   # Calculate the diurnal temperature
@@ -164,8 +165,8 @@ Returns the daily mean temperature calculated from the maximum and minimum tempe
 function meantemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid)
   @argcheck temperatureminimum[9] == "tasmin"
   @argcheck temperaturemaximum[9] == "tasmax"
-  @argcheck in(temperatureminimum[2], ["Celsius", "K", "°C"])
-  @argcheck in(temperaturemaximum[2], ["Celsius", "K", "°C"])
+  @argcheck istemperature_units(temperatureminimum)#[2], ["Celsius", "K", "°C"])
+  @argcheck istemperature_units(temperaturemaximum)#[2], ["Celsius", "K", "°C"])
   @argcheck temperatureminimum[2] == temperaturemaximum[2]
 
   # Calculate the diurnal temperature
@@ -185,32 +186,44 @@ function meantemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimG
   return ClimGrid(tmean_array, longrid=temperatureminimum.longrid, latgrid=temperatureminimum.latgrid, msk=temperatureminimum.msk, grid_mapping=temperatureminimum.grid_mapping, dimension_dict=temperatureminimum.dimension_dict, timeattrib=temperatureminimum.timeattrib, model=temperatureminimum.model, frequency=temperatureminimum.frequency, experiment=temperatureminimum.experiment, run=temperatureminimum.run, project=temperatureminimum.project, institute=temperatureminimum.institute, filename=temperatureminimum.filename, dataunits=temperatureminimum.dataunits, latunits=temperatureminimum.latunits, lonunits=temperatureminimum.lonunits, variable="tmean", typeofvar="tmean", typeofcal=temperatureminimum.typeofcal, varattribs=tmean_dict, globalattribs=temperatureminimum.globalattribs)
 end
 
-# """
-#     pet(C::ClimGrid)
-#
-# Returns the potential evapotranspiration, as estimated by the method of Thornthwaite
-# (1948).
-#
-# Thornthwaite, C. W., 1948: An approach toward a rational classi-
-# fication of climate. Geogr. Rev., 38, 55–94.
-# """
-# function pet(C::ClimGrid)
-#   # Some assertions and unit conversion
-#   # ...
-#   # ...
-#
-#   K = 67.0
-#
-#   i = (T/5.0)^(1.514)
-#
-#   I = sum(i)
-#
-#   m = 6.75*10^(-7)*I^3 - 7.71*10^(-5)*I^2 + 1.79*10^(-2)*I + 0.492 3 10 27 I 3 2
-# 7.71 3 10 25 I 2 1 1.79 3 10 22 I 1 0.492
-#
-#   return 16*K*(10*T/I)^m
-#
-#
-#
-#
-# end
+"""
+    drought_dc(pr::ClimGrid, tas::Climgrid)
+
+Returns the drought index. The index is defined as a function of daily temperature and daily precipitation. This indice correspond to the DC indice in Wang et al. 2015.
+
+Reference: Wang et al. 2015. Updated source code for calculating fire danger indices in the Canadian Forest Fire Weather Index System. Information Report NOR-X-424. Canadian Forst Service. 36pp.
+"""
+function drought_dc(pr::ClimGrid, tas::ClimGrid)
+
+    @argcheck isprecipitation(pr)
+    @argcheck istemperature(tas)
+    @argcheck istemperature_units(tas)
+
+    # Convert to Celsius if necessery
+    if tas[2] == "K"
+      tas = tas - 273.15
+    end
+
+    # Check for precip units (needs mm)
+    if pr[2] != "mm"
+        error("Precipitation needs to be in mm")
+    end
+
+
+end
+
+function istemperature_units(C::ClimGrid)
+    return in(C[2], ["K", "Kelvin", "Celsius", "°C", "C"])
+end
+
+function istemperature(C::ClimGrid)
+    return in(C[9], ["tasmax", "tas", "tasmin", "tmean", "tmoy"])
+end
+
+function isprecipitation(C::ClimGrid)
+    return in(C[9], ["pr", "precip", "precipitation", "precipitation_flux"])
+end
+
+function isprecipitation_units(C::ClimGrid)
+    return in(C[2], ["mm", "kg m-2 s-1", "kg m-2"])
+end

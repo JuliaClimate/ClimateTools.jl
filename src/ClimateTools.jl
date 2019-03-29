@@ -187,6 +187,7 @@ export frostdays, summerdays, icingdays, tropicalnights
 export daysabove10 #, daysbelow0, degdaysabove, degdaysbelow
 export customthresover, customthresunder, annualmax, annualmin
 export annualmean, annualsum, prcp1
+export drought_dc
 export ensemble_mean, ensemble_std, ensemble_max, ensemble_min
 export load, load2D
 export regrid, applymask, TransferFunction
