@@ -187,7 +187,7 @@ function meantemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimG
 end
 
 """
-drought_dc(pr::ClimGrid, tas::Climgrid)
+    drought_dc(pr::ClimGrid, tas::Climgrid)
 
 Returns the drought index. The index is defined as a function of daily temperature and daily precipitation. This indice correspond to the DC indice in Wang et al. 2015.
 
@@ -195,9 +195,9 @@ Reference: Wang et al. 2015. Updated source code for calculating fire danger ind
 """
 function drought_dc(pr::ClimGrid, tas::ClimGrid)
 
-    @argcheck isprecipitation(pr)
-    @argcheck istemperature(tas)
-    @argcheck istemperature_units(tas)
+    @argcheck ClimateTools.isprecipitation(pr)
+    @argcheck ClimateTools.istemperature(tas)
+    @argcheck ClimateTools.istemperature_units(tas)
     @argcheck size(pr[1]) == size(tas[1])
 
     # Convert to Celsius if necessery
@@ -222,25 +222,29 @@ function drought_dc(pr::ClimGrid, tas::ClimGrid)
     dataoutin = reshape(dataout, (size(dataout, 1)*size(dataout, 2), size(dataout, 3)))
 
     # Looping over grid points using multiple-dispatch calls to qqmap
-    Threads.@threads for k = 1:size(obsin, 1)
+    # Threads.@threads for k = 1:size(prin, 1)
+    for k = 1:size(prin, 1)
 
         prvec = prin[k,:]
         tasvec = tasin[k,:]
 
         dataoutin[k, :] = drought_dc(prvec, tasvec, timevec)
 
+        println(k)
+
     end
 
+    # Build metadata
+    dc_dict = pr.varattribs
+    dc_dict["standard_name"] = "drought_code"
+    dc_dict["units"] = ""
+    dc_dict["history"] = "Drought code inspired by Wang et al. 2015. Updated source code for calculating fire danger indices in the Canadian Forest Fire Weather Index System. Information Report NOR-X-424. Canadian Forst Service. 36pp."
 
-    # years    = Dates.year.(get_timevec(pr))#.data[Axis{:time}][:])
-    # numYears = unique(years)
-    # dataout  = zeros(Int64, (size(pr.data, 1), size(pr.data, 2), length(numYears)))
-    #
-    # for i in 1:length(numYears)
-    #   idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
-    #
-    #
-    # end
+    # Build AxisArray
+    axisarray = buildarrayinterface(dataout, pr)
+
+    # Build ClimGrid
+    return ClimGrid(axisarray, longrid=pr.longrid, latgrid=pr.latgrid, msk=pr.msk, grid_mapping=pr.grid_mapping, dimension_dict=pr.dimension_dict, timeattrib=pr.timeattrib, model=pr.model, frequency=pr.frequency, experiment=pr.experiment, run=pr.run, project=pr.project, institute=pr.institute, filename=pr.filename, dataunits=pr.dataunits, latunits=pr.latunits, lonunits=pr.lonunits, variable="dc", typeofvar="dc", typeofcal=pr.typeofcal, varattribs=dc_dict, globalattribs=pr.globalattribs)
 
 
 
@@ -265,30 +269,42 @@ function drought_dc(prvec::Array{N,1} where N, tasvec::Array{N,1} where N, timev
     dc = fill(NaN, size(prvec))
 
     for i in 1:length(numYears)
-      idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+        idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
 
-      # Find index where tas is > 6°C for more than 3 days
-      idx_tas = tasvec[idx] .>= 6.0
-      # idx_tas = findall(x -> x >= 6.0, tasvec[idx])
-      idx_start, idx_end = ((findall((diff(idx_tas) .- 1) .== 0) .+ 1)[2],  (findall((diff(idx_tas) .- 1) .== 0) .+ 1)[end])
-#(findall((diff(idx_tas) .- 1) .== 0) .+ 1)[2]
+        # Find index where tas is > 6°C for more than 3 days
+        idx_tas = tasvec[idx] .>= 6.0
 
-      # dates_tuple = Dates.yearmonthday.(timevec[idx])
+        nanfrac = sum(idx_tas)#/length(idx_tas)
 
-      dc[idx_start] = dc₀ # initialize drought code
+        if nanfrac >= 1
 
-      for iday = idx_start:idx_end#length(dates_tuple)
-          pr_day = prvec[iday]
-          tas_day = tasvec[iday]
+            # idx_tas = findall(x -> x >= 6.0, tasvec[idx])
+            idx_start, idx_end = ((findall((diff(idx_tas) .- 1) .== 0) .+ 1)[2],  (findall((diff(idx_tas) .- 1) .== 0) .+ 1)[end])
+            #(findall((diff(idx_tas) .- 1) .== 0) .+ 1)[2]
 
-          dc₀_temp = dc[iday]
+            # dates_tuple = Dates.yearmonthday.(timevec[idx])
 
-          mth = Dates.month(timevec[iday])
+            dc[idx_start] = dc₀ # initialize drought code
 
-          dc[iday] += drought_dc(pr_day, tas_day, dc₀_temp, mth)
+            for iday = idx_start:idx_end#length(dates_tuple)
+
+                pr_day = prvec[iday]
+                tas_day = tasvec[iday]
+
+                # dc₀_temp = dc[iday-1]
+
+                mth = Dates.month(timevec[iday])
+
+                dc[iday] = dc[iday] + drought_dc(pr_day, tas_day, dc[iday], mth)
+
+                dc[iday + 1] = dc[iday]
+
+                println(iday)
 
 
-      end
+            end
+
+        end
 
 
     end
@@ -297,13 +313,13 @@ function drought_dc(prvec::Array{N,1} where N, tasvec::Array{N,1} where N, timev
 
 end
 
-function drought_dc(pr_day::Real, tas_day::Real, dc₀::Real, mth::Int)
+function drought_dc(pr_day::Real, tas_day::Real, dc0::Real, mth::Int)
 
     # Months constant
     fl = [-1.6, -1.6, -1.6, 0.9, 3.8, 5.8, 6.4, 5.0, 2.4, 0.4, -1.6, -1.6]
 
-    if tas_day < 2.8
-        tas_day = 2.8
+    if tas_day < -2.8
+        tas_day = -2.8
     end
 
     pe = (0.36*(tas_day + 2.8) + fl[mth]) / 2
@@ -315,13 +331,17 @@ function drought_dc(pr_day::Real, tas_day::Real, dc₀::Real, mth::Int)
     if pr_day > 2.8
         rw = 0.83*pr_day - 1.27
         smi = 800.0*exp(-dc₀/400.0)
-        dr = dc₀ - 400.0*log(1.0+((3.937*rw/smi)))
+        if smi == 0.0
+            smi = 1.0
+        end
+        dr = dc0 - 400.0*log(1.0+((3.937*rw/smi)))
 
         if dr > 0.0
             dc = dr + pe
         end
+
     elseif pr_day <= 2.8
-        dc = dc₀ + pe
+        dc = dc0 + pe
     end
 
     return dc
