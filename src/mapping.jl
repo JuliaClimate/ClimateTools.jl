@@ -27,19 +27,23 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   if !isempty(mask)
       @assert (size(C[1], 1),size(C[1], 2))==(size(mask, 1),size(mask, 2))
   end
+  if !isempty(poly)
+      C = spatialsubset(C, poly)
+  end
+  # Period average
+  if ndims(C[1]) >= 3
+      C = periodmean(C, start_date=start_date, end_date=end_date)
+  end
+  data2 = C[1].data
 
+  # =================
+  # PLOT DATA
+  # =================
   # get boundaries and lat-lon vectors
   llon = minimum(C.longrid)
   rlon = maximum(C.longrid)
   slat = minimum(C.latgrid)
   nlat = maximum(C.latgrid)
-
-  # Time limits
-  if ndims(C[1]) > 2
-      timeV = get_timevec(C)
-      T = typeof(timeV[1])
-      timebeg, timeend = ClimateTools.timeindex(timeV, start_date, end_date, T)
-  end
 
   # =============
   # Colorscale
@@ -48,7 +52,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
     if C[10] == "pr" || C[10]=="huss"
       # cm = "YlGnBu"
       cm = cmocean.cm.deep
-  elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin" || C[10] == "wbgtmean" || C[10] == "wbgtmax" || C[10]=="t2m" || C[10]=="tmean"
+  elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin" || C[10] == "wbgtmean" || C[10] == "wbgtmax" || C[10]=="t2m" || C[10]=="tmean" || C[10]=="dc"
       cm = "RdYlBu_r"
     elseif C[10]=="psl" || C[10]=="vp" # pressure
       cm = cmocean.cm.deep_r
@@ -73,15 +77,6 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   colorlist = cmap(range(0, stop=1, length=N))
   # #
   cm = mpl.colors.LinearSegmentedColormap.from_list("cm_custom", colorlist, N)
-
-  # =================
-  # PLOT DATA
-  # Time-average
-  if ndims(C[1]) > 2
-      data2 = ClimateTools.timeavg(C, timebeg, timeend, mask, poly, level)
-  elseif ndims(C[1]) == 2
-      data2 = C[1].data
-  end
 
   # Get colorscale limits
   vmin, vmax = ClimateTools.getcslimits(caxis, data2, center_cs)
@@ -237,6 +232,7 @@ function PyPlot.plot(C::ClimGrid; level=1, poly=[], start_date::Tuple=(Inf,), en
     for t in 1:length(timevec)
         if ndims(data) == 3
             datatmp = data[:, :, t]
+            # average[t] = Images.meanfinite(datatmp, 1:2)[1]
             average[t] = Statistics.mean(datatmp[.!isnan.(datatmp)])
         elseif ndims(data) == 4
             datatmp = data[:, :, level, t]
@@ -254,13 +250,13 @@ function PyPlot.plot(C::ClimGrid; level=1, poly=[], start_date::Tuple=(Inf,), en
     timevec_str = string.(timevec)
     if length(timevec) >= 20
         nb_interval_tmp = length(timevec)/8
-        nb_int = roundup(nb_interval_tmp, 5)
+        nb_int = ClimateTools.roundup(nb_interval_tmp, 5)
     else
         nb_int = 1
     end
 
     # PLOTTING
-    figh = plot(1:length(timevec_str), average, lw=lw, label=label, linestyle=linestyle)
+    figh = PyPlot.plot(1:length(timevec_str), average, lw=lw, label=label, linestyle=linestyle)
     xticks(1:nb_int:length(timevec_str), timevec_str[1:nb_int:end], rotation=10)
     if !isempty(xlimit)
         xlim(xlimit[1], xlimit[2])
@@ -357,11 +353,11 @@ Returns an array for mapping purpose. Used internally by [`mapclimgrid`](@ref).
 """
 function timeavg(C, timebeg, timeend, mask, poly, level)
 
-    data2 = Array{Float64}(undef, size(C[1], 2), size(C[1], 3))
+    data2 = Array{Float64}(undef, size(C[1], 1), size(C[1], 2))
 
     if ndims(C[1]) == 3
 
-      data2 = Array(dropdims(Statistics.mean(C[1][:, :, timebeg:timeend], dims=3), dims=3)) #time mean
+      data2 = Array(dropdims(Statistics.mean(C[1][:, :, timebeg:timeend], dims=3), dims=3)) #time mean #time mean
 
       # TODO throw error/warning if no grid point inside polygon or mask
 

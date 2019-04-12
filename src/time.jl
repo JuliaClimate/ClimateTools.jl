@@ -107,7 +107,7 @@ Mean of array data over a given period.
 """
 function periodmean(C::ClimGrid; start_date::Tuple=(Inf, ), end_date::Tuple=(Inf,))
 
-    if start_date == (Inf, )
+    if start_date != (Inf, )
         timevec = get_timevec(C)
         # Get time resolution
         rez = C.frequency
@@ -118,24 +118,13 @@ function periodmean(C::ClimGrid; start_date::Tuple=(Inf, ), end_date::Tuple=(Inf
             start_date = (Dates.year(timevec[1]), Dates.month(timevec[1]), Dates.day(timevec[1]), Dates.hour(timevec[1]), Dates.minute(timevec[1]), Dates.second(timevec[1]))
             end_date = (Dates.year(timevec[end]), Dates.month(timevec[end]), Dates.day(timevec[end]), Dates.hour(timevec[end]), Dates.minute(timevec[end]), Dates.second(timevec[end]))
         end
+        C = temporalsubset(C, start_date, end_date)
     end
-    Csubset = temporalsubset(C, start_date, end_date)
-    datain   = Csubset.data.data
 
-    # un = unit(datain[1])
+    datain = C.data.data
 
     # Mean and squeeze
-    dataout = Array{typeof(datain[1])}(undef, size(datain, 1), size(datain, 2))
-    dataout_rshp = reshape(dataout, (size(dataout, 1)*size(dataout, 2)))
-    datain_rshp = reshape(datain, (size(datain, 1)*size(datain, 2), size(datain, 3)))
-
-    Threads.@threads for k = 1:size(datain_rshp, 1)
-        datatmp =datain_rshp[k, :]
-        dataout_rshp[k] = Statistics.mean(datatmp[.!isnan.(datatmp)])
-    end
-
-    # # Add units
-    # dataout = [dataout][1]un
+    dataout = dropdims(Images.meanfinite(datain, 3), dims=3)   
 
     # Build output AxisArray
     FD = buildarray_climato(C, dataout)
@@ -536,3 +525,45 @@ Simultaneously return the year, month, day and hour parts of `dt`.
 Author: Alexander-Barth (Github)
 """
 yearmonthdayhour(dt::DT) where DT <: Dates.TimeType = (Dates.year(dt),Dates.month(dt), Dates.day(dt), Dates.hour(dt))
+
+
+"""
+    timemean(C::ClimGrid; skipnan=false)
+
+Returns the time average of ClimGrid C for each grid-points.
+"""
+function timemean(C::ClimGrid; skipnan=false)
+
+
+
+    if ndims(C[1]) == 3
+
+        # Data in
+        datain = C[1]
+
+        # Array out
+        dataout = similar(Array{typeof(C[1][1,1,1])}, size(C[1], 1), size(C[1], 2))
+
+        # Reshape
+        datain_rshp = reshape(datain, size(datain,1)*size(datain, 2), size(datain,3))
+        dataout_rshp = reshape(dataout, size(dataout,1)*size(dataout, 2))
+
+
+        for k = 1:length(dataout_rshp)
+            if skipnan
+                dataout_rshp[k] = NaNMath.mean(datain_rshp[k, :])
+            else
+                dataout_rshp[k] = Statistics.mean(datain_rshp[k, :])
+            end
+        end
+
+    elseif ndims(C[1]) == 4
+        # TODO needs to do for 4D grids
+        nt = size(C[1], 4)
+    else
+        error("Dimensions of ClimGrid is not 3- or 4-D")
+    end
+
+    return dataout
+
+end
