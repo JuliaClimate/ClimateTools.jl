@@ -107,24 +107,35 @@ Mean of array data over a given period.
 """
 function periodmean(C::ClimGrid; start_date::Tuple=(Inf, ), end_date::Tuple=(Inf,))
 
-    if start_date != (Inf, )
+    if start_date == (Inf, )
         timevec = get_timevec(C)
         # Get time resolution
         rez = C.frequency
         if rez == "year"
             start_date = (Dates.year(timevec[1]), )
-            end_date = (Dates.year(timevec[end]), )
         else
             start_date = (Dates.year(timevec[1]), Dates.month(timevec[1]), Dates.day(timevec[1]), Dates.hour(timevec[1]), Dates.minute(timevec[1]), Dates.second(timevec[1]))
+        end
+    end
+
+    if end_date == (Inf, )
+        timevec = get_timevec(C)
+        # Get time resolution
+        rez = C.frequency
+        if rez == "year"
+            end_date = (Dates.year(timevec[end]), )
+        else
             end_date = (Dates.year(timevec[end]), Dates.month(timevec[end]), Dates.day(timevec[end]), Dates.hour(timevec[end]), Dates.minute(timevec[end]), Dates.second(timevec[end]))
         end
+    end
+    if start_date != (Inf,) || end_date != (Inf,)
         C = temporalsubset(C, start_date, end_date)
     end
 
     datain = C.data.data
 
     # Mean and squeeze
-    dataout = dropdims(Images.meanfinite(datain, 3), dims=3)   
+    dataout = dropdims(Images.meanfinite(datain, 3), dims=3)
 
     # Build output AxisArray
     FD = buildarray_climato(C, dataout)
