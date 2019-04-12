@@ -265,7 +265,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     data .-= 273.15
     dataunits = "°C"
     varattrib["units"] = "Celsius"
-    @warn "Using Celsius can be problematic for arithmetic operations. Best practice is to keep Kelvin and only convert to Celsius at the end with the overloaded ClimateTools.uconvert function."
+    # @warn "Using Celsius can be problematic for arithmetic operations. Best practice is to keep Kelvin and only convert to Celsius at the end with the overloaded ClimateTools.uconvert function."
   end
 
   if data_units == "mm" && vari == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")
@@ -404,7 +404,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
         latgrid = NetCDF.ncread(file, latgrid_name)
         longrid = NetCDF.ncread(file, longrid_name)
-        
+
         if ClimateTools.@isdefined varattrib["grid_mapping"]
             map_dim = varattrib["grid_mapping"]
             map_attrib = Dict(ds[map_dim].attrib)
