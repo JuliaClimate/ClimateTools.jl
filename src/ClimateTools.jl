@@ -14,6 +14,7 @@ using ArgCheck
 using PyCall
 using PyPlot
 using Interpolations
+using Images
 using ProgressMeter
 using Polynomials
 using IterTools
@@ -203,7 +204,7 @@ export merge, vaporpressure, approx_surfacepressure
 export wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
 export get_timevec, daymean, daysum
-export monthmean, monthsum
+export monthmean, monthsum, temporalmean
 export yearmonthdayhour
 export write
 
