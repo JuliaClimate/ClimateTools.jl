@@ -230,7 +230,7 @@ function drought_dc(pr::ClimGrid, tas::ClimGrid)
 
         dataoutin[k, :] = drought_dc(prvec, tasvec, timevec)
 
-        println(k)
+        # println(k)
 
     end
 
@@ -244,10 +244,7 @@ function drought_dc(pr::ClimGrid, tas::ClimGrid)
     axisarray = buildarrayinterface(dataout, pr)
 
     # Build ClimGrid
-    return ClimGrid(axisarray, longrid=pr.longrid, latgrid=pr.latgrid, msk=pr.msk, grid_mapping=pr.grid_mapping, dimension_dict=pr.dimension_dict, timeattrib=pr.timeattrib, model=pr.model, frequency=pr.frequency, experiment=pr.experiment, run=pr.run, project=pr.project, institute=pr.institute, filename=pr.filename, dataunits=pr.dataunits, latunits=pr.latunits, lonunits=pr.lonunits, variable="dc", typeofvar="dc", typeofcal=pr.typeofcal, varattribs=dc_dict, globalattribs=pr.globalattribs)
-
-
-
+    return ClimGrid(axisarray, longrid=pr.longrid, latgrid=pr.latgrid, msk=pr.msk, grid_mapping=pr.grid_mapping, dimension_dict=pr.dimension_dict, timeattrib=pr.timeattrib, model=pr.model, frequency=pr.frequency, experiment=pr.experiment, run=pr.run, project=pr.project, institute=pr.institute, filename=pr.filename, dataunits="", latunits=pr.latunits, lonunits=pr.lonunits, variable="dc", typeofvar="dc", typeofcal=pr.typeofcal, varattribs=dc_dict, globalattribs=pr.globalattribs)
 
 end
 
@@ -260,7 +257,7 @@ Reference: Wang et al. 2015. Updated source code for calculating fire danger ind
 """
 function drought_dc(prvec::Array{N,1} where N, tasvec::Array{N,1} where N, timevec)
 
-    dc₀ = 15.0 # initial drought code value for each year
+    dc0 = 15.0 # initial drought code value for each year
 
     years    = Dates.year.(timevec)
     numYears = unique(years)
@@ -276,15 +273,21 @@ function drought_dc(prvec::Array{N,1} where N, tasvec::Array{N,1} where N, timev
 
         nanfrac = sum(idx_tas)#/length(idx_tas)
 
-        if nanfrac >= 1
+        if nanfrac >= 3 # need a start and end to the season
 
-            # idx_tas = findall(x -> x >= 6.0, tasvec[idx])
-            idx_start, idx_end = ((findall((diff(idx_tas) .- 1) .== 0) .+ 1)[2],  (findall((diff(idx_tas) .- 1) .== 0) .+ 1)[end])
-            #(findall((diff(idx_tas) .- 1) .== 0) .+ 1)[2]
+            cum_ = cumsum(idx_tas)
+            cum_2 = (cum_[1+3:end] - cum_[1:end-3]) .== 3
+
+            idx_start = findfirst(cum_2)
+            idx_end = findlast(cum_2)
+
+            # # idx_tas = findall(x -> x >= 6.0, tasvec[idx])
+            # idx_start, idx_end = ((findall((diff(idx_tas) .- 1) .== 0) .+ 1)[2],  (findall((diff(idx_tas) .- 1) .== 0) .+ 1)[end])
+            # #(findall((diff(idx_tas) .- 1) .== 0) .+ 1)[2]
 
             # dates_tuple = Dates.yearmonthday.(timevec[idx])
 
-            dc[idx_start] = dc₀ # initialize drought code
+            dc[idx_start] = dc0 # initialize drought code
 
             for iday = idx_start:idx_end#length(dates_tuple)
 
@@ -295,11 +298,11 @@ function drought_dc(prvec::Array{N,1} where N, tasvec::Array{N,1} where N, timev
 
                 mth = Dates.month(timevec[iday])
 
-                dc[iday] = dc[iday] + drought_dc(pr_day, tas_day, dc[iday], mth)
+                dc[iday] = drought_dc(pr_day, tas_day, dc[iday], mth)
 
                 dc[iday + 1] = dc[iday]
 
-                println(iday)
+                # println(iday)
 
 
             end
@@ -317,6 +320,7 @@ function drought_dc(pr_day::Real, tas_day::Real, dc0::Real, mth::Int)
 
     # Months constant
     fl = [-1.6, -1.6, -1.6, 0.9, 3.8, 5.8, 6.4, 5.0, 2.4, 0.4, -1.6, -1.6]
+    dc_single = NaN # initialize
 
     if tas_day < -2.8
         tas_day = -2.8
@@ -330,21 +334,21 @@ function drought_dc(pr_day::Real, tas_day::Real, dc0::Real, mth::Int)
 
     if pr_day > 2.8
         rw = 0.83*pr_day - 1.27
-        smi = 800.0*exp(-dc₀/400.0)
+        smi = 800.0*exp(-dc0/400.0)
         if smi == 0.0
             smi = 1.0
         end
         dr = dc0 - 400.0*log(1.0+((3.937*rw/smi)))
 
         if dr > 0.0
-            dc = dr + pe
+            dc_single = dr + pe
         end
 
     elseif pr_day <= 2.8
-        dc = dc0 + pe
+        dc_single = dc0 + pe
     end
 
-    return dc
+    return dc_single
 
 
 end
