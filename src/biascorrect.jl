@@ -48,26 +48,34 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
         fut = fut - poly_values
     end
 
+    obs = ClimateTools.dropfeb29(obs)
+    ref = ClimateTools.dropfeb29(ref)
+    fut = ClimateTools.dropfeb29(fut)
+
     #Get date vectors
     datevec_obs = get_timevec(obs)
     datevec_ref = get_timevec(ref)
     datevec_fut = get_timevec(fut)
 
-    # Modify dates (e.g. 29th feb are dropped/lost by default)
-    # TODO simplify corrjuliandays. Unneccessary calls
-    ~, ~, datevec_obs2 = ClimateTools.corrjuliandays(obs[1][1,1,:].data, datevec_obs)
-    ~, ref_jul, ~ = ClimateTools.corrjuliandays(ref[1][1,1,:].data, datevec_ref)
-    futvec2, ~, datevec_fut2 = ClimateTools.corrjuliandays(fut[1][1,1,:].data, datevec_fut)
+    obs_jul = Dates.dayofyear.(datevec_obs)
+    ref_jul = Dates.dayofyear.(datevec_ref)
+    fut_jul = Dates.dayofyear.(datevec_fut)
+
+    # # Modify dates (e.g. 29th feb are dropped/lost by default)
+    # # TODO simplify corrjuliandays. Unneccessary calls
+    # ~, ~, datevec_obs2 = ClimateTools.corrjuliandays(obs[1][1,1,:].data, datevec_obs)
+    # ~, ref_jul, ~ = ClimateTools.corrjuliandays(ref[1][1,1,:].data, datevec_ref)
+    # futvec2, ~, datevec_fut2 = ClimateTools.corrjuliandays(fut[1][1,1,:].data, datevec_fut)
 
     # Prepare output array (replicating data type of fut ClimGrid)
-    dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1],2), size(futvec2, 1)))::Array{typeof(fut[1].data[1]), T} where T
+    dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1],2), size(fut[1], 3)))::Array{typeof(fut[1].data[1]), T} where T
 
     if minimum(ref_jul) == 1 && maximum(ref_jul) == 365
         days = 1:365
     else
         days = minimum(ref_jul)+window:maximum(ref_jul)-window
-        start = Dates.monthday(minimum(datevec_obs2))
-        finish = Dates.monthday(maximum(datevec_obs2))
+        start = Dates.monthday(minimum(datevec_obs))
+        finish = Dates.monthday(maximum(datevec_obs))
     end
 
     # Reshape. Allows multi-threading on grid points.
@@ -93,7 +101,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     # Apply mask
     dataout = applymask(dataout, obs.msk)
 
-    dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}][:]), Axis{latsymbol}(fut[1][Axis{latsymbol}][:]),Axis{:time}(datevec_fut2))
+    dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}][:]), Axis{latsymbol}(fut[1][Axis{latsymbol}][:]),Axis{:time}(datevec_fut))
 
     C = ClimGrid(dataout2; longrid=fut.longrid, latgrid=fut.latgrid, msk=fut.msk, grid_mapping=fut.grid_mapping, dimension_dict=fut.dimension_dict, timeattrib=fut.timeattrib, model=fut.model, frequency=fut.frequency, experiment=fut.experiment, run=fut.run, project=fut.project, institute=fut.institute, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal=fut.typeofcal, varattribs=fut.varattribs, globalattribs=fut.globalattribs)
 
