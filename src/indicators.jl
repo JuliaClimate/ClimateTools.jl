@@ -187,7 +187,7 @@ function meantemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimG
 end
 
 """
-    drought_dc(pr::ClimGrid, tas::Climgrid)
+drought_dc(pr::ClimGrid, tas::Climgrid)
 
 Returns the drought index. The index is defined as a function of daily temperature and daily precipitation. This indice correspond to the DC indice in Wang et al. 2015.
 
@@ -222,8 +222,8 @@ function drought_dc(pr::ClimGrid, tas::ClimGrid)
     dataoutin = reshape(dataout, (size(dataout, 1)*size(dataout, 2), size(dataout, 3)))
 
     # Looping over grid points using multiple-dispatch calls to qqmap
-    # Threads.@threads for k = 1:size(prin, 1)
-    for k = 1:size(prin, 1)
+    Threads.@threads for k = 1:size(prin, 1)
+    # for k = 1:size(prin, 1)
 
         prvec = prin[k,:]
         tasvec = tasin[k,:]
@@ -249,7 +249,7 @@ function drought_dc(pr::ClimGrid, tas::ClimGrid)
 end
 
 """
-    drought_dc(prvec::Array{N,1}, tasvec::Array{N,1}, timevec)
+drought_dc(prvec::Array{N,1}, tasvec::Array{N,1}, timevec)
 
 Returns the drought index. The index is defined as a function of daily temperature and daily precipitation. This indice correspond to the DC indice in Wang et al. 2015.
 
@@ -278,37 +278,38 @@ function drought_dc(prvec::Array{N,1} where N, tasvec::Array{N,1} where N, timev
             cum_ = cumsum(idx_tas)
             cum_2 = (cum_[1+3:end] - cum_[1:end-3]) .== 3
 
-            idx_start = findfirst(cum_2)
-            idx_end = findlast(cum_2)
+            if sum(cum_2) >= 2
 
-            # # idx_tas = findall(x -> x >= 6.0, tasvec[idx])
-            # idx_start, idx_end = ((findall((diff(idx_tas) .- 1) .== 0) .+ 1)[2],  (findall((diff(idx_tas) .- 1) .== 0) .+ 1)[end])
-            # #(findall((diff(idx_tas) .- 1) .== 0) .+ 1)[2]
+                idx_start = findfirst(cum_2)
+                idx_end = findlast(cum_2)
 
-            # dates_tuple = Dates.yearmonthday.(timevec[idx])
+                # # idx_tas = findall(x -> x >= 6.0, tasvec[idx])
+                # idx_start, idx_end = ((findall((diff(idx_tas) .- 1) .== 0) .+ 1)[2],  (findall((diff(idx_tas) .- 1) .== 0) .+ 1)[end])
+                # #(findall((diff(idx_tas) .- 1) .== 0) .+ 1)[2]
 
-            dc[idx_start] = dc0 # initialize drought code
+                # dates_tuple = Dates.yearmonthday.(timevec[idx])
 
-            for iday = idx_start:idx_end#length(dates_tuple)
+                dc[idx_start] = dc0 # initialize drought code
 
-                pr_day = prvec[iday]
-                tas_day = tasvec[iday]
+                for iday = idx_start:idx_end#length(dates_tuple)
 
-                # dc₀_temp = dc[iday-1]
+                    pr_day = prvec[iday]
+                    tas_day = tasvec[iday]
 
-                mth = Dates.month(timevec[iday])
+                    # dc₀_temp = dc[iday-1]
 
-                dc[iday] = drought_dc(pr_day, tas_day, dc[iday], mth)
+                    mth = Dates.month(timevec[iday])
 
-                dc[iday + 1] = dc[iday]
+                    dc[iday] = drought_dc(pr_day, tas_day, dc[iday], mth)
 
-                # println(iday)
+                    dc[iday + 1] = dc[iday]
+
+                    # println(iday)
 
 
+                end
             end
-
         end
-
 
     end
 
