@@ -249,7 +249,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   # Replace missing with NaN
   # replace_missing!(data)
-  data = nomissing(data, NaN)
+  # data = nomissing(data, NaN)
   # data = convert(data, Float32)
 
   # # # Replace fillvalues with NaN
