@@ -139,7 +139,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     #Extract data based on mask
     data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
     replace_missing!(data_ext)
-    convert!(data_ext, Float32)
+    data_ext = convert(data_ext, Float32)
 
     #new mask (e.g. representing the region of the polygon)
     # idlon, idlat = findn(.!isnan.(msk))
@@ -232,7 +232,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
       msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
       data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
       replace_missing!(data_ext)
-      convert!(data_ext, Float32)
+      data_ext = convert(data_ext, Float32)
 
     if rotatedgrid
 
@@ -247,7 +247,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   # Replace missing with NaN
   replace_missing!(data)
-  convert!(data, Float32)
+  data = convert(data, Float32)
 
   # # # Replace fillvalues with NaN
   # fillval = NetCDF.ncgetatt(file, vari, "_FillValue")
@@ -457,7 +457,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
       #Extract data based on mask
       data_ext = ClimateTools.extractdata2D(data_pointer, msk)
       replace_missing!(data_ext)
-      convert!(data_ext, Float32)
+      data_ext = convert(data_ext, Float32)
 
       begin
         I = Base.findall(!isnan, msk)
@@ -549,7 +549,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
         msk = Array{Float64}(ones((size(data_pointer, 1), size(data_pointer, 2))))
         data_ext = extractdata2D(data_pointer, msk)
         replace_missing!(data_ext)
-        convert!(data_ext, Float32)
+        data_ext = convert(data_ext, Float32)
 
       if rotatedgrid
           # Flip data "west-east"

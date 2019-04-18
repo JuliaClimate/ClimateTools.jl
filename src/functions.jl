@@ -853,7 +853,8 @@ function convert!(A::AbstractArray, T)
 
     # Convert
     # T = typeof(A[1])
-    A = Array{T}(A)
+    B = Array{T}(A)
+    return B
 
 end
 
