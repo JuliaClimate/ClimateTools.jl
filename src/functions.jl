@@ -849,11 +849,12 @@ end
 
 Convert the array A to a single type, removing the missing union.
 """
-function convert!(A::AbstractArray)
+function convert!(A::AbstractArray, T)
 
     # Convert
-    T = typeof(A[1])
-    A = Array{T}(A)
+    # T = typeof(A[1])
+    B = Array{T}(A)
+    return B
 
 end
 
