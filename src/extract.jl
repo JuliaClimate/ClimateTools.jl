@@ -439,7 +439,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
     # ===================
     # GET DATA
     # data = ds[variable]
-    data_pointer = NetCDF.open(file, vari)
+    data_pointer = ds[vari]#NetCDF.open(file, vari)
     if !isempty(poly)
 
       # Test to see if the polygon crosses the meridian
@@ -523,7 +523,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
               #     data = applymask(data, msk)
 
           else
-            data_final = data_mask
+            data = data_mask
           end
 
       else
@@ -541,11 +541,11 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
               lon_raw_flip = shiftvector_180_east_west(lon_raw)
 
-              data_final = permute_west_east(data_mask, longrid)#idxwest, idxeast)
+              data = permute_west_east(data_mask, longrid)#idxwest, idxeast)
               msk = ClimateTools.permute_west_east(msk, longrid)
 
           else
-            data_final = data_mask
+            data = data_mask
           end
       end
 
@@ -558,17 +558,17 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
       if rotatedgrid
           # Flip data "west-east"
-          data_final = permute_west_east(data_ext, longrid)
+          data = permute_west_east(data_ext, longrid)
       else
-        data_final = data_ext
+        data = data_ext
       end
 
     end
 
-    # # Replace fillvalues with NaN
-    fillval = NetCDF.ncgetatt(file, vari, "_FillValue")
-    data_final[data_final .== fillval] .= NaN
-    data = data_final
+    # # # Replace fillvalues with NaN
+    # fillval = NetCDF.ncgetatt(file, vari, "_FillValue")
+    # data_final[data_final .== fillval] .= NaN
+    # data = data_final
 
     if rotatedgrid
         longrid = longrid_flip
