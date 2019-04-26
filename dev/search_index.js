@@ -245,7 +245,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.approx_surfacepressure",
     "category": "function",
-    "text": "  approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the approximated surface pressure (sp) (Pa) using sea level pressure (psl) (Pa), orography (orog) (m), and daily mean temperature (tas) (K).\n\nsp = psl * 10^x\n\nwhere x = frac-orog18400 * tas  27315\n\n\n\n\n\n"
+    "text": "approxsurfacepressure(sealevelpressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the approximated surface pressure (sp) (Pa) using sea level pressure (psl) (Pa), orography (orog) (m), and daily mean temperature (tas) (K).\n\nsp = psl * 10^x\n\nwhere x = frac-orog18400 * tas  27315\n\n\n\n\n\n"
 },
 
 {
@@ -317,7 +317,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.vaporpressure",
     "category": "function",
-    "text": "vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).\n\nvp = fracq * spq+0622\n\n\n\n\n\nvaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) estimated with the specific humidity (q), the sea level pressure (psl) (Pa), the orography (orog) (m) and the daily mean temperature (tas) (K). An approximation of the surface pressure is first computed by using the sea level pressure, orography and the daily mean temperature (see approx_surfacepressure). Then, vapor pressure is calculated by:\n\nvp = fracq * spq+0622\n\n\n\n\n\n"
+    "text": "vaporpressure(surfacepressure::ClimGrid, specifichumidity::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).\n\nvp = fracq * spq+0622\n\n\n\n\n\nvaporpressure(specifichumidity::ClimGrid, sealevelpressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) estimated with the specific humidity (q), the sea level pressure (psl) (Pa), the orography (orog) (m) and the daily mean temperature (tas) (K). An approximation of the surface pressure is first computed by using the sea level pressure, orography and the daily mean temperature (see approx_surfacepressure). Then, vapor pressure is calculated by:\n\nvp = fracq * spq+0622\n\n\n\n\n\n"
 },
 
 {
@@ -325,7 +325,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Climate Indices",
     "title": "ClimateTools.wbgt",
     "category": "function",
-    "text": "wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)\n\nReturns the simplified wet-bulb global temperature (wbgt) (Celsius) calculated using the vapor pressure (Pa) of the day and the estimated mean diurnal temperature (Celsius; temperature between 7:00 (7am) and 17:00 (5pm)).\n\nwbgt = 0567 * Tday + 000393 * vp + 394\n\n\n\n\n\n"
+    "text": "wbgt(diurnaltemperature::ClimGrid, vaporpressure::ClimGrid)\n\nReturns the simplified wet-bulb global temperature (wbgt) (Celsius) calculated using the vapor pressure (Pa) of the day and the estimated mean diurnal temperature (Celsius; temperature between 7:00 (7am) and 17:00 (5pm)).\n\nwbgt = 0567 * Tday + 000393 * vp + 394\n\n\n\n\n\n"
 },
 
 {
@@ -637,7 +637,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.approx_surfacepressure",
     "category": "method",
-    "text": "  approx_surfacepressure(sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the approximated surface pressure (sp) (Pa) using sea level pressure (psl) (Pa), orography (orog) (m), and daily mean temperature (tas) (K).\n\nsp = psl * 10^x\n\nwhere x = frac-orog18400 * tas  27315\n\n\n\n\n\n"
+    "text": "approxsurfacepressure(sealevelpressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the approximated surface pressure (sp) (Pa) using sea level pressure (psl) (Pa), orography (orog) (m), and daily mean temperature (tas) (K).\n\nsp = psl * 10^x\n\nwhere x = frac-orog18400 * tas  27315\n\n\n\n\n\n"
 },
 
 {
@@ -678,6 +678,22 @@ var documenterSearchIndex = {"docs": [
     "title": "ClimateTools.diurnaltemperature",
     "category": "method",
     "text": "diurnaltemperature(temperatureminimum::ClimGrid, temperaturemaximum::ClimGrid, α::Float64)\n\nReturns an estimation of the diurnal temperature (temperature between 7:00 (7am) and 17:00 (5pm)). The estimation is a linear combination of the daily minimum temperature (temperatureminimum) and daily maximum temperature (temperaturemaximum). The value of α has to be estimated seperatly from observations and depends on the location. The daily max and min must be in the same unit and in Celsius or Kelvin The diurnal temperature returned is in the same units as the daily minimum temperature and daily maximum temperature.\n\nTdiu = α * Tmin + (1 - α) * Tmax\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions/#ClimateTools.drought_dc-Tuple{Array{N,1} where N,Array{N,1} where N,Any}",
+    "page": "Index",
+    "title": "ClimateTools.drought_dc",
+    "category": "method",
+    "text": "drought_dc(prvec::Array{N,1}, tasvec::Array{N,1}, timevec)\n\nReturns the drought index. The index is defined as a function of daily temperature and daily precipitation. This indice correspond to the DC indice in Wang et al. 2015.\n\nReference: Wang et al. 2015. Updated source code for calculating fire danger indices in the Canadian Forest Fire Weather Index System. Information Report NOR-X-424. Canadian Forst Service. 36pp.\n\n\n\n\n\n"
+},
+
+{
+    "location": "functions/#ClimateTools.drought_dc-Tuple{ClimGrid,ClimGrid}",
+    "page": "Index",
+    "title": "ClimateTools.drought_dc",
+    "category": "method",
+    "text": "drought_dc(pr::ClimGrid, tas::Climgrid)\n\nReturns the drought index. The index is defined as a function of daily temperature and daily precipitation. This indice correspond to the DC indice in Wang et al. 2015.\n\nReference: Wang et al. 2015. Updated source code for calculating fire danger indices in the Canadian Forest Fire Weather Index System. Information Report NOR-X-424. Canadian Forst Service. 36pp.\n\n\n\n\n\n"
 },
 
 {
@@ -989,7 +1005,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.vaporpressure",
     "category": "method",
-    "text": "vaporpressure(specific_humidity::ClimGrid, sealevel_pressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) estimated with the specific humidity (q), the sea level pressure (psl) (Pa), the orography (orog) (m) and the daily mean temperature (tas) (K). An approximation of the surface pressure is first computed by using the sea level pressure, orography and the daily mean temperature (see approx_surfacepressure). Then, vapor pressure is calculated by:\n\nvp = fracq * spq+0622\n\n\n\n\n\n"
+    "text": "vaporpressure(specifichumidity::ClimGrid, sealevelpressure::ClimGrid, orography::ClimGrid, daily_temperature::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) estimated with the specific humidity (q), the sea level pressure (psl) (Pa), the orography (orog) (m) and the daily mean temperature (tas) (K). An approximation of the surface pressure is first computed by using the sea level pressure, orography and the daily mean temperature (see approx_surfacepressure). Then, vapor pressure is calculated by:\n\nvp = fracq * spq+0622\n\n\n\n\n\n"
 },
 
 {
@@ -997,7 +1013,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.vaporpressure",
     "category": "method",
-    "text": "vaporpressure(surface_pressure::ClimGrid, specific_humidity::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).\n\nvp = fracq * spq+0622\n\n\n\n\n\n"
+    "text": "vaporpressure(surfacepressure::ClimGrid, specifichumidity::ClimGrid)\n\nReturns the vapor pressure (vp) (Pa) based on the surface pressure (sp) (Pa) and the specific humidity (q).\n\nvp = fracq * spq+0622\n\n\n\n\n\n"
 },
 
 {
@@ -1005,7 +1021,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.wbgt",
     "category": "method",
-    "text": "wbgt(diurnal_temperature::ClimGrid, vapor_pressure::ClimGrid)\n\nReturns the simplified wet-bulb global temperature (wbgt) (Celsius) calculated using the vapor pressure (Pa) of the day and the estimated mean diurnal temperature (Celsius; temperature between 7:00 (7am) and 17:00 (5pm)).\n\nwbgt = 0567 * Tday + 000393 * vp + 394\n\n\n\n\n\n"
+    "text": "wbgt(diurnaltemperature::ClimGrid, vaporpressure::ClimGrid)\n\nReturns the simplified wet-bulb global temperature (wbgt) (Celsius) calculated using the vapor pressure (Pa) of the day and the estimated mean diurnal temperature (Celsius; temperature between 7:00 (7am) and 17:00 (5pm)).\n\nwbgt = 0567 * Tday + 000393 * vp + 394\n\n\n\n\n\n"
 },
 
 {
