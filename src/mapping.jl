@@ -208,7 +208,7 @@ end
 
 Plots the spatial average timeserie of ClimGrid `C`.
 """
-function PyPlot.plot(C::ClimGrid; level=1, poly=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", gridfig::Bool=true, label::String="", lw=1.5, linestyle="-", xlimit=[], ylimit=[])
+function PyPlot.plot(C::ClimGrid; level=1, poly=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", gridfig::Bool=true, label::String="", lw=1.5, linestyle="-", xlimit=[], ylimit=[], filename::String="")
 
     if !isempty(poly)
         C = spatialsubset(C, poly)
@@ -274,6 +274,11 @@ function PyPlot.plot(C::ClimGrid; level=1, poly=[], start_date::Tuple=(Inf,), en
     title(titlestr)
     if gridfig
         grid(true)
+    end
+
+    # Save to "filename" if not empty
+    if !isempty(filename)
+        PyPlot.savefig(filename, dpi=300)
     end
 
     return true, figh
