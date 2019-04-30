@@ -731,14 +731,16 @@ end
 Returns an array of the polynomials functions of each grid points contained in ClimGrid C.
 """
 function polyfit(C::ClimGrid)
+
     x = 1:length(C[1][Axis{:time}][:])
-    dataout = Array{Polynomials.Poly{Float64}}(undef, size(C[1], 1),size(C[1], 2))
+    dataout = Array{Polynomials.Poly{typeof(C[1][1,1,1])}}(undef, size(C[1], 1),size(C[1], 2))
 
     # Reshaping for multi-threads
     datain_rshp = reshape(C[1].data, size(C[1].data,1)*size(C[1].data,2), size(C[1].data,3))
     dataout_rshp = reshape(dataout, size(dataout,1)*size(dataout,2),size(dataout,3))
 
-    Threads.@threads for k = 1:size(datain_rshp,1)
+    # Threads.@threads for k = 1:size(datain_rshp,1)
+    for k = 1:size(datain_rshp,1)
         y = datain_rshp[k,:]
         polynomial = Polynomials.polyfit(x, y, 4)
         polynomial[0] = 0.0
@@ -746,16 +748,6 @@ function polyfit(C::ClimGrid)
 
     end
 
-
-
-    # for k = 1:size(C[1], 2)
-    #     Threads.@threads for j = 1:size(C[1], 1)
-    #         y = C[1][j , k, :].data
-    #         polynomial = Polynomials.polyfit(x, y, 4)
-    #         polynomial[0] = 0.0
-    #         dataout[j,k] = polynomial
-    #     end
-    # end
     return dataout
 end
 
@@ -764,27 +756,20 @@ end
 
     Returns a ClimGrid containing the values, as estimated from polynomial function polyn.
 """
-function polyval(C::ClimGrid, polynomial::Array{Poly{Float64},2})
+function polyval(C::ClimGrid, polynomial::Array{Poly{N},2} where N)
     datain = C[1].data
-    dataout = fill(NaN, (size(C[1], 1), size(C[1],2), size(C[1], 3)))::Array{N, T} where N where T
+    dataout = Array{typeof(C[1][1,1,1])}(undef, (size(C[1], 1), size(C[1],2), size(C[1], 3)))
 
     # Reshape
     datain_rshp = reshape(datain, size(datain,1)*size(datain,2),size(datain,3))
     dataout_rshp = reshape(dataout, size(dataout,1)*size(dataout,2),size(dataout,3))
     polynomial_rshp = reshape(polynomial, size(polynomial,1)*size(polynomial,2))
 
-    Threads.@threads for k = 1:size(datain_rshp,1)
+    # Threads.@threads for k = 1:size(datain_rshp,1)
+    for k = 1:size(datain_rshp,1)
         val = polynomial_rshp[k](datain_rshp[k,:])
         dataout_rshp[k,:] = val
     end
-
-    #
-    # for k = 1:size(C[1], 2)
-    #     Threads.@threads for j = 1:size(C[1], 1)
-    #         val = polynomial[j,k](datain[j,k,:])
-    #         dataout[j,k,:] = val
-    #     end
-    # end
 
     dataout2 = buildarrayinterface(dataout, C)
 
