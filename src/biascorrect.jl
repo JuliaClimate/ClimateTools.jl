@@ -22,50 +22,41 @@ The quantile-quantile transfer function between **ref** and **obs** is etimated 
 **interp = Interpolations.Linear() (default)**. When the data to be corrected lies between 2 quantile bins, the value of the transfer function is linearly interpolated between the 2 closest quantile estimation. The argument is from Interpolations.jl package.
 
 **extrap = Interpolations.Flat() (default)**. The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no "inflation problem" with the bias correction. The argument is from Interpolation.jl package.
-
 """
 function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
-    # Remove trend if specified
 
     # Consistency checks # TODO add more checks for grid definition
     @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
     @argcheck size(obs[1], 2) == size(ref[1], 2) == size(fut[1], 2)
 
+    # Modify dates (e.g. 29th feb are dropped/lost by default)
+    obs = ClimateTools.dropfeb29(obs)
+    ref = ClimateTools.dropfeb29(ref)
+    fut = ClimateTools.dropfeb29(fut)
 
+    # Remove trend if specified
     if detrend == true
         # Obs
-        obs = ClimateTools.dropfeb29(obs) # Removes 29th February
         obs_polynomials = ClimateTools.polyfit(obs)
         obs = obs - ClimateTools.polyval(obs, obs_polynomials)
         # Ref
-        ref = ClimateTools.dropfeb29(ref) # Removes 29th February
         ref_polynomials = ClimateTools.polyfit(ref)
         ref = ref - ClimateTools.polyval(ref, ref_polynomials)
         # Fut
-        fut = ClimateTools.dropfeb29(fut) # Removes 29th February
         fut_polynomials = ClimateTools.polyfit(fut)
         poly_values = ClimateTools.polyval(fut, fut_polynomials)
         fut = fut - poly_values
     end
-
-    obs = ClimateTools.dropfeb29(obs)
-    ref = ClimateTools.dropfeb29(ref)
-    fut = ClimateTools.dropfeb29(fut)
 
     #Get date vectors
     datevec_obs = get_timevec(obs)
     datevec_ref = get_timevec(ref)
     datevec_fut = get_timevec(fut)
 
+    # Julian days vectors
     obs_jul = Dates.dayofyear.(datevec_obs)
     ref_jul = Dates.dayofyear.(datevec_ref)
     fut_jul = Dates.dayofyear.(datevec_fut)
-
-    # # Modify dates (e.g. 29th feb are dropped/lost by default)
-    # # TODO simplify corrjuliandays. Unneccessary calls
-    # ~, ~, datevec_obs2 = ClimateTools.corrjuliandays(obs[1][1,1,:].data, datevec_obs)
-    # ~, ref_jul, ~ = ClimateTools.corrjuliandays(ref[1][1,1,:].data, datevec_ref)
-    # futvec2, ~, datevec_fut2 = ClimateTools.corrjuliandays(fut[1][1,1,:].data, datevec_fut)
 
     # Prepare output array (replicating data type of fut ClimGrid)
     dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1],2), size(fut[1], 3)))::Array{typeof(fut[1].data[1]), T} where T
@@ -95,11 +86,12 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
 
     end
 
-    lonsymbol = Symbol(fut.dimension_dict["lon"])
-    latsymbol = Symbol(fut.dimension_dict["lat"])
-
     # Apply mask
     dataout = applymask(dataout, obs.msk)
+
+    # Rebuilding ClimGrid
+    lonsymbol = Symbol(fut.dimension_dict["lon"])
+    latsymbol = Symbol(fut.dimension_dict["lat"])
 
     dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}][:]), Axis{latsymbol}(fut[1][Axis{latsymbol}][:]),Axis{:time}(datevec_fut))
 
@@ -127,11 +119,6 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
     refP = similar(refvec, length(P))
     sf_refP = similar(refvec, length(P))
 
-    # Get correct julian days (e.g. we can't have a mismatch of calendars between observed and models ref/fut. For instance, julian day 200 is not the same for a Standard calendar and a NoLeap calendar in a leap year)
-    # obsvec2, obs_jul, ~ = ClimateTools.corrjuliandays(obsvec, datevec_obs)
-    # refvec2, ref_jul, ~ = ClimateTools.corrjuliandays(refvec, datevec_ref)
-    # futvec2, fut_jul, ~ = ClimateTools.corrjuliandays(futvec, datevec_fut)
-
     # Prepare output array
     dataout = similar(futvec, (size(futvec)))
 
@@ -150,11 +137,15 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
         refval = refvec[idxref]# .+ eps(1.0)# values to use as reference for sim
         futval = futvec[idxfut]# .+ eps(1.0) # values to correct
 
-        if (sum(isnan.(obsval)) < (length(obsval) * thresnan)) & (sum(isnan.(refval)) < (length(refval) * thresnan)) & (sum(isnan.(futval)) < (length(futval) * thresnan))
+        obsvalnan = isnan.(obsval)
+        refvalnan = isnan.(refval)
+        futvalnan = isnan.(futval)
+
+        if (sum(obsvalnan) < (length(obsval) * thresnan)) & (sum(refvalnan) < (length(refval) * thresnan)) & (sum(futvalnan) < (length(futval) * thresnan))
 
             # Estimate quantiles for obs and ref for ijulian
-            quantile!(obsP, obsval[.!isnan.(obsval)], P, sorted=false)
-            quantile!(refP, refval[.!isnan.(refval)], P, sorted=false)
+            quantile!(obsP, obsval[.!obsvalnan], P, sorted=false)
+            quantile!(refP, refval[.!refvalnan], P, sorted=false)
 
             if lowercase(method) == "additive" # used for temperature
                 sf_refP .= obsP .- refP
@@ -163,7 +154,7 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
                 # dataout[idxfut] .= itp(futval) .+ futval
                 futval .= itp(futval) .+ futval
 
-                futval[isnan.(futval)] .= 0.0
+                futval[futvalnan] .= 0.0
 
             elseif lowercase(method) == "multiplicative" # used for precipitation
                 sf_refP .= obsP ./ refP
@@ -172,9 +163,8 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
                 itp = interpolate((refP,), sf_refP, Gridded(interp))
                 itp = extrapolate(itp, extrap) # add extrapolation
                 futval .= itp(futval) .* futval
-                # dataout[idxfut] .= itp(futval) .* futval
 
-                futval[isnan.(futval)] .= 0.0
+                futval[futvalnan] .= 0.0
 
             else
                 error("Wrong method")
