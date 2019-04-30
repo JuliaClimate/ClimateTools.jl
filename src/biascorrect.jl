@@ -91,7 +91,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
         refvec = refin[k,:]
         futvec = futin[k,:]
 
-        dataoutin[k, :] = qqmap(obsvec, refvec, futvec, days, datevec_obs, datevec_ref, datevec_fut, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+        dataoutin[k, :] = qqmap(obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
 
     end
 
@@ -119,7 +119,7 @@ end
 Quantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.
 
 """
-function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::Array{N,1} where N, days, datevec_obs, datevec_ref, datevec_fut; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
+function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::Array{N,1} where N, days, obs_jul, ref_jul, fut_jul; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
 
     # range over which quantiles are estimated
     P = range(0.01, stop=0.99, length=rankn)
@@ -128,12 +128,12 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
     sf_refP = similar(refvec, length(P))
 
     # Get correct julian days (e.g. we can't have a mismatch of calendars between observed and models ref/fut. For instance, julian day 200 is not the same for a Standard calendar and a NoLeap calendar in a leap year)
-    obsvec2, obs_jul, ~ = ClimateTools.corrjuliandays(obsvec, datevec_obs)
-    refvec2, ref_jul, ~ = ClimateTools.corrjuliandays(refvec, datevec_ref)
-    futvec2, fut_jul, ~ = ClimateTools.corrjuliandays(futvec, datevec_fut)
+    # obsvec2, obs_jul, ~ = ClimateTools.corrjuliandays(obsvec, datevec_obs)
+    # refvec2, ref_jul, ~ = ClimateTools.corrjuliandays(refvec, datevec_ref)
+    # futvec2, fut_jul, ~ = ClimateTools.corrjuliandays(futvec, datevec_fut)
 
     # Prepare output array
-    dataout = similar(futvec2, (size(futvec2)))
+    dataout = similar(futvec, (size(futvec)))
 
     # LOOP OVER ALL DAYS OF THE YEAR
     # TODO Define "days" instead of 1:365
@@ -146,9 +146,9 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
         idxobs = ClimateTools.find_julianday_idx(obs_jul, ijulian, window)
         idxref = ClimateTools.find_julianday_idx(ref_jul, ijulian, window)
 
-        obsval = obsvec2[idxobs]# .+ eps(1.0) # values to use as ground truth
-        refval = refvec2[idxref]# .+ eps(1.0)# values to use as reference for sim
-        futval = futvec2[idxfut]# .+ eps(1.0) # values to correct
+        obsval = obsvec[idxobs]# .+ eps(1.0) # values to use as ground truth
+        refval = refvec[idxref]# .+ eps(1.0)# values to use as reference for sim
+        futval = futvec[idxfut]# .+ eps(1.0) # values to correct
 
         if (sum(isnan.(obsval)) < (length(obsval) * thresnan)) & (sum(isnan.(refval)) < (length(refval) * thresnan)) & (sum(isnan.(futval)) < (length(futval) * thresnan))
 
