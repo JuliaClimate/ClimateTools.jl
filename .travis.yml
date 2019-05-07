@@ -1,7 +1,7 @@
 # Documentation: http://docs.travis-ci.com/user/languages/julia/
 language: julia
-# env:
-#  - CONDA_JL_VERSION=2
+env:
+ - CONDA_JL_VERSION=2
 os:
   - linux
 #  - osx
@@ -44,10 +44,10 @@ jobs:
 #script:
    #- julia --check-bounds=yes --color=yes --inline=no -e 'using Pkg; Pkg.clone(pwd()); Pkg.build("ClimateTools"); Pkg.test("ClimateTools"; coverage=true);'
 
-before_install:
-  #- test "x$TRAVIS_OS_NAME" = xosx -o "x$PYTHON" = xConda-python || (sudo apt-get -qq update && sudo apt-get install -y $PYTHON)
-  - (sudo apt-get -qq update && sudo apt-get install -y python python-pip && sudo pip install cmocean)
-  - julia -e 'ENV["PYTHON"]=""; using Pkg; Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.add("PyPlot"); Pkg.add("Conda"); using Conda; Conda.add_channel("anaconda"); Conda.update(); Conda.add("numpy"); Conda.add("scipy"); Conda.add("matplotlib"); Conda.add("basemap"); Conda.add("basemap-data-hires");'
+# before_install:
+#   #- test "x$TRAVIS_OS_NAME" = xosx -o "x$PYTHON" = xConda-python || (sudo apt-get -qq update && sudo apt-get install -y $PYTHON)
+#   - (sudo apt-get -qq update && sudo apt-get install -y python python-pip && sudo pip install cmocean)
+#   - julia -e 'ENV["PYTHON"]=""; using Pkg; Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.add("PyPlot"); Pkg.add("Conda"); using Conda; Conda.add_channel("anaconda"); Conda.update(); Conda.add("numpy"); Conda.add("scipy"); Conda.add("matplotlib"); Conda.add("basemap"); Conda.add("basemap-data-hires");'
   # - julia -e 'ENV["PYTHON"]="python3"; using Pkg; Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.add("PyPlot");'
 
 after_success:
