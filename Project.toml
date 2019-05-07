@@ -6,6 +6,7 @@ authors = ["Philippe Roy <borghor@yahoo.ca>"]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
 AxisArrays = "39de3d68-74b9-583c-8d2d-e117c070f3a9"
 BinDeps = "9e28174c-4ba2-5203-b857-d8d62c4213ee"
+Conda = "8f4d0f93-b110-5947-807f-2305c1781a2d"
 CondaBinDeps = "a9693cdc-2bc8-5703-a9cd-1da358117377"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
