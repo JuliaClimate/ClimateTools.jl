@@ -1,6 +1,7 @@
 name = "ClimateTools"
 uuid = "0faa6d14-7064-11e9-25eb-27769da2880d"
 authors = ["Philippe Roy <borghor@yahoo.ca>"]
+version = "0.14.0"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
