@@ -9,10 +9,13 @@ julia:
   - 0.7
   - 1.0
   - nightly
+
+coveralls: true
+codecov: true
 matrix:
-  - PYTHON=python  # python 2.7
+  #- PYTHON=python  # python 2.7
   #- PYTHON=python3 # python 3.5
-  #- PYTHON=Conda-python
+  - PYTHON=Conda-python
 matrix:
   allow_failures:
     - julia: nightly
@@ -22,6 +25,11 @@ matrix:
  #     - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 notifications:
   email: false
+#
+script: # the default script is equivalent to the following
+ - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+ - julia --project --color=yes --check-bounds=yes -e 'using Pkg; Pkg.instantiate(); Pkg.build(); Pkg.test( ; coverage=true)';
+
 jobs:
   include:
     - stage: "Documentation"
@@ -38,9 +46,9 @@ jobs:
 
 # before_install:
 #   #- test "x$TRAVIS_OS_NAME" = xosx -o "x$PYTHON" = xConda-python || (sudo apt-get -qq update && sudo apt-get install -y $PYTHON)
-#   - (sudo apt-get -qq update && sudo apt-get install -y python python-pip && sudo pip install matplotlib pyproj && sudo pip install && sudo pip install git+https://github.com/matplotlib/cmocean && sudo pip install scipy && sudo pip install https://github.com/matplotlib/basemap/archive/v1.0.7rel.tar.gz)
-#   - julia -e 'ENV["PYTHON"]="python"; using Pkg; Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.add("PyPlot"); Pkg.add("Conda"); using Conda; Conda.update(); Conda.add("matplotlib"); Conda.add("basemap==1.0.7");'
-  #- julia -e 'ENV["PYTHON"]="python3"; using Pkg; Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.add("PyPlot");'
+#   - (sudo apt-get -qq update && sudo apt-get install -y python python-pip && sudo pip install cmocean)
+#   - julia -e 'ENV["PYTHON"]=""; using Pkg; Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.add("PyPlot"); Pkg.add("Conda"); using Conda; Conda.add_channel("anaconda"); Conda.update(); Conda.add("numpy"); Conda.add("scipy"); Conda.add("matplotlib"); Conda.add("basemap"); Conda.add("basemap-data-hires");'
+  # - julia -e 'ENV["PYTHON"]="python3"; using Pkg; Pkg.add("PyCall"); Pkg.build("PyCall"); Pkg.add("PyPlot");'
 
 after_success:
   # - julia -e 'using Pkg; Pkg.add("Documenter");ENV["DOCUMENTER_DEBUG"]="true"; import ClimateTools; cd(joinpath(dirname(pathof(ClimateTools)), "..")); include(joinpath("docs", "make.jl"))'

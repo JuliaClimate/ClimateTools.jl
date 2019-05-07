@@ -289,7 +289,7 @@ function drought_dc(prvec::Array{N,1} where N, tasvec::Array{N,1} where N, timev
 
                 # dates_tuple = Dates.yearmonthday.(timevec[idx])
 
-                dc[idx_start] = dc0 # initialize drought code
+                # dc[idx_start] = dc0 # initialize drought code
 
                 for iday = idx_start:idx_end#length(dates_tuple)
 
@@ -300,9 +300,11 @@ function drought_dc(prvec::Array{N,1} where N, tasvec::Array{N,1} where N, timev
 
                     mth = Dates.month(timevec[iday])
 
-                    dc[iday] = drought_dc(pr_day, tas_day, dc[iday], mth)
+                    dc[iday] = drought_dc(pr_day, tas_day, dc0, mth)
 
-                    dc[iday + 1] = dc[iday]
+                    dc0 = dc[iday]
+
+                    # dc[iday + 1] = dc[iday]
 
                     # println(iday)
 

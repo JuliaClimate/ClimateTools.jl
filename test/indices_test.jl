@@ -560,21 +560,50 @@ E = ensemble_max(ens)
 E = ensemble_min(ens)
 @test E[1][1,1,1] == ens[2][1][1,1,1]
 
+# Drought code
+# core function
+temp = 17.0
+precip = 0.0
+month = 4
+dc0 = 15.0
+@test drought_dc(precip, temp, dc0, month) == 19.014
 
-#ens = [C_tmax2, C_tmax*2]
-#@test E[1][1, 1, 1] == (C_tmax[1][1, 1, 1]*2 + C_tmax2[1][1, 1, 1])/2
+dc0 = 19.014
+temp = 20.0
+precip = 2.4
+@test round(drought_dc(precip, temp, dc0, month), digits=3) == 23.568
 
+dc0 = 23.568
+temp = 8.5
+precip = 0.0
+@test round(drought_dc(precip, temp, dc0, month), digits=3) == 26.052
 
-# d = DateTime(2003,1,1):Hour(1):DateTime(2003,1,3)-Hour(1)
-# data = Array{Float64}(undef, 2, 2, 48)
-# vecdata = collect(range(1, length=48))
+dc0 = 40.6
+temp = 7.0
+precip = 9.0
+@test round(drought_dc(precip, temp, dc0, month), digits=3) == 29.529
 
-# data[1, 1, :] .= vecdata
-# data[1, 2, :] .= vecdata
-# data[2, 1, :] .= vecdata
-# data[2, 2, :] .= vecdata
+# Drought code
+# ClimGrid wrapper
+dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
+datevec = collect(DateTime(2000, 4, 13):Day(1):DateTime(2000, 4, 27))
+temp = Array{Float32}(undef, 1, 1, 15)
+temp[1,1,:] = [17.0, 20.0, 8.5, 6.5, 13.0, 6.0, 5.5, 8.5, 9.5, 7.0, 6.5, 6.0, 13.0, 15.5, 23.0]
+precip = Array{Float32}(undef, 1, 1, 15)
+precip[1,1,:] = [0.0, 2.4, 0.0, 0.0, 0.0, 0.4, 0.0, 0.0, 0.0, 9.0, 1.0, 0.0, 0.0, 0.0, 0.0]
 
-# axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
-# C = ClimGrid(axisdata, dataunits = "Celsius", variable = "tasmin", frequency="1h")
+tempax = AxisArray(temp, Axis{:lon}([-88.0]), Axis{:lat}([45.0]), Axis{:time}(datevec))
+precax = AxisArray(precip, Axis{:lon}([-88.0]), Axis{:lat}([45.0]), Axis{:time}(datevec))
+
+tas = ClimGrid(tempax, variable="tas", dimension_dict=dimension_dict, dataunits="Celsius")
+pr = ClimGrid(precax, variable="pr", dimension_dict=dimension_dict, dataunits="mm")
+
+dc = drought_dc(pr, tas)
+
+res = round.([19.014, 23.567999999999998, 26.052, 28.176, 31.47, 33.504, 35.448,  37.932, 40.596000000000004, 29.52469510340648, 31.648695103406478, 33.68269510340648, NaN, NaN, NaN], digits=3)
+
+@test sum(round.(dc[1][1,1,1:end-3], digits=3) .== res[1:end-3]) == length(res[1:end-3])
+
+@test sum(isnan.(dc[1][1,1,:])) == 3
 
 end
