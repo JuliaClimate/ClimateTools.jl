@@ -889,7 +889,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions/#ClimateTools.polyval-Tuple{ClimGrid,Array{Polynomials.Poly{Float64},2}}",
+    "location": "functions/#ClimateTools.polyval-Tuple{ClimGrid,Array{Polynomials.Poly{N},2} where N}",
     "page": "Index",
     "title": "ClimateTools.polyval",
     "category": "method",
