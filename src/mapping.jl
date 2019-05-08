@@ -351,44 +351,44 @@ function getcslimits(caxis, data, center_cs)
 
 end
 
-"""
-    timeavg(C, timebeg, timeend, mask, poly, level)
+# """
+#     timeavg(C, timebeg, timeend, mask, poly, level)
 
-Returns an array for mapping purpose. Used internally by [`mapclimgrid`](@ref).
-"""
-function timeavg(C, timebeg, timeend, mask, poly, level)
+# Returns an array for mapping purpose. Used internally by [`mapclimgrid`](@ref).
+# """
+# function timeavg(C, timebeg, timeend, mask, poly, level)
 
-    data2 = Array{Float64}(undef, size(C[1], 1), size(C[1], 2))
+#     data2 = Array{Float64}(undef, size(C[1], 1), size(C[1], 2))
 
-    if ndims(C[1]) == 3
+#     if ndims(C[1]) == 3
 
-      data2 = Array(dropdims(Statistics.mean(C[1][:, :, timebeg:timeend], dims=3), dims=3)) #time mean #time mean
+#       data2 = Array(dropdims(Statistics.mean(C[1][:, :, timebeg:timeend], dims=3), dims=3)) #time mean #time mean
 
-      # TODO throw error/warning if no grid point inside polygon or mask
+#       # TODO throw error/warning if no grid point inside polygon or mask
 
-      if !isempty(mask) # if mask is already provided
-          data2 = data2 .* mask
-      elseif !isempty(poly) # if mask needs to be calculated from polygon
-          msk = inpolygrid(C.longrid, C.latgrid, poly)
-          data2 = data2 .* msk
-      end
+#       if !isempty(mask) # if mask is already provided
+#           data2 = data2 .* mask
+#       elseif !isempty(poly) # if mask needs to be calculated from polygon
+#           msk = inpolygrid(C.longrid, C.latgrid, poly)
+#           data2 = data2 .* msk
+#       end
 
-    # 4D fields
-  elseif ndims(C[1]) == 4 # 4D field
-      tmp = C[1][:, :, level, timebeg:timeend]
-      data2 = dropdims(Array(Statistics.mean(tmp, dims=3)), dims=3)
-      # data2 = Array(dropdims(Statistics.mean(C[1][:, :, level, timebeg:timeend], dims=4), dims=3)) # time mean over "level"
+#     # 4D fields
+#   elseif ndims(C[1]) == 4 # 4D field
+#       tmp = C[1][:, :, level, timebeg:timeend]
+#       data2 = dropdims(Array(Statistics.mean(tmp, dims=3)), dims=3)
+#       # data2 = Array(dropdims(Statistics.mean(C[1][:, :, level, timebeg:timeend], dims=4), dims=3)) # time mean over "level"
 
-      if !isempty(poly)
-          msk = inpolygrid(C.longrid, C.latgrid, poly)
-          data2 = data2 .* msk
-      elseif !isempty(mask)
-          data2 = data2 .* mask
-      end
+#       if !isempty(poly)
+#           msk = inpolygrid(C.longrid, C.latgrid, poly)
+#           data2 = data2 .* msk
+#       elseif !isempty(mask)
+#           data2 = data2 .* mask
+#       end
 
-    end
-    return data2
-end
+#     end
+#     return data2
+# end
 
 """
     titledef(C::ClimGrid)
