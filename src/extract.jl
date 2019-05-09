@@ -744,6 +744,8 @@ function get_mapping(ds::NCDatasets.Dataset)
         return "rotated_pole"
     elseif in("lambert_conformal_conic", K)
         return "lambert_conformal_conic"
+    elseif in("rotated_latitude_longitude", K)
+        return "rotated_latitude_longitude"
     else
         return "Regular_longitude_latitude"
     end
