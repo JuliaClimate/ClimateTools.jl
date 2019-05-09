@@ -32,6 +32,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   experiment = ClimateTools.experiment_id(attribs_dataset)
   frequency = ClimateTools.frequency_var(attribs_dataset)
   runsim = ClimateTools.runsim_id(attribs_dataset)
+  grid_mapping = ClimateTools.get_mapping(ds)
 
   # Get dimensions names
   latname, latstatus = getdim_lat(ds)
@@ -65,16 +66,17 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
           map_attrib = Dict(["grid_mapping" => "Regular_longitude_latitude"])
       end
 
-      if ClimateTools.@isdefined varattrib["grid_mapping"]
-          map_dim = varattrib["grid_mapping"]
-          map_attrib = Dict(ds[map_dim].attrib)
-          map_attrib["grid_mapping"] = map_dim
+      if ClimateTools.@isdefined grid_mapping
+          # map_dim = varattrib[grid_mapping]
+          map_attrib = Dict(ds[grid_mapping].attrib)
+          map_attrib["grid_mapping"] = grid_mapping
+          varattrib["grid_mapping"] = grid_mapping
       else
           error("File an issue on https://github.com/Balinus/ClimateTools.jl/issues to get the grid supported")
       end
   else # if no grid provided, create one
       longrid, latgrid = ndgrid(lon_raw, lat_raw)
-      map_attrib = Dict(["grid_mapping" => "Regular_longitude_latitude"])
+      map_attrib = Dict(["grid_mapping" => grid_mapping])
   end
 
   # =====================
@@ -382,6 +384,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
     experiment = ClimateTools.experiment_id(attribs_dataset)
     frequency = ClimateTools.frequency_var(attribs_dataset)
     runsim = ClimateTools.runsim_id(attribs_dataset)
+    grid_mapping = ClimateTools.get_mapping(ds)
 
     # Get dimensions names
     latname, latstatus = getdim_lat(ds)
@@ -408,16 +411,17 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
         latgrid = NetCDF.ncread(file, latgrid_name)
         longrid = NetCDF.ncread(file, longrid_name)
 
-        if ClimateTools.@isdefined varattrib["grid_mapping"]
-            map_dim = varattrib["grid_mapping"]
-            map_attrib = Dict(ds[map_dim].attrib)
-            map_attrib["grid_mapping"] = map_dim
+        if ClimateTools.@isdefined grid_mapping
+            # map_dim = varattrib[grid_mapping]
+            map_attrib = Dict(ds[grid_mapping].attrib)
+            map_attrib["grid_mapping"] = grid_mapping
+            varattrib["grid_mapping"] = grid_mapping
         else
             error("File an issue on https://github.com/Balinus/ClimateTools.jl/issues to get the grid supported")
         end
     else # if no grid provided, create one
         longrid, latgrid = ndgrid(lon_raw, lat_raw)
-        map_attrib = Dict(["grid_mapping" => "Regular_longitude_latitude"])
+        map_attrib = Dict(["grid_mapping" => grid_mapping])
     end
 
     # ==================
@@ -723,5 +727,28 @@ function extractdata2D(data, msk)
     data = data[minXgrid:maxXgrid, minYgrid:maxYgrid]
 
     return data
+
+end
+
+
+"""
+    get_mapping(ds::NCDatasets.Dataset)
+
+Returns the grid_mapping of Dataset *ds*
+"""
+function get_mapping(ds::NCDatasets.Dataset)
+
+    K = keys(ds)
+
+    if in("rotated_pole", K)
+        return "rotated_pole"
+    elseif in("lambert_conformal_conic", K)
+        return "lambert_conformal_conic"
+    elseif in("rotated_latitude_longitude", K)
+        return "rotated_latitude_longitude"
+    else
+        return "Regular_longitude_latitude"
+    end
+
 
 end
