@@ -49,19 +49,24 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
   # Colorscale
   # TODO replace C[10] comparison with C.varattribs["standard_name"]
   if isempty(cm)
-    if C[10] == "pr" || C[10]=="huss"
-        # cm = "YlGnBu"
+    if C[10] == "pr" || C[10]=="huss" || C[10]=="clwvi"
         cm = cmocean.cm.deep
+
     elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin" || C[10] == "wbgtmean" || C[10] == "wbgtmax" || C[10]=="t2m" || C[10]=="tmean" || C[10]=="dc" || C[10]=="hfls"
         cm = "RdYlBu_r"
-    elseif C[10]=="psl" || C[10]=="vp" # pressure
+
+    elseif C[10]=="psl" || C[10]=="vp"
         cm = cmocean.cm.deep_r
-    elseif C[10]=="ua" || C[10]=="uv" # wind
+
+    elseif C[10]=="ua" || C[10]=="uv"
         cm = cmocean.cm.balance
+
     elseif C[10]=="clt" # cloud fraction
         cm = "Blues_r"
+
     elseif C[10]=="rlut" # longwave radiation
         cm = cmocean.cm.balance
+
     elseif C[10]=="hurs" || C[10]=="evspsbl"# longwave radiation
         cm = cmocean.cm.haline_r
     else
@@ -134,6 +139,9 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
 
     elseif lowercase(region) == "africa" || lowercase(region) == "afr"
         m = basemap.Basemap(projection = "cea", resolution = "l", llcrnrlon=-22.0, llcrnrlat=-40.0, urcrnrlon=58.0, urcrnrlat=40.352, rsphere=(6378137.00, 6356752.3142))
+
+    elseif lowercase(region) == "asia"
+        m = basemap.Basemap(projection = "eqdc", resolution = "l", llcrnrlon=70.0, llcrnrlat=-20.0, urcrnrlon=180.0, urcrnrlat=60.0, lat_0=10.0, lon_0=110,  rsphere=(6378137.00, 6356752.3142))
 
     elseif lowercase(region) == "quebec" || lowercase(region) == "qc"
         m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -80.5, llcrnrlat = 41., urcrnrlon = -50.566, urcrnrlat = 62.352, lon_0 = -70, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
