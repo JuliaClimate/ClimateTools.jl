@@ -56,10 +56,14 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
         cm = "RdYlBu_r"
     elseif C[10]=="psl" || C[10]=="vp" # pressure
         cm = cmocean.cm.deep_r
-    elseif C[10]=="ua" || C[10]=="uv "# wind
+    elseif C[10]=="ua" || C[10]=="uv"# wind
         cm = cmocean.cm.balance
     elseif C[10]=="clt" # cloud fraction
         cm = "Blues_r"
+    elseif C[10]=="rlut" # longwave radiation
+        cm = cmocean.cm.balance
+    elseif C[10]=="hurs" # longwave radiation
+        cm = cmocean.cm.haline_r
     else
       cm = "viridis"
     end
