@@ -98,7 +98,14 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
     timeattrib = fut.timeattrib
     timeattrib["calendar"] = "365_day"
 
-    C = ClimGrid(dataout2; longrid=fut.longrid, latgrid=fut.latgrid, msk=fut.msk, grid_mapping=fut.grid_mapping, dimension_dict=fut.dimension_dict, timeattrib=timeattrib, model=fut.model, frequency=fut.frequency, experiment=fut.experiment, run=fut.run, project=fut.project, institute=fut.institute, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal="365_day", varattribs=fut.varattribs, globalattribs=fut.globalattribs)
+    globalattribs = fut.globalattribs
+    if haskey(globalattribs, "history")
+        globalattribs["history"] = string(globalattribs["history"], " - ", "Bias-corrected with ClimateTools.jl")
+    else
+        globalattribs["history"] = string("Bias-corrected with ClimateTools.jl")
+    end
+
+    C = ClimGrid(dataout2; longrid=fut.longrid, latgrid=fut.latgrid, msk=fut.msk, grid_mapping=fut.grid_mapping, dimension_dict=fut.dimension_dict, timeattrib=timeattrib, model=fut.model, frequency=fut.frequency, experiment=fut.experiment, run=fut.run, project=fut.project, institute=fut.institute, filename=fut.filename, dataunits=fut.dataunits, latunits=fut.latunits, lonunits=fut.lonunits, variable=fut.variable, typeofvar=fut.typeofvar, typeofcal="365_day", varattribs=fut.varattribs, globalattribs=globalattribs)
 
     if detrend == true
         C = C + poly_values
