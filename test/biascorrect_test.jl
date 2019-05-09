@@ -17,6 +17,29 @@ D = qqmap(obs, ref, fut, method = "Additive", detrend=false)
 D = qqmap(obs, ref, fut, method = "Additive", detrend=true)
 @test round(D[1][1, 1, 1], digits=2) == -0.56#5603#74620422795
 
+# ===================================
+# Ensure we have similar statistics
+# ===================================
+d = DateTime(1961,1,1):Day(1):DateTime(1990,12,31)
+Random.seed!(42)
+data = randn(2, 2, 10957)
+axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
+dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
+obs = ClimateTools.ClimGrid(axisdata, variable = "tasmax", dimension_dict=dimension_dict)
+ref = obs + 2.0
+fut = obs + 2.0
+
+D = qqmap(obs, ref, fut, method="Additive", detrend=false)
+@test mean(obs[1][1,1,:]) - mean(fut[1][1,1,:]) ≈ -1.99999999999
+@test mean(obs[1][1,1,:]) - mean(D[1][1,1,:]) ≈ -0.00029395108
+
+ref = obs * 2.0
+fut = obs * 2.0
+D = qqmap(obs, ref, fut, method="Multiplicative", detrend=false)
+@test std(obs[1][1,1,:]) - std(fut[1][1,1,:]) ≈ -1.012096874
+@test std(obs[1][1,1,:]) - std(D[1][1,1,:]) ≈ -5.3838558178e-5
+
+# ============================
 Random.seed!(42)
 data = randn(2, 2, 10957)
 axisdata = AxisArray(data .- minimum(data), Axis{:lon}(1:2), Axis{:lat}(1:2),Axis{:time}(d))
