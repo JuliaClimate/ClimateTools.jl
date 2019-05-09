@@ -84,23 +84,11 @@ status, figh = mapclimgrid(spatialsubset(C, P), mask = msk);@test status == true
 C = load(filenc, "ua", poly = P)
 status, figh = mapclimgrid(C);@test status == true; PyPlot.close() # feeding a 4D field
 
-# empty map generation
-status, figh = mapclimgrid(region = "World");@test status == true; PyPlot.close()
-status, figh = mapclimgrid(region = "WorldAz");@test status == true; PyPlot.close()
-# status, figh = mapclimgrid(region = "WorldEck4");@test status == true; PyPlot.close()
-status, figh = mapclimgrid(region = "Canada");@test status == true; PyPlot.close()
-status, figh = mapclimgrid(region = "Quebec");@test status == true; PyPlot.close()
-# status, figh = mapclimgrid(region = "QuebecNSP");@test status == true; PyPlot.close()
-status, figh = mapclimgrid(region = "Americas");@test status == true; PyPlot.close()
-status, figh = mapclimgrid(region = "Africa");@test status == true; PyPlot.close()
-status, figh = mapclimgrid(region = "NorthAmerica");@test status == true; PyPlot.close()
-# status, figh = mapclimgrid(region = "SouthAmerica");@test status == true; PyPlot.close()
-status, figh = mapclimgrid(region = "Greenwich");@test status == true; PyPlot.close()
-status, figh = mapclimgrid(region = "outaouais");@test status == true; PyPlot.close()
-status, figh = mapclimgrid(region = "laurentides");@test status == true; PyPlot.close()
-status, figh = mapclimgrid(region = "estrie");@test status == true; PyPlot.close()
-# status, figh = mapclimgrid(region = "Arctic");@test status == true; PyPlot.close()
-# status, figh = mapclimgrid(region = "Antarctic");@test status == true; PyPlot.close()
+regions = ["World", "WorldAz", "Canada", "Quebec", "Quebec_agricole", "South_Quebec", "Americas", "NorthAmerica", "SouthAmerica", "Greenwich", "Outaouais", "Laurentides", "Estrie", "Arctic", "Antarctic", "Africa", "Europe", "Asia", "West-Asia"]
+
+for iregion in regions
+    status, figh = mapclimgrid(region=iregion);@test status == true; PyPlot.close()
+end
 
 # DUMMY MAPS
 lon = collect(-180.0:180.0)
