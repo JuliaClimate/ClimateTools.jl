@@ -52,7 +52,7 @@ function mapclimgrid(C::ClimGrid; region::String="auto", states::Bool=false, pol
     if C[10] == "pr" || C[10]=="huss"
         # cm = "YlGnBu"
         cm = cmocean.cm.deep
-    elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin" || C[10] == "wbgtmean" || C[10] == "wbgtmax" || C[10]=="t2m" || C[10]=="tmean" || C[10]=="dc"
+    elseif C[10]=="tasmax" || C[10]=="tasmin" || C[10]=="tas" || C[10]=="tmax" || C[10]=="tmin" || C[10] == "wbgtmean" || C[10] == "wbgtmax" || C[10]=="t2m" || C[10]=="tmean" || C[10]=="dc" || C[10]=="hfls"
         cm = "RdYlBu_r"
     elseif C[10]=="psl" || C[10]=="vp" # pressure
         cm = cmocean.cm.deep_r
