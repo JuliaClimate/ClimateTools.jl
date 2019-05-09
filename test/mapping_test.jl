@@ -92,6 +92,7 @@ status, figh = mapclimgrid(region = "Canada");@test status == true; PyPlot.close
 status, figh = mapclimgrid(region = "Quebec");@test status == true; PyPlot.close()
 # status, figh = mapclimgrid(region = "QuebecNSP");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(region = "Americas");@test status == true; PyPlot.close()
+status, figh = mapclimgrid(region = "Africa");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(region = "NorthAmerica");@test status == true; PyPlot.close()
 # status, figh = mapclimgrid(region = "SouthAmerica");@test status == true; PyPlot.close()
 status, figh = mapclimgrid(region = "Greenwich");@test status == true; PyPlot.close()
