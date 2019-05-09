@@ -165,9 +165,6 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
     elseif lowercase(region) == "africa" || lowercase(region) == "afr"
         m = basemap.Basemap(projection = "cea", resolution = "l", llcrnrlon=-22.0, llcrnrlat=-40.0, urcrnrlon=58.0, urcrnrlat=40.352, rsphere=(6378137.00, 6356752.3142))
 
-    elseif lowercase(region) == "africa" || lowercase(region) == "afr"
-        m = basemap[:Basemap](projection = "cea", resolution = "l", llcrnrlon=-22.0, llcrnrlat=-40.0, urcrnrlon=58.0, urcrnrlat=40.352, rsphere=(6378137.00, 6356752.3142))
-
     elseif lowercase(region) == "northamerica" || lowercase(region) == "na"
         m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -135.5, llcrnrlat = 1., urcrnrlon = -10.566, urcrnrlat = 46.352, lon_0 = -95, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
 
