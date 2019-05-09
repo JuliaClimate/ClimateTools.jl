@@ -143,6 +143,9 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
     elseif lowercase(region) == "asia"
         m = basemap.Basemap(projection = "eqdc", resolution = "l", llcrnrlon=70.0, llcrnrlat=-20.0, urcrnrlon=180.0, urcrnrlat=60.0, lat_0=10.0, lon_0=110,  rsphere=(6378137.00, 6356752.3142))
 
+    elseif lowercase(region) == "west-asia" || lowercase(region) == "was"
+        m = basemap.Basemap(projection = "eqdc", resolution = "l", llcrnrlon=5.0, llcrnrlat=-30.0, urcrnrlon=145.0, urcrnrlat=50.0, lat_0=5.0, lon_0=65,  rsphere=(6378137.00, 6356752.3142))
+
     elseif lowercase(region) == "quebec" || lowercase(region) == "qc"
         m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -80.5, llcrnrlat = 41., urcrnrlon = -50.566, urcrnrlat = 62.352, lon_0 = -70, lat_1 = 50, rsphere = (6378137.00, 6356752.3142))
 
