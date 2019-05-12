@@ -41,6 +41,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   dataunits = ds[vari].attrib["units"]
   latunits = ds[latname].attrib["units"]
   lonunits = ds[lonname].attrib["units"]
+  caltype = ""
     try
         caltype = ds["time"].attrib["calendar"]
     catch
