@@ -41,7 +41,11 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   dataunits = ds[vari].attrib["units"]
   latunits = ds[latname].attrib["units"]
   lonunits = ds[lonname].attrib["units"]
-  caltype = ds["time"].attrib["calendar"]
+    try
+        caltype = ds["time"].attrib["calendar"]
+    catch
+        caltype = "standard"
+    end
 
   # Create dict with latname and lonname
   dimension_dict = Dict(["lon" => lonname, "lat" => latname])
