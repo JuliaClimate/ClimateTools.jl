@@ -116,7 +116,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Addi
 end
 
 """
-    qqmap(obs::Array{N, 1} where N, ref::Array{N, 1} where N, fut::Array{N, 1} where N; method="Additive", detrend=true, window=15, rankn=50, thresnan=0.1, keep_original=false, interp::Function=Linear(), extrap::Function=Flat())
+    qqmap(obsvec::Array{N,1}, refvec::Array{N,1}, futvec::Array{N,1}, days, obs_jul, ref_jul, fut_jul; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
 
 Quantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.
 
@@ -187,8 +187,8 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
                 # # Replace values with original ones (i.e. too may NaN values for robust quantile estimation)
                 dataout[idxfut] .= futval
             else
-                dataout[idxfut] .= NaN
                 # DO NOTHING (e.g. if there is no reference, we want NaNs and not original values)
+                dataout[idxfut] .= NaN                
             end
         end
     end
