@@ -107,27 +107,6 @@ Mean of array data over a given period.
 """
 function periodmean(C::ClimGrid; start_date::Tuple=(Inf, ), end_date::Tuple=(Inf,), level=1)
 
-    # if start_date == (Inf, )
-    #     timevec = get_timevec(C)
-    #     # Get time resolution
-    #     rez = C.frequency
-    #     if rez == "year"
-    #         start_date = (Dates.year(timevec[1]), )
-    #     else
-    #         start_date = (Dates.year(timevec[1]), Dates.month(timevec[1]), Dates.day(timevec[1]), Dates.hour(timevec[1]), Dates.minute(timevec[1]), Dates.second(timevec[1]))
-    #     end
-    # end
-    #
-    # if end_date == (Inf, )
-    #     timevec = get_timevec(C)
-    #     # Get time resolution
-    #     rez = C.frequency
-    #     if rez == "year"
-    #         end_date = (Dates.year(timevec[end]), )
-    #     else
-    #         end_date = (Dates.year(timevec[end]), Dates.month(timevec[end]), Dates.day(timevec[end]), Dates.hour(timevec[end]), Dates.minute(timevec[end]), Dates.second(timevec[end]))
-    #     end
-    # end
     if start_date != (Inf,) || end_date != (Inf,)
         C = temporalsubset(C, start_date, end_date)
     end
@@ -520,86 +499,9 @@ function find_julianday_idx(julnb, ijulian, window)
     return idx
 end
 
-# """
-#     corrjuliandays(data_vec, date_vec)
-
-# Removes 29th february and correct the associated julian days.
-# """
-# function corrjuliandays(data_vec, date_vec)
-
-#     # Eliminate February 29th (small price to pay for simplicity and does not affect significantly quantile estimations)
-#     feb29th = (Dates.month.(date_vec) .== Dates.month(Date(2000, 2, 2))) .& (Dates.day.(date_vec) .== Dates.day(29))
-
-#     date_jul = Dates.dayofyear.(date_vec)
-
-#     # identify leap years
-#     leap_years = leapyears(date_vec)
-
-#     for iyear in leap_years
-#         days = date_jul[Dates.year.(date_vec) .== iyear] # days for iyear
-#         if days[1] >= 60 # if the year starts after Feb 29th
-#             k1 = something(findfirst(isequal(iyear), Dates.year.(date_vec)), 0)
-#         else
-#             k1 = something(findfirst(isequal(iyear), Dates.year.(date_vec)), 0) + 60 - days[1]
-#         end
-#         k2 = something(findlast(isequal(iyear), Dates.year.(date_vec)), 0)
-#         date_jul[k1:k2] .-= 1
-#     end
-
-#     # remove 29th feb entries (if any)
-#     date_vec2 = date_vec[.!feb29th]
-#     data_vec2 = data_vec[.!feb29th]
-#     date_jul2 = date_jul[.!feb29th]
-
-#     return data_vec2, date_jul2, date_vec2
-
-# end
-
 """
     yearmonthdayhour(dt::AbstractCFDateTime) -> (Int64, Int64, Int64, Int64)
 Simultaneously return the year, month, day and hour parts of `dt`.
 Author: Alexander-Barth (Github)
 """
 yearmonthdayhour(dt::DT) where DT <: Dates.TimeType = (Dates.year(dt),Dates.month(dt), Dates.day(dt), Dates.hour(dt))
-
-
-# """
-#     timemean(C::ClimGrid; skipnan=false)
-
-# Returns the time average of ClimGrid C for each grid-points.
-# """
-# function timemean(C::ClimGrid; skipnan=false)
-
-
-
-#     if ndims(C[1]) == 3
-
-#         # Data in
-#         datain = C[1]
-
-#         # Array out
-#         dataout = similar(Array{typeof(C[1][1,1,1])}, size(C[1], 1), size(C[1], 2))
-
-#         # Reshape
-#         datain_rshp = reshape(datain, size(datain,1)*size(datain, 2), size(datain,3))
-#         dataout_rshp = reshape(dataout, size(dataout,1)*size(dataout, 2))
-
-
-#         for k = 1:length(dataout_rshp)
-#             if skipnan
-#                 dataout_rshp[k] = NaNMath.mean(datain_rshp[k, :])
-#             else
-#                 dataout_rshp[k] = Statistics.mean(datain_rshp[k, :])
-#             end
-#         end
-
-#     elseif ndims(C[1]) == 4
-#         # TODO needs to do for 4D grids
-#         nt = size(C[1], 4)
-#     else
-#         error("Dimensions of ClimGrid is not 3- or 4-D")
-#     end
-
-#     return dataout
-
-# end
