@@ -20,14 +20,10 @@ using Polynomials
 using IterTools
 using Statistics
 using Dates
-# using Unitful: K, °C, m, mm, s, kg, Pa
-# using Unitful: @u_str, ustrip, uconvert, unit, Units, Quantity
-# import Unitful.uconvert
 import Base.vcat
 import Base.getindex
 import Base.show
 import Base.size
-#import Base.endof
 import Base.setindex!
 import Base.similar
 import Base.write

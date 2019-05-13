@@ -735,8 +735,6 @@ Returns the grid_mapping of Dataset *ds*
 """
 function get_mapping(K::Array{String,1})
 
-    # K = keys(ds)
-
     if in("rotated_pole", K)
         return "rotated_pole"
 
@@ -755,7 +753,6 @@ function get_mapping(K::Array{String,1})
     else
         return "Regular_longitude_latitude"
     end
-
 
 end
 

@@ -223,14 +223,11 @@ function drought_dc(pr::ClimGrid, tas::ClimGrid)
 
     # Looping over grid points using multiple-dispatch calls to qqmap
     Threads.@threads for k = 1:size(prin, 1)
-    # for k = 1:size(prin, 1)
 
         prvec = prin[k,:]
         tasvec = tasin[k,:]
 
         dataoutin[k, :] = drought_dc(prvec, tasvec, timevec)
-
-        # println(k)
 
     end
 
@@ -283,31 +280,16 @@ function drought_dc(prvec::Array{N,1} where N, tasvec::Array{N,1} where N, timev
                 idx_start = findfirst(cum_2)
                 idx_end = findlast(cum_2)
 
-                # # idx_tas = findall(x -> x >= 6.0, tasvec[idx])
-                # idx_start, idx_end = ((findall((diff(idx_tas) .- 1) .== 0) .+ 1)[2],  (findall((diff(idx_tas) .- 1) .== 0) .+ 1)[end])
-                # #(findall((diff(idx_tas) .- 1) .== 0) .+ 1)[2]
-
-                # dates_tuple = Dates.yearmonthday.(timevec[idx])
-
-                # dc[idx_start] = dc0 # initialize drought code
-
                 for iday = idx_start:idx_end#length(dates_tuple)
 
                     pr_day = prvec[iday]
                     tas_day = tasvec[iday]
-
-                    # dc₀_temp = dc[iday-1]
 
                     mth = Dates.month(timevec[iday])
 
                     dc[iday] = drought_dc(pr_day, tas_day, dc0, mth)
 
                     dc0 = dc[iday]
-
-                    # dc[iday + 1] = dc[iday]
-
-                    # println(iday)
-
 
                 end
             end
