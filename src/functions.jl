@@ -188,7 +188,7 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
-    dataorig = view(A[1].data,:, :, :)
+    dataorig = A[1].data
     timeorig = A[1][Axis{:time}][:] # the function will need to loop over time
 
     # ---------------------
@@ -197,7 +197,7 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
 
     # ------------------------
     # Interpolation
-    interp!(OUT, timeorig, dataorig, points, londest, latdest, method, msk=B.msk)
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method)
 
     if !isempty(min)
         OUT[OUT .<= min] .= min
@@ -289,25 +289,30 @@ end
 
 Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `regrid`.
 """
-function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk=[])
+function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method)
 
-    p = Progress(length(timeorig), 5, "Regridding: ")
-    for t = 1:length(timeorig)
+    # p = Progress(length(timeorig), 5, "Regridding: ")
+
+    val = Array{typeof(dataorig[1])}(undef, size(dataorig,1)*size(dataorig,2), length(timeorig))
+
+    sitp = Array{Spline2D}(undef, length(timeorig))
+
+    Threads.@threads for t = 1:length(timeorig)
+
+
 
         # Points values
-        val = dataorig[:, :, t][:]
+        val[:, t] = vec(dataorig[:, :, t])
 
-        # Call scipy griddata
-        data_interp = scipy.griddata(points, val, (londest, latdest), method=method)
+        sitp[t] = Spline2D(vec(lonorig), vec(latorig), val[:, t], s=8200.0)
+        OUT[:, :, t] = Dierckx.evaluate(sitp[t], vec(londest), vec(latdest))
 
-        # Apply mask from ClimGrid destination
-        if !isempty(msk)
-            OUT[:, :, t] = data_interp .* msk
-        else
-            OUT[:, :, t] = data_interp
-        end
+        OUT[:, :, t] = reshape(OUT[:, :, t], size(londest))
 
-        next!(p)
+        # # Call scipy griddata
+        # data_interp = scipy.griddata(points, val, (londest, latdest), method=method)
+
+        # next!(p)
 
     end
 

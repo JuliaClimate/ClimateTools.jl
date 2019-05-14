@@ -9,6 +9,7 @@ using Reexport
 using Shapefile
 using AxisArrays
 using NaNMath
+using Dierckx
 const axes = Base.axes
 using ArgCheck
 using PyCall
