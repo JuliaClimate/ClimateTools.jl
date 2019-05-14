@@ -183,8 +183,7 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
     londest, latdest = getgrids(B)
 
     # Get lat-lon information from ClimGrid A
-    lonorig, latorig = getgrids(A)
-    points = hcat(lonorig[:], latorig[:])
+    lonorig, latorig = getgrids(A)    
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
@@ -227,7 +226,6 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
 
     # Get lat-lon information from ClimGrid A
     lonorig, latorig = getgrids(A)
-    points = hcat(lonorig[:], latorig[:])
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
@@ -257,7 +255,7 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
 
     # ------------------------
     # Interpolation
-    interp!(OUT, timeorig, dataorig, points, londest, latdest, method)
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method)
 
     if !isempty(min)
         OUT[OUT .<= min] .= min
@@ -285,21 +283,16 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
 end
 
 """
-    interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk=[])
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method)
 
 Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `regrid`.
 """
 function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method)
 
-    # p = Progress(length(timeorig), 5, "Regridding: ")
-
     val = Array{typeof(dataorig[1])}(undef, size(dataorig,1)*size(dataorig,2), length(timeorig))
-
     sitp = Array{Spline2D}(undef, length(timeorig))
 
     Threads.@threads for t = 1:length(timeorig)
-
-
 
         # Points values
         val[:, t] = vec(dataorig[:, :, t])
@@ -309,13 +302,7 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, me
 
         OUT[:, :, t] = reshape(OUT[:, :, t], size(londest))
 
-        # # Call scipy griddata
-        # data_interp = scipy.griddata(points, val, (londest, latdest), method=method)
-
-        # next!(p)
-
     end
-
 end
 
 """
@@ -361,9 +348,6 @@ function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} wher
     T = typeof(A[.!ismissing.(A)][1])
     modA = Array{T}(undef, size(A))
 
-    # # Get unit
-    # units_all = unique(unit.(A))
-    # un = units_all[.!ismissing.(units_all)]
     for t = 1:size(A, 4) # time axis
         for lev = 1:size(A, 3) #level axis
             tmp = A[:, :, lev, t]
@@ -371,8 +355,7 @@ function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} wher
             modA[:, :, lev, t] = tmp
         end
     end
-    # # reapply unit
-    # modA = [modA][1]un[1]
+
     return modA
 end
 
@@ -381,17 +364,12 @@ function applymask(A::AbstractArray{N,3} where N, mask::AbstractArray{N, 2} wher
     T = typeof(A[.!ismissing.(A)][1])
     modA = Array{T}(undef, size(A))
 
-    # # Get unit
-    # units_all = unique(unit.(A))
-    # un = units_all[.!ismissing.(units_all)]
-
     for t = 1:size(A, 3) # time axis
         tmp = A[:, :, t]
         tmp .*= mask # TODO use multiple dispatch of applymask
         modA[:, :, t] = tmp
     end
-    # reapply unit
-    # modA = [modA][1]un[1]
+
     return modA
 end
 
@@ -400,14 +378,9 @@ function applymask(A::AbstractArray{N,2} where N, mask::AbstractArray{N, 2} wher
     T = typeof(A[.!ismissing.(A)][1])
     modA = Array{T}(undef, size(A))
 
-    # # Get unit
-    # units_all = unique(unit.(A))
-    # un = units_all[.!ismissing.(units_all)]
-
     @assert ndims(A) == ndims(mask)
     modA = A .* mask
-    # reapply unit
-    # modA = [modA][1]un[1]
+
     return modA
 end
 
@@ -416,12 +389,8 @@ function applymask(A::AbstractArray{N,1} where N, mask::AbstractArray{N, 1} wher
     T = typeof(A[.!ismissing.(A)][1])
     modA = Array{T}(undef, size(A))
 
-    # # Get unit
-    # units_all = unique(unit.(A))
-    # un = units_all[.!ismissing.(units_all)]
     modA = A .* mask
-    # reapply unit
-    # modA = [modA][1]un[1]
+
     return modA
 end
 
