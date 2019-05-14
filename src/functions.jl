@@ -304,7 +304,7 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, me
         # Points values
         val[:, t] = vec(dataorig[:, :, t])
 
-        sitp[t] = Spline2D(vec(lonorig), vec(latorig), val[:, t], s=8200.0)
+        sitp[t] = Spline2D(vec(lonorig), vec(latorig), val[:, t], s=5000.0)
         OUT[:, :, t] = Dierckx.evaluate(sitp[t], vec(londest), vec(latdest))
 
         OUT[:, :, t] = reshape(OUT[:, :, t], size(londest))
