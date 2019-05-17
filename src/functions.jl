@@ -289,35 +289,23 @@ Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `lat
 """
 function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method, vari)
 
-
+    # Destination grid
     SG = StructuredGrid(latdest, londest)
 
+    # Pre-allocate
+    SD = Array{StructuredGridData}(undef, length(timeorig))
+    problem = Array{EstimationProblem}(undef, length(timeorig))
+    solution = Array{EstimationSolution}(undef, length(timeorig))
+    target = Symbol(vari)
 
-    # val = Array{typeof(dataorig[1])}(undef, size(dataorig,1)*size(dataorig,2), length(timeorig))
-    # sitp = Array{Any}(undef, length(timeorig))
+    Threads.@threads for t = 1:length(timeorig)
+    # for t = 1:length(timeorig)
 
-    # Threads.@threads for t = 1:length(timeorig)
-    for t = 1:length(timeorig)
+        SD[t] = StructuredGridData(Dict(target => dataorig[:, :, t]), latorig, lonorig)
 
-        # val[:, t] = dataorig[:, :, t]
-
-        SD = StructuredGridData(Dict(Symbol(vari) => dataorig[:, :, t]), latorig, lonorig)
-
-        problem = EstimationProblem(SD, SG, Symbol(vari))
-
-        solution = solve(problem, InvDistWeight())
-
-        OUT[:, :, t] = reshape(solution.mean[Symbol(vari)], size(londest))
-
-
-        # # Points values
-        # val[:, t] = dataorig[:, :, t]
-        #
-        # sitp[t] = interpolate((vec(lonorig), vec(latorig)), val[:, t], Gridded(Linear()))
-        # OUT[:, :, t] = Dierckx.evaluate(sitp[t], vec(londest), vec(latdest))
-
-        # OUT[:, :, t] = reshape(OUT[:, :, t], size(londest))
-
+        problem[t] = EstimationProblem(SD[t], SG, target)
+        solution[t] = solve(problem[t], InvDistWeight())
+        OUT[:, :, t] = reshape(solution[t].mean[target], size(londest))
     end
 end
 
