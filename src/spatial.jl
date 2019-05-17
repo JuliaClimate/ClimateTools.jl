@@ -78,11 +78,11 @@ function shapefile_coords_poly(poly::Shapefile.Polygon)
 end
 
 """
-    extractpoly(file::String, n::Int)
+    extractpoly(file::String;, n::Int=1)
 
 Returns the n-th polygon contained in *file*.
 """
-function extractpoly(file::String, n::Int)
+function extractpoly(file::String; n::Int=1)
 
     shp = open(file) do fd
         read(fd, Shapefile.Handle)

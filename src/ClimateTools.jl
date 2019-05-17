@@ -20,6 +20,8 @@ using Polynomials
 using IterTools
 using Statistics
 using Dates
+using GeoStats
+using InverseDistanceWeighting
 import Base.vcat
 import Base.getindex
 import Base.show

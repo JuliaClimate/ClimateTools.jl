@@ -180,15 +180,15 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
 
     # ---------------------------------------
     # Get lat-lon information from ClimGrid B
-    londest, latdest = getgrids(B)
+    londest, latdest = ClimateTools.getgrids(B)
 
     # Get lat-lon information from ClimGrid A
-    lonorig, latorig = getgrids(A)    
+    lonorig, latorig = ClimateTools.getgrids(A)
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
     dataorig = A[1].data
-    timeorig = A[1][Axis{:time}][:] # the function will need to loop over time
+    timeorig = get_timevec(A)#[1][Axis{:time}][:] # the function will need to loop over time
 
     # ---------------------
     # Allocate output Array
@@ -196,7 +196,7 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
 
     # ------------------------
     # Interpolation
-    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method)
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method, A.variable)
 
     if !isempty(min)
         OUT[OUT .<= min] .= min
@@ -255,7 +255,7 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
 
     # ------------------------
     # Interpolation
-    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method)
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method, A.variable)
 
     if !isempty(min)
         OUT[OUT .<= min] .= min
@@ -287,20 +287,36 @@ end
 
 Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `regrid`.
 """
-function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method)
+function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method, vari)
 
-    val = Array{typeof(dataorig[1])}(undef, size(dataorig,1)*size(dataorig,2), length(timeorig))
-    sitp = Array{Spline2D}(undef, length(timeorig))
 
-    Threads.@threads for t = 1:length(timeorig)
+    SG = StructuredGrid(latdest, londest)
 
-        # Points values
-        val[:, t] = vec(dataorig[:, :, t])
 
-        sitp[t] = Spline2D(vec(lonorig), vec(latorig), val[:, t], s=5000.0)
-        OUT[:, :, t] = Dierckx.evaluate(sitp[t], vec(londest), vec(latdest))
+    # val = Array{typeof(dataorig[1])}(undef, size(dataorig,1)*size(dataorig,2), length(timeorig))
+    # sitp = Array{Any}(undef, length(timeorig))
 
-        OUT[:, :, t] = reshape(OUT[:, :, t], size(londest))
+    # Threads.@threads for t = 1:length(timeorig)
+    for t = 1:length(timeorig)
+
+        # val[:, t] = dataorig[:, :, t]
+
+        SD = StructuredGridData(Dict(Symbol(vari) => dataorig[:, :, t]), latorig, lonorig)
+
+        problem = EstimationProblem(SD, SG, Symbol(vari))
+
+        solution = solve(problem, InvDistWeight())
+
+        OUT[:, :, t] = reshape(solution.mean[Symbol(vari)], size(londest))
+
+
+        # # Points values
+        # val[:, t] = dataorig[:, :, t]
+        #
+        # sitp[t] = interpolate((vec(lonorig), vec(latorig)), val[:, t], Gridded(Linear()))
+        # OUT[:, :, t] = Dierckx.evaluate(sitp[t], vec(londest), vec(latdest))
+
+        # OUT[:, :, t] = reshape(OUT[:, :, t], size(londest))
 
     end
 end
