@@ -293,19 +293,19 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, me
     SG = StructuredGrid(latdest, londest)
 
     # Pre-allocate
-    SD = Array{StructuredGridData}(undef, length(timeorig))
-    problem = Array{EstimationProblem}(undef, length(timeorig))
-    solution = Array{EstimationSolution}(undef, length(timeorig))
+    # SD = Array{StructuredGridData}(undef, length(timeorig))
+    # problem = Array{EstimationProblem}(undef, length(timeorig))
+    # solution = Array{EstimationSolution}(undef, length(timeorig))
     target = Symbol(vari)
 
-    Threads.@threads for t = 1:length(timeorig)
-    # for t = 1:length(timeorig)
+    # Threads.@threads for t = 1:length(timeorig)
+    for t = 1:length(timeorig)
 
-        SD[t] = StructuredGridData(Dict(target => dataorig[:, :, t]), latorig, lonorig)
+        SD = StructuredGridData(Dict(target => dataorig[:, :, t]), latorig, lonorig)
 
-        problem[t] = EstimationProblem(SD[t], SG, target)
-        solution[t] = solve(problem[t], InvDistWeight())
-        OUT[:, :, t] = reshape(solution[t].mean[target], size(londest))
+        problem = EstimationProblem(SD, SG, target)
+        solution = solve(problem, InvDistWeight())
+        OUT[:, :, t] = reshape(solution.mean[target], size(londest))
     end
 end
 
