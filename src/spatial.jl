@@ -78,7 +78,7 @@ function shapefile_coords_poly(poly::Shapefile.Polygon)
 end
 
 """
-    extractpoly(file::String;, n::Int=1)
+    extractpoly(file::String; n::Int=1)
 
 Returns the n-th polygon contained in *file*.
 """
