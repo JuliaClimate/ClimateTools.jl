@@ -319,6 +319,7 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, me
     target = Symbol(vari)
 
     # Threads.@threads for t = 1:length(timeorig)
+    p = Progress(length(timeorig), 5, "Regridding: ")
     for t = 1:length(timeorig)
 
         SD = StructuredGridData(Dict(target => dataorig[:, :, t]), latorig, lonorig)
@@ -326,6 +327,8 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, me
         problem = EstimationProblem(SD, SG, target)
         solution = solve(problem, InvDistWeight())
         OUT[:, :, t] = reshape(solution.mean[target], size(londest))
+
+        next!(p)
     end
 end
 
