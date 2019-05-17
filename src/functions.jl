@@ -289,6 +289,26 @@ Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `lat
 """
 function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method, vari)
 
+    # Ensure we have same coords type
+    if typeof(lonorig[1]) != typeof(londest[1]) # means we're going towards Float32
+        if typeof(dataorig[1]) != Float32
+            dataorig = Float32.(dataorig)
+        end
+        if typeof(lonorig[1]) == Float64
+            lonorig = Float32.(lonorig)
+        end
+        if typeof(londest[1]) == Float64
+            londest = Float32.(londest)
+        end
+        if typeof(latorig[1]) == Float64
+            latorig = Float32.(latorig)
+        end
+        if typeof(lonorig[1]) == Float64
+            lonorig = Float32.(lonorig)
+        end
+    end
+
+
     # Destination grid
     SG = StructuredGrid(latdest, londest)
 
