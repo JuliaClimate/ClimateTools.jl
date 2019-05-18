@@ -308,15 +308,20 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, me
         end
     end
 
+    # Variable
+    target = Symbol(vari)
 
     # Destination grid
     SG = StructuredGrid(latdest, londest)
+
+    # Solver
+    solver = InvDistWeight(target => (neighbors=100,))
 
     # Pre-allocate
     # SD = Array{StructuredGridData}(undef, length(timeorig))
     # problem = Array{EstimationProblem}(undef, length(timeorig))
     # solution = Array{EstimationSolution}(undef, length(timeorig))
-    target = Symbol(vari)
+
 
     # Threads.@threads for t = 1:length(timeorig)
     p = Progress(length(timeorig), 5, "Regridding: ")
@@ -325,7 +330,7 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, me
         SD = StructuredGridData(Dict(target => dataorig[:, :, t]), latorig, lonorig)
 
         problem = EstimationProblem(SD, SG, target)
-        solution = solve(problem, InvDistWeight())
+        solution = solve(problem, solver)
         OUT[:, :, t] = reshape(solution.mean[target], size(londest))
 
         next!(p)
