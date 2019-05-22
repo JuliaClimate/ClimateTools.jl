@@ -312,11 +312,12 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, me
     target = Symbol(vari)
 
     # Destination grid
-    SG = StructuredGrid(latdest, londest)
+    SG = StructuredGrid(londest, latdest)
 
     # Solver
     n = Int(round(0.10*length(lonorig[:])))::Int
-    solver = InvDistWeight(target => (neighbors=n,))
+    # solver = InvDistWeight()#target => (neighbors=5,))
+    solver = Kriging()#target => (maxneighbors=100,))
 
     # Pre-allocate
     # SD = Array{StructuredGridData}(undef, length(timeorig))
@@ -328,7 +329,7 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, me
     p = Progress(length(timeorig), 5, "Regridding: ")
     for t = 1:length(timeorig)
 
-        SD = StructuredGridData(Dict(target => dataorig[:, :, t]), latorig, lonorig)
+        SD = StructuredGridData(Dict(target => dataorig[:, :, t]), lonorig, latorig)
 
         problem = EstimationProblem(SD, SG, target)
         solution = solve(problem, solver)
