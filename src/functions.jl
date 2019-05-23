@@ -316,8 +316,8 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, me
 
     # Solver
     n = Int(round(0.10*length(lonorig[:])))::Int
-    # solver = InvDistWeight()#target => (neighbors=5,))
-    solver = Kriging()#target => (maxneighbors=100,))
+    solver = InvDistWeight(target => (neighbors=10,))
+    # solver = Kriging()#target => (maxneighbors=500,))
 
     # Pre-allocate
     # SD = Array{StructuredGridData}(undef, length(timeorig))
