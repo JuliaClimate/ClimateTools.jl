@@ -256,7 +256,7 @@ version = "0.4.2"
 deps = ["CSV", "DataFrames", "Distances", "Distributions", "GeoStatsBase", "LinearAlgebra", "NearestNeighbors", "Random", "RecipesBase", "Reexport", "StaticArrays", "Statistics"]
 git-tree-sha1 = "d687e2ebd4e2b8032ad564633f42a373b827a0ec"
 uuid = "19e549d1-356f-5655-9f3d-c1d6136da705"
-version = "0.4.3"
+version = "0.4.4"
 
 [[Graphics]]
 deps = ["Colors", "Compat", "NaNMath"]
