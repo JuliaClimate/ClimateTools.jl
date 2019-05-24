@@ -315,7 +315,7 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, me
     SG = StructuredGrid(londest, latdest)
 
     # Solver
-    n = Int(round(0.25*length(lonorig[:])))::Int
+    n = Int(round(0.10*length(lonorig[:])))
     solver = InvDistWeight(target => (neighbors=n,))
     # solver = Kriging()#target => (maxneighbors=500,))
 
