@@ -168,10 +168,10 @@ end
 # TODO define interpolation for 4D grid
 
 """
-    C = regrid(A::ClimGrid, B::ClimGrid; method="linear", min=[], max=[])
+    C = regrid(A::ClimGrid, B::ClimGrid; min=[], max=[])
 
 Interpolate `ClimGrid` A onto the lon-lat grid of `ClimGrid` B,
-where A and B are `ClimGrid`. Available methods for interpolation are "linear" (default), "nearest" and "cubic".
+where A and B are `ClimGrid`.
 
 Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.
 
@@ -283,7 +283,7 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
 end
 
 """
-    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method)
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, vari)
 
 Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `regrid`.
 """
