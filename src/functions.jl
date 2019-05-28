@@ -176,7 +176,7 @@ where A and B are `ClimGrid`. Available methods for interpolation are "linear" (
 Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.
 
 """
-function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[])
+function regrid(A::ClimGrid, B::ClimGrid; min=[], max=[])
 
     # ---------------------------------------
     # Get lat-lon information from ClimGrid B
@@ -196,7 +196,7 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
 
     # ------------------------
     # Interpolation
-    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method, A.variable)
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, A.variable)
 
     if !isempty(min)
         OUT[OUT .<= min] .= min
