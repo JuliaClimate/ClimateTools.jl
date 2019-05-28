@@ -222,7 +222,7 @@ end
 Interpolate `ClimGrid` A onto lat-lon grid defined by londest and latdest vector or array. If an array is provided, it is assumed that the grid is curvilinear (not a regular lon-lat grid) and the user needs to provide the dimension vector ("x" and "y") for such a grid.
 
 """
-function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::AbstractArray{N, T} where N where T; dimx=[], dimy=[], method::String="linear", min=[], max=[])
+function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::AbstractArray{N, T} where N where T; dimx=[], dimy=[], min=[], max=[])
 
     # Get lat-lon information from ClimGrid A
     lonorig, latorig = getgrids(A)
@@ -255,7 +255,7 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
 
     # ------------------------
     # Interpolation
-    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method, A.variable)
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, A.variable)
 
     if !isempty(min)
         OUT[OUT .<= min] .= min
@@ -287,7 +287,7 @@ end
 
 Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `regrid`.
 """
-function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, method, vari)
+function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, vari)
 
     # Ensure we have same coords type
     if typeof(lonorig[1]) != typeof(londest[1]) # means we're going towards Float32
@@ -318,11 +318,6 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, me
     n = Int(round(0.10*length(lonorig[:])))
     solver = InvDistWeight(target => (neighbors=n,))
     # solver = Kriging()#target => (maxneighbors=500,))
-
-    # Pre-allocate
-    # SD = Array{StructuredGridData}(undef, length(timeorig))
-    # problem = Array{EstimationProblem}(undef, length(timeorig))
-    # solution = Array{EstimationSolution}(undef, length(timeorig))
 
 
     # Threads.@threads for t = 1:length(timeorig)
