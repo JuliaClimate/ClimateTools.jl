@@ -168,28 +168,27 @@ end
 # TODO define interpolation for 4D grid
 
 """
-    C = regrid(A::ClimGrid, B::ClimGrid; method="linear", min=[], max=[])
+    C = regrid(A::ClimGrid, B::ClimGrid; min=[], max=[])
 
 Interpolate `ClimGrid` A onto the lon-lat grid of `ClimGrid` B,
-where A and B are `ClimGrid`. Available methods for interpolation are "linear" (default), "nearest" and "cubic".
+where A and B are `ClimGrid`.
 
 Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.
 
 """
-function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[])
+function regrid(A::ClimGrid, B::ClimGrid; min=[], max=[])
 
     # ---------------------------------------
     # Get lat-lon information from ClimGrid B
-    londest, latdest = getgrids(B)
+    londest, latdest = ClimateTools.getgrids(B)
 
     # Get lat-lon information from ClimGrid A
-    lonorig, latorig = getgrids(A)
-    points = hcat(lonorig[:], latorig[:])
+    lonorig, latorig = ClimateTools.getgrids(A)
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
-    dataorig = view(A[1].data,:, :, :)
-    timeorig = A[1][Axis{:time}][:] # the function will need to loop over time
+    dataorig = A[1].data
+    timeorig = get_timevec(A)#[1][Axis{:time}][:] # the function will need to loop over time
 
     # ---------------------
     # Allocate output Array
@@ -197,7 +196,7 @@ function regrid(A::ClimGrid, B::ClimGrid; method::String="linear", min=[], max=[
 
     # ------------------------
     # Interpolation
-    interp!(OUT, timeorig, dataorig, points, londest, latdest, method, msk=B.msk)
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, A.variable)
 
     if !isempty(min)
         OUT[OUT .<= min] .= min
@@ -223,11 +222,10 @@ end
 Interpolate `ClimGrid` A onto lat-lon grid defined by londest and latdest vector or array. If an array is provided, it is assumed that the grid is curvilinear (not a regular lon-lat grid) and the user needs to provide the dimension vector ("x" and "y") for such a grid.
 
 """
-function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::AbstractArray{N, T} where N where T; dimx=[], dimy=[], method::String="linear", min=[], max=[])
+function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::AbstractArray{N, T} where N where T; dimx=[], dimy=[], min=[], max=[])
 
     # Get lat-lon information from ClimGrid A
     lonorig, latorig = getgrids(A)
-    points = hcat(lonorig[:], latorig[:])
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
@@ -257,7 +255,7 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
 
     # ------------------------
     # Interpolation
-    interp!(OUT, timeorig, dataorig, points, londest, latdest, method)
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, A.variable)
 
     if !isempty(min)
         OUT[OUT .<= min] .= min
@@ -285,32 +283,55 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
 end
 
 """
-    interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk=[])
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, vari)
 
 Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `regrid`.
 """
-function interp!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk=[])
+function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, vari)
 
+    # Ensure we have same coords type
+    if typeof(lonorig[1]) != typeof(londest[1]) # means we're going towards Float32
+        if typeof(dataorig[1]) != Float32
+            dataorig = Float32.(dataorig)
+        end
+        if typeof(lonorig[1]) == Float64
+            lonorig = Float32.(lonorig)
+        end
+        if typeof(londest[1]) == Float64
+            londest = Float32.(londest)
+        end
+        if typeof(latorig[1]) == Float64
+            latorig = Float32.(latorig)
+        end
+        if typeof(lonorig[1]) == Float64
+            lonorig = Float32.(lonorig)
+        end
+    end
+
+    # Variable
+    target = Symbol(vari)
+
+    # Destination grid
+    SG = StructuredGrid(londest, latdest)
+
+    # Solver
+    n = Int(round(0.10*length(lonorig[:])))
+    solver = InvDistWeight(target => (neighbors=n,))
+    # solver = Kriging()#target => (maxneighbors=500,))
+
+
+    # Threads.@threads for t = 1:length(timeorig)
     p = Progress(length(timeorig), 5, "Regridding: ")
     for t = 1:length(timeorig)
 
-        # Points values
-        val = dataorig[:, :, t][:]
+        SD = StructuredGridData(Dict(target => dataorig[:, :, t]), lonorig, latorig)
 
-        # Call scipy griddata
-        data_interp = scipy.griddata(points, val, (londest, latdest), method=method)
-
-        # Apply mask from ClimGrid destination
-        if !isempty(msk)
-            OUT[:, :, t] = data_interp .* msk
-        else
-            OUT[:, :, t] = data_interp
-        end
+        problem = EstimationProblem(SD, SG, target)
+        solution = solve(problem, solver)
+        OUT[:, :, t] = reshape(solution.mean[target], size(londest))
 
         next!(p)
-
     end
-
 end
 
 """
@@ -356,9 +377,6 @@ function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} wher
     T = typeof(A[.!ismissing.(A)][1])
     modA = Array{T}(undef, size(A))
 
-    # # Get unit
-    # units_all = unique(unit.(A))
-    # un = units_all[.!ismissing.(units_all)]
     for t = 1:size(A, 4) # time axis
         for lev = 1:size(A, 3) #level axis
             tmp = A[:, :, lev, t]
@@ -366,8 +384,7 @@ function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} wher
             modA[:, :, lev, t] = tmp
         end
     end
-    # # reapply unit
-    # modA = [modA][1]un[1]
+
     return modA
 end
 
@@ -376,17 +393,12 @@ function applymask(A::AbstractArray{N,3} where N, mask::AbstractArray{N, 2} wher
     T = typeof(A[.!ismissing.(A)][1])
     modA = Array{T}(undef, size(A))
 
-    # # Get unit
-    # units_all = unique(unit.(A))
-    # un = units_all[.!ismissing.(units_all)]
-
     for t = 1:size(A, 3) # time axis
         tmp = A[:, :, t]
         tmp .*= mask # TODO use multiple dispatch of applymask
         modA[:, :, t] = tmp
     end
-    # reapply unit
-    # modA = [modA][1]un[1]
+
     return modA
 end
 
@@ -395,14 +407,9 @@ function applymask(A::AbstractArray{N,2} where N, mask::AbstractArray{N, 2} wher
     T = typeof(A[.!ismissing.(A)][1])
     modA = Array{T}(undef, size(A))
 
-    # # Get unit
-    # units_all = unique(unit.(A))
-    # un = units_all[.!ismissing.(units_all)]
-
     @assert ndims(A) == ndims(mask)
     modA = A .* mask
-    # reapply unit
-    # modA = [modA][1]un[1]
+
     return modA
 end
 
@@ -411,12 +418,8 @@ function applymask(A::AbstractArray{N,1} where N, mask::AbstractArray{N, 1} wher
     T = typeof(A[.!ismissing.(A)][1])
     modA = Array{T}(undef, size(A))
 
-    # # Get unit
-    # units_all = unique(unit.(A))
-    # un = units_all[.!ismissing.(units_all)]
     modA = A .* mask
-    # reapply unit
-    # modA = [modA][1]un[1]
+
     return modA
 end
 

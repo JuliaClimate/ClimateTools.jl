@@ -20,6 +20,8 @@ using Polynomials
 using IterTools
 using Statistics
 using Dates
+using GeoStats
+using InverseDistanceWeighting
 import Base.vcat
 import Base.getindex
 import Base.show
@@ -41,13 +43,13 @@ import Base.findmax
 const basemap = PyNULL()
 const mpl = PyNULL()
 const cmocean = PyNULL()
-const scipy = PyNULL()
+# const scipy = PyNULL()
 
 function __init__()
   copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))
   copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
   copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
-  copy!(scipy, pyimport_conda("scipy.interpolate", "scipy"))
+  # copy!(scipy, pyimport_conda("scipy.interpolate", "scipy"))
 end
 
 # TYPES
