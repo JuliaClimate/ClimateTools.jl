@@ -193,6 +193,7 @@ export regrid, applymask, TransferFunction
 export shapefile_coords, shapefile_coords_poly
 export periodmean, resample, temporalsubset, spatialsubset
 export qqmap, qqmaptf
+export biascorrect_extremes
 export permute_west_east
 export getdim_lat, getdim_lon, isdefined, extractpoly
 export polyfit, polyval

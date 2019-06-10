@@ -188,11 +188,21 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
                 dataout[idxfut] .= futval
             else
                 # DO NOTHING (e.g. if there is no reference, we want NaNs and not original values)
-                dataout[idxfut] .= NaN                
+                dataout[idxfut] .= NaN
             end
         end
     end
 
     return dataout
+
+end
+
+"""
+    biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid, μ, σ, ξ)
+
+Correct the tail of the distribution with a paramatric method, using the parameters μ, σ and ξ.
+"""
+function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid, μ::Real, σ::Real, ξ::Real)
+
 
 end
