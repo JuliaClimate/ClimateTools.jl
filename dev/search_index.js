@@ -729,11 +729,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions/#ClimateTools.extractpoly-Tuple{String,Int64}",
+    "location": "functions/#ClimateTools.extractpoly-Tuple{String}",
     "page": "Index",
     "title": "ClimateTools.extractpoly",
     "category": "method",
-    "text": "extractpoly(file::String, n::Int)\n\nReturns the n-th polygon contained in file.\n\n\n\n\n\n"
+    "text": "extractpoly(file::String; n::Int=1)\n\nReturns the n-th polygon contained in file.\n\n\n\n\n\n"
 },
 
 {
@@ -933,7 +933,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.regrid",
     "category": "method",
-    "text": "C = regrid(A::ClimGrid, B::ClimGrid; method=\"linear\", min=[], max=[])\n\nInterpolate ClimGrid A onto the lon-lat grid of ClimGrid B, where A and B are ClimGrid. Available methods for interpolation are \"linear\" (default), \"nearest\" and \"cubic\".\n\nMin and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.\n\n\n\n\n\n"
+    "text": "C = regrid(A::ClimGrid, B::ClimGrid; min=[], max=[])\n\nInterpolate ClimGrid A onto the lon-lat grid of ClimGrid B, where A and B are ClimGrid.\n\nMin and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.\n\n\n\n\n\n"
 },
 
 {
