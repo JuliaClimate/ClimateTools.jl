@@ -196,3 +196,13 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
     return dataout
 
 end
+
+"""
+    biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid, μ, σ, ξ)
+
+Correct the tail of the distribution with a paramatric method, using the parameters μ, σ and ξ.
+"""
+function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid, μ::Real, σ::Real, ξ::Real)
+
+
+end
