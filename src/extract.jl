@@ -750,6 +750,9 @@ function get_mapping(K::Array{String,1})
     elseif in("crs", K)
         return "crs"
 
+    elseif in("polar_stereographic", K)
+        return "polar_stereographic"
+
     else
         return "Regular_longitude_latitude"
     end
