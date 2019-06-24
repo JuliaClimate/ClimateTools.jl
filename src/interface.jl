@@ -221,6 +221,14 @@ Base.show(io::IO, ::MIME"text/plain", C::ClimGrid) = print(io, "ClimGrid struct 
 "Global attributes: ", summary(C[12]), "\n",
 "Filename: ", C[8])
 
+Base.show(io::IO, ::MIME"text/plain", C::WeatherStation) = print(io, "WeatherStation struct with data:\n   ", summary(C[1]), "\n",
+"Station ID: ", C[9], "\n",
+"Station name: ", C[10], "\n",
+"Variable: ", C[12], "\n",
+"Data units: ", C[2], "\n",
+"Global attributes: ", summary(C[17]), "\n",
+"Filename: ", C[11])
+
 Base.show(io::IO, ::MIME"text/plain", ITP::TransferFunction) = print(io, "TransferFunction type with fields *itp*, *method* and *detrend*", "\n",
     "Interpolation array: ", size(ITP.itp), " transfer functions", "\n",
     "Method: ", ITP.method, "\n",
