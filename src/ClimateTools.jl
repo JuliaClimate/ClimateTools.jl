@@ -228,6 +228,16 @@ function WeatherStation(data, lon, lat, alt, stationID; stationName="NA", filena
 end
 
 """
+    WeatherNetwork
+
+In-memory representation of a network of weather stations (netCDF files).
+"""
+struct WeatherNetwork{A <: Array{WeatherStation}}
+    data::A
+    stationID::Array{String}
+end
+
+"""
     TransferFunction(itp::Array, method::String, detrend::Bool)
 
 Transfer function used during quantile-quantile mapping bias correction.
