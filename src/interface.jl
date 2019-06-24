@@ -200,6 +200,15 @@ function getindex(C::WeatherStation,i::Int)
     end
 end
 
+function getindex(C::WeatherNetwork,i::Int)
+    return C.data[i]
+end
+
+function getindex(C::WeatherNetwork,s::String)
+    idx = findall(x->x==s, C.stationID)[1]
+    return C.data[idx]
+end
+
 # Base.IndexStyle{T<:ClimGrid}(::Type{T}) = Base.IndexLinear()
 Base.length(C::ClimGrid) = length(fieldnames(typeof(C)))
 Base.size(C::ClimGrid) = (length(C),)
