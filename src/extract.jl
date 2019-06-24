@@ -619,6 +619,22 @@ function loadstation(file::String, vari::String)
     return WeatherStation(data, lon, lat, alt, stationID, stationName=stationName, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, altunits=altunits, variable=vari, typeofvar=vari, typeofcal=caltype, timeattrib=timeattrib, varattribs=varattrib, globalattribs=attribs)
 end
 
+"""
+    loadstation(files::Array{String,1}, vari::String)
+
+Returns a WeatherNetwork type.
+"""
+function loadstation(files::Array{String,1}, vari::String)
+    nfiles = length(files)
+    data = Array{WeatherStation}(undef, nfiles)
+    stationID = Array{String}(undef, nfiles)
+    for ifile = 1:nfiles
+        data[ifile] = loadstation(files[ifile], vari)
+        stationID[ifile] = data[ifile].stationID
+    end
+    return WeatherNetwork(data, stationID)
+end
+
 model_id(attrib::NCDatasets.Attributes) = get(attrib,"model_id", get(attrib, "parent_source_id", get(attrib,"model","N/A")))
 
 experiment_id(attrib::NCDatasets.Attributes) = get(attrib,"experiment_id",get(attrib,"experiment","N/A"))
