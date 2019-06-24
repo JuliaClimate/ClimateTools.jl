@@ -154,6 +154,51 @@ function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dim
 end
 
 """
+    WeatherStation{A <: AxisArray}
+
+In-memory representation of weather station netCDF files.
+
+struct WeatherStation{A <: AxisArray}\n
+    data::A\n
+    lon::Real\n
+    lat::Real\n
+    alt::Real\n
+    stationID::String  # Alphanumerical ID of the weather station\n
+    stationName::String  # Name of the weather station\n
+    filename::String  # Path of the original file\n
+    dataunits::String  # Celsius, kelvin, etc.\n
+    lonunits::String  # Longitude coordinate unit\n
+    latunits::String  # Latitude coordinate unit\n
+    altunits::String  # Altitude coordinate unit\n
+    variable::String  # Type of variable\n
+    typeofvar::String  # Variable type (e.g. tasmax, tasmin, pr)\n
+    typeofcal::String  # Calendar type\n
+    timeattrib::Dict  # Time attributes (e.g. days since ... )\n
+    varattribs::Dict  # Variable attributes\n
+    globalattribs::Dict  # Global attributes\n
+end\n
+"""
+struct WeatherStation{A <: AxisArray}
+    data::A
+    lon::Real
+    lat::Real
+    alt::Real
+    stationID::String # Alphanumerical ID of the weather station
+    stationName::String # Name of the weather station
+    filename::String # Path of the original file
+    dataunits::String # Celsius, kelvin, etc.
+    lonunits::String # Longitude coordinate unit
+    latunits::String # Latitude coordinate unit
+    altunits::String # Altitude coordinate unit
+    variable::String # Type of variable
+    typeofvar::String # Variable type (e.g. tasmax, tasmin, pr)
+    typeofcal::String # Calendar type
+    timeattrib::Dict # Time attributes (e.g. days since ... )
+    varattribs::Dict # Variable attributes
+    globalattribs::Dict # Global attributes
+end
+
+"""
     TransferFunction(itp::Array, method::String, detrend::Bool)
 
 Transfer function used during quantile-quantile mapping bias correction.
