@@ -264,6 +264,7 @@ export annualmean, annualsum, prcp1
 export drought_dc
 export ensemble_mean, ensemble_std, ensemble_max, ensemble_min
 export load, load2D
+export loadstation
 export regrid, applymask, TransferFunction
 export shapefile_coords, shapefile_coords_poly
 export periodmean, resample, temporalsubset, spatialsubset
