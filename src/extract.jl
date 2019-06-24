@@ -586,6 +586,39 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
 end
 
+"""
+    loadstation(file::String, vari::String)
+
+Returns a WeatherStation type.
+"""
+function loadstation(file::String, vari::String)
+    ncI = NetCDF.ncinfo(file);
+    attribs = NetCDF.ncinfo(file).gatts;
+    ds = NCDatasets.Dataset(file)
+    attribs_dataset = ds.attrib
+
+    data = AxisArray(ds[vari][:], Axis{Symbol(time)}(ds["time"][:]))
+    lat = ds["lat"][1]
+    lon = ds["lon"][1]
+    alt = ds["alt"][1]
+    stationID = join(ds["station_ID"][:])
+    stationName = join(ds["station_name"][:])
+    dataunits = ds[vari].attrib["units"]
+    latunits = ds["lat"].attrib["units"]
+    lonunits = ds["lon"].attrib["units"]
+    altunits = ds["alt"].attrib["units"]
+    caltype = ""
+    try
+        caltype = ds["time"].attrib["calendar"]
+    catch
+        caltype = "standard"
+    end
+    timeattrib = Dict(ds["time"].attrib)
+    varattrib = Dict(ds[vari].attrib)
+
+    return WeatherStation(data, lon, lat, alt, stationID, stationName=stationName, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, altunits=altunits, variable=vari, typeofvar=vari, typeofcal=caltype, timeattrib=timeattrib, varattribs=varattrib, globalattribs=attribs)
+end
+
 model_id(attrib::NCDatasets.Attributes) = get(attrib,"model_id", get(attrib, "parent_source_id", get(attrib,"model","N/A")))
 
 experiment_id(attrib::NCDatasets.Attributes) = get(attrib,"experiment_id",get(attrib,"experiment","N/A"))
