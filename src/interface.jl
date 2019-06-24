@@ -160,6 +160,46 @@ function getindex(C::ClimGrid,i::Int)
     end
 end
 
+function getindex(C::WeatherStation,i::Int)
+    if i == 1
+        return C.data
+    elseif i == 2
+        return C.dataunits
+    elseif i == 3
+        return C.lon
+    elseif i == 4
+        return C.lat
+    elseif i == 5
+        return C.alt
+    elseif i == 6
+        return C.lonunits
+    elseif i == 7
+        return C.latunits
+    elseif i == 8
+        return C.altunits
+    elseif i == 9
+        return C.stationID
+    elseif i == 10
+        return C.stationName
+    elseif i == 11
+        return C.filename
+    elseif i == 12
+        return C.variable
+    elseif i == 13
+        return C.typeofvar
+    elseif i == 14
+        return C.varattribs
+    elseif i == 15
+        return C.typeofcal
+    elseif i == 16
+        return C.timeattrib
+    elseif i == 17
+        return C.globalattribs
+    else
+        throw(error("You can't index like that!"))
+    end
+end
+
 # Base.IndexStyle{T<:ClimGrid}(::Type{T}) = Base.IndexLinear()
 Base.length(C::ClimGrid) = length(fieldnames(typeof(C)))
 Base.size(C::ClimGrid) = (length(C),)
