@@ -199,6 +199,35 @@ struct WeatherStation{A <: AxisArray}
 end
 
 """
+    WeatherStation(data, lon, lat, alt, stationID; stationName="NA", filename="NA", dataunits="NA", latunits="NA", lonunits="NA", altunits="NA", variable="NA", typeofvar="NA", typeofcal="NA", timeattrib=Dict(), varattribs=Dict(), globalattribs=Dict())
+
+Constructor of the WeatherStation function. Data is an AxisArray, lon, lat and alt are Reals and stationID is a String. Everything else is optional, but usually needed for further processing.
+
+struct WeatherStation{A <: AxisArray}\n
+    data::A\n
+    lon::Real\n
+    lat::Real\n
+    alt::Real\n
+    stationID::String #  Alphanumerical ID of the weather station\n
+    stationName::String #  Name of the weather station\n
+    filename::String #  Path of the original file\n
+    dataunits::String #  Celsius, kelvin, etc.\n
+    lonunits::String #  Longitude coordinate unit\n
+    latunits::String #  Latitude coordinate unit\n
+    altunits::String #  Altitude coordinate unit\n
+    variable::String #  Type of variable\n
+    typeofvar::String #  Variable type (e.g. tasmax, tasmin, pr)\n
+    typeofcal::String #  Calendar type\n
+    timeattrib::Dict #  Time attributes (e.g. days since ... )\n
+    varattribs::Dict #  Variable attributes\n
+    globalattribs::Dict #  Global attributes\n
+end\n
+"""
+function WeatherStation(data, lon, lat, alt, stationID; stationName="NA", filename="NA", dataunits="NA", latunits="NA", lonunits="NA", altunits="NA", variable="NA", typeofvar="NA", typeofcal="NA", timeattrib=Dict(), varattribs=Dict(), globalattribs=Dict())
+    WeatherStation(data, lon, lat, alt, stationID, stationName, filename, dataunits, latunits, lonunits, altunits, variable, typeofvar, typeofcal, timeattrib, varattribs, globalattribs)
+end
+
+"""
     TransferFunction(itp::Array, method::String, detrend::Bool)
 
 Transfer function used during quantile-quantile mapping bias correction.
