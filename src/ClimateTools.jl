@@ -238,6 +238,20 @@ struct WeatherNetwork{A <: Array{WeatherStation}}
 end
 
 """
+    WeatherNetwork(data, stationID)
+
+Constructor of the WeatherNetwork function. Data is an Array of WeatherStations, stationID is an Array of Strings.
+
+struct WeatherNetwork\n
+    data::Array{WeatherStation}\n
+    stationID::Array{String}\n
+end\n
+"""
+function WeatherNetwork(data, stationID)
+    WeatherNetwork(data, stationID)
+end
+
+"""
     TransferFunction(itp::Array, method::String, detrend::Bool)
 
 Transfer function used during quantile-quantile mapping bias correction.
