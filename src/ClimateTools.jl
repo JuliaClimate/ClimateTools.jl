@@ -253,6 +253,7 @@ include("analysis.jl")
 
 # Exported functions
 export ClimGrid
+export WeatherStation
 # export uconvert
 export inpoly, inpolygrid, meshgrid, inpolyvec, ndgrid
 export findmax, findmin
