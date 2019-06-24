@@ -238,6 +238,13 @@ Base.show(io::IO, ::MIME"text/plain", C::WeatherStation) = print(io, "WeatherSta
 "Global attributes: ", summary(C[17]), "\n",
 "Filename: ", C[11])
 
+Base.show(io::IO, ::MIME"text/plain", C::WeatherNetwork) = print(io, "WeatherNetwork struct with data:\n   ", summary(C[1]), "\n",
+"Station IDs: ", C.stationID, "\n",
+"Variable: ", C[1][12], "\n",
+"Data units: ", C[1][2], "\n",
+"Global attributes: ", summary(C[1][17]), "\n",
+"Filename: ", C[1][11])
+
 Base.show(io::IO, ::MIME"text/plain", ITP::TransferFunction) = print(io, "TransferFunction type with fields *itp*, *method* and *detrend*", "\n",
     "Interpolation array: ", size(ITP.itp), " transfer functions", "\n",
     "Method: ", ITP.method, "\n",
