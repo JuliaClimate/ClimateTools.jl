@@ -66,7 +66,7 @@ dt = DateTimeNoLeap(2000, 01, 01, 23)
 # WeatherStation based tests
 d_ws = collect(DateTime(2003,1,1):Year(1):DateTime(2005,12,31))
 data_ws = Array{Float64,1}(undef, 3)
-axisdata_ws = AxisArray(data_ws, Axis{Symbol(time)}(d2))
+axisdata_ws = AxisArray(data_ws, Axis{Symbol(time)}(d_ws))
 W = WeatherStation(axisdata_ws, Real(-65), Real(45), Real(30), "TEST000A")
 timevec_ws = ClimateTools.get_timevec(W)
 @test timevec_ws[1] == DateTime(2003,01,01,00,00,00)
