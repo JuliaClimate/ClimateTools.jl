@@ -346,6 +346,21 @@ function getgrids(C::ClimGrid)
 end
 
 """
+getnetworkcoords(C::WeatherNetwork)
+
+Returns longitude and latitude arrays of WeatherNetwork C.
+"""
+function getnetworkcoords(C::WeatherNetwork)
+    lon = Array{Real}(undef, length(C))
+    lat = Array{Real}(undef, length(C))
+    for i = 1:length(C)
+        lon[i] = C[i].lon
+        lat[i] = C[i].lat
+    end
+    return lon, lat
+end
+
+"""
     getdims(C::ClimGrid)
 
 Returns dimensions vectors of C
