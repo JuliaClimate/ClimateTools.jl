@@ -40,7 +40,7 @@ D = resample(C, "SON") # hardcoded seasons
 
 @test_throws ErrorException D = resample(C, "df")
 
-maps = ["rotated_pole", "rotated_mercator", "crs", "lambert_conformal_conic","rotated_latitude_longitude", "None"]
+maps = ["rotated_pole", "rotated_mercator", "crs", "lambert_conformal_conic", "rotated_latitude_longitude", "polar_stereographic", "None"]
 
 for imap in maps
   K = ["time", imap]
