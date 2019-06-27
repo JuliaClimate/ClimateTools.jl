@@ -351,6 +351,29 @@ function PyPlot.hist(C::ClimGrid; bins::Int=10, level=1, range_x=[], poly=[], st
 end
 
 """
+    function plotstation(C::WeatherNetwork{<:Any}; reg="canada", msize=2, titlestr::String="", filename::String="")
+
+This function plots WeatherNetwork on a map.
+"""
+function plotstation(C::WeatherNetwork{<:Any}; reg="canada", msize=2, titlestr::String="", filename::String="")
+    # Empty-map generator
+    status, fig, ax, m = mapclimgrid(region=reg)    # Canadian stations by default for now
+
+    # Plot each station from its lat/lon
+    lon, lat = ClimateTools.getnetworkcoords(C)
+    x, y = m(lon, lat)
+    m.plot(x, y, "r+", markersize=msize)
+
+    # Title
+    ClimateTools.title(titlestr)
+
+    # Save to "filename" if not empty
+    if !isempty(filename)
+        PyPlot.savefig(filename, dpi=300)
+    end
+end
+
+"""
     getcslimits(caxis, data, C)
 
 Returns minimum and maximum values of the colorscale axis. Used internally by [`mapclimgrid`](@ref).
