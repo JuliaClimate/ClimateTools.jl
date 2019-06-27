@@ -346,7 +346,7 @@ function getgrids(C::ClimGrid)
 end
 
 """
-getnetworkcoords(C::WeatherNetwork)
+    getnetworkcoords(C::WeatherNetwork)
 
 Returns longitude and latitude arrays of WeatherNetwork C.
 """
@@ -380,6 +380,13 @@ end
 Returns time vector of ClimGrid C.
 """
 get_timevec(C::ClimGrid) = C[1][Axis{:time}][:]
+
+"""
+    get_timevec(C::WeatherStation)
+
+Returns time vector of WeatherStation C.
+"""
+get_timevec(C::WeatherStation) = C[1][Axis{:time}][:]
 
 """
     applymask(A::AbstractArray{N, n}, mask::AbstractArray{N, n})
