@@ -102,11 +102,25 @@ Compute the mean of `ClimGrid` A
 mean(A::ClimGrid) = Statistics.mean(A[1])
 
 """
+    mean(W::WeatherStation)
+
+Compute the mean of `WeatherStation` W
+"""
+mean(W::WeatherStation) = Statistics.mean(filter(!isnan, W[1]))
+
+"""
     minimum(A::ClimGrid)
 
 Compute the minimum value of `ClimGrid` A
 """
 Base.minimum(A::ClimGrid) = minimum(A[1])
+
+"""
+    minimum(W::WeatherStation)
+
+Compute the minimum value of `WeatherStation` W
+"""
+Base.minimum(W::WeatherStation) = minimum(filter(!isnan, W[1]))
 
 """
     maximum(A::ClimGrid)
@@ -116,6 +130,13 @@ Compute the maximum value of `ClimGrid` A
 Base.maximum(A::ClimGrid) = maximum(A[1])
 
 """
+    maximum(W::WeatherStation)
+
+Compute the maximum value of `WeatherStation` W
+"""
+Base.maximum(W::WeatherStation) = maximum(filter(!isnan, W[1]))
+
+"""
     std(A::ClimGrid)
 
 Compute the standard deviation of `ClimGrid` A
@@ -123,11 +144,25 @@ Compute the standard deviation of `ClimGrid` A
 std(A::ClimGrid) = Statistics.std(A[1])
 
 """
+    std(E::WeatherStation)
+
+Compute the standard deviation of `WeatherStation` W
+"""
+std(W::WeatherStation) = Statistics.std(filter(!isnan, W[1]))
+
+"""
     var(A::ClimGrid)
 
 Compute the variance of `ClimGrid` A
 """
 var(A::ClimGrid) = Statistics.var(A[1])
+
+"""
+    var(W::WeatherStation)
+
+Compute the variance of `WeatherStation` W
+"""
+var(W::WeatherStation) = Statistics.var(filter(!isnan, W[1]))
 
 
 function getindex(C::ClimGrid,i::Int)
