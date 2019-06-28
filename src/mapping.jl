@@ -355,14 +355,14 @@ end
 
 This function plots WeatherNetwork on a map.
 """
-function plotstation(C::WeatherNetwork{<:Any}; reg="canada", msize=2, titlestr::String="", filename::String="")
+function plotstation(C::WeatherNetwork{<:Any}; reg="canada", titlestr::String="", filename::String="")
     # Empty-map generator
     status, fig, ax, m = mapclimgrid(region=reg)    # Canadian stations by default for now
 
     # Plot each station from its lat/lon
     lon, lat = ClimateTools.getnetworkcoords(C)
     x, y = m(lon, lat)
-    m.plot(x, y, "r+", markersize=msize)
+    m.scatter(x, y)
 
     # Title
     ClimateTools.title(titlestr)
