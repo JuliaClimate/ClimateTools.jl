@@ -11,6 +11,7 @@ using AxisArrays
 using NaNMath
 const axes = Base.axes
 using ArgCheck
+using DataFrames
 using PyCall
 using PyPlot
 using Interpolations
