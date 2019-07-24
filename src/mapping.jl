@@ -158,6 +158,33 @@ function mapclimgrid(;region::String="auto", states::Bool=true, llon=[], rlon=[]
     elseif lowercase(region) == "quebecnsp" || lowercase(region) == "qcnsp"
         m = basemap.Basemap(projection = "nsper", resolution= "l", satellite_height = 2000000, lon_0 = -72.5, lat_0 = 55)
 
+    elseif lowercase(region) == "british_columbia" || lowercase(region) == "bc"
+        m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -137.5, llcrnrlat = 46., urcrnrlon = -109.5, urcrnrlat = 61.352, lon_0 = -123.5, lat_1 = 54, rsphere = (6378137.00, 6356752.3142))
+
+    elseif lowercase(region) == "alberta" || lowercase(region) == "ab"
+        m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -121.5, llcrnrlat = 47.5, urcrnrlon = -106.5, urcrnrlat = 61.352, lon_0 = -114.5, lat_1 = 54, rsphere = (6378137.00, 6356752.3142))
+
+    elseif lowercase(region) == "saskatchewan" || lowercase(region) == "sk"
+        m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -112.5, llcrnrlat = 48.0, urcrnrlon = -96.0, urcrnrlat = 60.5, lon_0 = -104.5, lat_1 = 54, rsphere = (6378137.00, 6356752.3142))
+
+    elseif lowercase(region) == "manitoba" || lowercase(region) == "mb"
+        m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -104, llcrnrlat = 47.5, urcrnrlon = -86.0, urcrnrlat = 60.5, lon_0 = -95, lat_1 = 54, rsphere = (6378137.00, 6356752.3142))
+
+    elseif lowercase(region) == "ontario" || lowercase(region) == "on"
+        m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -96, llcrnrlat = 38.5, urcrnrlon = -65, urcrnrlat = 58.0, lon_0 = -85.5, lat_1 = 48.7, rsphere = (6378137.00, 6356752.3142))
+
+    elseif lowercase(region) == "prince_edward_island" || lowercase(region) == "pe"
+        m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -65.5, llcrnrlat = 44.7, urcrnrlon = -60.8, urcrnrlat = 48.0, lon_0 = -63.15, lat_1 = 46.35, rsphere = (6378137.00, 6356752.3142))
+
+    elseif lowercase(region) == "new_brunswick" || lowercase(region) == "nb"
+        m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -69.5, llcrnrlat = 44.5, urcrnrlon = -63, urcrnrlat = 49.5, lon_0 = -66, lat_1 = 47, rsphere = (6378137.00, 6356752.3142))
+
+    elseif lowercase(region) == "nova_scotia" || lowercase(region) == "ns"
+        m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -68, llcrnrlat = 43, urcrnrlon = -58.7, urcrnrlat = 48, lon_0 = -63, lat_1 = 45, rsphere = (6378137.00, 6356752.3142))
+
+    elseif lowercase(region) == "newfoundland" || lowercase(region) == "nl"
+        m = basemap.Basemap(projection = "lcc", resolution = "l", llcrnrlon = -67, llcrnrlat = 45, urcrnrlon = -49.5, urcrnrlat = 60.5, lon_0 = -58, lat_1 = 55, rsphere = (6378137.00, 6356752.3142))
+        
     elseif lowercase(region) == "americas" || lowercase(region) == "ams"
         m = basemap.Basemap(projection = "omerc", resolution = "c", width=14000000, height=17000000, lon_0 = -100, lat_0 =    15, lon_1 = -45, lon_2 = -120, lat_1 = -55, lat_2 = 70)
 
