@@ -323,7 +323,7 @@ function drought_dc(pr_day::Real, tas_day::Real, dc0::Real, mth::Int)
         if smi == 0.0
             smi = 1.0
         end
-        dr = dc0 - 400.0*log(1.0+((3.937*rw/smi)))
+        dr = dc0 - 400.0*log(1.0+((3.937*rw)/smi))
 
         if dr > 0.0
             dc_single = dr + pe
@@ -334,7 +334,6 @@ function drought_dc(pr_day::Real, tas_day::Real, dc0::Real, mth::Int)
     end
 
     return dc_single
-
 
 end
 
