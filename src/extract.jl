@@ -616,6 +616,9 @@ function loadstation(file::String, vari::String)
     timeattrib = Dict(ds["time"].attrib)
     varattrib = Dict(ds[vari].attrib)
 
+    close(ds)
+    NetCDF.ncclose(file)
+
     return WeatherStation(data, lon, lat, alt, stationID, stationName=stationName, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, altunits=altunits, variable=vari, typeofvar=vari, typeofcal=caltype, timeattrib=timeattrib, varattribs=varattrib, globalattribs=attribs)
 end
 
