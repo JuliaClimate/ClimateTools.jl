@@ -597,7 +597,7 @@ function loadstation(file::String, vari::String)
     ds = NCDatasets.Dataset(file)
     attribs_dataset = ds.attrib
 
-    data = AxisArray(ds[vari][:], Axis{Symbol(time)}(ds["time"][:]))
+    data = AxisArray(convert!(ds[vari][:], Float32), Axis{Symbol(time)}(convert!(ds["time"][:], Dates.DateTime)))
     lat = ds["lat"][1]
     lon = ds["lon"][1]
     alt = ds["alt"][1]
