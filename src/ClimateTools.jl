@@ -298,6 +298,7 @@ export getdim_lat, getdim_lon, isdefined, extractpoly
 export polyfit, polyval
 export @isdefined
 export plot, mapclimgrid, hist
+export mapweatherstation, plotweatherstation
 export merge, vaporpressure, approx_surfacepressure
 export wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
