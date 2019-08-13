@@ -144,7 +144,7 @@ Compute the standard deviation of `ClimGrid` A
 std(A::ClimGrid) = Statistics.std(A[1])
 
 """
-    std(E::WeatherStation)
+    std(W::WeatherStation)
 
 Compute the standard deviation of `WeatherStation` W
 """
@@ -195,59 +195,59 @@ function getindex(C::ClimGrid,i::Int)
     end
 end
 
-function getindex(C::WeatherStation,i::Int)
+function getindex(W::WeatherStation,i::Int)
     if i == 1
-        return C.data
+        return W.data
     elseif i == 2
-        return C.dataunits
+        return W.dataunits
     elseif i == 3
-        return C.lon
+        return W.lon
     elseif i == 4
-        return C.lat
+        return W.lat
     elseif i == 5
-        return C.alt
+        return W.alt
     elseif i == 6
-        return C.lonunits
+        return W.lonunits
     elseif i == 7
-        return C.latunits
+        return W.latunits
     elseif i == 8
-        return C.altunits
+        return W.altunits
     elseif i == 9
-        return C.stationID
+        return W.stationID
     elseif i == 10
-        return C.stationName
+        return W.stationName
     elseif i == 11
-        return C.filename
+        return W.filename
     elseif i == 12
-        return C.variable
+        return W.variable
     elseif i == 13
-        return C.typeofvar
+        return W.typeofvar
     elseif i == 14
-        return C.varattribs
+        return W.varattribs
     elseif i == 15
-        return C.typeofcal
+        return W.typeofcal
     elseif i == 16
-        return C.timeattrib
+        return W.timeattrib
     elseif i == 17
-        return C.globalattribs
+        return W.globalattribs
     else
         throw(error("You can't index like that!"))
     end
 end
 
-function getindex(C::WeatherNetwork,i::Int)
-    return C.data[i]
+function getindex(W::WeatherNetwork,i::Int)
+    return W.data[i]
 end
 
-function getindex(C::WeatherNetwork,s::String)
-    idx = findall(x->x==s, C.stationID)[1]
-    return C.data[idx]
+function getindex(W::WeatherNetwork,s::String)
+    idx = findall(x->x==s, W.stationID)[1]
+    return W.data[idx]
 end
 
 # Base.IndexStyle{T<:ClimGrid}(::Type{T}) = Base.IndexLinear()
 Base.length(C::ClimGrid) = length(fieldnames(typeof(C)))
-Base.length(C::WeatherNetwork) = length(C.data)
-Base.length(C::WeatherStation) = length(C.data)
+Base.length(W::WeatherNetwork) = length(W.data)
+Base.length(W::WeatherStation) = length(W.data)
 Base.size(C::ClimGrid) = (length(C),)
 Base.size(C::ClimGrid, n::Int) = n==1 ? length(C) : error("Only dimension 1 has a well-defined size.")
 #Base.endof(C::ClimGrid) = length(C)
@@ -267,19 +267,19 @@ Base.show(io::IO, ::MIME"text/plain", C::ClimGrid) = print(io, "ClimGrid struct 
 "Global attributes: ", summary(C[12]), "\n",
 "Filename: ", C[8])
 
-Base.show(io::IO, ::MIME"text/plain", C::WeatherStation) = print(io, "WeatherStation struct with data:\n   ", summary(C[1]), "\n",
-"Station ID: ", C[9], "\n",
-"Station name: ", C[10], "\n",
-"Variable: ", C[12], "\n",
-"Data units: ", C[2], "\n",
-"Global attributes: ", summary(C[17]), "\n",
-"Filename: ", C[11])
+Base.show(io::IO, ::MIME"text/plain", W::WeatherStation) = print(io, "WeatherStation struct with data:\n   ", summary(W[1]), "\n",
+"Station ID: ", W[9], "\n",
+"Station name: ", W[10], "\n",
+"Variable: ", W[12], "\n",
+"Data units: ", W[2], "\n",
+"Global attributes: ", summary(W[17]), "\n",
+"Filename: ", W[11])
 
-Base.show(io::IO, ::MIME"text/plain", C::WeatherNetwork) = print(io, "WeatherNetwork struct with data:\n   ", summary(C[1]), "\n",
-"Station IDs: ", C.stationID, "\n",
-"Variable: ", C[1][12], "\n",
-"Data units: ", C[1][2], "\n",
-"Global attributes: ", summary(C[1][17]), "\n")
+Base.show(io::IO, ::MIME"text/plain", W::WeatherNetwork) = print(io, "WeatherNetwork struct with data:\n   ", summary(W[1]), "\n",
+"Station IDs: ", W.stationID, "\n",
+"Variable: ", W[1][12], "\n",
+"Data units: ", W[1][2], "\n",
+"Global attributes: ", summary(W[1][17]), "\n")
 
 Base.show(io::IO, ::MIME"text/plain", ITP::TransferFunction) = print(io, "TransferFunction type with fields *itp*, *method* and *detrend*", "\n",
     "Interpolation array: ", size(ITP.itp), " transfer functions", "\n",
