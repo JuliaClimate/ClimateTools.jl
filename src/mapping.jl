@@ -351,26 +351,96 @@ function PyPlot.hist(C::ClimGrid; bins::Int=10, level=1, range_x=[], poly=[], st
 end
 
 """
-    function plotstation(C::WeatherNetwork{<:Any}; reg="canada", msize=2, titlestr::String="", filename::String="")
+    mapweatherstation(W::WeatherStation; reg="canada", titlestr::String="", filename::String="", cs_label::String="")
 
-This function plots WeatherNetwork on a map.
+Maps the time-mean average of WeatherStation W. If a filename is provided, the figure is saved in a png format.
 """
-function plotstation(C::WeatherNetwork{<:Any}; reg="canada", titlestr::String="", filename::String="")
+function mapweatherstation(W::WeatherStation; reg="canada", titlestr::String="", filename::String="", cs_label::String="")
     # Empty-map generator
-    status, fig, ax, m = mapclimgrid(region=reg)    # Canadian stations by default for now
+    status, fig, ax, m = mapclimgrid(region=reg)
 
-    # Plot each station from its lat/lon
-    lon, lat = ClimateTools.getnetworkcoords(C)
+    # Plot weather station on the empty map
+    lat = W.lat
+    lon = W.lon
     x, y = m(lon, lat)
-    m.scatter(x, y)
+    cs = m.scatter([x], [y], c=[mean(W.data)])
+
+    # Colorbar
+    if isempty(cs_label)
+        cs_label = W.dataunits
+    end
+    cbar = colorbar(cs, orientation = "vertical", shrink = 0.7, label=cs_label)
 
     # Title
-    ClimateTools.title(titlestr)
+    if isempty(titlestr)
+        titlestr = "Time-mean average of $(W.variable) \n $(W.stationName)"
+    end
+    title(titlestr)
 
     # Save to "filename" if not empty
     if !isempty(filename)
         PyPlot.savefig(filename, dpi=300)
     end
+end
+
+"""
+    plotweatherstation(W::WeatherStation, titlefig::String, gridfig::Bool, label::String, color, lw, linestyle)
+
+Plots the timeserie of WeatherStation `W`.
+"""
+function plotweatherstation(W::WeatherStation; level=1, start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", gridfig::Bool=true, label::String="", lw=1.5, linestyle="-", filename::String="")
+
+    # TODO allow temporal subsetting of WeatherStation
+    # if !isinf(start_date[1]) || !isinf(end_date[1])
+    #     W = temporalsubset(W, start_date, end_date)
+    # end
+
+    data = W[1].data
+    timevec = get_timevec(W)
+
+    if typeof(timevec[1]) != Date
+        if typeof(timevec[1]) == Dates.Year
+            timevec = Date.(timevec)
+        else
+            timevec = Dates.year.(timevec)  # to show only the years
+        end
+    end
+
+    if isempty(label)
+        label = W.stationName
+    end
+
+    # Convert timevec to an array of string
+    timevec_str = string.(timevec)
+    if length(timevec) >= 20
+        nb_interval_tmp = length(timevec)/8
+        nb_int = ClimateTools.roundup(nb_interval_tmp, 5)
+    else
+        nb_int = 1
+    end
+
+    # PLOTTING
+    # TODO fix missing years problem
+    figh = ClimateTools.PyPlot.plot(1:length(timevec_str), data, lw=lw, label=label, linestyle=linestyle)
+    ClimateTools.xticks(1:nb_int:length(timevec_str), timevec_str[1:nb_int:end], rotation=10)
+    xlabel("Time")
+    ClimateTools.ylabel(W.dataunits)
+    ClimateTools.legend()
+    # xticks(timevec[1:20:end])
+    if isempty(titlestr)
+        titlestr = W.variable
+    end
+    ClimateTools.title(titlestr)
+    if gridfig
+        ClimateTools.grid(true)
+    end
+
+    # Save to "filename" if not empty
+    if !isempty(filename)
+        ClimateTools.PyPlot.savefig(filename, dpi=300)
+    end
+
+    return true, figh
 end
 
 """
