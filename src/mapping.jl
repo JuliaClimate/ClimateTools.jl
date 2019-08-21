@@ -351,11 +351,11 @@ function PyPlot.hist(C::ClimGrid; bins::Int=10, level=1, range_x=[], poly=[], st
 end
 
 """
-    mapweatherstation(W::WeatherStation; reg="canada", titlestr::String="", filename::String="", cs_label::String="")
+    mapweathernetwork(W::WeatherStation; reg="canada", titlestr::String="", filename::String="", cs_label::String="")
 
 Maps the time-mean average of WeatherStation W. If a filename is provided, the figure is saved in a png format.
 """
-function mapweatherstation(W::WeatherStation; reg="canada", titlestr::String="", filename::String="", cs_label::String="")
+function mapweathernetwork(W::WeatherStation; reg="canada", titlestr::String="", filename::String="", cs_label::String="")
     # Empty-map generator
     status, fig, ax, m = mapclimgrid(region=reg)
 
@@ -363,7 +363,8 @@ function mapweatherstation(W::WeatherStation; reg="canada", titlestr::String="",
     lat = W.lat
     lon = W.lon
     x, y = m(lon, lat)
-    cs = m.scatter([x], [y], c=[mean(W.data)])
+    cm = "viridis_r"
+    cs = m.scatter([x], [y], c=[mean(filter(!isnan, W.data))], cmap=cm)
 
     # Colorbar
     if isempty(cs_label)
@@ -383,12 +384,41 @@ function mapweatherstation(W::WeatherStation; reg="canada", titlestr::String="",
     end
 end
 
+function mapweathernetwork(W::WeatherNetwork; reg="canada", titlestr::String="", filename::String="", cs_label::String="")
+    # Empty-map generator
+    status, fig, ax, m = mapclimgrid(region=reg)
+
+    # Plot weather station on the empty map
+    lon = getfield.(W.data, :lon)
+    lat = getfield.(W.data, :lat)
+    x, y = m(lon, lat)
+    cm = "viridis_r"
+    cs = m.scatter(x, y, c=mean.(filter.(!isnan, getfield.(W.data, :data))), cmap=cm)
+
+    # Colorbar
+    if isempty(cs_label)
+        cs_label = W[1].dataunits
+    end
+    cbar = ClimateTools.colorbar(cs, orientation = "vertical", shrink = 0.7, label=cs_label)
+
+    # Title
+    if isempty(titlestr)
+        titlestr = "Time-mean average of $(W[1].variable)"
+    end
+    ClimateTools.title(titlestr)
+
+    # Save to "filename" if not empty
+    if !isempty(filename)
+        PyPlot.savefig(filename, dpi=300)
+    end
+end
+
 """
     plotweatherstation(W::WeatherStation, titlefig::String, gridfig::Bool, label::String, color, lw, linestyle)
 
 Plots the timeserie of WeatherStation `W`.
 """
-function plotweatherstation(W::WeatherStation; level=1, start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", gridfig::Bool=true, label::String="", lw=1.5, linestyle="-", filename::String="")
+function PyPlot.plot(W::WeatherStation; level=1, start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String="", gridfig::Bool=true, label::String="", lw=1.5, linestyle="-", filename::String="")
 
     # TODO allow temporal subsetting of WeatherStation
     # if !isinf(start_date[1]) || !isinf(end_date[1])
@@ -401,8 +431,10 @@ function plotweatherstation(W::WeatherStation; level=1, start_date::Tuple=(Inf,)
     if typeof(timevec[1]) != Date
         if typeof(timevec[1]) == Dates.Year
             timevec = Date.(timevec)
-        else
-            timevec = Dates.year.(timevec)  # to show only the years
+        elseif yearly_check(W) == true
+            W = timeseries(W)
+            data = W[1].data
+            timevec = Dates.year.(get_timevec(W))  # to show only the years
         end
     end
 
@@ -423,7 +455,7 @@ function plotweatherstation(W::WeatherStation; level=1, start_date::Tuple=(Inf,)
     # TODO fix missing years problem
     figh = ClimateTools.PyPlot.plot(1:length(timevec_str), data, lw=lw, label=label, linestyle=linestyle)
     ClimateTools.xticks(1:nb_int:length(timevec_str), timevec_str[1:nb_int:end], rotation=10)
-    xlabel("Time")
+    ClimateTools.xlabel("Time")
     ClimateTools.ylabel(W.dataunits)
     ClimateTools.legend()
     # xticks(timevec[1:20:end])
@@ -442,6 +474,7 @@ function plotweatherstation(W::WeatherStation; level=1, start_date::Tuple=(Inf,)
 
     return true, figh
 end
+
 
 """
     getcslimits(caxis, data, C)
@@ -570,4 +603,113 @@ end
 
 function roundup(i,v)
     return round(Int, i/v)*v
+end
+
+
+"""
+    yearly_check(ws::WeatherStation)
+
+Return true if WeatherStation data are yearly, false if not.
+"""
+function yearly_check(ws::WeatherStation)
+    if Dates.Year(ws.data.axes[1][2]) - Dates.Year(ws.data.axes[1][1]) != Dates.Year(0)
+        return true
+    else
+        return false
+    end
+end
+
+"""
+    timeseries(ws::WeatherStation)
+
+Fill the missing years with NaN. Returns a WeatherStation with complete time serie.
+"""
+function timeseries(ws::WeatherStation)
+    # Check if is yearly data :
+    if yearly_check(ws) == true
+        # Find the min and max year
+        min_ws = Dates.year(ws.data.axes[1][1])
+        max_ws = Dates.year(ws.data.axes[1][end])
+
+        # Create a new time vector
+        time_n = Dates.DateTime.(min_ws:1:max_ws)
+        data_n = Array{Float32}(undef, length(time_n))
+
+        new_data = AxisArray(data_n[:], Axis{Symbol(time)}(time_n[:]))
+        for t in time_n
+            try
+                global(val) = ws.data[atvalue.(t)]
+            catch
+                global(val) = NaN
+            end
+            new_data[atvalue.(t)] = val
+        end
+
+        return WeatherStation(new_data, ws.lon, ws.lat, ws.alt, ws.stationID, stationName=ws.stationName, filename=ws.filename, dataunits=ws.dataunits, latunits=ws.latunits, lonunits=ws.lonunits, altunits=ws.altunits, variable=ws.variable, typeofvar=ws.typeofvar, typeofcal=ws.typeofcal, timeattrib=ws.timeattrib, varattribs=ws.varattribs, globalattribs=ws.globalattribs)
+    else
+        return ws
+    end
+end
+
+"""
+    year_min(W::WeatherNetwork)
+
+Return the very first year from all weather station in the WeatherNetwork.
+"""
+function year_min(W::WeatherNetwork)
+    global(min_ts) = Inf
+    data = getfield.(W.data, :data)
+    for i = eachindex(data)
+        if Dates.year(data[i].axes[1][1]) <= min_ts
+            global(min_ts) = Dates.year(data[i].axes[1][1])
+        end
+    end
+    return min_ts
+end
+
+"""
+    year_max(W::WeatherNetwork)
+
+Return the very last year from all weather station in the WeatherNetwork.
+"""
+function year_max(W::WeatherNetwork)
+    global(max_ts) = 0
+    data = getfield.(W.data, :data)
+    for i = eachindex(data)
+        if Dates.year(data[i].axes[1][end]) >= max_ts
+            global(max_ts) = Dates.year(data[i].axes[1][end])
+        end
+    end
+    return max_ts
+end
+
+"""
+    timeseries(ws::WeatherNetwork)
+
+Fill the missing years with NaN. Returns a WeatherNetwork with all stations aligned over the same complete time serie.
+"""
+function timeseries(wn::WeatherNetwork)
+    time_n = Dates.DateTime.(year_min(wn):1:year_max(wn))
+    data_n = Array{Float32}(undef, length(time_n))
+
+    stationData = Array{WeatherStation}(undef, length(wn.data))
+    stationID = wn.stationID
+
+    data = getfield.(wn.data, :data)
+
+    for i=1:length(wn)
+        new_data = AxisArray(data_n[:], Axis{Symbol(time)}(time_n[:]))
+
+        for t in time_n
+            try
+                global(val) = data[i][atvalue.(t)]
+            catch
+                global(val) = NaN
+            end
+            #println(val)
+            new_data[atvalue.(t)] = val
+        end
+        stationData[i] = WeatherStation(new_data, wn[i].lon, wn[i].lat, wn[i].alt, wn[i].stationID, stationName=wn[i].stationName, filename=wn[i].filename, dataunits=wn[i].dataunits, latunits=wn[i].latunits, lonunits=wn[i].lonunits, altunits=wn[i].altunits, variable=wn[i].variable, typeofvar=wn[i].typeofvar, typeofcal=wn[i].typeofcal, timeattrib=wn[i].timeattrib, varattribs=wn[i].varattribs, globalattribs=wn[i].globalattribs)
+    end
+    return WeatherNetwork(stationData, stationID)
 end
