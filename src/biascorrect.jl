@@ -143,9 +143,9 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
         idxobs = ClimateTools.find_julianday_idx(obs_jul, ijulian, window)
         idxref = ClimateTools.find_julianday_idx(ref_jul, ijulian, window)
 
-        obsval = obsvec[idxobs]# .+ eps(1.0) # values to use as ground truth
-        refval = refvec[idxref]# .+ eps(1.0)# values to use as reference for sim
-        futval = futvec[idxfut]# .+ eps(1.0) # values to correct
+        obsval = obsvec[idxobs] .+ eps(0.0) # values to use as ground truth
+        refval = refvec[idxref] .+ eps(0.0)# values to use as reference for sim
+        futval = futvec[idxfut] .+ eps(0.0) # values to correct
 
         obsvalnan = isnan.(obsval)
         refvalnan = isnan.(refval)
@@ -188,7 +188,7 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
                 dataout[idxfut] .= futval
             else
                 # DO NOTHING (e.g. if there is no reference, we want NaNs and not original values)
-                dataout[idxfut] .= NaN                
+                dataout[idxfut] .= NaN
             end
         end
     end
