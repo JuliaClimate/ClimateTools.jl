@@ -23,6 +23,8 @@ using Statistics
 using Dates
 using GeoStats
 using InverseDistanceWeighting
+using Extremes
+using Distances
 import Base.vcat
 import Base.getindex
 import Base.show
@@ -154,6 +156,19 @@ function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dim
     ClimGrid(data, longrid, latgrid, msk, grid_mapping, dimension_dict, timeattrib, model, frequency, experiment, run, project, institute, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal, varattribs, globalattribs)
 end
 
+# """
+#     GevGrid
+#
+# Grid with Gev parameters
+# """
+# struct GevGrid{D <: DataFrameRow}
+#     params::D
+# end
+
+function GevGrid(params)
+    return GevGrid(params)
+end
+
 """
     TransferFunction(itp::Array, method::String, detrend::Bool)
 
@@ -180,6 +195,7 @@ include("analysis.jl")
 
 # Exported functions
 export ClimGrid
+# export GevGrid
 # export uconvert
 export inpoly, inpolygrid, meshgrid, inpolyvec, ndgrid
 export findmax, findmin
@@ -206,7 +222,7 @@ export minimum, maximum, std, var, mean
 export get_timevec, daymean, daysum
 export monthmean, monthsum, temporalmean
 export yearmonthdayhour
-export write
+export write, findmindist
 
 
 end #module

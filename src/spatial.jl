@@ -222,3 +222,16 @@ function meridian_check(poly)
     return meridian
 
 end
+
+function findmindist(p1::Tuple{Float64, Float64}, p2::Tuple{Array{Float64,1},Array{Float64,1}}; R=6372.8)
+
+    dist = Array{Float64}(undef, length(l2[1]), 1)
+
+    for idx = 1:length(l2[1])
+        l3 = (l2[1][idx],l2[2][idx])
+        dist[idx] = haversine(l1, l3, 6372.8)
+    end
+
+    return findmin(dist)
+
+end

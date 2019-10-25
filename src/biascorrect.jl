@@ -202,7 +202,7 @@ end
 
 Correct the tail of the distribution with a paramatric method, using the parameters μ, σ and ξ contained in gev_params.
 """
-function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", P::Real=0.95, detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat(), gev_params::DataFrame)
+function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", P::Real=0.95, detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat(), gevparams::DataFrame)
 
     # Consistency checks # TODO add more checks for grid definition
     @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
@@ -253,6 +253,8 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
     refin = reshape(ref[1].data, (size(ref[1].data, 1)*size(ref[1].data, 2), size(ref[1].data, 3)))
     futin = reshape(fut[1].data, (size(fut[1].data, 1)*size(fut[1].data, 2), size(fut[1].data, 3)))
     dataoutin = reshape(dataout, (size(dataout, 1)*size(dataout, 2), size(dataout, 3)))
+    latgrid = reshape(obs.latgrid, (size(obs.latgrid, 1)*size(obs.latgrid, 2)))
+    longrid = reshape(obs.longrid, (size(obs.longrid, 1)*size(obs.longrid, 2)))
 
     # Looping over grid points using multiple-dispatch calls to qqmap
     Threads.@threads for k = 1:size(obsin, 1)
@@ -261,9 +263,43 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
         refvec = refin[k,:]
         futvec = futin[k,:]
 
-        # Find GEV parameters (closest grid points)
+        # Estimate threshold
+        thres = ClimateTools.get_threshold(obsvec, refvec, thres=P)
+
+        # Find closest gev parameters
+        l1 = (Float64(obs.latgrid[k]), Float64(obs.longrid[k]))
+        l2 = (Array(gevparams[:lat]), Array(gevparams[:lon]))
+        dist, idx = findmindist(l1, l2)
+
+        # Extract GEV parameters
+        μ = gevparams[idx[1], :mu]
+        σ = gevparams[idx[1], :sigma]
+        ξ = gevparams[idx[1], :xi]
+
+        # Transform to GPD parameters
+        μ₂ = gev2gpd(μ, σ, ξ, thres)
+
+        # TODO Add a moving window and estimate clusters and quantile accordingly
+        # obsclusters = getcluster(obsin[k,:], thres)
+        refclusters = getcluster(refin[k,:], thres)
+        futclusters = getcluster(futin[k,:], thres)
+
+        # GPD_obs = gpdfit(obsclusters[:Max], threshold = thres)
+        GPD_ref = gpdfit(refclusters[:Max], threshold = thres)
+        GPD_fut = gpdfit(futclusters[:Max], threshold = thres)
+
+        GPD_obs = Extremes.GeneralizedPareto(μ₂, σ, ξ)
+
+        ref_cdf = Extremes.cdf.(GPD_ref, refclusters[:Max])
+        fut_cdf = Extremes.cdf.(GPD_fut, futclusters[:Max])
+
+        newfut = quantile.(GPD_obs, fut_cdf)
 
         dataoutin[k, :] = qqmap(obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+
+        # Linear interpolations between beginning of GPD and cdf = 0.75
+
+        dataoutin[k, futclusters[:Position]] = newfut
 
     end
 
@@ -329,4 +365,15 @@ function biascorrect_extremes(obsvec::AxisArray, refvec::AxisArray, futvec::Axis
 
 
 
+end
+
+
+"""
+    gev2gpd(μ, σ, ξ, thres)
+
+Transform GEV parameters to GPD parameters (Coles, 2001)
+"""
+function gev2gpd(μ, σ, ξ, thres)
+
+    return σ₂ = σ + ξ*(thres - μ)
 end
