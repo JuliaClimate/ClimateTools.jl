@@ -850,7 +850,7 @@ end
     get_threshold
 """
 function get_threshold(obsvec, refvec; thres=0.95)
-    return mean([quantile(obsvec[obsvec .>= 1.0],P) quantile(refvec[refvec .>= 1.0], P)])
+    return mean([quantile(obsvec[obsvec .>= 1.0],thres) quantile(refvec[refvec .>= 1.0], thres)])
     # return quantile(vcat(vec...), thres)
 end
 
