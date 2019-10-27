@@ -257,8 +257,12 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
     longrid = reshape(obs.longrid, (size(obs.longrid, 1)*size(obs.longrid, 2)))
 
     # Looping over grid points using multiple-dispatch calls to qqmap
+<<<<<<< HEAD
     # Threads.@threads for k = 1:size(obsin, 1)
         for k = 1:size(obsin, 1)
+=======
+    Threads.@threads for k = 1:size(obsin, 1)
+>>>>>>> a3b10d8d749bcc28079efcb43d55be1557903598
 
         obsvec = obsin[k,:]
         refvec = refin[k,:]
@@ -282,8 +286,13 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
 
         # TODO Add a moving window and estimate clusters and quantile accordingly
         # obsclusters = getcluster(obsin[k,:], thres)
+<<<<<<< HEAD
         refclusters = getcluster(refin[k,:], thres, 1.0)
         futclusters = getcluster(futin[k,:], thres, 1.0)
+=======
+        refclusters = getcluster(refin[k,:], thres)
+        futclusters = getcluster(futin[k,:], thres)
+>>>>>>> a3b10d8d749bcc28079efcb43d55be1557903598
 
         # GPD_obs = gpdfit(obsclusters[:Max], threshold = thres)
         GPD_ref = gpdfit(refclusters[:Max], threshold = thres)
@@ -364,6 +373,11 @@ function biascorrect_extremes(obsvec::AxisArray, refvec::AxisArray, futvec::Axis
     dataout .= qqmap(obsvec.data, refvec.data, futvec.data, days, obs_jul, ref_jul, fut_jul, method="multiplicative", detrend=false)
 
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> a3b10d8d749bcc28079efcb43d55be1557903598
 end
 
 
