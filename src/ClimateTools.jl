@@ -49,9 +49,9 @@ const cmocean = PyNULL()
 # const scipy = PyNULL()
 
 function __init__()
-  copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))
-  copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
-  copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
+    copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))
+    copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
+    copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
   # copy!(scipy, pyimport_conda("scipy.interpolate", "scipy"))
 end
 
@@ -143,7 +143,7 @@ struct ClimGrid\n
   globalattribs::Dict # Global attributes dictionary\n
 end\n
 """
-function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), timeattrib=Dict(), model="NA", frequency="NA", experiment="NA", run="NA", project="NA", institute="NA", filename="NA", dataunits="NA", latunits="NA", lonunits="NA", variable="NA", typeofvar="NA", typeofcal="NA", varattribs=Dict(), globalattribs=Dict())
+function ClimGrid(data; longrid = [], latgrid = [], msk = [], grid_mapping = Dict(), dimension_dict = Dict(), timeattrib = Dict(), model = "NA", frequency = "NA", experiment = "NA", run = "NA", project = "NA", institute = "NA", filename = "NA", dataunits = "NA", latunits = "NA", lonunits = "NA", variable = "NA", typeofvar = "NA", typeofcal = "NA", varattribs = Dict(), globalattribs = Dict())
 
     if isempty(dimension_dict)
         dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
@@ -175,7 +175,7 @@ end
 Transfer function used during quantile-quantile mapping bias correction.
 """
 struct TransferFunction
-    itp::Array
+itp::Array
     method::String
     detrend::Bool
 end
