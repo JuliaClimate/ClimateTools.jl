@@ -133,7 +133,6 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
     dataout = similar(futvec, (size(futvec)))
 
     # LOOP OVER ALL DAYS OF THE YEAR
-    # TODO Define "days" instead of 1:365
     for ijulian in days
 
         # idx for values we want to correct
@@ -143,9 +142,13 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
         idxobs = ClimateTools.find_julianday_idx(obs_jul, ijulian, window)
         idxref = ClimateTools.find_julianday_idx(ref_jul, ijulian, window)
 
-        obsval = obsvec[idxobs] .+ eps(0.0) # values to use as ground truth
-        refval = refvec[idxref] .+ eps(0.0)# values to use as reference for sim
-        futval = futvec[idxfut] .+ eps(0.0) # values to correct
+        # obsval = obsvec[idxobs] .+ eps(1.0) # values to use as ground truth
+        # refval = refvec[idxref] .+ eps(1.0)# values to use as reference for sim
+        # futval = futvec[idxfut] .+ eps(1.0) # values to correct
+
+        obsval = obsvec[idxobs] .+ rand(0.0:0.00001:0.001, length(obsvec[idxobs])) # values to use as ground truth
+        refval = refvec[idxref] .+ rand(0.0:0.00001:0.001, length(refvec[idxref])) # values to use as reference for sim
+        futval = futvec[idxfut] .+ rand(0.0:0.00001:0.001, length(futvec[idxfut])) # values to correct
 
         obsvalnan = isnan.(obsval)
         refvalnan = isnan.(refval)
@@ -198,11 +201,11 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
 end
 
 """
-    biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat(), gev_param)
+    biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Multiplicative", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat(), gev_params::DataFrame)
 
-Correct the tail of the distribution with a paramatric method, using the parameters μ, σ and ξ contained in gev_params.
+Correct the tail of the distribution with a paramatric method, using the parameters μ, σ and ξ contained in gevparams DataFrame.
 """
-function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String = "Additive", P::Real = 0.95, detrend::Bool = true, window::Int = 15, rankn::Int = 50, thresnan::Float64 = 0.1, keep_original::Bool = false, interp = Linear(), extrap = Flat(), gevparams::DataFrame)
+function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String = "Multiplicative", P::Real = 0.95, detrend::Bool = true, window::Int = 15, rankn::Int = 50, thresnan::Float64 = 0.1, keep_original::Bool = false, interp = Linear(), extrap = Flat(), gevparams::DataFrame)
 
     # Consistency checks # TODO add more checks for grid definition
     @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
@@ -278,7 +281,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
         ξ = gevparams[idx[1], :xi]
 
         # Transform to GPD parameters
-        μ₂ = gev2gpd(μ, σ, ξ, thres)
+        μ₂ = ClimateTools.gev2gpd(μ, σ, ξ, thres)
 
         # TODO Add a moving window and estimate clusters and quantile accordingly
         # obsclusters = getcluster(obsin[k,:], thres)
@@ -320,7 +323,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
     if haskey(globalattribs, "history")
         globalattribs["history"] = string(globalattribs["history"], " - ", "Bias-corrected with ClimateTools.jl")
     else
-        globalattribs["history"] = string("Bias-corrected with ClimateTools.jl")
+        globalattribs["history"] = string("Bias-corrected for extreme values with ClimateTools.jl")
     end
 
     C = ClimGrid(dataout2; longrid = fut.longrid, latgrid = fut.latgrid, msk = fut.msk, grid_mapping = fut.grid_mapping, dimension_dict = fut.dimension_dict, timeattrib = timeattrib, model = fut.model, frequency = fut.frequency, experiment = fut.experiment, run = fut.run, project = fut.project, institute = fut.institute, filename = fut.filename, dataunits = fut.dataunits, latunits = fut.latunits, lonunits = fut.lonunits, variable = fut.variable, typeofvar = fut.typeofvar, typeofcal = "365_day", varattribs = fut.varattribs, globalattribs = globalattribs)
@@ -334,40 +337,6 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
 end
 
 """
-    biascorrect_extremes(obs::AxisArray, ref::AxisArray, fut::AxisArray, μ, σ, ξ)
-
-Correct the tail of the distribution with a paramatric method, using the parameters μ, σ and ξ.
-"""
-function biascorrect_extremes(obsvec::AxisArray, refvec::AxisArray, futvec::AxisArray, days, μ::Real, σ::Real, ξ::Real)
-
-    obs_jul = dayofyear.(obsvec[Axis{:time}][:])
-    ref_jul = dayofyear.(refvec[Axis{:time}][:])
-    fut_jul = dayofyear.(futvec[Axis{:time}][:])
-
-    # Prepare output array (replicating data type of fut ClimGrid)
-    dataout = fill(convert(typeof(futvec.data[1]), NaN), length(futvec))::Array{typeof(fut[1].data[1]),T} where T
-
-    if minimum(ref_jul) == 1 && maximum(ref_jul) == 365
-        days = 1:365
-    else
-        days = minimum(ref_jul) + window:maximum(ref_jul) - window
-        start = Dates.monthday(minimum(datevec_obs))
-        finish = Dates.monthday(maximum(datevec_obs))
-    end
-
-    threshold = mean([quantile(obsvec[obsvec .>= 1.0], P) quantile(refvec[refvec .>= 1.0], P)])
-
-    idx_obs = obsvec .> threshold
-    idx_ref = refvec .> threshold
-    idx_fut = futvec .> threshold
-
-    dataout .= qqmap(obsvec.data, refvec.data, futvec.data, days, obs_jul, ref_jul, fut_jul, method = "multiplicative", detrend = false)
-
-
-end
-
-
-"""
     gev2gpd(μ, σ, ξ, thres)
 
 Transform GEV parameters to GPD parameters (Coles, 2001)
@@ -376,3 +345,36 @@ function gev2gpd(μ, σ, ξ, thres)
 
     return σ₂ = σ + ξ * (thres - μ)
 end
+
+# """
+#     biascorrect_extremes(obs::AxisArray, ref::AxisArray, fut::AxisArray, μ, σ, ξ)
+#
+# Correct the tail of the distribution with a paramatric method, using the parameters μ, σ and ξ.
+# """
+# function biascorrect_extremes(obsvec::AxisArray, refvec::AxisArray, futvec::AxisArray, days, μ::Real, σ::Real, ξ::Real)
+#
+#     obs_jul = dayofyear.(obsvec[Axis{:time}][:])
+#     ref_jul = dayofyear.(refvec[Axis{:time}][:])
+#     fut_jul = dayofyear.(futvec[Axis{:time}][:])
+#
+#     # Prepare output array (replicating data type of fut ClimGrid)
+#     dataout = fill(convert(typeof(futvec.data[1]), NaN), length(futvec))::Array{typeof(fut[1].data[1]),T} where T
+#
+#     if minimum(ref_jul) == 1 && maximum(ref_jul) == 365
+#         days = 1:365
+#     else
+#         days = minimum(ref_jul) + window:maximum(ref_jul) - window
+#         start = Dates.monthday(minimum(datevec_obs))
+#         finish = Dates.monthday(maximum(datevec_obs))
+#     end
+#
+#     threshold = mean([quantile(obsvec[obsvec .>= 1.0], P) quantile(refvec[refvec .>= 1.0], P)])
+#
+#     idx_obs = obsvec .> threshold
+#     idx_ref = refvec .> threshold
+#     idx_fut = futvec .> threshold
+#
+#     dataout .= qqmap(obsvec.data, refvec.data, futvec.data, days, obs_jul, ref_jul, fut_jul, method = "multiplicative", detrend = false)
+#
+#
+# end
