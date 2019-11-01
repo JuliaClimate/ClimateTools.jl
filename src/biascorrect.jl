@@ -261,7 +261,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
 
     # Looping over grid points using multiple-dispatch calls to qqmap
     # Threads.@threads for k = 1:size(obsin, 1)
-        for k = 1:size(obsin, 1)
+    for k = 1:size(obsin, 1)
 
         obsvec = obsin[k,:]
         refvec = refin[k,:]
@@ -280,30 +280,72 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
         σ = gevparams[idx[1], :sigma]
         ξ = gevparams[idx[1], :xi]
 
-        # Transform to GPD parameters
+        # Transform to GPD parameters and build reference GP distribution.
         μ₂ = ClimateTools.gev2gpd(μ, σ, ξ, thres)
+        GPD_obs = Extremes.GeneralizedPareto(μ₂, σ, ξ)
+
+        if maximum(year.(datevec_fut)) - minimum(year.(datevec_fut)) > (maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)))*1.5
+            # window_length will be roughly the length of REF
+            ref_l = (maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)) + 1)*365
+            # in case of multiple members, we approximate ref length
+            fut_l = length(futvec)
+            w_length = fut_l/(floor(fut_l/ref_l))
+            # The CON series is separated is a few time windows.
+            # We also make the windows overlap to replicate a moving window
+            R = w_length/2:w_length/3:fut_l
+            for c in R
+                idxi = round(Int, max(c-w_length/2+1,1))
+                idxf = round(Int, min(c+w_length/2,fut_l))
+                futvec_tmp = futvec[idxi:idxf]
+                fut_jul_tmp = fut_jul[idxi:idxf]
+
+                # However, we want each moving window to correct a smaller portion of the time series (PR. ??)
+                idxi_corr = round(Int, w_length/2-(w_length/2)/3+1)
+                if c == w_length/2
+                    idxi_corr = 1
+                end
+                idxf_corr = round(Int, w_length/2+(w_length/2)/3)
+                if c == maximum(w_length/2:w_length/3:fut_l) || idxi+idxf_corr-1 > fut_l
+                    idxf_corr = min(round(Int, w_length-w_length/3),fut_l-idxi+1)
+                end
+
+                nbyears = round(Int,length(futvec_tmp)/365)
+                N = nbyears*2 # By default, we correct roughly 2 values per year
+
+                # refclusters = getcluster(refvec[k,:], thres, 1.0)
+                futclusters = getcluster(futvec_tmp, thres, 1.0)
+
+                # GPD_obs = gpdfit(obsclusters[:Max], threshold = thres)
+                # GPD_ref = gpdfit(refclusters[:Max], threshold = thres)
+                GPD_fut = gpdfit(futclusters[:Max], threshold = thres)
+
+                # ref_cdf = Extremes.cdf.(GPD_ref, refclusters[:Max])
+                fut_cdf = Extremes.cdf.(GPD_fut, futclusters[:Max])
+
+                newfut = quantile.(GPD_obs, fut_cdf)
+
+                datatmp = qqmap(obsvec, refvec, futvec_tmp, days, obs_jul, ref_jul, fut_jul_tmp, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+
+                dataoutin[k, idxi_corr:idxf_corr] = datatmp[idxi_corr:idxf_corr]
+
+                # TODO Linear interpolations between beginning of GPD and cdf = 0.75
+                id_ex_corr = findall(futclusters[:Position] .< idxf_corr)
+
+                dataoutin[k, futclusters[id_ex_corr,:Position]] = newfut[id_ex_corr]
+
+
+
+            end
+        end
+
+
+
+
+
 
         # TODO Add a moving window and estimate clusters and quantile accordingly
         # obsclusters = getcluster(obsin[k,:], thres)
-        refclusters = getcluster(refin[k,:], thres, 1.0)
-        futclusters = getcluster(futin[k,:], thres, 1.0)
 
-        # GPD_obs = gpdfit(obsclusters[:Max], threshold = thres)
-        GPD_ref = gpdfit(refclusters[:Max], threshold = thres)
-        GPD_fut = gpdfit(futclusters[:Max], threshold = thres)
-
-        GPD_obs = Extremes.GeneralizedPareto(μ₂, σ, ξ)
-
-        ref_cdf = Extremes.cdf.(GPD_ref, refclusters[:Max])
-        fut_cdf = Extremes.cdf.(GPD_fut, futclusters[:Max])
-
-        newfut = quantile.(GPD_obs, fut_cdf)
-
-        dataoutin[k, :] = qqmap(obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul, method = method, detrend = detrend, window = window, rankn = rankn, thresnan = thresnan, keep_original = keep_original, interp = interp, extrap = extrap)
-
-        # Linear interpolations between beginning of GPD and cdf = 0.75
-
-        dataoutin[k, futclusters[:Position]] = newfut
 
     end
 
