@@ -146,9 +146,9 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
         # refval = refvec[idxref] .+ eps(1.0)# values to use as reference for sim
         # futval = futvec[idxfut] .+ eps(1.0) # values to correct
 
-        obsval = obsvec[idxobs] .+ rand(0.0:0.00001:0.001, length(obsvec[idxobs])) # values to use as ground truth
-        refval = refvec[idxref] .+ rand(0.0:0.00001:0.001, length(refvec[idxref])) # values to use as reference for sim
-        futval = futvec[idxfut] .+ rand(0.0:0.00001:0.001, length(futvec[idxfut])) # values to correct
+        obsval = obsvec[idxobs] .+ rand(0.000001:0.00001:0.001, length(obsvec[idxobs])) # values to use as ground truth
+        refval = refvec[idxref] .+ rand(0.000001:0.00001:0.001, length(refvec[idxref])) # values to use as reference for sim
+        futval = futvec[idxfut] .+ rand(0.000001:0.00001:0.001, length(futvec[idxfut])) # values to correct
 
         obsvalnan = isnan.(obsval)
         refvalnan = isnan.(refval)
@@ -336,6 +336,19 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
 
 
             end
+        else
+            # refclusters = getcluster(refvec[k,:], thres, 1.0)
+            futclusters = getcluster(futvec, thres, 1.0)
+            GPD_fut = gpdfit(futclusters[:Max], threshold = thres)
+            fut_cdf = Extremes.cdf.(GPD_fut, futclusters[:Max])
+            newfut = quantile.(GPD_obs, fut_cdf)
+
+            dataoutin[k, :] = qqmap(obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+
+
+            dataoutin[k, futclusters[:Position]] = newfut
+
+
         end
 
 
