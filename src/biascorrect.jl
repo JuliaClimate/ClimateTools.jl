@@ -124,7 +124,7 @@ Quantile-Quantile mapping bias correction for single vector. This is a low level
 function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::Array{N,1} where N, days, obs_jul, ref_jul, fut_jul; method::String = "Additive", detrend::Bool = true, window::Int64 = 15, rankn::Int64 = 50, thresnan::Float64 = 0.1, keep_original::Bool = false, interp = Linear(), extrap = Flat())
 
     # range over which quantiles are estimated
-    P = range(0.01, stop = 0.99, length = rankn)
+    P = range(0.0, stop = 1.0, length = rankn)
     obsP = similar(obsvec, length(P))
     refP = similar(refvec, length(P))
     sf_refP = similar(refvec, length(P))
@@ -142,13 +142,24 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
         idxobs = ClimateTools.find_julianday_idx(obs_jul, ijulian, window)
         idxref = ClimateTools.find_julianday_idx(ref_jul, ijulian, window)
 
-        # obsval = obsvec[idxobs] .+ eps(1.0) # values to use as ground truth
-        # refval = refvec[idxref] .+ eps(1.0)# values to use as reference for sim
-        # futval = futvec[idxfut] .+ eps(1.0) # values to correct
+        obsval = obsvec[idxobs]
+        refval = refvec[idxref]
+        futval = futvec[idxfut]
 
-        obsval = obsvec[idxobs] .+ rand(0.000001:0.00001:0.001, length(obsvec[idxobs])) # values to use as ground truth
-        refval = refvec[idxref] .+ rand(0.000001:0.00001:0.001, length(refvec[idxref])) # values to use as reference for sim
-        futval = futvec[idxfut] .+ rand(0.000001:0.00001:0.001, length(futvec[idxfut])) # values to correct
+        # Random perturbation is added to avoid division by zero
+        if lowercase(method) == "multiplicative"
+            # Seed for reproducible results
+            Random.seed!(42)
+
+            init     = 0.000001
+            interval = 0.00001
+            stop     = 0.001
+            R = init:interval:stop
+
+            obsval = obsval .+ rand(R, length(obsvec[idxobs]))
+            refval = refval .+ rand(R, length(refvec[idxref]))
+            futval = futval .+ rand(R, length(futvec[idxfut]))
+        end
 
         obsvalnan = isnan.(obsval)
         refvalnan = isnan.(refval)
@@ -240,6 +251,9 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
     ref_jul = Dates.dayofyear.(datevec_ref)
     fut_jul = Dates.dayofyear.(datevec_fut)
 
+    # Condition for a moving window
+    movingwindow = maximum(year.(datevec_fut)) - minimum(year.(datevec_fut)) > (maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)))*1.5
+
     # Prepare output array (replicating data type of fut ClimGrid)
     dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1], 2), size(fut[1], 3)))::Array{typeof(fut[1].data[1]),T} where T
 
@@ -270,21 +284,10 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
         # Estimate threshold
         thres = ClimateTools.get_threshold(obsvec, refvec, thres = P)
 
-        # Find closest gev parameters
-        l1 = (Float64(obs.latgrid[k]), Float64(obs.longrid[k]))
-        l2 = (Array(gevparams[:lat]), Array(gevparams[:lon]))
-        dist, idx = findmindist(l1, l2)
+        GPD_obs = estimate_gpd(obs.latgrid[k], obs.longrid[k], gevparams, thres)
 
-        # Extract GEV parameters
-        μ = gevparams[idx[1], :mu]
-        σ = gevparams[idx[1], :sigma]
-        ξ = gevparams[idx[1], :xi]
 
-        # Transform to GPD parameters and build reference GP distribution.
-        μ₂ = ClimateTools.gev2gpd(μ, σ, ξ, thres)
-        GPD_obs = Extremes.GeneralizedPareto(μ₂, σ, ξ)
-
-        if maximum(year.(datevec_fut)) - minimum(year.(datevec_fut)) > (maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)))*1.5
+        if movingwindow
             # window_length will be roughly the length of REF
             ref_l = (maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)) + 1)*365
             # in case of multiple members, we approximate ref length
@@ -299,7 +302,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                 futvec_tmp = futvec[idxi:idxf]
                 fut_jul_tmp = fut_jul[idxi:idxf]
 
-                # However, we want each moving window to correct a smaller portion of the time series (PR. ??)
+                # However, we want each moving window to correct a smaller portion of the time series
                 idxi_corr = round(Int, w_length/2-(w_length/2)/3+1)
                 if c == w_length/2
                     idxi_corr = 1
@@ -308,32 +311,34 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                 if c == maximum(w_length/2:w_length/3:fut_l) || idxi+idxf_corr-1 > fut_l
                     idxf_corr = min(round(Int, w_length-w_length/3),fut_l-idxi+1)
                 end
+                # nbyears = round(Int,length(futvec_tmp)/365)
+                # N = nbyears*2 # By default, we correct roughly 2 values per year
 
-                nbyears = round(Int,length(futvec_tmp)/365)
-                N = nbyears*2 # By default, we correct roughly 2 values per year
-
-                # refclusters = getcluster(refvec[k,:], thres, 1.0)
+                # Get clusters
                 futclusters = getcluster(futvec_tmp, thres, 1.0)
-
-                # GPD_obs = gpdfit(obsclusters[:Max], threshold = thres)
-                # GPD_ref = gpdfit(refclusters[:Max], threshold = thres)
+                # Estimate GPD parameters of fut clusters
                 GPD_fut = gpdfit(futclusters[:Max], threshold = thres)
-
-                # ref_cdf = Extremes.cdf.(GPD_ref, refclusters[:Max])
+                # Calculate quantile values of maximum clusters values
                 fut_cdf = Extremes.cdf.(GPD_fut, futclusters[:Max])
-
+                # Estimation of fut values based on provided GPD parameters
                 newfut = quantile.(GPD_obs, fut_cdf)
 
-                datatmp = qqmap(obsvec, refvec, futvec_tmp, days, obs_jul, ref_jul, fut_jul_tmp, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+                # Standard quantile-quantile approach for bulk of the distribution (extreme values will be overwritten below)
+                qqvec = qqmap(obsvec, refvec, futvec_tmp, days, obs_jul, ref_jul, fut_jul_tmp, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
 
-                dataoutin[k, idxi_corr:idxf_corr] = datatmp[idxi_corr:idxf_corr]
+                # Linear transition over a quarter of the distance
+                exIDX = futclusters[:Position]
 
-                # TODO Linear interpolations between beginning of GPD and cdf = 0.75
-                id_ex_corr = findall(futclusters[:Position] .< idxf_corr)
+                target = (maximum(futvec_tmp[exIDX]) - minimum(futvec_tmp[exIDX]))/4.0
+                transition = (futvec_tmp[exIDX] .- minimum(futvec_tmp[exIDX]))/target
+                transition[transition .> 1.0] .= 1.0
+                # Apply linear transition
+                newfut_trans = (newfut .* transition) .+ (qqvec[exIDX] .* (1.0 .- transition))
 
-                dataoutin[k, futclusters[id_ex_corr,:Position]] = newfut[id_ex_corr]
-
-
+                # We put the new data in the bias-corrected vector
+                exIDX_corr = findall(futclusters[:Position] .< idxf_corr)
+                dataoutin[k, idxi+idxi_corr-1:idxi+idxf_corr-1] = qqvec[idxi_corr:idxf_corr]
+                dataoutin[k, idxi .+ futclusters[exIDX_corr,:Position]] = newfut_trans[exIDX_corr]
 
             end
         else
@@ -343,11 +348,20 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
             fut_cdf = Extremes.cdf.(GPD_fut, futclusters[:Max])
             newfut = quantile.(GPD_obs, fut_cdf)
 
-            dataoutin[k, :] = qqmap(obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+            qqvec = qqmap(obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
 
+            # Linear transition over a quarter of the distance
+            exIDX = futclusters[:Position]
 
-            dataoutin[k, futclusters[:Position]] = newfut
+            target = (maximum(futvec[exIDX]) - minimum(futvec[exIDX]))/4.0
+            transition = (futvec[exIDX] .- minimum(futvec[exIDX]))/target
+            transition[transition .> 1.0] .= 1.0
+            # Apply linear transition
+            newfut_trans = (newfut .* transition) .+ (qqvec[exIDX] .* (1.0 .- transition))
 
+            # We put the new data in the bias-corrected vector
+            dataoutin[k, :] = qqvec
+            dataoutin[k, futclusters[:Position]] = newfut_trans
 
         end
 
@@ -399,6 +413,27 @@ Transform GEV parameters to GPD parameters (Coles, 2001)
 function gev2gpd(μ, σ, ξ, thres)
 
     return σ₂ = σ + ξ * (thres - μ)
+end
+
+
+function estimate_gpd(lat, lon, gevparams, thres)
+
+        # Find closest gev parameters
+        l1 = (Float64(lat), Float64(lon))
+        l2 = (Array(gevparams[:lat]), Array(gevparams[:lon]))
+        dist, idx = findmindist(l1, l2)
+
+        # Extract GEV parameters
+        μ = gevparams[idx[1], :mu]
+        σ = gevparams[idx[1], :sigma]
+        ξ = gevparams[idx[1], :xi]
+
+        # Transform to GPD parameters and build reference GP distribution.
+        μ₂ = ClimateTools.gev2gpd(μ, σ, ξ, thres)
+        GPD_obs = Extremes.GeneralizedPareto(μ₂, σ, ξ)
+
+        return GPD_obs
+
 end
 
 # """

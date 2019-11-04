@@ -20,6 +20,7 @@ using ProgressMeter
 using Polynomials
 using IterTools
 using Statistics
+using Random
 using Dates
 using GeoStats
 using InverseDistanceWeighting
