@@ -124,7 +124,7 @@ Quantile-Quantile mapping bias correction for single vector. This is a low level
 function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::Array{N,1} where N, days, obs_jul, ref_jul, fut_jul; method::String = "Additive", detrend::Bool = true, window::Int64 = 15, rankn::Int64 = 50, thresnan::Float64 = 0.1, keep_original::Bool = false, interp = Linear(), extrap = Flat())
 
     # range over which quantiles are estimated
-    P = range(0.0, stop = 1.0, length = rankn)
+    P = range(0.01, stop = 0.99, length = rankn)
     obsP = similar(obsvec, length(P))
     refP = similar(refvec, length(P))
     sf_refP = similar(refvec, length(P))
