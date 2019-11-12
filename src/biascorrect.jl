@@ -228,8 +228,6 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
     ref = ClimateTools.dropfeb29(ref)
     fut = ClimateTools.dropfeb29(fut)
 
-
-
     # Remove trend if specified
     if detrend == true
         # Obs
@@ -251,24 +249,11 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
     datevec_ref = get_timevec(ref)
     datevec_fut = get_timevec(fut)
 
-    # # Julian days vectors
-    # obs_jul = Dates.dayofyear.(datevec_obs)
-    # ref_jul = Dates.dayofyear.(datevec_ref)
-    # fut_jul = Dates.dayofyear.(datevec_fut)
-
     # Condition for a moving window
     movingwindow = maximum(year.(datevec_fut)) - minimum(year.(datevec_fut)) > (maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)))*1.5
 
     # Prepare output array (replicating data type of fut ClimGrid)
     dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1], 2), size(fut[1], 3)))::Array{typeof(fut[1].data[1]),T} where T
-
-    # if minimum(ref_jul) == 1 && maximum(ref_jul) == 365
-    #     days = 1:365
-    # else
-    #     days = minimum(ref_jul) + window:maximum(ref_jul) - window
-    #     start = Dates.monthday(minimum(datevec_obs))
-    #     finish = Dates.monthday(maximum(datevec_obs))
-    # end
 
     # Reshape. Allows multi-threading on grid points.
     obsin = reshape(obs[1].data, (size(obs[1].data, 1) * size(obs[1].data, 2), size(obs[1].data, 3)))
@@ -292,21 +277,19 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
 
         GPD_obs = ClimateTools.estimate_gpd(obs.latgrid[k], obs.longrid[k], gevparams, thres)
 
-
         if movingwindow
             # window_length will be roughly the length of REF
             ref_l = (maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)) + 1)*365
             # in case of multiple members, we approximate ref length
             fut_l = length(futvec)
             w_length = fut_l/(floor(fut_l/ref_l))
-            # The CON series is separated is a few time windows.
+            # The fut series is separated is a few time windows.
             # We also make the windows overlap to replicate a moving window
             R = w_length/2:w_length/3:fut_l
             for c in R
                 idxi = round(Int, max(c-w_length/2+1,1))
                 idxf = round(Int, min(c+w_length/2,fut_l))
                 futvec_tmp = futvec[idxi:idxf]
-                # fut_jul_tmp = fut_jul[idxi:idxf]
 
                 # However, we want each moving window to correct a smaller portion of the time series
                 idxi_corr = round(Int, w_length/2-(w_length/2)/3+1)
@@ -328,9 +311,6 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                 fut_cdf = Extremes.cdf.(GPD_fut, futclusters[:Max])
                 # Estimation of fut values based on provided GPD parameters
                 newfut = quantile.(GPD_obs, fut_cdf)
-
-                # Standard quantile-quantile approach for bulk of the distribution (extreme values will be overwritten below)
-                # qqvec = qqmap(obsvec, refvec, futvec_tmp, days, obs_jul, ref_jul, fut_jul_tmp, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
 
                 # Linear transition over a quarter of the distance
                 exIDX = futclusters[:Position]
@@ -354,8 +334,6 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
             fut_cdf = Extremes.cdf.(GPD_fut, futclusters[:Max])
             newfut = quantile.(GPD_obs, fut_cdf)
 
-            # qqvec = qqmap(obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
-
             # Linear transition over a quarter of the distance
             exIDX = futclusters[:Position]
 
@@ -370,16 +348,6 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
             dataoutin[k, futclusters[:Position]] = newfut_trans
 
         end
-
-
-
-
-
-
-        # TODO Add a moving window and estimate clusters and quantile accordingly
-        # obsclusters = getcluster(obsin[k,:], thres)
-
-
     end
 
     # Apply mask
