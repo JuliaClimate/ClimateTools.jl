@@ -77,6 +77,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String = "Ad
 
     # Looping over grid points using multiple-dispatch calls to qqmap
     Threads.@threads for k = 1:size(obsin, 1)
+    # for k = 1:size(obsin, 1)
 
         obsvec = obsin[k,:]
         refvec = refin[k,:]
@@ -227,6 +228,8 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
     ref = ClimateTools.dropfeb29(ref)
     fut = ClimateTools.dropfeb29(fut)
 
+
+
     # Remove trend if specified
     if detrend == true
         # Obs
@@ -241,15 +244,17 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
         fut = fut - poly_values
     end
 
+    qqmap_base = qqmap(obs, ref, fut, method=method, detrend=false, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+
     #Get date vectors
     datevec_obs = get_timevec(obs)
     datevec_ref = get_timevec(ref)
     datevec_fut = get_timevec(fut)
 
-    # Julian days vectors
-    obs_jul = Dates.dayofyear.(datevec_obs)
-    ref_jul = Dates.dayofyear.(datevec_ref)
-    fut_jul = Dates.dayofyear.(datevec_fut)
+    # # Julian days vectors
+    # obs_jul = Dates.dayofyear.(datevec_obs)
+    # ref_jul = Dates.dayofyear.(datevec_ref)
+    # fut_jul = Dates.dayofyear.(datevec_fut)
 
     # Condition for a moving window
     movingwindow = maximum(year.(datevec_fut)) - minimum(year.(datevec_fut)) > (maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)))*1.5
@@ -257,13 +262,13 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
     # Prepare output array (replicating data type of fut ClimGrid)
     dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1], 2), size(fut[1], 3)))::Array{typeof(fut[1].data[1]),T} where T
 
-    if minimum(ref_jul) == 1 && maximum(ref_jul) == 365
-        days = 1:365
-    else
-        days = minimum(ref_jul) + window:maximum(ref_jul) - window
-        start = Dates.monthday(minimum(datevec_obs))
-        finish = Dates.monthday(maximum(datevec_obs))
-    end
+    # if minimum(ref_jul) == 1 && maximum(ref_jul) == 365
+    #     days = 1:365
+    # else
+    #     days = minimum(ref_jul) + window:maximum(ref_jul) - window
+    #     start = Dates.monthday(minimum(datevec_obs))
+    #     finish = Dates.monthday(maximum(datevec_obs))
+    # end
 
     # Reshape. Allows multi-threading on grid points.
     obsin = reshape(obs[1].data, (size(obs[1].data, 1) * size(obs[1].data, 2), size(obs[1].data, 3)))
@@ -272,6 +277,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
     dataoutin = reshape(dataout, (size(dataout, 1) * size(dataout, 2), size(dataout, 3)))
     latgrid = reshape(obs.latgrid, (size(obs.latgrid, 1) * size(obs.latgrid, 2)))
     longrid = reshape(obs.longrid, (size(obs.longrid, 1) * size(obs.longrid, 2)))
+    qqvecin = reshape(qqmap_base[1].data, (size(qqmap_base[1].data, 1) * size(qqmap_base[1].data, 2), size(qqmap_base[1].data, 3)))
 
     # Looping over grid points using multiple-dispatch calls to qqmap
     # Threads.@threads for k = 1:size(obsin, 1)
@@ -284,7 +290,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
         # Estimate threshold
         thres = ClimateTools.get_threshold(obsvec, refvec, thres = P)
 
-        GPD_obs = estimate_gpd(obs.latgrid[k], obs.longrid[k], gevparams, thres)
+        GPD_obs = ClimateTools.estimate_gpd(obs.latgrid[k], obs.longrid[k], gevparams, thres)
 
 
         if movingwindow
@@ -300,7 +306,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                 idxi = round(Int, max(c-w_length/2+1,1))
                 idxf = round(Int, min(c+w_length/2,fut_l))
                 futvec_tmp = futvec[idxi:idxf]
-                fut_jul_tmp = fut_jul[idxi:idxf]
+                # fut_jul_tmp = fut_jul[idxi:idxf]
 
                 # However, we want each moving window to correct a smaller portion of the time series
                 idxi_corr = round(Int, w_length/2-(w_length/2)/3+1)
@@ -324,7 +330,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                 newfut = quantile.(GPD_obs, fut_cdf)
 
                 # Standard quantile-quantile approach for bulk of the distribution (extreme values will be overwritten below)
-                qqvec = qqmap(obsvec, refvec, futvec_tmp, days, obs_jul, ref_jul, fut_jul_tmp, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+                # qqvec = qqmap(obsvec, refvec, futvec_tmp, days, obs_jul, ref_jul, fut_jul_tmp, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
 
                 # Linear transition over a quarter of the distance
                 exIDX = futclusters[:Position]
@@ -333,11 +339,11 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                 transition = (futvec_tmp[exIDX] .- minimum(futvec_tmp[exIDX]))/target
                 transition[transition .> 1.0] .= 1.0
                 # Apply linear transition
-                newfut_trans = (newfut .* transition) .+ (qqvec[exIDX] .* (1.0 .- transition))
+                newfut_trans = (newfut .* transition) .+ (qqvecin[k, exIDX] .* (1.0 .- transition))
 
                 # We put the new data in the bias-corrected vector
                 exIDX_corr = findall(futclusters[:Position] .< idxf_corr)
-                dataoutin[k, idxi+idxi_corr-1:idxi+idxf_corr-1] = qqvec[idxi_corr:idxf_corr]
+                dataoutin[k, idxi+idxi_corr-1:idxi+idxf_corr-1] = qqvecin[k, idxi_corr:idxf_corr]
                 dataoutin[k, idxi .+ futclusters[exIDX_corr,:Position]] = newfut_trans[exIDX_corr]
 
             end
@@ -348,7 +354,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
             fut_cdf = Extremes.cdf.(GPD_fut, futclusters[:Max])
             newfut = quantile.(GPD_obs, fut_cdf)
 
-            qqvec = qqmap(obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+            # qqvec = qqmap(obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
 
             # Linear transition over a quarter of the distance
             exIDX = futclusters[:Position]
@@ -357,10 +363,10 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
             transition = (futvec[exIDX] .- minimum(futvec[exIDX]))/target
             transition[transition .> 1.0] .= 1.0
             # Apply linear transition
-            newfut_trans = (newfut .* transition) .+ (qqvec[exIDX] .* (1.0 .- transition))
+            newfut_trans = (newfut .* transition) .+ (qqvecin[k, exIDX] .* (1.0 .- transition))
 
             # We put the new data in the bias-corrected vector
-            dataoutin[k, :] = qqvec
+            dataoutin[k, :] = qqvecin[k, :]
             dataoutin[k, futclusters[:Position]] = newfut_trans
 
         end
