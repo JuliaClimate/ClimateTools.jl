@@ -176,7 +176,7 @@ where A and B are `ClimGrid`.
 Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.
 
 """
-function regrid(A::ClimGrid, B::ClimGrid; min=[], max=[])
+function regrid(A::ClimGrid, B::ClimGrid; frac=0.5, min=[], max=[])
 
     # ---------------------------------------
     # Get lat-lon information from ClimGrid B
@@ -196,7 +196,7 @@ function regrid(A::ClimGrid, B::ClimGrid; min=[], max=[])
 
     # ------------------------
     # Interpolation
-    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, A.variable)
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, A.variable, frac=frac)
 
     if !isempty(min)
         OUT[OUT .<= min] .= min
@@ -217,12 +217,12 @@ function regrid(A::ClimGrid, B::ClimGrid; min=[], max=[])
 end
 
 """
-    C = regrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)A
+    C = regrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)
 
 Interpolate `ClimGrid` A onto lat-lon grid defined by londest and latdest vector or array. If an array is provided, it is assumed that the grid is curvilinear (not a regular lon-lat grid) and the user needs to provide the dimension vector ("x" and "y") for such a grid.
 
 """
-function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::AbstractArray{N, T} where N where T; dimx=[], dimy=[], min=[], max=[])
+function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::AbstractArray{N, T} where N where T; frac=0.5, dimx=[], dimy=[], min=[], max=[])
 
     # Get lat-lon information from ClimGrid A
     lonorig, latorig = getgrids(A)
@@ -255,7 +255,7 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
 
     # ------------------------
     # Interpolation
-    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, A.variable)
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, A.variable, frac=frac)
 
     if !isempty(min)
         OUT[OUT .<= min] .= min
@@ -287,7 +287,7 @@ end
 
 Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `regrid`.
 """
-function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, vari)
+function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, vari; frac=0.5)
 
     # Ensure we have same coords type
     if typeof(lonorig[1]) != typeof(londest[1]) # means we're going towards Float32
@@ -315,7 +315,7 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, va
     SG = StructuredGrid(londest, latdest)
 
     # Solver
-    n = Int(round(0.35*length(lonorig[:])))
+    n = Int(round(frac*length(lonorig[:])))
     solver = InvDistWeight(target => (neighbors=n,))
     # solver = Kriging()#target => (maxneighbors=500,))
 
