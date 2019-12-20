@@ -411,7 +411,7 @@ function estimate_gpd(lat, lon, gevparams, thres)
 
     # Find closest gev parameters
     l1 = (Float64(lat), Float64(lon))
-    l2 = (Array(gevparams[:lat]), Array(gevparams[:lon]))
+    l2 = (Array(gevparams[!,:lat]), Array(gevparams[!,:lon]))
     dist, idx = findmindist(l1, l2)
 
     # Extract GEV parameters
