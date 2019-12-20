@@ -66,7 +66,7 @@ B = C * 2.2; @test B[1].data[1, 1, 1] == 482.2902801513672
 @test annualmax(C)[9] == "annualmax"
 @test C[10] == "tas"
 @test C[11] == "noleap"
-@test typeof(C[12]) == Dict{Any, Any}
+@test typeof(C[12]) == Dict{String, Any}
 @test C[12]["project_id"] == "IPCC Fourth Assessment"
 @test_throws ErrorException C[13]
 @test annualmax(C)[10] == "tas"
