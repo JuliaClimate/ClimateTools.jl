@@ -641,6 +641,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions/#ClimateTools.biascorrect_extremes-Tuple{ClimGrid,ClimGrid,ClimGrid}",
+    "page": "Index",
+    "title": "ClimateTools.biascorrect_extremes",
+    "category": "method",
+    "text": "biascorrectextremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String=\"Multiplicative\", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keeporiginal::Bool=false, interp=Linear(), extrap=Flat(), gev_params::DataFrame)\n\nCorrect the tail of the distribution with a paramatric method, using the parameters μ, σ and ξ contained in gevparams DataFrame.\n\n\n\n\n\n"
+},
+
+{
     "location": "functions/#ClimateTools.customthresover-Tuple{ClimGrid,Any}",
     "page": "Index",
     "title": "ClimateTools.customthresover",
@@ -909,7 +917,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.qqmap",
     "category": "method",
-    "text": "qqmap(obsvec::Array{N,1}, refvec::Array{N,1}, futvec::Array{N,1}, days, obs_jul, ref_jul, fut_jul; method::String=\"Additive\", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())\n\nQuantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.\n\n\n\n\n\n"
+    "text": "qqmap(obsvec::Array{N,1}, refvec::Array{N,1}, futvec::Array{N,1}, days, obsjul, refjul, futjul; method::String=\"Additive\", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keeporiginal::Bool=false, interp=Linear(), extrap=Flat())\n\nQuantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.\n\n\n\n\n\n"
 },
 
 {
@@ -925,7 +933,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Index",
     "title": "ClimateTools.regrid",
     "category": "method",
-    "text": "C = regrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)A\n\nInterpolate ClimGrid A onto lat-lon grid defined by londest and latdest vector or array. If an array is provided, it is assumed that the grid is curvilinear (not a regular lon-lat grid) and the user needs to provide the dimension vector (\"x\" and \"y\") for such a grid.\n\n\n\n\n\n"
+    "text": "C = regrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)\n\nInterpolate ClimGrid A onto lat-lon grid defined by londest and latdest vector or array. If an array is provided, it is assumed that the grid is curvilinear (not a regular lon-lat grid) and the user needs to provide the dimension vector (\"x\" and \"y\") for such a grid.\n\n\n\n\n\n"
 },
 
 {
