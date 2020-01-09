@@ -11,6 +11,7 @@ using AxisArrays
 using NaNMath
 const axes = Base.axes
 using ArgCheck
+using DataFrames
 using PyCall
 using PyPlot
 using Interpolations
@@ -19,9 +20,12 @@ using ProgressMeter
 using Polynomials
 using IterTools
 using Statistics
+using Random
 using Dates
 using GeoStats
 using InverseDistanceWeighting
+using Extremes
+using Distances
 import Base.vcat
 import Base.getindex
 import Base.show
@@ -46,9 +50,9 @@ const cmocean = PyNULL()
 # const scipy = PyNULL()
 
 function __init__()
-  copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))
-  copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
-  copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
+    copy!(mpl, pyimport_conda("matplotlib", "matplotlib"))
+    copy!(basemap, pyimport_conda("mpl_toolkits.basemap", "basemap"))
+    copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
   # copy!(scipy, pyimport_conda("scipy.interpolate", "scipy"))
 end
 
@@ -140,7 +144,7 @@ struct ClimGrid\n
   globalattribs::Dict # Global attributes dictionary\n
 end\n
 """
-function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), timeattrib=Dict(), model="NA", frequency="NA", experiment="NA", run="NA", project="NA", institute="NA", filename="NA", dataunits="NA", latunits="NA", lonunits="NA", variable="NA", typeofvar="NA", typeofcal="NA", varattribs=Dict(), globalattribs=Dict())
+function ClimGrid(data; longrid = [], latgrid = [], msk = [], grid_mapping = Dict(), dimension_dict = Dict(), timeattrib = Dict(), model = "NA", frequency = "NA", experiment = "NA", run = "NA", project = "NA", institute = "NA", filename = "NA", dataunits = "NA", latunits = "NA", lonunits = "NA", variable = "NA", typeofvar = "NA", typeofcal = "NA", varattribs = Dict(), globalattribs = Dict())
 
     if isempty(dimension_dict)
         dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
@@ -153,13 +157,26 @@ function ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dim
     ClimGrid(data, longrid, latgrid, msk, grid_mapping, dimension_dict, timeattrib, model, frequency, experiment, run, project, institute, filename, dataunits, latunits, lonunits, variable, typeofvar, typeofcal, varattribs, globalattribs)
 end
 
+# """
+#     GevGrid
+#
+# Grid with Gev parameters
+# """
+# struct GevGrid{D <: DataFrameRow}
+#     params::D
+# end
+
+function GevGrid(params)
+    return GevGrid(params)
+end
+
 """
     TransferFunction(itp::Array, method::String, detrend::Bool)
 
 Transfer function used during quantile-quantile mapping bias correction.
 """
 struct TransferFunction
-    itp::Array
+itp::Array
     method::String
     detrend::Bool
 end
@@ -179,6 +196,7 @@ include("analysis.jl")
 
 # Exported functions
 export ClimGrid
+# export GevGrid
 # export uconvert
 export inpoly, inpolygrid, meshgrid, inpolyvec, ndgrid
 export findmax, findmin
@@ -193,6 +211,7 @@ export regrid, applymask, TransferFunction
 export shapefile_coords, shapefile_coords_poly
 export periodmean, resample, temporalsubset, spatialsubset
 export qqmap, qqmaptf
+export biascorrect_extremes
 export permute_west_east
 export getdim_lat, getdim_lon, isdefined, extractpoly
 export polyfit, polyval
@@ -204,7 +223,7 @@ export minimum, maximum, std, var, mean
 export get_timevec, daymean, daysum
 export monthmean, monthsum, temporalmean
 export yearmonthdayhour
-export write
+export write, findmindist
 
 
 end #module

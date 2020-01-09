@@ -18,10 +18,11 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # TODO this file is a complete mess, but it works. Clean it up!
 
   # Get attributes
-  ncI = NetCDF.ncinfo(file);
-  attribs = NetCDF.ncinfo(file).gatts;
+  # ncI = NetCDF.ncinfo(file);
+  # attribs = NetCDF.ncinfo(file).gatts;
   ds = NCDatasets.Dataset(file)
   attribs_dataset = ds.attrib
+  attribs = Dict(attribs_dataset)
 
   # The following attributes should be set for netCDF files that follows CF conventions.
   # project, institute, model, experiment, frequency
@@ -319,10 +320,12 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     throw(error("load takes only 3D and 4D variables for the moment"))
   end
 
+  C = ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, timeattrib=timeattrib, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal=caltype, varattribs=varattrib, globalattribs=attribs)
+
   close(ds)
   NetCDF.ncclose(file)
 
-  return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, timeattrib=timeattrib, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal=caltype, varattribs=varattrib, globalattribs=attribs)
+  return C
 
 
 end
@@ -373,11 +376,10 @@ Returns a 2D array. Should be used for *fixed* data, such as orography.
 """
 function load2D(file::String, vari::String; poly=[], data_units::String="")
     # Get attributes
-    ncI = NetCDF.ncinfo(file);
-    attribs = NetCDF.ncinfo(file).gatts;
+
     ds = NCDatasets.Dataset(file)
-    # ncI = NetCDF.ncinfo(file);
     attribs_dataset = ds.attrib
+    attribs = Dict(attribs_dataset)
 
     project = ClimateTools.project_id(attribs_dataset)
     institute = ClimateTools.institute_id(attribs_dataset)
@@ -579,10 +581,14 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
     # Convert data to AxisArray
     dataOut = AxisArray(data, Axis{Symbol(lonname)}(lon_raw), Axis{Symbol(latname)}(lat_raw))
 
+
+
+    C = ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal="fixed", varattribs=varattrib, globalattribs=attribs)
+
     close(ds)
     NetCDF.ncclose(file)
 
-    return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal="fixed", varattribs=varattrib, globalattribs=attribs)
+    return C
 
 end
 

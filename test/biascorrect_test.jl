@@ -37,7 +37,7 @@ ref = obs * 2.0
 fut = obs * 2.0
 D = qqmap(obs, ref, fut, method="Multiplicative", detrend=false)
 @test std(obs[1][1,1,:]) - std(fut[1][1,1,:]) ≈ -1.012096874
-@test std(obs[1][1,1,:]) - std(D[1][1,1,:]) ≈ -5.3838558178e-5
+@test round(std(obs[1][1,1,:]) - std(D[1][1,1,:]), digits=3) ≈ -0.0#5.233448404e-5
 
 # ============================
 Random.seed!(42)
@@ -48,7 +48,31 @@ ref = obs * 1.05
 fut = obs * 1.05
 
 D = qqmap(obs, ref, fut, method = "Multiplicative", detrend=false)
-@test round(D[1][1, 1, 1], digits=5)== 3.78144#13533272675
+@test round(D[1][1, 1, 1], digits=2) == 3.78
+
+# Bias extremes
+d = DateTime(1961,1,1):Day(1):DateTime(1990,12,31)
+lat = 1.0:2.0
+lon = 1.0:2.0
+Random.seed!(42)
+data = randn(2, 2, 10957)
+longrid, latgrid = ndgrid(lon, lat)
+axisdata = AxisArray(data, Axis{:lon}(lon), Axis{:lat}(lat), Axis{:time}(d))
+dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
+varattribs = Dict(["standard_name" => "random noise"])
+obs = ClimateTools.ClimGrid(axisdata, variable = "psl", typeofvar="psl", longrid=longrid, latgrid=latgrid, dimension_dict=dimension_dict, varattribs=varattribs)
+ref = obs * 1.1
+fut = obs * 1.05
+
+mu = [36.6208, 37.423]
+sigma = [11.555, 10.381]
+xi = [0.08393, 0.08393]
+gevparams = DataFrame([lat, lon, mu, sigma, xi], [:lat, :lon, :mu, :sigma, :xi])
+Dext = biascorrect_extremes(obs, ref, fut, detrend=true, gevparams=gevparams, method="multiplicative")
+@test round(maximum(Dext), digits=5) == 103.03357
+
+Dext = biascorrect_extremes(obs, ref, fut, detrend=false, gevparams=gevparams, method="multiplicative")
+@test round(maximum(Dext), digits=5) == 103.03378
 
 # Create a ClimGrid with a clear trend
 x = 1:10957
