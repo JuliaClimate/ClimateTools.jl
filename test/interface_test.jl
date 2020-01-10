@@ -18,7 +18,6 @@ fileorog = joinpath(dirname(@__FILE__), "data", "orog_fx_GFDL-ESM2G_historicalMi
 orog = load2D(fileorog, "orog")
 @test size(orog[1]) == (144, 90)
 @test orog.typeofvar == "orog"
-status, figh = mapclimgrid(orog); @test status == true; PyPlot.close();
 
 filename = joinpath(dirname(@__FILE__), "data", "SudQC_GCM.shp")
 polyshp = read(filename,Shapefile.Handle)
