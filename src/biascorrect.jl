@@ -336,12 +336,12 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
             else
                 # refclusters = getcluster(refvec[k,:], thres, 1.0)
                 futclusters = getcluster(futvec, thres, 1.0)
-                GPD_fut = gpdfit(futclusters[:Max], threshold = thres)
-                fut_cdf = Extremes.cdf.(GPD_fut, futclusters[:Max])
+                GPD_fut = gpdfit(futclusters[!,:Max], threshold = thres)
+                fut_cdf = Extremes.cdf.(GPD_fut, futclusters[!,:Max])
                 newfut = quantile.(GPD_obs, fut_cdf)
 
                 # Linear transition over a quarter of the distance
-                exIDX = futclusters[:Position]
+                exIDX = futclusters[!,:Position]
 
                 target = (maximum(futvec[exIDX]) - minimum(futvec[exIDX]))/4.0
                 transition = (futvec[exIDX] .- minimum(futvec[exIDX]))/target
@@ -351,7 +351,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
 
                 # We put the new data in the bias-corrected vector
                 dataoutin[k, :] = qqvecin[k, :]
-                dataoutin[k, futclusters[:Position]] = newfut_trans
+                dataoutin[k, futclusters[!,:Position]] = newfut_trans
 
             end
 

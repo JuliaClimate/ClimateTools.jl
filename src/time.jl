@@ -15,8 +15,6 @@ function temporalsubset(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
 
     # some checkups
     @argcheck startdate <= enddate
-    # @argcheck startdate >= C[1][Axis{:time}][1]
-    # @argcheck enddate <= C[1][Axis{:time}][end]
 
     dataOut = C[1][Axis{:time}(idxtimebeg:idxtimeend)]
 
@@ -373,16 +371,34 @@ function monthsum(C::ClimGrid)
 end
 
 """
-    timeresolution(timevec::Array{N,1} where N)
+    timeresolution(timevec::CFVariable)
+
+Return the time resolution of the vector timevec.
+
+"""
+function timeresolution(dates::NCDatasets.CFVariable)
+
+    # timevec = (NetCDF.ncread(str, "time"))
+    timevec = dates[:]
+    if length(timevec) > 1
+        timediff = diff(timevec)[2]
+        return convert(Second, timediff)
+    else
+        return Second(1.0)
+    end
+end
+
+"""
+    timeresolution(timevec::Array{N,1})
 
 Return the time resolution of the vector timevec.
 
 """
 function timeresolution(timevec::Array{N,1} where N)
 
-    # timevec = (NetCDF.ncread(str, "time"))
     if length(timevec) > 1
         timediff = diff(timevec)[2]
+
         if timediff == 1. || timediff == 1
             return "24h"
         elseif round(timediff, digits=5) == round(12/24, digits=5)
