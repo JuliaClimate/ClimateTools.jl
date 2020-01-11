@@ -100,7 +100,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   timeattrib = Dict(ds["time"].attrib)
   T = typeof(timeV[1])
-  idxtimebeg, idxtimeend = ClimateTools.timeindex(timeV, start_date, end_date, T)
+  idxtimebeg, idxtimeend = timeindex(timeV, start_date, end_date, T)
   timeV = timeV[idxtimebeg:idxtimeend]
 
   # ==================
@@ -548,7 +548,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
     C = ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal="fixed", varattribs=varattrib, globalattribs=attribs)
 
-    close(ds)    
+    close(ds)
 
     return C
 

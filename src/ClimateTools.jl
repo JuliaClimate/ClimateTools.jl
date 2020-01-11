@@ -12,7 +12,6 @@ const axes = Base.axes
 using ArgCheck
 using DataFrames
 using Interpolations
-using Images
 using ProgressMeter
 using Polynomials
 using IterTools
@@ -65,7 +64,7 @@ export ensemble_mean, ensemble_std, ensemble_max, ensemble_min
 export load, load2D
 export regrid, applymask
 export shapefile_coords, shapefile_coords_poly
-export periodmean, resample, temporalsubset, spatialsubset
+export resample, spatialsubset
 export qqmap, qqmaptf
 export biascorrect_extremes
 export permute_west_east
@@ -75,7 +74,7 @@ export @isdefined
 export merge, vaporpressure, approx_surfacepressure
 export wbgt, diurnaltemperature, meantemperature
 export minimum, maximum, std, var, mean
-export get_timevec, daymean, daysum
+export daymean, daysum
 export monthmean, monthsum, temporalmean
 export yearmonthdayhour
 export write, findmindist
