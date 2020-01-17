@@ -18,15 +18,12 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # TODO this file is a complete mess, but it works. Clean it up!
 
   # Get attributes
-  # ncI = NetCDF.ncinfo(file);
-  # attribs = NetCDF.ncinfo(file).gatts;
   ds = NCDatasets.Dataset(file)
   attribs_dataset = ds.attrib
   attribs = Dict(attribs_dataset)
 
   # The following attributes should be set for netCDF files that follows CF conventions.
   # project, institute, model, experiment, frequency
-
   project = ClimateTools.project_id(attribs_dataset)
   institute = ClimateTools.institute_id(attribs_dataset)
   model = ClimateTools.model_id(attribs_dataset)
@@ -52,8 +49,10 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # Create dict with latname and lonname
   dimension_dict = Dict(["lon" => lonname, "lat" => latname])
 
-  lat_raw = NetCDF.ncread(file, latname)
-  lon_raw = NetCDF.ncread(file, lonname)
+  # lat_raw = NetCDF.ncread(file, latname)
+  lat_raw = nomissing(ds[latname][:], NaN)
+  # lon_raw = NetCDF.ncread(file, lonname)
+  lon_raw = nomissing(ds[lonname][:], NaN)
 
   # Get variable attributes
   varattrib = Dict(ds[vari].attrib)
@@ -63,8 +62,10 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
       latgrid_name = latgridname(ds)
       longrid_name = longridname(ds)
 
-      latgrid = NetCDF.ncread(file, latgrid_name)
-      longrid = NetCDF.ncread(file, longrid_name)
+      # latgrid = NetCDF.ncread(file, latgrid_name)
+      latgrid = nomissing(ds[latgrid_name][:], NaN)
+      # longrid = NetCDF.ncread(file, longrid_name)
+      longrid = nomissing(ds[longrid_name][:], NaN)
 
       # Ensure we have a grid
       if ndims(latgrid) == 1 && ndims(longrid) == 1
@@ -99,7 +100,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   timeattrib = Dict(ds["time"].attrib)
   T = typeof(timeV[1])
-  idxtimebeg, idxtimeend = ClimateTools.timeindex(timeV, start_date, end_date, T)
+  idxtimebeg, idxtimeend = timeindex(timeV, start_date, end_date, T)
   timeV = timeV[idxtimebeg:idxtimeend]
 
   # ==================
@@ -120,8 +121,6 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   # ===================
   # GET DATA
-  # data = ds[variable]
-  # data_pointer = NetCDF.open(file, vari)
   data_pointer = ds[vari]
   if !isempty(poly)
 
@@ -142,12 +141,10 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
     #Extract data based on mask
     data_ext = ClimateTools.extractdata(data_pointer, msk, idxtimebeg, idxtimeend)
-    # replace_missing!(data_ext)
     data_ext = nomissing(data_ext, NaN)
-    # data_ext = convert(data_ext, Float32)
+
 
     #new mask (e.g. representing the region of the polygon)
-    # idlon, idlat = findn(.!isnan.(msk))
     begin
         I = Base.findall(!isnan, msk)
         idlon, idlat = (getindex.(I, 1), getindex.(I, 2))
@@ -251,17 +248,6 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   end
 
-  # Replace missing with NaN
-  # replace_missing!(data)
-  # data = nomissing(data, NaN)
-  # data = convert(data, Float32)
-
-  # # # Replace fillvalues with NaN
-  # fillval = NetCDF.ncgetatt(file, vari, "_FillValue")
-  # data_final[data_final .== fillval] .= NaN
-
-  # data = data_final
-
   if rotatedgrid
       longrid .= longrid_flip
       lon_raw .= lon_raw_flip
@@ -277,35 +263,13 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   if data_units == "mm" && vari == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")
 
-    rez = timeresolution(NetCDF.ncread(file, "time"))
-    factor = pr_timefactor(rez)
-    data .*= factor
+    factor = timeresolution(ds["time"])
+    # factor = pr_timefactor(rez)
+    data .*= factor.value
     dataunits = "mm"
     varattrib["standard_name"] = "precipitation"
     varattrib["units"] = "mm"
   end
-
-  # # Attribute dimension to data
-  # if dimension
-  #     if dataunits == "K" || dataunits == "Kelvin"
-  #         data = [data][1]K
-  #     elseif dataunits == "C" || dataunits == "°C" || dataunits == "Celsius"
-  #         data = [data][1]°C
-  #     elseif dataunits == "kg m-2 s-1"
-  #         un = kg/m^2/s
-  #         data = [data][1]un
-  #     elseif dataunits == "mm"
-  #         data = [data][1]mm
-  #     elseif dataunits == "m s-1"
-  #         un = m/s
-  #         data = [data][1]un
-  #     elseif dataunits == "mm s-1"
-  #         un = mm/s
-  #         data = [data][1]un
-  #     elseif dataunits == "m"
-  #         data = [data][1]m
-  #     end
-  # end
 
   # Create AxisArray from variable "data"
   if ndims(data) == 3
@@ -313,7 +277,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     dataOut = AxisArray(data, Axis{Symbol(lonname)}(lon_raw), Axis{Symbol(latname)}(lat_raw), Axis{:time}(timeV))
   elseif ndims(data) == 4 # this imply a 3D field (height component)
     # Get level vector
-    plev = ds["plev"][:]#NetCDF.ncread(file, "plev")
+    plev = ds["plev"][:]
     # Convert data to AxisArray
     dataOut = AxisArray(data, Axis{Symbol(lonname)}(lon_raw), Axis{Symbol(latname)}(lat_raw), Axis{:plev}(plev), Axis{:time}(timeV))
   else
@@ -323,7 +287,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   C = ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, timeattrib=timeattrib, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal=caltype, varattribs=varattrib, globalattribs=attribs)
 
   close(ds)
-  NetCDF.ncclose(file)
+  # NetCDF.close(ncfile)
 
   return C
 
@@ -400,8 +364,10 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
     # Create dict with latname and lonname
     dimension_dict = Dict(["lon" => lonname, "lat" => latname])
 
-    lat_raw = NetCDF.ncread(file, latname)
-    lon_raw = NetCDF.ncread(file, lonname)
+    # lat_raw = NetCDF.ncread(file, latname)
+    lat_raw = nomissing(ds[latname][:], NaN)
+    # lon_raw = NetCDF.ncread(file, lonname)
+    lon_raw = nomissing(ds[lonname][:], NaN)
 
     # Get variable attributes
     varattrib = Dict(ds[vari].attrib)
@@ -411,8 +377,10 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
         latgrid_name = latgridname(ds)
         longrid_name = longridname(ds)
 
-        latgrid = NetCDF.ncread(file, latgrid_name)
-        longrid = NetCDF.ncread(file, longrid_name)
+        # latgrid = NetCDF.ncread(file, latgrid_name)
+        latgrid = nomissing(ds[latgrid_name][:], NaN)
+        # longrid = NetCDF.ncread(file, longrid_name)
+        longrid = nomissing(ds[longrid_name][:], NaN)
 
         map_attrib = build_grid_mapping(ds, grid_mapping)
         varattrib["grid_mapping"] = grid_mapping
@@ -442,7 +410,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
     # ===================
     # GET DATA
     # data = ds[variable]
-    data_pointer = ds[vari]#NetCDF.open(file, vari)
+    data_pointer = ds[vari]
     if !isempty(poly)
 
       # Test to see if the polygon crosses the meridian
@@ -505,7 +473,7 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
               longrid_flip = ClimateTools.shiftgrid_180_west_east(longrid)
 
-              data_final = permute_west_east(data_mask, longrid)#idxwest, idxeast)
+              data = permute_west_east(data_mask, longrid)#idxwest, idxeast)
               msk = ClimateTools.permute_west_east(msk, longrid)
 
               # TODO Try to trim padding when meridian is crossed and model was on a 0-360 coords
@@ -568,11 +536,6 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
     end
 
-    # # # Replace fillvalues with NaN
-    # fillval = NetCDF.ncgetatt(file, vari, "_FillValue")
-    # data_final[data_final .== fillval] .= NaN
-    # data = data_final
-
     if rotatedgrid
         longrid = longrid_flip
         lon_raw = lon_raw_flip
@@ -586,7 +549,6 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
     C = ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=map_attrib, dimension_dict=dimension_dict, model=model, frequency=frequency, experiment=experiment, run=runsim, project=project, institute=institute, filename=file, dataunits=dataunits, latunits=latunits, lonunits=lonunits, variable=vari, typeofvar=vari, typeofcal="fixed", varattribs=varattrib, globalattribs=attribs)
 
     close(ds)
-    NetCDF.ncclose(file)
 
     return C
 

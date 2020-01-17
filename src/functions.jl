@@ -360,13 +360,6 @@ function getdims(C::ClimGrid)
 end
 
 """
-    get_timevec(C::ClimGrid)
-
-Returns time vector of ClimGrid C.
-"""
-get_timevec(C::ClimGrid) = C[1][Axis{:time}][:]
-
-"""
     applymask(A::AbstractArray{N, n}, mask::AbstractArray{N, n})
 
 Applies a mask on the array A. Return an AbstractArray{N, n}.

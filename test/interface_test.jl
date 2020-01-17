@@ -10,15 +10,34 @@ files = [file1, file2]
 C = load(files, "tas")
 filenc = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
 C = load(filenc, "tas")
-
 @test load(filenc, "tas", data_units = "Celsius")[2] == "°C"
 @test load(filenc, "pr", data_units = "mm")[2] == "mm"
+
+# With a shapefile
+filename = joinpath(dirname(@__FILE__), "data", "SudQC_GCM.shp")
+polyshp = read(filename,Shapefile.Handle)
+P = shapefile_coords_poly(polyshp.shapes[1])
+C = load(filenc, "tas", poly=P)
+@test size(C[1]) == (23, 12, 1)
+@test C[1][1,1,1] == 294.6609f0
+
+# Dataset functions
+ds = Dataset(filenc)
+@test ClimateTools.longridname(ds) == "lon"
+@test ClimateTools.latgridname(ds) == "lat"
+@test getdim_lon(ds) == ("lon", false)
+@test getdim_lat(ds) == ("lat", false)
+
+# Meridian polygon
+P = [NaN 10 -10 -10 10 10;NaN 20 20 30 30 20]
+C = load(filenc, "tas", poly=P)
+@test size(C[1]) == (256, 7, 1)
+@test findmax(C, skipnan=true) == (303.45667f0, CartesianIndex(124, 4, 1))
 
 fileorog = joinpath(dirname(@__FILE__), "data", "orog_fx_GFDL-ESM2G_historicalMisc_r0i0p0.nc")
 orog = load2D(fileorog, "orog")
 @test size(orog[1]) == (144, 90)
 @test orog.typeofvar == "orog"
-status, figh = mapclimgrid(orog); @test status == true; PyPlot.close();
 
 filename = joinpath(dirname(@__FILE__), "data", "SudQC_GCM.shp")
 polyshp = read(filename,Shapefile.Handle)
@@ -27,7 +46,15 @@ orog = load2D(fileorog, "orog", poly = P)
 @test size(orog[1]) == (13, 8)
 @test orog.typeofvar == "orog"
 
+P = [NaN 10 -10 -10 10 10;NaN 20 20 30 30 20]
+orog = load2D(fileorog, "orog", poly=P)
+@test size(orog[1]) == (144, 5)
+@test findmax(orog, skipnan=true) == (1116.9403076171875, CartesianIndex(76, 3))
+
+
 # INTERFACE
+C = load(filenc, "tas")
+P = shapefile_coords_poly(polyshp.shapes[1])
 # B = vcat(C, C)
 # @test size(B.data) == (256, 128, 2) # vcat does not look at dimensions
 B = merge(C, C)
@@ -132,7 +159,6 @@ timevec = NetCDF.ncread(filenc, "time")
 @test ClimateTools.daymean_factor(ClimateTools.timeresolution(timevec)) == 1
 
 
-
 # MESHGRID
 YV = [1, 2, 3]
 XV = [4, 5, 6]
@@ -153,7 +179,6 @@ S[:, :, 3] .= [6 6 6; 6 6 6; 6 6 6]
 
 @test meshgrid(XV, YV, XV) == (Q, R, S)
 
-
 @test ndgrid(XV, YV) == ([4 4 4; 5 5 5; 6 6 6], [1 2 3; 1 2 3; 1 2 3])
 @test ndgrid([XV, YV, XV]) ==   [[4, 5, 6], [1, 2, 3], [4, 5, 6]]
 @test ndgrid(XV) == [4, 5, 6]
@@ -162,7 +187,6 @@ S[:, :, 3] .= [6 6 6; 6 6 6; 6 6 6]
 C = 1
 @test ClimateTools.@isdefined C
 @test (ClimateTools.@isdefined T) == false
-
 
 ## INPOLY
 @test ClimateTools.leftorright(0.5,0.5, 1,0,1,1) == -1

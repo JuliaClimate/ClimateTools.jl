@@ -13,7 +13,6 @@ function spatialsubset(C::ClimGrid, poly)
         poly = poly'
     end
 
-
     lonsymbol = Symbol(C.dimension_dict["lon"])
     latsymbol = Symbol(C.dimension_dict["lat"])
 
@@ -24,7 +23,7 @@ function spatialsubset(C::ClimGrid, poly)
     lat = C[1][Axis{latsymbol}][:]
 
     msk = inpolygrid(longrid, latgrid, poly)
-    # idlon, idlat = findn(.!isnan.(msk))
+
     begin
         I = findall(!isnan, msk)
         idlon, idlat = (getindex.(I, 1), getindex.(I, 2))

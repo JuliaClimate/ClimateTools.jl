@@ -1,16 +1,3 @@
-function buildarrayinterface(axisArraytmp, A)
-    latsymbol = Symbol(A.dimension_dict["lat"])
-    lonsymbol = Symbol(A.dimension_dict["lon"])
-    if ndims(axisArraytmp) == 2
-        axisArray = AxisArray(axisArraytmp, Axis{lonsymbol}(A[1][Axis{lonsymbol}][:]), Axis{latsymbol}(A[1][Axis{latsymbol}][:]))
-    elseif ndims(axisArraytmp) == 3
-        axisArray = AxisArray(axisArraytmp, Axis{lonsymbol}(A[1][Axis{lonsymbol}][:]), Axis{latsymbol}(A[1][Axis{latsymbol}][:]), Axis{:time}(A[1][Axis{:time}][:]))
-    elseif ndims(axisArraytmp) == 4
-        axisArray = AxisArray(axisArraytmp, Axis{lonsymbol}(A[1][Axis{lonsymbol}][:]), Axis{latsymbol}(A[1][Axis{latsymbol}][:]), Axis{:plev}(A[1][Axis{:plev}][:]), Axis{:time}(A[1][Axis{:time}][:]))
-    end
-    return axisArray
-end
-
 function getsymbols(C::ClimGrid)
     latsymbol = Symbol(C.dimension_dict["lat"])
     lonsymbol = Symbol(C.dimension_dict["lon"])
@@ -181,7 +168,7 @@ Base.show(io::IO, ::MIME"text/plain", C::ClimGrid) = print(io, "ClimGrid struct 
 "Global attributes: ", summary(C[12]), "\n",
 "Filename: ", C[8])
 
-Base.show(io::IO, ::MIME"text/plain", ITP::TransferFunction) = print(io, "TransferFunction type with fields *itp*, *method* and *detrend*", "\n",
-    "Interpolation array: ", size(ITP.itp), " transfer functions", "\n",
-    "Method: ", ITP.method, "\n",
-    "Detrended: ", ITP.detrend)
+# Base.show(io::IO, ::MIME"text/plain", ITP::TransferFunction) = print(io, "TransferFunction type with fields *itp*, *method* and *detrend*", "\n",
+#     "Interpolation array: ", size(ITP.itp), " transfer functions", "\n",
+#     "Method: ", ITP.method, "\n",
+#     "Detrended: ", ITP.detrend)
