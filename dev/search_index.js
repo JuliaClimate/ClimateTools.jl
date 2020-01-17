@@ -385,14 +385,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "maps/#ClimateTools.mapclimgrid",
-    "page": "Visualization",
-    "title": "ClimateTools.mapclimgrid",
-    "category": "function",
-    "text": "mapclimgrid(C::ClimGrid; region::String=\"auto\", poly, level, mask, caxis, start_date::Tuple, end_date::Tuple, titlestr::String, surface::Symbol, cm::String=\"\", ncolors::Int, center_cs::Bool, filename::String, cs_label::String)\n\nMaps the time-mean average of ClimGrid C. If a filename is provided, the figure is saved in a png format.\n\nOptional keyworkd includes precribed regions (keyword region, see list below), spatial clipping by polygon (keyword poly) or mask (keyword mask, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), startdate and enddate. For 4D data, keyword level is used to map a given level (defaults to 1). caxis is used to limit the colorscale. cm is used to manually set the colorscale (see Python documentation for native colorscale keyword), ncolors is used to set the number of color classes (defaults to 12). Set center_cs to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature). cs_label is used for custom colorscale label.\n\nArguments for keyword region (and shortcuts)\n\nEurope (\"EU\")\nNorthAmerica (\"NA\")\nCanada (\"CA\")\nQuebec, QuebecNSP (\"QC\", \"QCNSP\")\nAmericas (\"Ams\")\nWorld, WorldAz, WorldEck4 (\"W\", \"Waz\", \"Weck4\")\nGreenwich (\"Gr\")\n\nArguments for keyword surface\n\n:contour\n:contourf\n:pcolormesh\n\n\n\n\n\nmapclimgrid(; region::String=\"auto\", poly, level, mask, caxis, start_date::Date, end_date::Date)\n\nEmpty map generator, when called without a ClimGrid as the positional argument.\n\n\n\n\n\n"
-},
-
-{
     "location": "maps/#Maps-1",
     "page": "Visualization",
     "title": "Maps",
@@ -753,14 +745,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions/#ClimateTools.get_timevec-Tuple{ClimGrid}",
-    "page": "Index",
-    "title": "ClimateTools.get_timevec",
-    "category": "method",
-    "text": "get_timevec(C::ClimGrid)\n\nReturns time vector of ClimGrid C.\n\n\n\n\n\n"
-},
-
-{
     "location": "functions/#ClimateTools.getdim_lat-Tuple{Dataset}",
     "page": "Index",
     "title": "ClimateTools.getdim_lat",
@@ -825,22 +809,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions/#ClimateTools.mapclimgrid-Tuple{ClimGrid}",
-    "page": "Index",
-    "title": "ClimateTools.mapclimgrid",
-    "category": "method",
-    "text": "mapclimgrid(C::ClimGrid; region::String=\"auto\", poly, level, mask, caxis, start_date::Tuple, end_date::Tuple, titlestr::String, surface::Symbol, cm::String=\"\", ncolors::Int, center_cs::Bool, filename::String, cs_label::String)\n\nMaps the time-mean average of ClimGrid C. If a filename is provided, the figure is saved in a png format.\n\nOptional keyworkd includes precribed regions (keyword region, see list below), spatial clipping by polygon (keyword poly) or mask (keyword mask, an array of NaNs and 1.0 of the same dimension as the data in ClimGrid C), startdate and enddate. For 4D data, keyword level is used to map a given level (defaults to 1). caxis is used to limit the colorscale. cm is used to manually set the colorscale (see Python documentation for native colorscale keyword), ncolors is used to set the number of color classes (defaults to 12). Set center_cs to true to center the colorscale (useful for divergent results, such as anomalies, positive/negative temprature). cs_label is used for custom colorscale label.\n\nArguments for keyword region (and shortcuts)\n\nEurope (\"EU\")\nNorthAmerica (\"NA\")\nCanada (\"CA\")\nQuebec, QuebecNSP (\"QC\", \"QCNSP\")\nAmericas (\"Ams\")\nWorld, WorldAz, WorldEck4 (\"W\", \"Waz\", \"Weck4\")\nGreenwich (\"Gr\")\n\nArguments for keyword surface\n\n:contour\n:contourf\n:pcolormesh\n\n\n\n\n\n"
-},
-
-{
-    "location": "functions/#ClimateTools.mapclimgrid-Tuple{}",
-    "page": "Index",
-    "title": "ClimateTools.mapclimgrid",
-    "category": "method",
-    "text": "mapclimgrid(; region::String=\"auto\", poly, level, mask, caxis, start_date::Date, end_date::Date)\n\nEmpty map generator, when called without a ClimGrid as the positional argument.\n\n\n\n\n\n"
-},
-
-{
     "location": "functions/#ClimateTools.meantemperature-Tuple{ClimGrid,ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.meantemperature",
@@ -878,14 +846,6 @@ var documenterSearchIndex = {"docs": [
     "title": "ClimateTools.ndgrid",
     "category": "method",
     "text": "X, Y = ndgrid(XV, YV)\n\nThis function creates a 2-D mesh-grid in a format consistent with Matlab\'s function ndgrid(). XV and YV are vectors.\n\n\n\n\n\n"
-},
-
-{
-    "location": "functions/#ClimateTools.periodmean-Tuple{ClimGrid}",
-    "page": "Index",
-    "title": "ClimateTools.periodmean",
-    "category": "method",
-    "text": "periodmean(C::ClimGrid; startdate::Tuple, enddate::Tuple)\n\nMean of array data over a given period.\n\n\n\n\n\n"
 },
 
 {
@@ -993,14 +953,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions/#ClimateTools.temporalsubset-Tuple{ClimGrid,Tuple,Tuple}",
-    "page": "Index",
-    "title": "ClimateTools.temporalsubset",
-    "category": "method",
-    "text": "function temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)\n\nReturns the temporal subset of ClimGrid C. The temporal subset is defined by a start and end date.\n\n\n\n\n\n"
-},
-
-{
     "location": "functions/#ClimateTools.tropicalnights-Tuple{ClimGrid}",
     "page": "Index",
     "title": "ClimateTools.tropicalnights",
@@ -1041,22 +993,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions/#PyPlot.hist-Tuple{ClimGrid}",
-    "page": "Index",
-    "title": "PyPlot.hist",
-    "category": "method",
-    "text": "hist(C::ClimGrid; bins::Int=10, level=1, range_x=[], poly=[], start_date::Tuple=(Inf,), end_date::Tuple=(Inf,), titlestr::String=\"\", gridfig::Bool=true, label::String=\"\", ylimit=[])\n\n\n\n\n\n"
-},
-
-{
-    "location": "functions/#PyPlot.plot-Tuple{ClimGrid}",
-    "page": "Index",
-    "title": "PyPlot.plot",
-    "category": "method",
-    "text": "plot(C::ClimGrid, titlefig::String, gridfig::Bool, label::String, color, lw, linestyle)\n\nPlots the spatial average timeserie of ClimGrid C.\n\n\n\n\n\n"
-},
-
-{
     "location": "functions/#Statistics.mean-Tuple{ClimGrid}",
     "page": "Index",
     "title": "Statistics.mean",
@@ -1078,30 +1014,6 @@ var documenterSearchIndex = {"docs": [
     "title": "Statistics.var",
     "category": "method",
     "text": "var(A::ClimGrid)\n\nCompute the variance of ClimGrid A\n\n\n\n\n\n"
-},
-
-{
-    "location": "functions/#ClimateTools.ClimGrid",
-    "page": "Index",
-    "title": "ClimateTools.ClimGrid",
-    "category": "type",
-    "text": "ClimGrid{A <: AxisArray}\n\nIn-memory representation of Climate Forecast netCDF files.\n\nstruct ClimGrid\n\ndata::AxisArray # Data\n\nlongrid::AbstractArray{N,2} where N # the longitude grid\n\nlatgrid::AbstractArray{N,2} where N # the latitude grid\n\nmsk::Array{N, 2} where N # Data mask (NaNs and 1.0)\n\ngrid_mapping::Dict#{String, Any} # bindings for native grid\n\ndimension_dict::Dict\n\nmodel::String\n\nfrequency::String # Day, month, years\n\nexperiment::String # Historical, RCP4.5, RCP8.5, etc.\n\nrun::String\n\nproject::String # CORDEX, CMIP5, etc.\n\ninstitute::String # UQAM, DMI, etc.\n\nfilename::String # Path of the original file\n\ndataunits::String # Celsius, kelvin, etc.\n\nlatunits::String # latitude coordinate unit\n\nlonunits::String # longitude coordinate unit\n\nvariable::String # Type of variable (i.e. can be the same as \"typeofvar\", but it is changed when calculating indices)\n\ntypeofvar::String # Variable type (e.g. tasmax, tasmin, pr)\n\ntypeofcal::String # Calendar type\n\ntimeattrib::Dict # Time attributes (e.g. days since ... )\n\nvarattribs::Dict # Variable attributes dictionary\n\nglobalattribs::Dict # Global attributes dictionary\n\nend\n\n\n\n\n\n"
-},
-
-{
-    "location": "functions/#ClimateTools.ClimGrid-Tuple{Any}",
-    "page": "Index",
-    "title": "ClimateTools.ClimGrid",
-    "category": "method",
-    "text": "ClimGrid(data; longrid=[], latgrid=[], msk=[], grid_mapping=Dict(), dimension_dict=Dict(), model=\"NA\", frequency=\"NA\", experiment=\"NA\", run=\"NA\", project=\"NA\", institute=\"NA\", filename=\"NA\", dataunits=\"NA\", latunits=\"NA\", lonunits=\"NA\", variable=\"NA\", typeofvar=\"NA\", typeofcal=\"NA\", varattribs=Dict(), globalattribs=Dict())\n\nConstructor of the ClimGrid function. Data is an AxisArray. Everything else is optional, but usually needed for further processing (mapping, interpolation, etc...).\n\nstruct ClimGrid\n\ndata::AxisArray # Data \n\nlongrid::AbstractArray{N,2} where N # the longitude grid \n\nlatgrid::AbstractArray{N,2} where N # the latitude grid \n\nmsk::Array{N, 2} where N # Data mask (NaNs and 1.0) \n\ngrid_mapping::Dict#{String, Any} # bindings for native grid \n\ndimension_dict::Dict\n\nmodel::String\n\nfrequency::String # Day, month, years\n\nexperiment::String # Historical, RCP4.5, RCP8.5, etc.\n\nrun::String\n\nproject::String # CORDEX, CMIP5, etc.\n\ninstitute::String # UQAM, DMI, etc.\n\nfilename::String # Path of the original file\n\ndataunits::String # Celsius, kelvin, etc.\n\nlatunits::String # latitude coordinate unit\n\nlonunits::String # longitude coordinate unit\n\nvariable::String # Type of variable (i.e. can be the same as \"typeofvar\", but it is changed when calculating indices)\n\ntypeofvar::String # Variable type (e.g. tasmax, tasmin, pr)\n\ntypeofcal::String # Calendar type\n\ntimeattrib::Dict # Time attributes (e.g. days since ... )\n\nvarattribs::Dict # Variable attributes dictionary\n\nglobalattribs::Dict # Global attributes dictionary\n\nend\n\n\n\n\n\n"
-},
-
-{
-    "location": "functions/#ClimateTools.TransferFunction",
-    "page": "Index",
-    "title": "ClimateTools.TransferFunction",
-    "category": "type",
-    "text": "TransferFunction(itp::Array, method::String, detrend::Bool)\n\nTransfer function used during quantile-quantile mapping bias correction.\n\n\n\n\n\n"
 },
 
 {
