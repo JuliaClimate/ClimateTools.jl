@@ -6,9 +6,11 @@ CurrentModule = ClimateTools
 
 ## Maps
 
-Mapping a `ClimGrid` is done by using the [`mapclimgrid`](@ref) function.
+Mapping a `ClimGrid` is done by using the [`mapclimgrid`](@ref) function from the package [ClimatePlots](https://github.com/JuliaClimate/ClimatePlots.jl).
 
 ```julia
+using ClimateTools # to load the netcdf file
+using ClimatePlots # which exports the `mapclimgrid` function.
 C = load(filenc, "pr", data_units="mm")
 mapclimgrid(C)
 ```
@@ -30,6 +32,7 @@ Plotting timeseries of a given `ClimGrid` C is simply done by calling [`plot`](@
 
 ```julia
 using ClimateTools
+using ClimatePlots
 poly_reg = [[NaN -65 -80 -80 -65 -65];[NaN 42 42 52 52 42]]
 # Extract tasmax variable over specified polygon, between January 1st 1950 and December 31st 2005
 C_hist = load("historical.nc", "tasmax", data_units="Celsius", poly=poly_reg, start_date=Date(1950, 01, 01), end_date=Date(2005, 12, 31)))
