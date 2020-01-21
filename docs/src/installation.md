@@ -10,7 +10,6 @@ The first approach is to use Anaconda or the system python distribution and ensu
 
 * matplotlib
 * basemap
-* scipy
 * cmocean
 
 **1.2 Testing Python installation**
@@ -22,7 +21,6 @@ No matter the approach used, it is recommended to test the python environment an
 >>> import mpl_toolkits.basemap as basemap
 >>> import matplotlib.pyplot as plt
 >>> import cmocean as cm
->>> import scipy as sc
 ```
 
 *Note. Installing Basemap with `pip` for python 3.6+ seems problematic. That is why it is strongly suggested to use Anaconda distribution. See approach no 2a below for an installation with Anaconda*
@@ -44,10 +42,10 @@ If the main system python distribution is not set-up properly, the recommended a
 ```bash
 $ conda create -name ClimateTools python=3.6
 $ conda activate ClimateTools
-$ pip install numpy scipy matplotlib
-$ conda install -c anaconda basemap
-$ pip install cmocean
-$ conda install -c conda-forge basemap-data-hires # optional. For high-resolution maps
+$ conda install -c conda-forge matplotlib --strict-channel-priority
+$ conda install -c conda-forge basemap --strict-channel-priority
+$ conda install -c conda-forge cmocean --strict-channel-priority
+$ conda install -c conda-forge basemap-data-hires --strict-channel-priority # optional. For high-resolution maps
 $ which python # gives you the path of Conda virtual environment to use in the next steps.
 ```
 
