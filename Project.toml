@@ -2,7 +2,7 @@ name = "ClimateTools"
 uuid = "4f4ee721-4970-5af2-8560-6c1d960e3231"
 authors = ["Philippe Roy <borghor@yahoo.ca>"]
 repo = "https://github.com/JuliaClimate/ClimateTools.jl.git"
-version = "0.17.0"
+version = "0.16.0"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
