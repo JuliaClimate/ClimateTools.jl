@@ -90,7 +90,7 @@ makedocs(sitename = "ClimateTools.jl",
 )
 
 deploydocs(
-    repo   = "github.com/Balinus/ClimateTools.jl.git",
+    repo   = "github.com/JuliaClimate/ClimateTools.jl.git",
     # julia  = "1.0",
     # osname = "linux",
     target = "build"
