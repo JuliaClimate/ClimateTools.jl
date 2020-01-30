@@ -349,7 +349,7 @@ end
 Removes february 29th. Needed for bias correction.
 """
 function dropfeb29(C::ClimGrid)
-    date_vec = get_timevec(C) # [1][Axis{:time}][:]
+    date_vec = ClimateBase.get_timevec(C) # [1][Axis{:time}][:]
     f = typeof(date_vec[1])
     feb29th = (Dates.month.(date_vec) .== Dates.month(f(2000, 2, 2))) .& (Dates.day.(date_vec) .== Dates.day(29))
     dataout = C[1].data[:, :, .!feb29th] # drop for data
@@ -361,7 +361,7 @@ function dropfeb29(C::ClimGrid)
         datevec_noleap[id] = reinterpret(DateTimeNoLeap, date_vec[id])
     end
 
-    dataout = buildarray_resample(C, dataout, datevec_noleap)
+    dataout = ClimateBase.buildarray_resample(C, dataout, datevec_noleap)
 
     return ClimGrid(dataout; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end
