@@ -94,7 +94,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String = "Ad
     lonsymbol = Symbol(fut.dimension_dict["lon"])
     latsymbol = Symbol(fut.dimension_dict["lat"])
 
-    dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}][:]), Axis{latsymbol}(fut[1][Axis{latsymbol}][:]), Axis{:time}(datevec_fut))
+    dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}].val), Axis{latsymbol}(fut[1][Axis{latsymbol}].val), Axis{:time}(datevec_fut))
 
     timeattrib = fut.timeattrib
     timeattrib["calendar"] = "365_day"
@@ -223,6 +223,8 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
     @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
     @argcheck size(obs[1], 2) == size(ref[1], 2) == size(fut[1], 2)
 
+    qqmap_base = qqmap(obs, ref, fut, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+
     # Modify dates (e.g. 29th feb are dropped/lost by default)
     obs = ClimateTools.dropfeb29(obs)
     ref = ClimateTools.dropfeb29(ref)
@@ -242,7 +244,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
         fut = fut - poly_values
     end
 
-    qqmap_base = qqmap(obs, ref, fut, method=method, detrend=false, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+
 
     #Get date vectors
     datevec_obs = get_timevec(obs)
@@ -374,7 +376,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
     lonsymbol = Symbol(fut.dimension_dict["lon"])
     latsymbol = Symbol(fut.dimension_dict["lat"])
 
-    dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}][:]), Axis{latsymbol}(fut[1][Axis{latsymbol}][:]), Axis{:time}(datevec_fut))
+    dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}].val), Axis{latsymbol}(fut[1][Axis{latsymbol}].val), Axis{:time}(datevec_fut))
 
     timeattrib = fut.timeattrib
     timeattrib["calendar"] = "365_day"

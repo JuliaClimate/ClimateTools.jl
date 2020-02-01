@@ -1,24 +1,5 @@
 # TODO add quantile estimation as indices
-function buildarray_annual(C::ClimateTools.ClimGrid, dataout, numYears)
-    lonsymbol = Symbol(C.dimension_dict["lon"])
-    latsymbol = Symbol(C.dimension_dict["lat"])
-    FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(Dates.year.(DateTime.(numYears))))
-    return FD
-end
 
-function buildarray_climato(C::ClimateTools.ClimGrid, dataout)
-    lonsymbol = Symbol(C.dimension_dict["lon"])
-    latsymbol = Symbol(C.dimension_dict["lat"])
-    FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]))
-    return FD
-end
-
-function buildarray_resample(C::ClimateTools.ClimGrid, dataout, newtime)
-    lonsymbol = Symbol(C.dimension_dict["lon"])
-    latsymbol = Symbol(C.dimension_dict["lat"])
-    FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(newtime))
-    return FD
-end
 
 # function buildarray_orig(C::ClimateTools.ClimGrid, dataout)
 #     lonsymbol = Symbol(C.dimension_dict["lon"])
