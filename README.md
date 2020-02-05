@@ -18,7 +18,7 @@
 
 ClimateTools.jl is a collection of commonly-used tools in Climate science. Basics of climate field analysis are covered, with some forays into exploratory techniques associated with climate scenarios design. The package is aimed to ease the typical steps of analysis climate models outputs and gridded datasets (support for weather stations is a work-in-progress).
 
-ClimateTools.jl is registered on METADATA.jl and can be added and updated with `Pkg` commands. See [installation documentation](https://balinus.github.io/ClimateTools.jl/dev/installation/) for detailed installation instructions and Python's dependencies (for mapping features).
+ClimateTools.jl is registered on METADATA.jl and can be added and updated with `Pkg` commands. See [installation documentation](https://juliaclimate.github.io/ClimateTools.jl/dev/installation/) for detailed installation instructions and Python's dependencies (for mapping features).
 
 Climate indices and bias correction functions are coded to leverage the use of **multiple threads**. To gain maximum performance, use (bash shell Linux/MacOSX) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.THREADS`. This is especially useful for bias correction.
 
@@ -30,14 +30,14 @@ If you'd like to have other climate indices coded, please, submit them through a
 
 * Extraction and visualization of CF-compliant netCDF datasets
 * Custom user-provided polygons and start and end date for localized studies
-* Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices. [See list](https://balinus.github.io/ClimateTools.jl/stable/indices.html).
+* Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices. [See list](https://juliaclimate.github.io/ClimateTools.jl/stable/indices/).
 * Regridding of a datasets onto another grid
 * Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)
 * Support for physical units through the [Unitful.jl](https://github.com/ajkeller34/Unitful.jl) package.
 
 ## Getting started
 
-*Note. More in-depth documentation is provided in the official documentation (Links: [stable](https://balinus.github.io/ClimateTools.jl/stable/)/[latest](https://balinus.github.io/ClimateTools.jl/dev/)).*
+*Note. More in-depth documentation is provided in the official documentation (Links: [stable](https://juliaclimate.github.io/ClimateTools.jl/stable/)/[latest](https://juliaclimate.github.io/ClimateTools.jl/dev/)).*
 
 ```julia
 using ClimateTools
@@ -155,7 +155,7 @@ C = regrid(A::ClimGrid, lon::AbstractArray{N, 1}, lat::AbstractArray{N, 1})
 
 ### Bias-correction
 
-See [Documentation](https://balinus.github.io/ClimateTools.jl/stable/biascorrection/).
+See [Documentation](https://juliaclimate.github.io/ClimateTools.jl/stable/biascorrection/).
 
 ### Merging ClimGrids
 
