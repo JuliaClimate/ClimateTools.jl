@@ -73,7 +73,10 @@
 using Documenter, ClimateTools
 
 makedocs(sitename = "ClimateTools.jl",
-    format = :html,
+    doctest = false,
+    format = Documenter.HTML(
+    prettyurls = CI,
+    ),
     pages = [
        "index.md",
        "installation.md",
