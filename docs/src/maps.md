@@ -4,27 +4,28 @@ CurrentModule = ClimateTools
 
 # Visualization
 
+Maps and plots are provided by the [ClimatePlots](https://github.com/JuliaClimate/ClimatePlots.jl) package.
+
 ## Maps
 
-Mapping a `ClimGrid` is done by using the [`mapclimgrid`](@ref) function from the package [ClimatePlots](https://github.com/JuliaClimate/ClimatePlots.jl).
+Mapping a `ClimGrid` is done by using the [`contourf`](@ref), [`contour`](@ref) and [`pcolormesh`](@ref) functions from the package [ClimatePlots](https://github.com/JuliaClimate/ClimatePlots.jl).
 
 ```julia
 using ClimateTools # to load the netcdf file
-using ClimatePlots # which exports the `mapclimgrid` function.
+using ClimatePlots # which exports the `contourf` function.
 C = load(filenc, "pr", data_units="mm")
-mapclimgrid(C)
+contourf(C)
 ```
 
 ![CanESM2](assets/CanESM2.png)
 
 ```@docs
-mapclimgrid
+contourf
+contour
+pcolormesh
 ```
 
-Note that the function plots the climatological mean of the provided `ClimGrid`. Multiple options are available for region: `World`, `Canada`, `Quebec`, `WorldAz`, `WorldEck4`, ..., and the default `auto` which use the maximum and minimum of the lat-long coordinates inside the `ClimGrid` structure (see the documentation of `mapclimgrid` for all region options).
-
-The user can also provide a polygon(s) and the `mapclimgrid` function will clip the grid points outside the specified polygon. Another option is to provide a mask (with dimensions identical to the spatial dimension of the `ClimGrid` data) which contains `NaN` and `1.0` and the data inside the `ClimGrid` struct will be clipped with the mask.
-
+Note that the functions plots the climatological mean of the provided `ClimGrid`. Multiple options are available for region: `World`, `Canada`, `Quebec`, `WorldAz`, `WorldEck4`, ..., and the default `auto` which use the maximum and minimum of the lat-long coordinates inside the `ClimGrid` structure (see the documentation of `contourf` for all region options).
 
 ## Timeseries
 
@@ -50,7 +51,7 @@ plot(ind)
 The timeserie represent the spatial average of the annual maximum temperature over the following region.
 
 ```julia
-mapclimgrid(ind, region = "QuebecNSP")
+contourf(ind, region = "Quebec")
 ```
 
 ![annualmaxtasmax_maps](assets/annmax_maps.png)
