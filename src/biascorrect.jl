@@ -23,7 +23,7 @@ The quantile-quantile transfer function between **ref** and **obs** is etimated 
 
 **extrap = Interpolations.Flat() (default)**. The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no "inflation problem" with the bias correction. The argument is from Interpolation.jl package.
 """
-function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String = "Additive", detrend::Bool = true, window::Int = 15, rankn::Int = 50, thresnan::Float64 = 0.1, keep_original::Bool = false, interp = Linear(), extrap = Flat())
+function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
 
     # Consistency checks # TODO add more checks for grid definition
     @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
@@ -83,7 +83,7 @@ function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String = "Ad
         refvec = refin[k,:]
         futvec = futin[k,:]
 
-        dataoutin[k, :] = qqmap(obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul, method = method, detrend = detrend, window = window, rankn = rankn, thresnan = thresnan, keep_original = keep_original, interp = interp, extrap = extrap)
+        dataoutin[k, :] = qqmap(obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul, method=method, detrend=detrend, window=window, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
 
     end
 
@@ -122,10 +122,10 @@ qqmap(obsvec::Array{N,1}, refvec::Array{N,1}, futvec::Array{N,1}, days, obs_jul,
 Quantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.
 
 """
-function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::Array{N,1} where N, days, obs_jul, ref_jul, fut_jul; method::String = "Additive", detrend::Bool = true, window::Int64 = 15, rankn::Int64 = 50, thresnan::Float64 = 0.1, keep_original::Bool = false, interp = Linear(), extrap = Flat())
+function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::Array{N,1} where N, days, obs_jul, ref_jul, fut_jul; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
 
     # range over which quantiles are estimated
-    P = range(0.01, stop = 0.99, length = rankn)
+    P = range(qmin, stop=qmax, length = rankn)
     obsP = similar(obsvec, length(P))
     refP = similar(refvec, length(P))
     sf_refP = similar(refvec, length(P))
@@ -217,13 +217,13 @@ biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String
 
 Correct the tail of the distribution with a paramatric method, using the parameters μ, σ and ξ contained in gevparams DataFrame.
 """
-function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String = "Multiplicative", P::Real = 0.95, detrend::Bool = true, window::Int = 15, rankn::Int = 50, thresnan::Float64 = 0.1, keep_original::Bool = false, interp = Linear(), extrap = Flat(), gevparams::DataFrame)
+function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Multiplicative", P::Real=0.95, detrend::Bool=true, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat(), gevparams::DataFrame)
 
     # Consistency checks # TODO add more checks for grid definition
     @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
     @argcheck size(obs[1], 2) == size(ref[1], 2) == size(fut[1], 2)
 
-    qqmap_base = qqmap(obs, ref, fut, method=method, detrend=detrend, window=window, rankn=rankn, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+    qqmap_base = qqmap(obs, ref, fut, method=method, detrend=detrend, window=window, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
 
     # Modify dates (e.g. 29th feb are dropped/lost by default)
     obs = ClimateTools.dropfeb29(obs)
@@ -243,8 +243,6 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
         poly_values = ClimateTools.polyval(fut, fut_polynomials)
         fut = fut - poly_values
     end
-
-
 
     #Get date vectors
     datevec_obs = get_timevec(obs)
@@ -318,7 +316,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                     # Calculate quantile values of maximum clusters values
                     fut_cdf = Extremes.cdf.(GPD_fut, futclusters[:Max])
                     # Estimation of fut values based on provided GPD parameters
-                    newfut = quantile.(GPD_obs, fut_cdf)
+                    newfut = quantile.(GPD_obs, fut_cdf) .+ thres
 
                     # Linear transition over a quarter of the distance
                     exIDX = futclusters[:Position]
@@ -332,18 +330,18 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                     # We put the new data in the bias-corrected vector
                     exIDX_corr = findall(futclusters[:Position] .< idxf_corr)
                     dataoutin[k, idxi+idxi_corr-1:idxi+idxf_corr-1] = qqvecin[k, idxi_corr:idxf_corr]
-                    dataoutin[k, idxi .+ futclusters[exIDX_corr,:Position]] = newfut_trans[exIDX_corr]
+                    dataoutin[k, idxi .+ futclusters[exIDX_corr,:Position] .- 1] .= newfut_trans[exIDX_corr]
 
                 end
             else
                 # refclusters = getcluster(refvec[k,:], thres, 1.0)
                 futclusters = getcluster(futvec, thres, 1.0)
-                GPD_fut = gpdfit(futclusters[!,:Max], threshold = thres)
-                fut_cdf = Extremes.cdf.(GPD_fut, futclusters[!,:Max])
-                newfut = quantile.(GPD_obs, fut_cdf)
+                GPD_fut = gpdfit(futclusters[:Max], threshold = thres)
+                fut_cdf = Extremes.cdf.(GPD_fut, futclusters[:Max])
+                newfut = quantile.(GPD_obs, fut_cdf) .+ thres
 
                 # Linear transition over a quarter of the distance
-                exIDX = futclusters[!,:Position]
+                exIDX = futclusters[:Position]
 
                 target = (maximum(futvec[exIDX]) - minimum(futvec[exIDX]))/4.0
                 transition = (futvec[exIDX] .- minimum(futvec[exIDX]))/target
@@ -353,7 +351,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
 
                 # We put the new data in the bias-corrected vector
                 dataoutin[k, :] = qqvecin[k, :]
-                dataoutin[k, futclusters[!,:Position]] = newfut_trans
+                dataoutin[k, futclusters[:Position]] = newfut_trans
 
             end
 
