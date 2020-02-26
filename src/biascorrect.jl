@@ -325,7 +325,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                     transition = (futvec_tmp[exIDX] .- minimum(futvec_tmp[exIDX]))/target
                     transition[transition .> 1.0] .= 1.0
                     # Apply linear transition
-                    newfut_trans = (newfut .* transition) .+ (qqvecin[k, exIDX] .* (1.0 .- transition))
+                    newfut_trans = (newfut .* transition) .+ (qqvecin[k, idxi .+ exIDX .- 1] .* (1.0 .- transition))
 
                     # We put the new data in the bias-corrected vector
                     exIDX_corr = findall(futclusters[:Position] .< idxf_corr)
