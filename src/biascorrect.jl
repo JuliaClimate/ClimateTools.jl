@@ -253,7 +253,8 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
     movingwindow = maximum(year.(datevec_fut)) - minimum(year.(datevec_fut)) > (maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)))*1.5
 
     # Prepare output array (replicating data type of fut ClimGrid)
-    dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1], 2), size(fut[1], 3)))::Array{typeof(fut[1].data[1]),T} where T
+    # dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1], 2), size(fut[1], 3)))::Array{typeof(fut[1].data[1]),T} where T
+    dataout = qqmap_base[1].data
 
     # Reshape. Allows multi-threading on grid points.
     obsin = reshape(obs[1].data, (size(obs[1].data, 1) * size(obs[1].data, 2), size(obs[1].data, 3)))
@@ -279,9 +280,9 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
         if (sum(obsvalnan) < (length(obsvec) * thresnan)) & (sum(refvalnan) < (length(refvec) * thresnan)) & (sum(futvalnan) < (length(futvec) * thresnan))
 
             # Estimate threshold
-            thres = ClimateTools.get_threshold(obsvec, refvec, thres = P)
+            thres = ClimateTools.get_threshold(obsvec, refvec, thres=P)
 
-            GPD_obs = ClimateTools.estimate_gpd(obs.latgrid[k], obs.longrid[k], gevparams, thres)
+            GPD_obs = ClimateTools.estimate_gpd(latgrid[k], longrid[k], gevparams, thres)
 
             if movingwindow
                 # window_length will be roughly the length of REF
@@ -292,34 +293,44 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                 # The fut series is separated is a few time windows.
                 # We also make the windows overlap to replicate a moving window
                 R = w_length/2:w_length/3:fut_l
-                for c in R
-                    idxi = round(Int, max(c-w_length/2+1,1))
-                    idxf = round(Int, min(c+w_length/2,fut_l))
-                    futvec_tmp = futvec[idxi:idxf]
+                corrR = range(1, stop=fut_l, length=length(R)-1)
+
+                for c = 1:length(R)
+                    idxi = round(Int, max(R[c]-w_length/2+1,1))
+                    idxf = round(Int, min(R[c]+w_length/2,fut_l))
+                    futvec_tmp = futvec[idxi:idxf];
 
                     # However, we want each moving window to correct a smaller portion of the time series
-                    idxi_corr = round(Int, w_length/2-(w_length/2)/3+1)
-                    if c == w_length/2
+                    # idxi_corr = round(Int, idxi+(w_length/2-(w_length/2)/3) - 1)
+                    idxi_corr = round(Int, corrR[c]) + 1
+                    if c == 1
                         idxi_corr = 1
                     end
-                    idxf_corr = round(Int, w_length/2+(w_length/2)/3)
-                    if c == maximum(w_length/2:w_length/3:fut_l) || idxi+idxf_corr-1 > fut_l
-                        idxf_corr = min(round(Int, w_length-w_length/3),fut_l-idxi+1)
+                    # idxf_corr = round(Int, idxi + (w_length/2+(w_length/2)/3) - 1)
+
+                    if c == length(R)#maximum(w_length/2:w_length/3:fut_l) || idxi+idxf_corr-1 > fut_l
+                        idxf_corr = min(round(Int, R[c]+w_length-w_length/3),fut_l-idxi+1)
+                    else
+                        idxf_corr = round(Int,corrR[c+1])
                     end
+                    @show idxi
+                    @show idxf
+                    @show idxi_corr
+                    @show idxf_corr
                     # nbyears = round(Int,length(futvec_tmp)/365)
                     # N = nbyears*2 # By default, we correct roughly 2 values per year
 
                     # Get clusters
                     futclusters = getcluster(futvec_tmp, thres, 1.0)
                     # Estimate GPD parameters of fut clusters
-                    GPD_fut = gpdfit(futclusters[:Max], threshold = thres)
+                    GPD_fut = gpdfit(futclusters[!,:Max], threshold = thres)
                     # Calculate quantile values of maximum clusters values
-                    fut_cdf = Extremes.cdf.(GPD_fut, futclusters[:Max])
+                    fut_cdf = Extremes.cdf.(GPD_fut, futclusters[!,:Max])
                     # Estimation of fut values based on provided GPD parameters
                     newfut = quantile.(GPD_obs, fut_cdf) .+ thres
 
                     # Linear transition over a quarter of the distance
-                    exIDX = futclusters[:Position]
+                    exIDX = futclusters[!,:Position]
 
                     target = (maximum(futvec_tmp[exIDX]) - minimum(futvec_tmp[exIDX]))/4.0
                     transition = (futvec_tmp[exIDX] .- minimum(futvec_tmp[exIDX]))/target
@@ -328,20 +339,21 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                     newfut_trans = (newfut .* transition) .+ (qqvecin[k, idxi .+ exIDX .- 1] .* (1.0 .- transition))
 
                     # We put the new data in the bias-corrected vector
-                    exIDX_corr = findall(futclusters[:Position] .< idxf_corr)
-                    dataoutin[k, idxi+idxi_corr-1:idxi+idxf_corr-1] = qqvecin[k, idxi_corr:idxf_corr]
+                    exIDX_corr = findall((idxi .+ futclusters[!,:Position] .-1 .< idxf_corr) .& (idxi .+ futclusters[!,:Position] .- 1 .> idxi_corr))
+                    # exIDX_corr = findall(futclusters[!,:Position] .< idxf_corr)
+                    # dataoutin[k, idxi+idxi_corr-1:idxi+idxf_corr-1] = qqvecin[k, idxi_corr:idxf_corr]
                     dataoutin[k, idxi .+ futclusters[exIDX_corr,:Position] .- 1] .= newfut_trans[exIDX_corr]
 
                 end
             else
                 # refclusters = getcluster(refvec[k,:], thres, 1.0)
                 futclusters = getcluster(futvec, thres, 1.0)
-                GPD_fut = gpdfit(futclusters[:Max], threshold = thres)
-                fut_cdf = Extremes.cdf.(GPD_fut, futclusters[:Max])
+                GPD_fut = gpdfit(futclusters[!,:Max], threshold = thres)
+                fut_cdf = Extremes.cdf.(GPD_fut, futclusters[!,:Max])
                 newfut = quantile.(GPD_obs, fut_cdf) .+ thres
 
                 # Linear transition over a quarter of the distance
-                exIDX = futclusters[:Position]
+                exIDX = futclusters[!,:Position]
 
                 target = (maximum(futvec[exIDX]) - minimum(futvec[exIDX]))/4.0
                 transition = (futvec[exIDX] .- minimum(futvec[exIDX]))/target
@@ -350,8 +362,8 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                 newfut_trans = (newfut .* transition) .+ (qqvecin[k, exIDX] .* (1.0 .- transition))
 
                 # We put the new data in the bias-corrected vector
-                dataoutin[k, :] = qqvecin[k, :]
-                dataoutin[k, futclusters[:Position]] = newfut_trans
+                # dataoutin[k, :] = qqvecin[k, :]
+                dataoutin[k, futclusters[!,:Position]] = newfut_trans
 
             end
 
