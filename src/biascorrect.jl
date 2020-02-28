@@ -286,48 +286,14 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
 
             if movingwindow
 
-                nodes_corr, nodes_est = build_idx_biascorrect(refvec, futvec)
-                # window_length will be roughly the length of REF
-                # w_length = length(refvec)#(maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)) + 1)*365
-                # # in case of multiple members, we approximate ref length
-                # fut_l = length(futvec)
-                
-                # # The fut series is separated is a few time windows.
-                # # We also make the windows overlap to replicate a moving window
-                # R = w_length/2:w_length/3:fut_l
-                # corrR = range(1, stop=fut_l, length=length(R)-1)
+                idxi, idxf, idxi_corr, idxf_corr = build_idx_biascorrect(refvec, futvec)
+               
 
-                for c = 1:length(nodes_corr)-1
+                for c = 1:length(idxi)
+           
+                    futvec_tmp = futvec[idxi[c]:idxf[c]];
 
-                    idxi = nodes_est[c,1]
-                    idxf = nodes_est[c,2]
-                    idxi_corr = nodes_corr[c]
-                    idxf_corr = nodes_corr[c+1]
-
-                    idxi = round(Int, max(R[c]-w_length/2+1,1))
-                    idxf = round(Int, min(R[c]+w_length/2,fut_l))
-                    futvec_tmp = futvec[idxi:idxf];
-
-                    # However, we want each moving window to correct a smaller portion of the time series
-                    # idxi_corr = round(Int, idxi+(w_length/2-(w_length/2)/3) - 1)
-                    idxi_corr = round(Int, corrR[c]) + 1
-                    if c == 1
-                        idxi_corr = 1
-                    end
-                    # idxf_corr = round(Int, idxi + (w_length/2+(w_length/2)/3) - 1)
-
-                    if c == length(R)#maximum(w_length/2:w_length/3:fut_l) || idxi+idxf_corr-1 > fut_l
-                        idxf_corr = min(round(Int, R[c]+w_length-w_length/3),fut_l-idxi+1)
-                    else
-                        idxf_corr = round(Int,corrR[c+1])
-                    end
-                    @show idxi
-                    @show idxf
-                    @show idxi_corr
-                    @show idxf_corr
-                    # nbyears = round(Int,length(futvec_tmp)/365)
-                    # N = nbyears*2 # By default, we correct roughly 2 values per year
-
+                 
                     # Get clusters
                     futclusters = getcluster(futvec_tmp, thres, 1.0)
                     # Estimate GPD parameters of fut clusters
@@ -344,13 +310,13 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                     transition = (futvec_tmp[exIDX] .- minimum(futvec_tmp[exIDX]))/target
                     transition[transition .> 1.0] .= 1.0
                     # Apply linear transition
-                    newfut_trans = (newfut .* transition) .+ (qqvecin[k, idxi .+ exIDX .- 1] .* (1.0 .- transition))
+                    newfut_trans = (newfut .* transition) .+ (qqvecin[k, idxi[c] .+ exIDX .- 1] .* (1.0 .- transition))
 
                     # We put the new data in the bias-corrected vector
-                    exIDX_corr = findall((idxi .+ futclusters[!,:Position] .-1 .< idxf_corr) .& (idxi .+ futclusters[!,:Position] .- 1 .> idxi_corr))
+                    exIDX_corr = findall((idxi[c] .+ futclusters[!,:Position] .-1 .< idxf_corr[c]) .& (idxi[c] .+ futclusters[!,:Position] .- 1 .> idxi_corr[c]))
                     # exIDX_corr = findall(futclusters[!,:Position] .< idxf_corr)
                     # dataoutin[k, idxi+idxi_corr-1:idxi+idxf_corr-1] = qqvecin[k, idxi_corr:idxf_corr]
-                    dataoutin[k, idxi .+ futclusters[exIDX_corr,:Position] .- 1] .= newfut_trans[exIDX_corr]
+                    dataoutin[k, idxi[c] .+ futclusters[exIDX_corr,:Position] .- 1] .= newfut_trans[exIDX_corr]
 
                 end
             else
@@ -449,35 +415,89 @@ end
 
 function build_idx_biascorrect(refvec, futvec)
 
-    w_length = length(refvec)
+    # window_length will be roughly the length of REF
+    w_length = length(refvec)#(maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)) + 1)*365
+    # in case of multiple members, we approximate ref length
     fut_l = length(futvec)
-    nodes_corr = round.(Int,w_length/2:w_length/3:fut_l-w_length/2)
-    N = Array{Int64}(undef, length(nodes_corr)+2)
-    N[1] = 1
-    N[end] = fut_l
-    N[2:end-1] .= nodes_corr
+                
+    # The fut series is separated is a few time windows.
+    # We also make the windows overlap to replicate a moving window
+    R = w_length/2:w_length/3:fut_l
+    corrR = range(1, stop=fut_l, length=length(R)-1)
 
-    N_est = Array{Int64}(undef, length(N), 2)
+    idxi = Array{Int64}(undef, length(R))
+    idxf = Array{Int64}(undef, length(R))
+    idxi_corr = Array{Int64}(undef, length(R))
+    idxf_corr = Array{Int64}(undef, length(R))
 
-    for inode = 1:length(N)
+    for c = 1:length(R)
 
-        if inode == 1
-            N_est[inode, 1] = N[1]
-            N_est[inode, 2] = N[3]
-        elseif inode == length(N)
-            N_est[inode, 1] = N[end-1]
-            N_est[inode, 2] = N[end]
-        # elseif inode == length(N) - 1
-        #     N_est[inode, 1] = N[end-3]
-        #     N_est[inode, 2] = N[end-1]
-        else
-            N_est[inode, 1] = N[inode - 1]
-            N_est[inode, 2] = N[inode + 1]
+        # idxi = nodes_est[c,1]
+        # idxf = nodes_est[c,2]
+        # idxi_corr = nodes_corr[c]
+        # idxf_corr = nodes_corr[c+1]
+
+        idxi[c] = round(Int, max(R[c]-w_length/2+1,1))
+        idxf[c] = round(Int, min(R[c]+w_length/2,fut_l))
+        # futvec_tmp = futvec[idxi:idxf];
+
+        # However, we want each moving window to correct a smaller portion of the time series
+        idxi_corr[c] = round(Int, idxi[c]+(w_length/2-(w_length/2)/3) - 1)
+        # idxi_corr[c] = round(Int, corrR[c])
+        if c == 1
+            idxi_corr[c] = 1
         end
+        # idxf_corr = round(Int, idxi + (w_length/2+(w_length/2)/3) - 1)
+
+        if c == length(R)#maximum(w_length/2:w_length/3:fut_l) || idxi+idxf_corr-1 > fut_l
+            idxf_corr[c] = max(round(Int, idxi[c] + w_length-w_length/3),fut_l)
+        else
+            idxf_corr[c] = round(Int, idxi[c] + (w_length/2+(w_length/2)/3) - 1)
+            # idxf_corr[c] = round(Int,corrR[c+1])
+        end
+        # @show idxi
+        # @show idxf
+        # @show idxi_corr
+        # @show idxf_corr
     end
 
-    return N, N_est
+    idxi_corr[2:end] .-= 1 
+
+    return idxi, idxf, idxi_corr, idxf_corr
 end
+
+
+
+
+#     w_length = length(refvec)
+#     fut_l = length(futvec)
+#     nodes_corr = round.(Int,w_length/2:w_length/3:fut_l-w_length/2)
+#     N = Array{Int64}(undef, length(nodes_corr)+2)
+#     N[1] = 1
+#     N[end] = fut_l
+#     N[2:end-1] .= nodes_corr
+
+#     N_est = Array{Int64}(undef, length(N), 2)
+
+#     for inode = 1:length(N)
+
+#         if inode == 1
+#             N_est[inode, 1] = N[1]
+#             N_est[inode, 2] = N[3]
+#         elseif inode == length(N)
+#             N_est[inode, 1] = N[end-1]
+#             N_est[inode, 2] = N[end]
+#         # elseif inode == length(N) - 1
+#         #     N_est[inode, 1] = N[end-3]
+#         #     N_est[inode, 2] = N[end-1]
+#         else
+#             N_est[inode, 1] = N[inode - 1]
+#             N_est[inode, 2] = N[inode + 1]
+#         end
+#     end
+
+#     return N, N_est
+# end
 
 
 
