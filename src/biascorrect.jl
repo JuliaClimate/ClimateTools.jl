@@ -285,17 +285,25 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
             GPD_obs = ClimateTools.estimate_gpd(latgrid[k], longrid[k], gevparams, thres)
 
             if movingwindow
-                # window_length will be roughly the length of REF
-                ref_l = (maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)) + 1)*365
-                # in case of multiple members, we approximate ref length
-                fut_l = length(futvec)
-                w_length = fut_l/(floor(fut_l/ref_l))
-                # The fut series is separated is a few time windows.
-                # We also make the windows overlap to replicate a moving window
-                R = w_length/2:w_length/3:fut_l
-                corrR = range(1, stop=fut_l, length=length(R)-1)
 
-                for c = 1:length(R)
+                nodes_corr, nodes_est = build_idx_biascorrect(refvec, futvec)
+                # window_length will be roughly the length of REF
+                # w_length = length(refvec)#(maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)) + 1)*365
+                # # in case of multiple members, we approximate ref length
+                # fut_l = length(futvec)
+                
+                # # The fut series is separated is a few time windows.
+                # # We also make the windows overlap to replicate a moving window
+                # R = w_length/2:w_length/3:fut_l
+                # corrR = range(1, stop=fut_l, length=length(R)-1)
+
+                for c = 1:length(nodes_corr)-1
+
+                    idxi = nodes_est[c,1]
+                    idxf = nodes_est[c,2]
+                    idxi_corr = nodes_corr[c]
+                    idxf_corr = nodes_corr[c+1]
+
                     idxi = round(Int, max(R[c]-w_length/2+1,1))
                     idxf = round(Int, min(R[c]+w_length/2,fut_l))
                     futvec_tmp = futvec[idxi:idxf];
@@ -438,6 +446,91 @@ function estimate_gpd(lat, lon, gevparams, thres)
     return GPD_obs
 
 end
+
+function build_idx_biascorrect(refvec, futvec)
+
+    w_length = length(refvec)
+    fut_l = length(futvec)
+    nodes_corr = round.(Int,w_length/2:w_length/3:fut_l-w_length/2)
+    N = Array{Int64}(undef, length(nodes_corr)+2)
+    N[1] = 1
+    N[end] = fut_l
+    N[2:end-1] .= nodes_corr
+
+    N_est = Array{Int64}(undef, length(N), 2)
+
+    for inode = 1:length(N)
+
+        if inode == 1
+            N_est[inode, 1] = N[1]
+            N_est[inode, 2] = N[3]
+        elseif inode == length(N)
+            N_est[inode, 1] = N[end-1]
+            N_est[inode, 2] = N[end]
+        # elseif inode == length(N) - 1
+        #     N_est[inode, 1] = N[end-3]
+        #     N_est[inode, 2] = N[end-1]
+        else
+            N_est[inode, 1] = N[inode - 1]
+            N_est[inode, 2] = N[inode + 1]
+        end
+    end
+
+    return N, N_est
+end
+
+
+
+#     # N[1] = 1
+#     # N[end] = fut_l
+
+#     for inode = 1:length(nodes_corr)
+#         if inode == 1
+#             N[inode, 1] = 1
+#             N[inode, 2] = nodes_corr[inode] 
+#         elseif inode == length(nodes_corr)
+#             N[inode] = fut_l
+#         else
+#             N[inode] = 0
+#         end
+
+#     end
+
+#     nodes_corr = collect(Base.Iterators.partition(w_length/2:fut_l, round(Int,w_length/3)))
+#     nodes_est = collect(Base.Iterators.partition(1:fut_l, round(Int,w_length)))
+
+#     Ni = Vector{Int64}(undef, length(nodes_corr))
+#     Nf = Vector{Int64}(undef, length(nodes_corr))
+
+#     for inode = 1:length(nodes_corr)
+
+#         for icorr = 1:length(nodes_est)
+
+#             idxi = findall(nodes_corr[inode][1] .== nodes_est[icorr])
+#             idxf = findall(nodes_corr[inode][end] .== nodes_est[icorr])
+
+#             if !isempty(idxi)
+#                 Ni[inode] = icorr
+#             end
+#             if !isempty(idxf)
+#                 Nf[inode] = icorr
+#             end
+#         end
+#     end
+
+#     # @assert sum(Ni - Nf) == 0
+
+#     return nodes_corr, nodes_est, Ni, Nf
+# end
+
+
+# for n = 1:30000
+#     refvec = rand(10950)
+#     futvec = rand(10950 + n)
+
+#     nodes_corr, nodes_est, Ni, Nf = build_idx_biascorrect(refvec, futvec)
+# end
+
 
 # """
 #     biascorrect_extremes(obs::AxisArray, ref::AxisArray, fut::AxisArray, μ, σ, ξ)
