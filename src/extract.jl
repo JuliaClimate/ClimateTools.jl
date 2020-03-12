@@ -35,13 +35,14 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # Get dimensions names
   latname, latstatus = getdim_lat(ds)
   lonname, lonstatus = getdim_lon(ds)
+  timname, timstatus = getdim_tim(ds)
 
   dataunits = ds[vari].attrib["units"]
   latunits = ds[latname].attrib["units"]
   lonunits = ds[lonname].attrib["units"]
   caltype = ""
     try
-        caltype = ds["time"].attrib["calendar"]
+        caltype = ds[timname].attrib["calendar"]
     catch
         caltype = "standard"
     end
@@ -85,7 +86,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # =====================
   # TIME
   # Get time resolution
-  timeV = ds["time"][:]
+  timeV = ds[timname][:]
   if frequency == "N/A" || !ClimateTools.@isdefined frequency
       try
           try
@@ -98,7 +99,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
       end
   end
 
-  timeattrib = Dict(ds["time"].attrib)
+  timeattrib = Dict(ds[timname].attrib)
   T = typeof(timeV[1])
   idxtimebeg, idxtimeend = timeindex(timeV, start_date, end_date, T)
   timeV = timeV[idxtimebeg:idxtimeend]
@@ -263,7 +264,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   if data_units == "mm" && vari == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")
 
-    factor = timeresolution(ds["time"])
+    factor = timeresolution(ds[timname])
     # factor = pr_timefactor(rez)
     data .*= factor.value
     dataunits = "mm"
@@ -584,6 +585,8 @@ function getdim_lat(ds::NCDatasets.Dataset)
         return "y", true
     elseif sum(keys(ds.dim) .== "yc") == 1
         return "yc", true
+    elseif sum(keys(ds.dim) .== "lat_c") == 1
+        return "lat_c", false
     else
         error("Manually verify x/lat dimension name")
     end
@@ -607,6 +610,8 @@ function getdim_lon(ds::NCDatasets.Dataset)
         return "x", false
     elseif sum(keys(ds.dim) .== "xc") == 1
         return "xc", false
+    elseif sum(keys(ds.dim) .== "lon_c") == 1
+        return "lon_c", false
     else
         error("Manually verify x/lat dimension name")
     end
@@ -624,6 +629,8 @@ function latgridname(ds::NCDatasets.Dataset)
         return "lat"
     elseif in("latitude", keys(ds))
         return "latitude"
+    elseif in("lat_c", keys(ds))
+        return "lat_c"
     else
         error("Variable name is not supported. File an issue on https://github.com/Balinus/ClimateTools.jl/issues")
     end
@@ -640,11 +647,29 @@ function longridname(ds::NCDatasets.Dataset)
         return "lon"
     elseif in("longitude", keys(ds))
         return "longitude"
+    elseif in("lon_c", keys(ds))
+        return "lon_c"
     else
         error("Variable name is not supported. File an issue on https://github.com/Balinus/ClimateTools.jl/issues")
     end
 end
 
+"""
+    getdim_tim(ds::NCDatasets.Dataset)
+
+Returns the name of the "time" dimension.
+"""
+function getdim_tim(ds::NCDatasets.Dataset)
+
+    if sum(keys(ds.dim) .== "time") == 1
+        return "time", false
+    elseif sum(keys(ds.dim) .== "tim") == 1
+        return "tim", false
+    else
+        error("Manually verify time dimension name")
+    end
+
+end
 
 """
     extractdata(data, msk, idxtimebeg, idxtimeend)
