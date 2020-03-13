@@ -68,7 +68,7 @@ export resample, spatialsubset
 export qqmap, qqmaptf
 export biascorrect_extremes
 export permute_west_east
-export getdim_lat, getdim_lon, isdefined, extractpoly
+export getdim_lat, getdim_lon, getdim_tim, isdefined, extractpoly
 export polyfit, polyval
 export @isdefined
 export merge, vaporpressure, approx_surfacepressure
