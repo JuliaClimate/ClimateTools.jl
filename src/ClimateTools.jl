@@ -46,7 +46,7 @@ include("indices.jl")
 include("indicators.jl")
 include("extract.jl")
 include("interface.jl")
-
+include("cf_conventions.jl")
 include("biascorrect.jl")
 include("export.jl")
 include("time.jl")
@@ -69,6 +69,7 @@ export qqmap, qqmaptf
 export biascorrect_extremes
 export permute_west_east
 export getdim_lat, getdim_lon, getdim_tim, isdefined, extractpoly
+export get_dimname
 export polyfit, polyval
 export @isdefined
 export merge, vaporpressure, approx_surfacepressure

@@ -30,12 +30,21 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   experiment = ClimateTools.experiment_id(attribs_dataset)
   frequency = ClimateTools.frequency_var(attribs_dataset)
   runsim = ClimateTools.runsim_id(attribs_dataset)
-  grid_mapping = ClimateTools.get_mapping(keys(ds))
+  grid_mapping = ClimateTools.get_mapping(keys(ds))#, vari)
+
+  if grid_mapping == "Regular_longitude_latitude"
+      latstatus = false
+  else
+      latstatus = true
+  end
 
   # Get dimensions names
-  latname, latstatus = getdim_lat(ds)
-  lonname, lonstatus = getdim_lon(ds)
-  timname, timstatus = getdim_tim(ds)
+  latname = get_dimname(ds, "Y")
+  lonname = get_dimname(ds, "X")
+  timname = get_dimname(ds, "T")
+  # latname, latstatus = getdim_lat(ds)
+  # lonname, lonstatus = getdim_lon(ds)
+  # timname, timstatus = getdim_tim(ds)
 
   dataunits = ds[vari].attrib["units"]
   latunits = ds[latname].attrib["units"]
@@ -60,8 +69,8 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   if latstatus # means we don't have a "regular" grid
       # Get names of grid
-      latgrid_name = latgridname(ds)
-      longrid_name = longridname(ds)
+      latgrid_name = ClimateTools.latgridname(ds)
+      longrid_name = ClimateTools.longridname(ds)
 
       # latgrid = NetCDF.ncread(file, latgrid_name)
       latgrid = nomissing(ds[latgrid_name][:], NaN)
@@ -749,6 +758,26 @@ function get_mapping(K::Array{String,1})
     else
         return "Regular_longitude_latitude"
     end
+
+end
+
+"""
+    get_mapping(ds::Array{String,1})
+
+Returns the grid_mapping of Dataset *ds*
+"""
+function get_mapping(ds::NCDatasets.Dataset, vari)
+
+    grid = ""
+
+    try
+        grid = ds[vari].attrib["grid_mapping"]
+    catch
+        grid = "Regular_longitude_latitude"
+    end
+
+    return grid
+
 
 end
 
