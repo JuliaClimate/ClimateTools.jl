@@ -39,15 +39,9 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   end
 
   # Get dimensions names
-  latname = get_dimname(ds, "Y")
   lonname = get_dimname(ds, "X")
+  latname = get_dimname(ds, "Y")
   timname = get_dimname(ds, "T")
-  if latname == "NA" || lonname == "NA" || timname == "NA"
-      error("Unable to find the dimension!")
-  end
-  # latname, latstatus = getdim_lat(ds)
-  # lonname, lonstatus = getdim_lon(ds)
-  # timname, timstatus = getdim_tim(ds)
 
   dataunits = ds[vari].attrib["units"]
   latunits = ds[latname].attrib["units"]
@@ -367,8 +361,8 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
     grid_mapping = ClimateTools.get_mapping(keys(ds))
 
     # Get dimensions names
-    latname, latstatus = getdim_lat(ds)
-    lonname, lonstatus = getdim_lon(ds)
+    lonname = get_dimname(ds, "X")
+    latname = get_dimname(ds, "Y")
 
     dataunits = ds[vari].attrib["units"]
     latunits = ds[latname].attrib["units"]
