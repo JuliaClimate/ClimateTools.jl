@@ -42,6 +42,9 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   latname = get_dimname(ds, "Y")
   lonname = get_dimname(ds, "X")
   timname = get_dimname(ds, "T")
+  if latname == "NA" || lonname == "NA" || timname == "NA"
+      error("Unable to find the dimension!")
+  end
   # latname, latstatus = getdim_lat(ds)
   # lonname, lonstatus = getdim_lon(ds)
   # timname, timstatus = getdim_tim(ds)

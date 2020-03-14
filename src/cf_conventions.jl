@@ -26,7 +26,13 @@ function get_dimname(ds::NCDatasets.Dataset, dim::String)
 
         for idim in dimensions
             if idim != "bnds" && idim != "vertices"
-                if ds[idim].attrib["standard_name"] == dim_dict[dim]
+                attribs = ds[idim].attrib
+                if haskey(attribs, "standard_name")
+                    name = "standard_name"
+                elseif haskey(attribs, "long_name")
+                    name = "long_name"
+                end
+                if ds[idim].attrib[name] == dim_dict[dim]
                     found_dim = idim
                 end
             end
