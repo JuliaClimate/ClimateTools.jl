@@ -360,6 +360,12 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
     runsim = ClimateTools.runsim_id(attribs_dataset)
     grid_mapping = ClimateTools.get_mapping(keys(ds))
 
+    if grid_mapping == "Regular_longitude_latitude"
+        latstatus = false
+    else
+        latstatus = true
+    end
+
     # Get dimensions names
     lonname = get_dimname(ds, "X")
     latname = get_dimname(ds, "Y")
