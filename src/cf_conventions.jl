@@ -44,5 +44,9 @@ function get_dimname(ds::NCDatasets.Dataset, dim::String)
         end
     end
 
+    if found_dim == "NA"
+        error(string("Unable to find the dimension ", dim, "!"))
+    end
+
     return found_dim
 end
