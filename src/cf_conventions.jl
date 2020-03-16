@@ -25,9 +25,10 @@ function get_dimname(ds::NCDatasets.Dataset, dim::String)
 
     if found_dim == "NA"
 
-        dim_dict = Dict(["T" => "time",
-                         "X" => "longitude",
-                         "Y" => "latitude"])
+        dim_dict = Dict(["T" => ["time"],
+                         "Z" => ["pressure", "depth"],
+                         "X" => ["longitude"],
+                         "Y" => ["latitude"]])
 
         for idim in dimensions
             if idim != "bnds" && idim != "vertices"
@@ -37,7 +38,8 @@ function get_dimname(ds::NCDatasets.Dataset, dim::String)
                 elseif haskey(attribs, "long_name")
                     name = "long_name"
                 end
-                if ds[idim].attrib[name] == dim_dict[dim]
+                if in(ds[idim].attrib[name], dim_dict[dim])
+                    # ds[idim].attrib[name] == dim_dict[dim]
                     found_dim = idim
                 end
             end

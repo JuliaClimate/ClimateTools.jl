@@ -44,16 +44,27 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # Get dimensions names
   lonname = get_dimname(ds, "X")
   latname = get_dimname(ds, "Y")
-  timname = get_dimname(ds, "T")
+  timename = get_dimname(ds, "T")
   if ndims(data_pointer) == 4
       levname = get_dimname(ds, "Z")
+      levunits = ds[levname].attrib["units"]
   end
   # Dimension vector
   lat_raw = nomissing(ds[latname][:], NaN)
   lon_raw = nomissing(ds[lonname][:], NaN)
 
   # Create dict with latname and lonname
-  dimension_dict = Dict(["lon" => lonname, "lat" => latname])
+  if ndims(data_pointer) == 3
+      dimension_dict = Dict(["lon" => lonname,
+                             "lat" => latname,
+                             "time" => timename])
+
+  elseif ndims(data_pointer) == 4
+      dimension_dict = Dict(["lon" => lonname,
+                             "lat" => latname,
+                             "height" => levname,
+                             "time" => "time"])
+  end
 
   # Get units
   dataunits = ds[vari].attrib["units"]
@@ -92,7 +103,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   # =====================
   # TIME
   # Get time resolution
-  timeV = ds[timname][:]
+  timeV = ds[timename][:]
   if frequency == "N/A" || !ClimateTools.@isdefined frequency
       try
           try
@@ -105,7 +116,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
       end
   end
 
-  timeattrib = Dict(ds[timname].attrib)
+  timeattrib = Dict(ds[timename].attrib)
   T = typeof(timeV[1])
   idxtimebeg, idxtimeend = timeindex(timeV, start_date, end_date, T)
   timeV = timeV[idxtimebeg:idxtimeend]
@@ -269,7 +280,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   if data_units == "mm" && vari == "pr" && (dataunits == "kg m-2 s-1" || dataunits == "mm s-1")
 
-    factor = timeresolution(ds[timname])
+    factor = timeresolution(ds[timename])
     # factor = pr_timefactor(rez)
     data .*= factor.value
     dataunits = "mm"
@@ -283,9 +294,9 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
     dataOut = AxisArray(data, Axis{Symbol(lonname)}(lon_raw), Axis{Symbol(latname)}(lat_raw), Axis{:time}(timeV))
   elseif ndims(data) == 4 # this imply a 3D field (height component)
     # Get level vector
-    plev = ds["plev"][:]
+    dlev = ds[levname][:]
     # Convert data to AxisArray
-    dataOut = AxisArray(data, Axis{Symbol(lonname)}(lon_raw), Axis{Symbol(latname)}(lat_raw), Axis{:plev}(plev), Axis{:time}(timeV))
+    dataOut = AxisArray(data, Axis{Symbol(lonname)}(lon_raw), Axis{Symbol(latname)}(lat_raw), Axis{Symbol(levname)}(dlev), Axis{:time}(timeV))
   else
     throw(error("load takes only 3D and 4D variables for the moment"))
   end
