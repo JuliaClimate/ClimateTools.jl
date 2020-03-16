@@ -58,10 +58,10 @@ end
 
 Returns the calendar type. See See http://cfconventions.org/.
 """
-function get_calendar(ds::NCDataset)
+function get_calendar(ds::NCDataset, timename)
     caltype = ""
     try
-        caltype = ds[timname].attrib["calendar"]
+        caltype = ds[timename].attrib["calendar"]
     catch
         caltype = "standard"
     end

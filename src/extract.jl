@@ -72,7 +72,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   lonunits = ds[lonname].attrib["units"]
 
   # Calendar
-  caltype = get_calendar(ds)
+  caltype = get_calendar(ds, timename)
 
   # Get variable attributes
   varattrib = Dict(ds[vari].attrib)
