@@ -69,7 +69,7 @@ export qqmap, qqmaptf
 export biascorrect_extremes
 export permute_west_east
 export getdim_lat, getdim_lon, getdim_tim, isdefined, extractpoly
-export get_dimname
+export get_dimname, get_calendar
 export polyfit, polyval
 export @isdefined
 export merge, vaporpressure, approx_surfacepressure

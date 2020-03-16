@@ -50,3 +50,20 @@ function get_dimname(ds::NCDatasets.Dataset, dim::String)
 
     return found_dim
 end
+
+"""
+    get_calendar(ds::NCDataset)
+
+Returns the calendar type. See See http://cfconventions.org/.
+"""
+function get_calendar(ds::NCDataset)
+    caltype = ""
+    try
+        caltype = ds[timname].attrib["calendar"]
+    catch
+        caltype = "standard"
+    end
+
+    return caltype
+
+end

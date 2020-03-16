@@ -22,6 +22,9 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   attribs_dataset = ds.attrib
   attribs = Dict(attribs_dataset)
 
+  # Data pointer
+  data_pointer = ds[vari]
+
   # The following attributes should be set for netCDF files that follows CF conventions.
   # project, institute, model, experiment, frequency
   project = ClimateTools.project_id(attribs_dataset)
@@ -42,24 +45,23 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
   lonname = get_dimname(ds, "X")
   latname = get_dimname(ds, "Y")
   timname = get_dimname(ds, "T")
-
-  dataunits = ds[vari].attrib["units"]
-  latunits = ds[latname].attrib["units"]
-  lonunits = ds[lonname].attrib["units"]
-  caltype = ""
-    try
-        caltype = ds[timname].attrib["calendar"]
-    catch
-        caltype = "standard"
-    end
+  if ndims(data_pointer) == 4
+      levname = get_dimname(ds, "Z")
+  end
+  # Dimension vector
+  lat_raw = nomissing(ds[latname][:], NaN)
+  lon_raw = nomissing(ds[lonname][:], NaN)
 
   # Create dict with latname and lonname
   dimension_dict = Dict(["lon" => lonname, "lat" => latname])
 
-  # lat_raw = NetCDF.ncread(file, latname)
-  lat_raw = nomissing(ds[latname][:], NaN)
-  # lon_raw = NetCDF.ncread(file, lonname)
-  lon_raw = nomissing(ds[lonname][:], NaN)
+  # Get units
+  dataunits = ds[vari].attrib["units"]
+  latunits = ds[latname].attrib["units"]
+  lonunits = ds[lonname].attrib["units"]
+
+  # Calendar
+  caltype = get_calendar(ds)
 
   # Get variable attributes
   varattrib = Dict(ds[vari].attrib)
@@ -69,9 +71,7 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
       latgrid_name = ClimateTools.latgridname(ds)
       longrid_name = ClimateTools.longridname(ds)
 
-      # latgrid = NetCDF.ncread(file, latgrid_name)
       latgrid = nomissing(ds[latgrid_name][:], NaN)
-      # longrid = NetCDF.ncread(file, longrid_name)
       longrid = nomissing(ds[longrid_name][:], NaN)
 
       # Ensure we have a grid
@@ -128,7 +128,6 @@ function load(file::String, vari::String; poly = ([]), start_date::Tuple=(Inf,),
 
   # ===================
   # GET DATA
-  data_pointer = ds[vari]
   if !isempty(poly)
 
     # Test to see if the polygon crosses the meridian
@@ -352,6 +351,9 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
     attribs_dataset = ds.attrib
     attribs = Dict(attribs_dataset)
 
+    # Data pointer
+    data_pointer = ds[vari]
+
     project = ClimateTools.project_id(attribs_dataset)
     institute = ClimateTools.institute_id(attribs_dataset)
     model = ClimateTools.model_id(attribs_dataset)
@@ -422,8 +424,6 @@ function load2D(file::String, vari::String; poly=[], data_units::String="")
 
     # ===================
     # GET DATA
-    # data = ds[variable]
-    data_pointer = ds[vari]
     if !isempty(poly)
 
       # Test to see if the polygon crosses the meridian
@@ -637,15 +637,41 @@ Returns the name of the latitude grid when datasets is not on a rectangular grid
 """
 function latgridname(ds::NCDatasets.Dataset)
 
-    if in("lat", keys(ds))
-        return "lat"
-    elseif in("latitude", keys(ds))
-        return "latitude"
-    elseif in("lat_c", keys(ds))
-        return "lat_c"
-    else
-        error("Variable name is not supported. File an issue on https://github.com/Balinus/ClimateTools.jl/issues")
+    # if in("lat", keys(ds))
+    #     return "lat"
+    # elseif in("latitude", keys(ds))
+    #     return "latitude"
+    # elseif in("lat_c", keys(ds))
+    #     return "lat_c"
+    # else
+    #     error("Variable name is not supported. File an issue on https://github.com/Balinus/ClimateTools.jl/issues")
+    # end
+
+    names = ["degree_north",
+             "degrees_north",
+             "degreeN",
+             "degreesN",
+             "degree_N",
+             "degrees_N"]
+
+    varnames = keys(ds)
+
+    found_var = "NA"
+
+    for ivar in varnames
+
+        if isdefined(ds[ivar], :attrib)
+            if haskey(ds[ivar].attrib, "units")
+                if in(ds[ivar].attrib["units"], names)
+                    found_var = ivar
+                end
+            end
+        end
+
     end
+
+    return found_var
+
 end
 
 """
@@ -655,15 +681,43 @@ Returns the name of the longitude grid when datasets is not on a rectangular gri
 """
 function longridname(ds::NCDatasets.Dataset)
 
-    if in("lon", keys(ds))
-        return "lon"
-    elseif in("longitude", keys(ds))
-        return "longitude"
-    elseif in("lon_c", keys(ds))
-        return "lon_c"
-    else
-        error("Variable name is not supported. File an issue on https://github.com/Balinus/ClimateTools.jl/issues")
+    # if in("lon", keys(ds))
+    #     return "lon"
+    # elseif in("longitude", keys(ds))
+    #     return "longitude"
+    # elseif in("lon_c", keys(ds))
+    #     return "lon_c"
+    # else
+    #     error("Variable name is not supported. File an issue on https://github.com/Balinus/ClimateTools.jl/issues")
+    # end
+
+    names = ["degree_east",
+             "degrees_east",
+             "degreeE",
+             "degreesE",
+             "degree_E",
+             "degrees_E"]
+
+    varnames = keys(ds)
+
+    found_var = "NA"
+
+    for ivar in varnames
+
+        if isdefined(ds[ivar], :attrib)
+            if haskey(ds[ivar].attrib, "units")
+                if in(ds[ivar].attrib["units"], names)
+                    found_var = ivar
+                end
+            end
+        end
+
     end
+
+    return found_var
+
+
+
 end
 
 """
