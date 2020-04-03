@@ -324,7 +324,7 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, va
     p = Progress(length(timeorig), 5, "Regridding: ")
     for t = 1:length(timeorig)
 
-        SD = StructuredGridData(Dict(target => dataorig[:, :, t]), lonorig, latorig)
+        SD = StructuredGridData(OrderedDict(target => dataorig[:, :, t]), lonorig, latorig)
 
         problem = EstimationProblem(SD, SG, target)
         solution = solve(problem, solver)
