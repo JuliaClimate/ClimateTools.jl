@@ -22,6 +22,7 @@ using GeoStats
 using InverseDistanceWeighting
 using Extremes
 using Distances
+using PyCall
 import Base.vcat
 import Base.getindex
 import Base.show
@@ -39,6 +40,12 @@ import Base: -
 import Base: *
 import Base: /
 import Base.findmax
+
+const scipy = PyNULL()
+
+function __init__()
+    copy!(scipy, pyimport_conda("scipy.interpolate", "scipy"))
+end
 
 # Included files
 include("functions.jl")
@@ -63,6 +70,7 @@ export drought_dc
 export ensemble_mean, ensemble_std, ensemble_max, ensemble_min
 export load, load2D
 export regrid, applymask
+export geostats, griddata
 export shapefile_coords, shapefile_coords_poly
 export resample, spatialsubset
 export qqmap, qqmaptf

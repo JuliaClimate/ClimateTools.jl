@@ -168,15 +168,14 @@ end
 # TODO define interpolation for 4D grid
 
 """
-    C = regrid(A::ClimGrid, B::ClimGrid; min=[], max=[])
+    C = geostats(A::ClimGrid, B::ClimGrid; solver=Kriging(), min=[], max=[])
 
-Interpolate `ClimGrid` A onto the lon-lat grid of `ClimGrid` B,
-where A and B are `ClimGrid`.
+Interpolate `ClimGrid` A onto the lon-lat grid of `ClimGrid` B, using the GeoStats.jl methods.
 
 Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.
 
 """
-function regrid(A::ClimGrid, B::ClimGrid; frac=0.5, min=[], max=[])
+function geostats(A::ClimGrid, B::ClimGrid; solver=Kriging(), min=[], max=[])
 
     # ---------------------------------------
     # Get lat-lon information from ClimGrid B
@@ -184,6 +183,7 @@ function regrid(A::ClimGrid, B::ClimGrid; frac=0.5, min=[], max=[])
 
     # Get lat-lon information from ClimGrid A
     lonorig, latorig = ClimateTools.getgrids(A)
+    # points = hcat(lonorig[:], latorig[:])
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
@@ -196,7 +196,7 @@ function regrid(A::ClimGrid, B::ClimGrid; frac=0.5, min=[], max=[])
 
     # ------------------------
     # Interpolation
-    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, A.variable, frac=frac)
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, solver=solver, msk=B.msk)
 
     if !isempty(min)
         OUT[OUT .<= min] .= min
@@ -217,15 +217,67 @@ function regrid(A::ClimGrid, B::ClimGrid; frac=0.5, min=[], max=[])
 end
 
 """
-    C = regrid(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)
+    C = griddata(A::ClimGrid, B::ClimGrid; min=[], max=[])
+
+Interpolate `ClimGrid` A onto the lon-lat grid of `ClimGrid` B,
+where A and B are `ClimGrid`.
+
+Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.
+
+"""
+function griddata(A::ClimGrid, B::ClimGrid; method="linear", min=[], max=[])
+
+    # ---------------------------------------
+    # Get lat-lon information from ClimGrid B
+    londest, latdest = ClimateTools.getgrids(B)
+
+    # Get lat-lon information from ClimGrid A
+    lonorig, latorig = ClimateTools.getgrids(A)
+    points = hcat(lonorig[:], latorig[:])
+
+    # -----------------------------------------
+    # Get initial data and time from ClimGrid A
+    dataorig = A[1].data
+    timeorig = get_timevec(A)#[1][Axis{:time}][:] # the function will need to loop over time
+
+    # ---------------------
+    # Allocate output Array
+    OUT = zeros(Float64, (size(B.data, 1), size(B.data, 2), length(timeorig)))
+
+    # ------------------------
+    # Interpolation
+    # interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, A.variable, frac=frac)
+    griddata!(OUT, timeorig, dataorig, points, londest, latdest, method=method, msk=B.msk)
+
+    if !isempty(min)
+        OUT[OUT .<= min] .= min
+    end
+
+    if !isempty(max)
+        OUT[OUT .>= max] .= max
+    end
+
+    # -----------------------
+    # Construct AxisArrays and ClimGrid struct from array OUT
+    latsymbol = Symbol(B.dimension_dict["lat"])
+    lonsymbol = Symbol(B.dimension_dict["lon"])
+    dataOut = AxisArray(OUT, Axis{lonsymbol}(B[1][Axis{lonsymbol}][:]), Axis{latsymbol}(B[1][Axis{latsymbol}][:]), Axis{:time}(timeorig))
+
+    C = ClimateTools.ClimGrid(dataOut, longrid=B.longrid, latgrid=B.latgrid, msk=B.msk, grid_mapping=B.grid_mapping, dimension_dict=B.dimension_dict, timeattrib=A.timeattrib, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=B.latunits, lonunits=B.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
+
+end
+
+"""
+    C = griddata(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)
 
 Interpolate `ClimGrid` A onto lat-lon grid defined by londest and latdest vector or array. If an array is provided, it is assumed that the grid is curvilinear (not a regular lon-lat grid) and the user needs to provide the dimension vector ("x" and "y") for such a grid.
 
 """
-function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::AbstractArray{N, T} where N where T; frac=0.5, dimx=[], dimy=[], min=[], max=[])
+function griddata(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::AbstractArray{N, T} where N where T; method="linear", dimx=[], dimy=[], min=[], max=[])
 
     # Get lat-lon information from ClimGrid A
     lonorig, latorig = getgrids(A)
+    points = hcat(lonorig[:], latorig[:])
 
     # -----------------------------------------
     # Get initial data and time from ClimGrid A
@@ -255,7 +307,7 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
 
     # ------------------------
     # Interpolation
-    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, A.variable, frac=frac)
+    griddata!(OUT, timeorig, dataorig, points, londest, latdest, method=method, msk=B.msk)
 
     if !isempty(min)
         OUT[OUT .<= min] .= min
@@ -283,11 +335,11 @@ function regrid(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Abst
 end
 
 """
-    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, vari)
+    interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, vari; frac=0.5)
 
-Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `regrid`.
+Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `kriging` and 'inv_distance'. frac is the fraction of data points used.
 """
-function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, vari; frac=0.5)
+function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest; solver=solver, msk=[])
 
     # Ensure we have same coords type
     if typeof(lonorig[1]) != typeof(londest[1]) # means we're going towards Float32
@@ -309,15 +361,19 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, va
     end
 
     # Variable
-    target = Symbol(vari)
+    # target = Symbol(vari)
 
     # Destination grid
     SG = StructuredGrid(londest, latdest)
 
-    # Solver
-    n = Int(round(frac*length(lonorig[:])))
-    solver = InvDistWeight(target => (neighbors=n,))
-    # solver = Kriging()#target => (maxneighbors=500,))
+    # # Solver
+    # n = Int(floor(frac*length(lonorig[:])))
+    #
+    # if lowercase(method) == "kriging"
+    #     solver = Kriging(target => (maxneighbors=n,))
+    # elseif lowercase(method) == "inv_dist"
+    #     solver = InvDistWeight(target => (neighbors=n,))
+    # end
 
 
     # Threads.@threads for t = 1:length(timeorig)
@@ -328,7 +384,41 @@ function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, va
 
         problem = EstimationProblem(SD, SG, target)
         solution = solve(problem, solver)
-        OUT[:, :, t] = reshape(solution.mean[target], size(londest))
+        data_interp = reshape(solution.mean[target], size(londest))
+
+        # Apply mask from ClimGrid destination
+        if !isempty(msk)
+            OUT[:, :, t] = data_interp .* msk
+        else
+            OUT[:, :, t] = data_interp
+        end
+
+        next!(p)
+    end
+end
+
+
+"""
+    griddata!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk=[])
+Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `regrid`.
+"""
+function griddata!(OUT, timeorig, dataorig, points, londest, latdest; method="linear", msk=[])
+
+    p = Progress(length(timeorig), 5, "Regridding: ")
+    for t = 1:length(timeorig)
+
+        # Points values
+        val = dataorig[:, :, t][:]
+
+        # Call scipy griddata
+        data_interp = scipy.griddata(points, val, (londest, latdest), method=method)
+
+        # Apply mask from ClimGrid destination
+        if !isempty(msk)
+            OUT[:, :, t] .= data_interp .* msk
+        else
+            OUT[:, :, t] .= data_interp
+        end
 
         next!(p)
     end
