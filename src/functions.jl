@@ -307,7 +307,7 @@ function griddata(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::Ab
 
     # ------------------------
     # Interpolation
-    griddata!(OUT, timeorig, dataorig, points, londest, latdest, method=method, msk=B.msk)
+    griddata!(OUT, timeorig, dataorig, points, londest, latdest, method=method)    
 
     if !isempty(min)
         OUT[OUT .<= min] .= min
