@@ -19,7 +19,7 @@ using Statistics
 using Random
 using Dates
 using GeoStats
-using InverseDistanceWeighting
+# using InverseDistanceWeighting
 using Extremes
 using Distances
 using PyCall
@@ -70,9 +70,9 @@ export drought_dc
 export ensemble_mean, ensemble_std, ensemble_max, ensemble_min
 export load, load2D
 export regrid, applymask
-export geostats, griddata
+export griddata
 export shapefile_coords, shapefile_coords_poly
-export resample, spatialsubset
+export resample, spatialsubset, timestep
 export qqmap, qqmaptf
 export biascorrect_extremes
 export permute_west_east
