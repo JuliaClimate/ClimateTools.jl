@@ -228,7 +228,7 @@ function findmindist(p1::Tuple{Float64, Float64}, p2::Tuple{Array{Float64,1},Arr
 
     for idx = 1:length(p2[1])
         p3 = ( p2[1][idx], p2[2][idx] )
-        dist[idx] = haversine(p1, p3, 6372.8)
+        dist[idx] = haversine(p1, p3, R)
     end
 
     return findmin(dist)
