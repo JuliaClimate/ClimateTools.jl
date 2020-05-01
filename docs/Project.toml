@@ -1,5 +1,8 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [compat]
 Documenter = "0.20, 0.21, 0.22, 0.23, 0.24"
+PyCall = "1.91"

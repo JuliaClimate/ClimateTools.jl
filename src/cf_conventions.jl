@@ -10,9 +10,8 @@ function get_dimname(ds::NCDatasets.Dataset, dim::String)
     found_dim = "NA"
 
     # try finding with the "axis" attribute
-
     for idim in dimensions
-        if idim != "bnds" && idim != "vertices"
+        if idim != "bnds" && idim != "vertices" && idim != "ts" && idim != "string1"
             if haskey(ds[idim].attrib, "axis")
                 if ds[idim].attrib["axis"] == dim
                     found_dim = idim
@@ -22,7 +21,6 @@ function get_dimname(ds::NCDatasets.Dataset, dim::String)
     end
 
     # if found_dim is still not found, try to find it with the standard_name
-
     if found_dim == "NA"
 
         dim_dict = Dict(["T" => ["time"],
@@ -31,7 +29,7 @@ function get_dimname(ds::NCDatasets.Dataset, dim::String)
                          "Y" => ["latitude"]])
 
         for idim in dimensions
-            if idim != "bnds" && idim != "vertices"
+            if idim != "bnds" && idim != "vertices" && idim != "ts" && idim != "string1"
                 attribs = ds[idim].attrib
                 if haskey(attribs, "standard_name")
                     name = "standard_name"
@@ -39,7 +37,6 @@ function get_dimname(ds::NCDatasets.Dataset, dim::String)
                     name = "long_name"
                 end
                 if in(ds[idim].attrib[name], dim_dict[dim])
-                    # ds[idim].attrib[name] == dim_dict[dim]
                     found_dim = idim
                 end
             end
