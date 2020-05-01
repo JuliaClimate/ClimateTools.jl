@@ -18,7 +18,7 @@ In the case a longitude and latitude 2D array is provided, the user needs to pro
 
 ## Experimental
 
-ClimateTools also provide a way to uses `GeoStats` geostatistics methods. See function `geostats` for some details.
+ClimateTools also provide a way to uses `GeoStats` geostatistics methods. See function `regrid` for some details.
 
 ```julia
 using GeoStats
@@ -28,5 +28,5 @@ target = :pr # e.g. precipitation
 n = 30 # max number of neighboring points
 solver = Kriging(target => (maxneighbors=n,))
 
-C = geostats(A::ClimGrid, B::ClimGrid, solver=solver)
+C = regrid(A::ClimGrid, B::ClimGrid, solver=solver)
 ```
