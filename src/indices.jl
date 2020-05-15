@@ -9,6 +9,28 @@
 # end
 
 """
+  quantile(C::ClimGrid)
+"""
+function quantile(C::ClimGrid, q)
+
+  OUT = fill(NaN, (size(C[1],1), size(C[1],2)))
+
+  for ix in 1:size(OUT,1)
+    for iy in 1:size(OUT, 2)
+      if sum(.!isnan.(C[1][ix, iy, :])) == length(C[1][ix, iy, :])
+        OUT[ix, iy] = Statistics.quantile(C[1][ix, iy, :], q)
+      end
+    end
+  end
+
+  FD = buildarray_climato(C, OUT)
+
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="quantile", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
+
+end
+
+
+"""
     prcp1(C::ClimGrid)
 
 Annual number with preciptation >= 1 mm. This function returns a ClimGrid. Input data should be in mm.
@@ -352,4 +374,45 @@ function annualsum(C::ClimGrid)
 
   # Return climGrid type containing the indice
   return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="annualsum", typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+end
+
+"""
+    RXday(C::ClimGrid; days=5)
+
+Annual maximum consecutive x days precipitation amount (defaults to days=5).
+
+Let RRkj be the precipitation amount for the 5-day interval ending k, period j. Then maximum 5-day values for period j are:
+
+Rx5dayj = max (RRkj)
+"""
+function RXday(C::ClimGrid; days=5)
+
+  @argcheck isprecipitation(C)
+
+  years    = Dates.year.(C.data[Axis{:time}][:])
+  numYears = unique(years)
+  datain   = C.data.data
+  dataout  = zeros(typeof(datain[1]), (size(C.data, 1), size(C.data, 2), length(numYears)))
+
+  # Indice calculation
+  Threads.@threads for i in 1:length(numYears)
+    for iy = 1:size(datain,2)
+      for ix = 1:size(datain, 1)
+
+        idx = searchsortedfirst(years, numYears[i]):searchsortedlast(years, numYears[i])
+        dataout[ix,iy,i:i] .= maximum(rolling(sum, datain[ix,iy,idx], days))
+      end
+    end
+
+  end
+
+  # Apply mask
+  dataout = applymask(dataout, C.msk)
+
+  # Build output AxisArray
+  FD = buildarray_annual(C, dataout, numYears)
+  vartype = string("Annual maximum cumulative precipitation over ", days," days")
+
+  # Return climGrid type containing the indice
+  return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="year", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=vartype, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 end

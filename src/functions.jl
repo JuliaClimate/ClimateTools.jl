@@ -506,6 +506,17 @@ function applymask(A::AbstractArray{N,1} where N, mask::AbstractArray{N, 1} wher
     return modA
 end
 
+function applymask(C::ClimGrid, mask::AbstractArray{N, 1} where N)
+
+    A = C.data.data
+
+    modA = applymask(A, mask)
+
+    Anew = buildarrayinterface(modA, C)
+
+    return ClimGrid(Anew, longrid=C.longrid, latgrid=C.latgrid, msk=mask, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
+end
+
 macro isdefined(var)
     quote
         try

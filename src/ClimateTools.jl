@@ -23,6 +23,7 @@ using GeoStats
 using Extremes
 using Distances
 using PyCall
+using RollingFunctions
 import Base.vcat
 import Base.getindex
 import Base.show
@@ -35,6 +36,7 @@ import Statistics.maximum
 import Statistics.std
 import Statistics.var
 import Statistics.mean
+import Statistics.quantile
 import Base: +
 import Base: -
 import Base: *
@@ -64,8 +66,11 @@ export inpoly, inpolygrid, meshgrid, inpolyvec, ndgrid
 export findmax, findmin
 export frostdays, summerdays, icingdays, tropicalnights
 export daysabove10 #, daysbelow0, degdaysabove, degdaysbelow
+export RXday
+export vaporpressure, approx_surfacepressure
 export customthresover, customthresunder, annualmax, annualmin
 export annualmean, annualsum, prcp1
+export wbgt, diurnaltemperature, meantemperature
 export drought_dc
 export ensemble_mean, ensemble_std, ensemble_max, ensemble_min
 export load, load2D
@@ -80,9 +85,9 @@ export getdim_lat, getdim_lon, getdim_tim, isdefined, extractpoly
 export get_dimname, get_calendar
 export polyfit, polyval
 export @isdefined
-export merge, vaporpressure, approx_surfacepressure
-export wbgt, diurnaltemperature, meantemperature
+export merge
 export minimum, maximum, std, var, mean
+export quantile
 export daymean, daysum
 export monthmean, monthsum, temporalmean
 export yearmonthdayhour
