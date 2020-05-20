@@ -314,7 +314,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; detre
                 # If empty, we estimate the GPD on the reference dataset
                 obsclusters = getcluster(obsvec, thres, 1.0)
                 # Estimate GPD parameters of fut clusters
-                GPD_obs = gpdfit(obsclusters[!,:Max], threshold = thres)               
+                GPD_obs = gpdfit(obsclusters[!,:Max], threshold = thres)
 
             else
                 GPD_obs = ClimateTools.estimate_gpd(latgrid[k], longrid[k], gevparams, thres)
@@ -341,7 +341,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; detre
                     exIDX = futclusters[!,:Position]
 
                     # Get the weights based on frac and power values
-                    transition = weight(futvec[exIDX], frac=frac, power=power)
+                    transition = ClimateTools.weight(futvec[exIDX], frac=frac, power=power)
 
                     # Apply linear transition
                     newfut_trans = (newfut .* transition) .+ (qqvecin[k, idxi[c] .+ exIDX .- 1] .* (1.0 .- transition))
@@ -364,7 +364,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; detre
                 exIDX = futclusters[!,:Position]
 
                 # Get the weights based on frac and power values
-                transition = weight(futvec[exIDX], frac=frac, power=power)
+                transition = ClimateTools.weight(futvec[exIDX], frac=frac, power=power)
 
                 # Apply linear transition
                 newfut_trans = (newfut .* transition) .+ (qqvecin[k, exIDX] .* (1.0 .- transition))
