@@ -1,9 +1,9 @@
 """
 qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method="Additive", detrend=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp::Function = Linear(), extrap::Function = Flat())
 
-Quantile-Quantile mapping bias correction. For each julian day of the year (+/- **window** size), a transfer function is estimated through an empirical quantile-quantile mapping.
+Quantile-Quantile mapping bias correction.
 
-The quantile-quantile transfer function between **ref** and **obs** is etimated on a julian day (and grid-point) basis with a moving window around the julian day. Hence, for a given julian day, the transfer function is then applied to the **fut** dataset for a given julian day.
+For each julian day of the year (+/- **window** size), a transfer function is estimated through an empirical quantile-quantile mapping. The quantile-quantile transfer function between **ref** and **obs** is etimated on a julian day (and grid-point) basis with a moving window around the julian day. Hence, for a given julian day, the transfer function is then applied to the **fut** dataset for a given julian day.
 
 **Options**
 
@@ -213,17 +213,45 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
 end
 
 """
-biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Multiplicative", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat(), gev_params::DataFrame)
+    biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; detrend=false, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat(), gev_params::DataFrame, frac=0.25, power=1.0)
 
-Correct the tail of the distribution with a paramatric method, using the parameters μ, σ and ξ contained in gevparams DataFrame.
+Combine the empirial Quantile-Quantile mapping (see [`qqmap`](@ref)) and Generalized Pareto Distribution bias-correction methods.
+
+The tail of the distribution is corrected with a paramatric GPD, using provided parameters μ, σ and ξ contained in gevparams DataFrame. The DataFrame gevparams has column :lat, :lon, :mu, :sigma and :xi, representing the GEV parameters and the spatial location of the parameters. For each grid point, the function extracts the closest GEV parameters.
+
+**Options specific to GPD**
+
+**gevparams::DataFrame** represents the (external) GEV parameters to correct each grid-points.
+
+**frac=0.25** is the fraction where the cutoff happens between QQM and GPD, as defined by **(maximum(x) - minimum(x))*frac** (e.g. For a maximum value of 150mm and a minimum value of 30mm, the linear transition will be between 30mm and 60mm).
+
+**power=1.0** is the shape of the transition.
+
+**Options specific to QQM**
+
+**detrend::Bool = false (default)**. A 4th order polynomial is adjusted to the time series and the residuals are corrected.
+
+**window::Int = 15 (default)**. The size of the window used to extract the statistical characteristics around a given julian day.
+
+**rankn::Int = 50 (default)**. The number of bins used for the quantile estimations. The quantiles uses by default 50 bins between 0.01 and 0.99. The bahavior between the bins is controlled by the interp keyword argument. The behaviour of the quantile-quantile estimation outside the 0.01 and 0.99 range is controlled by the extrap keyword argument.
+
+**thresnan::Float64 = 0.1 (default)**. The fraction is missing values authorized for the estimation of the quantile-quantile mapping for a given julian days. If there is more than **treshnan** missing values, the output for this given julian days returns NaNs.
+
+**keep_original::Bool = false (default)**. If **keep_original** is set to true, the values are set to the original values in presence of too many NaNs.
+
+**interp = Interpolations.Linear() (default)**. When the data to be corrected lies between 2 quantile bins, the value of the transfer function is linearly interpolated between the 2 closest quantile estimation. The argument is from Interpolations.jl package.
+
+**extrap = Interpolations.Flat() (default)**. The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no "inflation problem" with the bias correction. The argument is from Interpolation.jl package.
+
+See also: [`qqmap`](@ref)
 """
-function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Multiplicative", P::Real=0.95, detrend::Bool=true, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat(), gevparams::DataFrame)
+function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; detrend=false, P::Real=0.95, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat(), gevparams::DataFrame=DataFrame(), frac=0.25, power=1.0)
 
     # Consistency checks # TODO add more checks for grid definition
     @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
     @argcheck size(obs[1], 2) == size(ref[1], 2) == size(fut[1], 2)
 
-    qqmap_base = qqmap(obs, ref, fut, method=method, detrend=detrend, window=window, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+    qqmap_base = qqmap(obs, ref, fut, method="multiplicative", detrend=detrend, window=window, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
 
     # Modify dates (e.g. 29th feb are dropped/lost by default)
     obs = ClimateTools.dropfeb29(obs)
@@ -282,18 +310,24 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
             # Estimate threshold
             thres = ClimateTools.get_threshold(obsvec, refvec, thres=P)
 
-            GPD_obs = ClimateTools.estimate_gpd(latgrid[k], longrid[k], gevparams, thres)
+            if isempty(gevparams)
+                # If empty, we estimate the GPD on the reference dataset
+                obsclusters = getcluster(obsvec, thres, 1.0)
+                # Estimate GPD parameters of fut clusters
+                GPD_obs = gpdfit(obsclusters[!,:Max], threshold = thres)
+
+            else
+                GPD_obs = ClimateTools.estimate_gpd(latgrid[k], longrid[k], gevparams, thres)
+            end
 
             if movingwindow
 
                 idxi, idxf, idxi_corr, idxf_corr = build_idx_biascorrect(refvec, futvec)
-               
 
                 for c = 1:length(idxi)
-           
-                    futvec_tmp = futvec[idxi[c]:idxf[c]];
 
-                 
+                    futvec_tmp = futvec[idxi[c]:idxf[c]]
+
                     # Get clusters
                     futclusters = getcluster(futvec_tmp, thres, 1.0)
                     # Estimate GPD parameters of fut clusters
@@ -306,9 +340,9 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                     # Linear transition over a quarter of the distance
                     exIDX = futclusters[!,:Position]
 
-                    target = (maximum(futvec_tmp[exIDX]) - minimum(futvec_tmp[exIDX]))/4.0
-                    transition = (futvec_tmp[exIDX] .- minimum(futvec_tmp[exIDX]))/target
-                    transition[transition .> 1.0] .= 1.0
+                    # Get the weights based on frac and power values
+                    transition = ClimateTools.weight(futvec[exIDX], frac=frac, power=power)
+
                     # Apply linear transition
                     newfut_trans = (newfut .* transition) .+ (qqvecin[k, idxi[c] .+ exIDX .- 1] .* (1.0 .- transition))
 
@@ -329,9 +363,9 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
                 # Linear transition over a quarter of the distance
                 exIDX = futclusters[!,:Position]
 
-                target = (maximum(futvec[exIDX]) - minimum(futvec[exIDX]))/4.0
-                transition = (futvec[exIDX] .- minimum(futvec[exIDX]))/target
-                transition[transition .> 1.0] .= 1.0
+                # Get the weights based on frac and power values
+                transition = ClimateTools.weight(futvec[exIDX], frac=frac, power=power)
+
                 # Apply linear transition
                 newfut_trans = (newfut .* transition) .+ (qqvecin[k, exIDX] .* (1.0 .- transition))
 
@@ -383,13 +417,27 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; metho
 end
 
 """
-gev2gpd(μ, σ, ξ, thres)
+    gev2gpd(μ, σ, ξ, thres)
 
 Transform GEV parameters to GPD parameters (Coles, 2001)
 """
 function gev2gpd(μ, σ, ξ, thres)
 
     return σ₂ = σ + ξ * (thres - μ)
+end
+
+
+"""
+    weight(x; frac=0.25, power=1.0)
+
+Returns the associated weight used in weighting Quantile-Quantile mapping (QQM) and Generalized Pareto Distribution (GPD) bias-correction methods. Used internally by biascorrect_extremes.
+
+*frac* is the fraction where the cutoff happens between QQM and GPD, as defined by **(maximum(x) - minimum(x))*frac** (e.g. For a maximum value of 150mm and a minimum value of 30mm, the linear transition will be between 30mm and 60mm) and power is the shape of the transition.
+"""
+function weight(x; frac=0.25, power=1.0)
+    ω = ((x .- minimum(x))/((maximum(x) - minimum(x))*frac)).^power
+    ω[ω .> 1.0] .= 1.0
+    return ω
 end
 
 
@@ -419,7 +467,7 @@ function build_idx_biascorrect(refvec, futvec)
     w_length = length(refvec)#(maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)) + 1)*365
     # in case of multiple members, we approximate ref length
     fut_l = length(futvec)
-                
+
     # The fut series is separated is a few time windows.
     # We also make the windows overlap to replicate a moving window
     R = w_length/2:w_length/3:fut_l
@@ -461,7 +509,7 @@ function build_idx_biascorrect(refvec, futvec)
         # @show idxf_corr
     end
 
-    idxi_corr[2:end] .-= 1 
+    idxi_corr[2:end] .-= 1
 
     return idxi, idxf, idxi_corr, idxf_corr
 end
@@ -507,7 +555,7 @@ end
 #     for inode = 1:length(nodes_corr)
 #         if inode == 1
 #             N[inode, 1] = 1
-#             N[inode, 2] = nodes_corr[inode] 
+#             N[inode, 2] = nodes_corr[inode]
 #         elseif inode == length(nodes_corr)
 #             N[inode] = fut_l
 #         else
