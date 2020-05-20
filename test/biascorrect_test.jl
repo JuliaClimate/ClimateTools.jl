@@ -68,11 +68,13 @@ mu = [36.6208, 37.423]
 sigma = [11.555, 10.381]
 xi = [0.08393, 0.08393]
 gevparams = DataFrame([lat, lon, mu, sigma, xi], [:lat, :lon, :mu, :sigma, :xi])
-Dext = biascorrect_extremes(obs, ref, fut, detrend=true, gevparams=gevparams, method="multiplicative")
-@test round(maximum(Dext), digits=5) == 120.01175#103.03357
+Dext = biascorrect_extremes(obs, ref, fut, detrend=true, gevparams=gevparams)
+@test round(maximum(Dext), digits=5) == 120.01175
 
-Dext = biascorrect_extremes(obs, ref, fut, detrend=false, gevparams=gevparams, method="multiplicative")
-@test round(maximum(Dext), digits=5) == 120.00829#105.59231#103.03378
+Dext = biascorrect_extremes(obs, ref, fut, detrend=false, gevparams=gevparams)
+@test round(maximum(Dext), digits=5) == 120.00829
+Dext = biascorrect_extremes(obs, ref, fut, detrend=false)
+@test round(maximum(Dext), digits=5) == 16.7384
 
 # Create a ClimGrid with a clear trend
 x = 1:10957
