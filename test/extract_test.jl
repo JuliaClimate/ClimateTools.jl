@@ -1,8 +1,10 @@
 @testset "Extraction" begin
 # Period subset
 d = DateTime(1961,1,1):Day(1):DateTime(1990,12,31)
-Random.seed!(42)
-data = randn(2, 2, 10957)
+filedata = joinpath(dirname(@__FILE__), "data", "data_test.h5")
+data = h5read(filedata, "random/data")
+#Random.seed!(42)
+#data = randn(2, 2, 10957)
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
 C = ClimateTools.ClimGrid(axisdata, variable = "tasmax", dimension_dict=dimension_dict)
