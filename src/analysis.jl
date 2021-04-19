@@ -1,48 +1,48 @@
-"""
-    findmax(C::ClimGrid; skipnan::Bool=false)
+# """
+#     findmax(C::ClimGrid; skipnan::Bool=false)
 
-Return the maximum element of ClimGrid C and its index. If there are multiple maximal elements, then the first one will be returned. If any data element is NaN, this element is returned. The result is in line with max. As climate data can often have NaN values (irregular polygons, missing weather data), the option to skip NaNs is provided as a keyword argument.
+# Return the maximum element of ClimGrid C and its index. If there are multiple maximal elements, then the first one will be returned. If any data element is NaN, this element is returned. The result is in line with max. As climate data can often have NaN values (irregular polygons, missing weather data), the option to skip NaNs is provided as a keyword argument.
 
-"""
-function Base.findmax(C::ClimGrid; skipnan::Bool=false)
-    # Get data
-    data = C[1].data
+# """
+# function Base.findmax(C::ClimGrid; skipnan::Bool=false)
+#     # Get data
+#     data = C[1].data
 
-    if skipnan
-        idx = findall(data .== NaNMath.maximum(data))[1]
-        val = data[idx]
+#     if skipnan
+#         idx = findall(data .== NaNMath.maximum(data))[1]
+#         val = data[idx]
 
-    else
-        idx = argmax(data)
-        val = data[idx]
-    end
+#     else
+#         idx = argmax(data)
+#         val = data[idx]
+#     end
 
-    return val, idx
+#     return val, idx
 
-end
+# end
 
-"""
-    findmin(C::ClimGrid; skipnan::Bool=false)
+# """
+#     findmin(C::ClimGrid; skipnan::Bool=false)
 
-Return the minimum element of ClimGrid C and its index. If there are multiple minimal elements, then the first one will be returned. If any data element is NaN, this element is returned. The result is in line with min. As climate data can often have NaN values (irregular polygons, missing weather data), the option to skip NaNs is provided as a keyword argument.
+# Return the minimum element of ClimGrid C and its index. If there are multiple minimal elements, then the first one will be returned. If any data element is NaN, this element is returned. The result is in line with min. As climate data can often have NaN values (irregular polygons, missing weather data), the option to skip NaNs is provided as a keyword argument.
 
-"""
-function Base.findmin(C::ClimGrid; skipnan::Bool=false)
-    # Get data
-    data = C[1].data
+# """
+# function Base.findmin(C::ClimGrid; skipnan::Bool=false)
+#     # Get data
+#     data = C[1].data
 
-    if skipnan
-        idx = findall(data .== NaNMath.minimum(data))[1]
-        val = data[idx]
+#     if skipnan
+#         idx = findall(data .== NaNMath.minimum(data))[1]
+#         val = data[idx]
 
-    else
-        idx = argmin(data)
-        val = data[idx]
-    end
+#     else
+#         idx = argmin(data)
+#         val = data[idx]
+#     end
 
-    return val, idx
+#     return val, idx
 
-end
+# end
 
 # """
 #     dashboard(C::ClimGrid)
