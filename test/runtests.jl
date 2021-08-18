@@ -10,6 +10,7 @@ using ArgCheck
 using DataFrames
 using Test
 using HDF5
+using Extremes
 
 
 include("interface_test.jl")
