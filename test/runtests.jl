@@ -9,7 +9,7 @@ using Random
 using ArgCheck
 using DataFrames
 using Test
-
+using HDF5
 
 
 include("interface_test.jl")

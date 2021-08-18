@@ -4,8 +4,11 @@
 @testset "Bias correction" begin
 
 d = DateTime(1961,1,1):Day(1):DateTime(1990,12,31)
-Random.seed!(42)
-data = randn(2, 2, 10957)
+
+filedata = joinpath(dirname(@__FILE__), "data", "data_test.h5")
+data = h5read(filedata, "random/data")
+#Random.seed!(42)
+#data = randn(2, 2, 10957)
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
 obs = ClimateTools.ClimGrid(axisdata, variable = "tasmax", dimension_dict=dimension_dict)
@@ -21,8 +24,10 @@ D = qqmap(obs, ref, fut, method = "Additive", detrend=true)
 # Ensure we have similar statistics
 # ===================================
 d = DateTime(1961,1,1):Day(1):DateTime(1990,12,31)
-Random.seed!(42)
-data = randn(2, 2, 10957)
+filedata = joinpath(dirname(@__FILE__), "data", "data_test.h5")
+data = h5read(filedata, "random/data")
+#Random.seed!(42)
+#data = randn(2, 2, 10957)
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
 dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
 obs = ClimateTools.ClimGrid(axisdata, variable = "tasmax", dimension_dict=dimension_dict)
@@ -40,8 +45,10 @@ D = qqmap(obs, ref, fut, method="Multiplicative", detrend=false)
 @test round(std(obs[1][1,1,:]) - std(D[1][1,1,:]), digits=3) ≈ -0.0#5.233448404e-5
 
 # ============================
-Random.seed!(42)
-data = randn(2, 2, 10957)
+filedata = joinpath(dirname(@__FILE__), "data", "data_test.h5")
+data = h5read(filedata, "random/data")
+#Random.seed!(42)
+#data = randn(2, 2, 10957)
 axisdata = AxisArray(data .- minimum(data), Axis{:lon}(1:2), Axis{:lat}(1:2),Axis{:time}(d))
 obs = ClimateTools.ClimGrid(axisdata, variable = "tasmax", dimension_dict=dimension_dict)
 ref = obs * 1.05
@@ -54,8 +61,12 @@ D = qqmap(obs, ref, fut, method = "Multiplicative", detrend=false)
 d = DateTime(1961,1,1):Day(1):DateTime(1990,12,31)
 lat = 1.0:2.0
 lon = 1.0:2.0
-Random.seed!(42)
-data = randn(2, 2, 10957)
+
+filedata = joinpath(dirname(@__FILE__), "data", "data_test.h5")
+data = h5read(filedata, "random/data")
+#Random.seed!(42)
+#data = randn(2, 2, 10957)
+
 longrid, latgrid = ndgrid(lon, lat)
 axisdata = AxisArray(data, Axis{:lon}(lon), Axis{:lat}(lat), Axis{:time}(d))
 dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
@@ -69,12 +80,15 @@ sigma = [11.555, 10.381]
 xi = [0.08393, 0.08393]
 gevparams = DataFrame([lat, lon, mu, sigma, xi], [:lat, :lon, :mu, :sigma, :xi])
 Dext = biascorrect_extremes(obs, ref, fut, detrend=true, gevparams=gevparams)
-@test round(maximum(Dext), digits=5) == 120.01175
+#@test round(maximum(Dext), digits=5) == 120.01175
+@test round(maximum(Dext), digits=5) == 105.5922
 
 Dext = biascorrect_extremes(obs, ref, fut, detrend=false, gevparams=gevparams)
-@test round(maximum(Dext), digits=5) == 120.00829
+#@test round(maximum(Dext), digits=5) == 120.00829
+@test round(maximum(Dext), digits=5) == 105.59231
 Dext = biascorrect_extremes(obs, ref, fut, detrend=false)
-@test round(maximum(Dext), digits=5) == 16.7384
+#@test round(maximum(Dext), digits=5) == 16.7384
+@test round(maximum(Dext), digits=5) == 6.67343
 
 # Create a ClimGrid with a clear trend
 x = 1:10957
