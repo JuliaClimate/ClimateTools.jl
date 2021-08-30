@@ -3,6 +3,11 @@
 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![Coverage Status](https://coveralls.io/repos/github/JuliaClimate/ClimateTools.jl/badge.svg?branch=master)](https://coveralls.io/github/JuliaClimate/ClimateTools.jl?branch=master) [![codecov.io](http://codecov.io/github/JuliaClimate/ClimateTools.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaClimate/ClimateTools.jl?branch=master) [![Build Status](https://travis-ci.org/JuliaClimate/ClimateTools.jl.svg?branch=master)](https://travis-ci.org/JuliaClimate/ClimateTools.jl) [![Build status](https://ci.appveyor.com/api/projects/status/vj548lmi85b18ugr/branch/master?svg=true)](https://ci.appveyor.com/project/Balinus/climatetools-jl-xhihv/branch/master)
 
+[![Build status](https://github.com/JuliaClimate/ClimateTools.jl/workflows/CI/badge.svg)](https://github.com/JuliaClimate/ClimateTools.jl/actions)
+[![codecov](https://codecov.io/gh/JuliaClimate/ClimateTools.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaClimate/ClimateTools.jl)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)][docs-stable-url]
+[![](https://img.shields.io/badge/docs-dev-blue.svg)][docs-dev-url]
+
  [![DOI](https://zenodo.org/badge/76293821.svg)](https://zenodo.org/badge/latestdoi/76293821) [![chat](https://img.shields.io/badge/chat-on%20gitter-bc0067.svg)](https://gitter.im/ClimateTools-jl)
  [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
  
