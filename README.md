@@ -1,9 +1,9 @@
 # Climate analysis tools in Julia
 
 
-[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![Coverage Status](https://coveralls.io/repos/github/JuliaClimate/ClimateTools.jl/badge.svg?branch=master)](https://coveralls.io/github/JuliaClimate/ClimateTools.jl?branch=master) [![codecov.io](http://codecov.io/github/JuliaClimate/ClimateTools.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaClimate/ClimateTools.jl?branch=master) [![Build Status](https://travis-ci.org/JuliaClimate/ClimateTools.jl.svg?branch=master)](https://travis-ci.org/JuliaClimate/ClimateTools.jl) [![Build status](https://ci.appveyor.com/api/projects/status/vj548lmi85b18ugr/branch/master?svg=true)](https://ci.appveyor.com/project/Balinus/climatetools-jl-xhihv/branch/master)
-
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) 
 [![Build status](https://github.com/JuliaClimate/ClimateTools.jl/workflows/CI/badge.svg)](https://github.com/JuliaClimate/ClimateTools.jl/actions)
+[![Build status](https://ci.appveyor.com/api/projects/status/vj548lmi85b18ugr/branch/master?svg=true)](https://ci.appveyor.com/project/Balinus/climatetools-jl-xhihv/branch/master)
 [![codecov](https://codecov.io/gh/JuliaClimate/ClimateTools.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaClimate/ClimateTools.jl)
 
  [![DOI](https://zenodo.org/badge/76293821.svg)](https://zenodo.org/badge/latestdoi/76293821) [![chat](https://img.shields.io/badge/chat-on%20gitter-bc0067.svg)](https://gitter.im/ClimateTools-jl)
