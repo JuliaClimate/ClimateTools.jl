@@ -24,8 +24,8 @@ D = qqmap(obs, ref, fut, method = "Additive", detrend=true)
 # Ensure we have similar statistics
 # ===================================
 d = DateTime(1961,1,1):Day(1):DateTime(1990,12,31)
-filedata = joinpath(dirname(@__FILE__), "data", "data_test.h5")
-data = h5read(filedata, "random/data")
+# filedata = joinpath(dirname(@__FILE__), "data", "data_test.h5")
+# data = h5read(filedata, "random/data")
 #Random.seed!(42)
 #data = randn(2, 2, 10957)
 axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
@@ -45,10 +45,9 @@ D = qqmap(obs, ref, fut, method="Multiplicative", detrend=false)
 @test round(std(obs[1][1,1,:]) - std(D[1][1,1,:]), digits=3) ≈ -0.0#5.233448404e-5
 
 # ============================
-filedata = joinpath(dirname(@__FILE__), "data", "data_test.h5")
-data = h5read(filedata, "random/data")
-#Random.seed!(42)
-#data = randn(2, 2, 10957)
+# filedata = joinpath(dirname(@__FILE__), "data", "data_test.h5")
+# data = h5read(filedata, "random/data")
+
 axisdata = AxisArray(data .- minimum(data), Axis{:lon}(1:2), Axis{:lat}(1:2),Axis{:time}(d))
 obs = ClimateTools.ClimGrid(axisdata, variable = "tasmax", dimension_dict=dimension_dict)
 ref = obs * 1.05
@@ -62,8 +61,8 @@ d = DateTime(1961,1,1):Day(1):DateTime(1990,12,31)
 lat = 1.0:2.0
 lon = 1.0:2.0
 
-filedata = joinpath(dirname(@__FILE__), "data", "data_test.h5")
-data = h5read(filedata, "random/data")
+# filedata = joinpath(dirname(@__FILE__), "data", "data_test.h5")
+# data = h5read(filedata, "random/data")
 #Random.seed!(42)
 #data = randn(2, 2, 10957)
 
@@ -81,14 +80,14 @@ xi = [0.08393, 0.08393]
 gevparams = DataFrame([lat, lon, mu, sigma, xi], [:lat, :lon, :mu, :sigma, :xi])
 Dext = biascorrect_extremes(obs, ref, fut, detrend=true, gevparams=gevparams)
 #@test round(maximum(Dext), digits=5) == 120.01175
-@test round(maximum(Dext), digits=5) == 105.5922
+@test round(maximum(Dext), digits=5) == 103.03353
 
 Dext = biascorrect_extremes(obs, ref, fut, detrend=false, gevparams=gevparams)
 #@test round(maximum(Dext), digits=5) == 120.00829
-@test round(maximum(Dext), digits=5) == 105.59231
+@test round(maximum(Dext), digits=5) == 103.03378
 Dext = biascorrect_extremes(obs, ref, fut, detrend=false)
 #@test round(maximum(Dext), digits=5) == 16.7384
-@test round(maximum(Dext), digits=5) == 6.67343
+@test round(maximum(Dext), digits=5) == 4.10549
 
 # Create a ClimGrid with a clear trend
 x = 1:10957
@@ -105,5 +104,17 @@ poly = polyfit(C)
 val = polyval(C, poly)
 D = C - val
 @test D[1] == (C - val)[1]
+
+# Test for threshold inclusion or not in Extremes (changing behaviors between version)
+filegamma = joinpath(dirname(@__FILE__), "data", "gamma.h5")
+obs = h5read(filegamma, "obsgamma")
+
+thres = quantile(obs, 0.95)
+clusters = Extremes.getcluster(obs, thres, 0.1)
+
+GPD = Extremes.gpdfit(clusters[!,:Max], threshold = thres)
+@test round(quantile(GPD, 0.0), digits=5) .== round(thres, digits=5)
+@test round(quantile(GPD, 0.999), digits=5) .== round(123.02851, digits=5)
+
 
 end

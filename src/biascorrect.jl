@@ -335,7 +335,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; detre
                     # Calculate quantile values of maximum clusters values
                     fut_cdf = Extremes.cdf.(GPD_fut, futclusters[!,:Max])
                     # Estimation of fut values based on provided GPD parameters
-                    newfut = quantile.(GPD_obs, fut_cdf) .+ thres
+                    newfut = quantile.(GPD_obs, fut_cdf)
 
                     # Linear transition over a quarter of the distance
                     exIDX = futclusters[!,:Position]
@@ -358,7 +358,7 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; detre
                 futclusters = getcluster(futvec, thres, 1.0)
                 GPD_fut = gpdfit(futclusters[!,:Max], threshold = thres)
                 fut_cdf = Extremes.cdf.(GPD_fut, futclusters[!,:Max])
-                newfut = quantile.(GPD_obs, fut_cdf) .+ thres
+                newfut = quantile.(GPD_obs, fut_cdf)
 
                 # Linear transition over a quarter of the distance
                 exIDX = futclusters[!,:Position]
