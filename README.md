@@ -5,8 +5,6 @@
 
 [![Build status](https://github.com/JuliaClimate/ClimateTools.jl/workflows/CI/badge.svg)](https://github.com/JuliaClimate/ClimateTools.jl/actions)
 [![codecov](https://codecov.io/gh/JuliaClimate/ClimateTools.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaClimate/ClimateTools.jl)
-[![](https://img.shields.io/badge/docs-stable-blue.svg)][docs-stable-url]
-[![](https://img.shields.io/badge/docs-dev-blue.svg)][docs-dev-url]
 
  [![DOI](https://zenodo.org/badge/76293821.svg)](https://zenodo.org/badge/latestdoi/76293821) [![chat](https://img.shields.io/badge/chat-on%20gitter-bc0067.svg)](https://gitter.im/ClimateTools-jl)
  [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
