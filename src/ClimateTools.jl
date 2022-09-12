@@ -20,7 +20,6 @@ using Random
 using Dates
 using GeoStats
 # using InverseDistanceWeighting
-using Extremes
 using Distances
 using PyCall
 using RollingFunctions
