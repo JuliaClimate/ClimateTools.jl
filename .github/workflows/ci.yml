@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - master
+      - update_dependencies_gf1
     tags: '*'
 jobs:
   test:
