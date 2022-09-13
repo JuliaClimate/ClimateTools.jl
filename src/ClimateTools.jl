@@ -2,7 +2,6 @@ module ClimateTools
 
 # External modules
 using Reexport
-@reexport using ClimateBase
 using NetCDF
 @reexport using NCDatasets
 using Shapefile
@@ -49,6 +48,7 @@ function __init__()
 end
 
 # Included files
+include("ClimateToolsBase.jl")
 include("functions.jl")
 include("indices.jl")
 include("indicators.jl")
