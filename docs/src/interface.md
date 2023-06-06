@@ -30,7 +30,7 @@ D = C / A # Ratio of 2 ClimGrids
 
 ## Exporting
 
-Exporting a `ClimGrid` to disk to a netCDF format can be done with the `write` functiond.
+Exporting a `ClimGrid` to disk to a netCDF format can be done with the `write` function.
 
 ```julia
 write(C::ClimGrid, filename::String)
