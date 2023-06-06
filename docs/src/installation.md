@@ -76,7 +76,7 @@ $ conda install -c conda-forge cmocean --strict-channel-priority
 $ which python # gives you the path of Conda virtual environment to use in the next steps.
 ```
 
-Once those packages are installed, you need to tell PyCall.jl (in Julia) to use this Conda environement in Julia.
+Once those packages are installed, you need to tell PyCall.jl (in Julia) to use this Conda environment in Julia.
 
 ```julia
 julia> using PyCall
