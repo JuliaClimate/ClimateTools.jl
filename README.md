@@ -17,7 +17,7 @@
 
 ## Overview
 
-*Note. Compatible with Julia 1.6 and higher*
+*Note. Compatible with Julia 1.9 and higher*
 
 ClimateTools.jl is a collection of commonly-used tools in Climate science. Basics of climate field analysis are covered, with some forays into exploratory techniques associated with climate scenarios design. The package is aimed to ease the typical steps of analysis climate models outputs and gridded datasets (support for weather stations is a work-in-progress).
 
