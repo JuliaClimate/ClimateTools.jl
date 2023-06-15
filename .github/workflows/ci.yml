@@ -14,7 +14,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version:       
+        version:    
+          - '1.6'
           - '1'
         os:
           - ubuntu-latest
