@@ -1,9 +1,6 @@
 environment:
-  matrix:
-  - julia_version: 1.5
-  - julia_version: 1.6
-  - julia_version: 1.7
-  - julia_version: 1.8
+  matrix:  
+  - julia_version: 1.6  
   - julia_version: 1.9
   - julia_version: nightly
 
