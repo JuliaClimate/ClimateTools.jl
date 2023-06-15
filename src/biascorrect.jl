@@ -23,7 +23,7 @@ For each julian day of the year (+/- **window** size), a transfer function is es
 
 **extrap = Interpolations.Flat() (default)**. The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no "inflation problem" with the bias correction. The argument is from Interpolation.jl package.
 """
-function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
+function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
 
     # Consistency checks # TODO add more checks for grid definition
     @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
@@ -122,7 +122,7 @@ qqmap(obsvec::Array{N,1}, refvec::Array{N,1}, futvec::Array{N,1}, days, obs_jul,
 Quantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.
 
 """
-function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::Array{N,1} where N, days, obs_jul, ref_jul, fut_jul; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
+function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::Array{N,1} where N, days, obs_jul, ref_jul, fut_jul; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
 
     # range over which quantiles are estimated
     P = range(qmin, stop=qmax, length = rankn)
@@ -245,7 +245,7 @@ The tail of the distribution is corrected with a paramatric GPD, using provided 
 
 See also: [`qqmap`](@ref)
 """
-function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; detrend=false, P::Real=0.95, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat(), gevparams::DataFrame=DataFrame(), frac=0.25, power=1.0)
+function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; detrend=false, P::Real=0.95, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat(), gevparams::DataFrame=DataFrame(), frac=0.25, power=1.0, runlength::Int=2)
 
     # Consistency checks # TODO add more checks for grid definition
     @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
@@ -312,9 +312,14 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; detre
 
             if isempty(gevparams)
                 # If empty, we estimate the GPD on the reference dataset
-                obsclusters = getcluster(obsvec, thres, 1.0)
+                obsclusters = getcluster(obsvec, thres, runlength=runlength)                
+                maxvalues_obs = get_max_clusters(obsclusters)
+                df_obs = DataFrame(Exceedance=maxvalues_obs .- thres)
+
                 # Estimate GPD parameters of fut clusters
-                GPD_obs = gpdfit(obsclusters[!,:Max], threshold = thres)
+                GPD_obs = Extremes.getdistribution(gpfit(df_obs, :Exceedance))
+                
+                #GPD_obs = gpdfit(obsclusters[!,:Max], threshold = thres)
 
             else
                 GPD_obs = ClimateTools.estimate_gpd(latgrid[k], longrid[k], gevparams, thres)
@@ -328,40 +333,53 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; detre
 
                     futvec_tmp = futvec[idxi[c]:idxf[c]]
 
-                    # Get clusters
-                    futclusters = getcluster(futvec_tmp, thres, 1.0)
+                    # Get clusters                    
+                    futclusters = getcluster(futvec_tmp, thres, runlength=runlength)
                     # Estimate GPD parameters of fut clusters
-                    GPD_fut = gpdfit(futclusters[!,:Max], threshold = thres)
+                    maxvalues = get_max_clusters(futclusters)
+                    df = DataFrame(Exceedance=maxvalues .- thres)                
+                    GPD_fut = gpfit(df, :Exceedance)
+                    dist_fut = Extremes.getdistribution(GPD_fut)
                     # Calculate quantile values of maximum clusters values
-                    fut_cdf = Extremes.cdf.(GPD_fut, futclusters[!,:Max])
-                    # Estimation of fut values based on provided GPD parameters
-                    newfut = quantile.(GPD_obs, fut_cdf)
+                    fut_cdf = Extremes.cdf.(dist_fut, maxvalues .- thres)
 
-                    # Linear transition over a quarter of the distance
-                    exIDX = futclusters[!,:Position]
+                    # Estimation of fut values based on provided GPD parameters
+                    newfut = quantile.(GPD_obs, fut_cdf) .+ thres
+
+                    # Linear transition over a quarter of the distance                    
+                    exIDX = get_position_clusters(futclusters)
 
                     # Get the weights based on frac and power values
-                    transition = ClimateTools.weight(futvec[exIDX], frac=frac, power=power)
+                    transition = ClimateTools.weight(futvec_tmp[exIDX], frac=frac, power=power)
 
                     # Apply linear transition
                     newfut_trans = (newfut .* transition) .+ (qqvecin[k, idxi[c] .+ exIDX .- 1] .* (1.0 .- transition))
 
                     # We put the new data in the bias-corrected vector
-                    exIDX_corr = findall((idxi[c] .+ futclusters[!,:Position] .-1 .< idxf_corr[c]) .& (idxi[c] .+ futclusters[!,:Position] .- 1 .> idxi_corr[c]))
+                    # exIDX_corr = findall((idxi[c] .+ futclusters[!,:Position] .-1 .< idxf_corr[c]) .& (idxi[c] .+ futclusters[!,:Position] .- 1 .> idxi_corr[c]))
+
+                    exIDX_corr = findall((idxi[c] .+ exIDX .-1 .< idxf_corr[c]) .& (idxi[c] .+ exIDX .- 1 .> idxi_corr[c]))
                     # exIDX_corr = findall(futclusters[!,:Position] .< idxf_corr)
                     # dataoutin[k, idxi+idxi_corr-1:idxi+idxf_corr-1] = qqvecin[k, idxi_corr:idxf_corr]
-                    dataoutin[k, idxi[c] .+ futclusters[exIDX_corr,:Position] .- 1] .= newfut_trans[exIDX_corr]
+
+                    dataoutin[k, idxi[c] .+ exIDX[exIDX_corr] .- 1] .= newfut_trans[exIDX_corr]
 
                 end
             else
-                # refclusters = getcluster(refvec[k,:], thres, 1.0)
-                futclusters = getcluster(futvec, thres, 1.0)
-                GPD_fut = gpdfit(futclusters[!,:Max], threshold = thres)
-                fut_cdf = Extremes.cdf.(GPD_fut, futclusters[!,:Max])
-                newfut = quantile.(GPD_obs, fut_cdf)
+                # refclusters = getcluster(refvec[k,:], thres, 1.0)                
+                futclusters = getcluster(futvec, thres, runlength=runlength)
+                maxvalues = get_max_clusters(futclusters)
+                df = DataFrame(Exceedance=maxvalues .- thres)                
+                GPD_fut = gpfit(df, :Exceedance)                
+                
+                dist_fut = Extremes.getdistribution(GPD_fut)
+                fut_cdf = Extremes.cdf.(dist_fut, maxvalues .- thres)
+
+                newfut = quantile.(GPD_obs, fut_cdf) .+ thres
 
                 # Linear transition over a quarter of the distance
-                exIDX = futclusters[!,:Position]
+                exIDX = get_position_clusters(futclusters)
+                #exIDX = futclusters[!,:Position]
 
                 # Get the weights based on frac and power values
                 transition = ClimateTools.weight(futvec[exIDX], frac=frac, power=power)
@@ -369,9 +387,9 @@ function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; detre
                 # Apply linear transition
                 newfut_trans = (newfut .* transition) .+ (qqvecin[k, exIDX] .* (1.0 .- transition))
 
-                # We put the new data in the bias-corrected vector
-                # dataoutin[k, :] = qqvecin[k, :]
-                dataoutin[k, futclusters[!,:Position]] = newfut_trans
+                # We put the new data in the bias-corrected vector                
+                #dataoutin[k, futclusters[!,:Position]] = newfut_trans
+                dataoutin[k, exIDX] = newfut_trans
 
             end
 

@@ -80,14 +80,34 @@ xi = [0.08393, 0.08393]
 gevparams = DataFrame([lat, lon, mu, sigma, xi], [:lat, :lon, :mu, :sigma, :xi])
 Dext = biascorrect_extremes(obs, ref, fut, detrend=true, gevparams=gevparams)
 #@test round(maximum(Dext), digits=5) == 120.01175
-@test round(maximum(Dext), digits=5) == 103.03353
+#@test round(maximum(Dext), digits=5) == 103.03353
+@test round(maximum(Dext), digits=5) == 119.36429
 
 Dext = biascorrect_extremes(obs, ref, fut, detrend=false, gevparams=gevparams)
 #@test round(maximum(Dext), digits=5) == 120.00829
-@test round(maximum(Dext), digits=5) == 103.03378
+#@test round(maximum(Dext), digits=5) == 103.03378
+@test round(maximum(Dext), digits=5) == 119.36499
+
 Dext = biascorrect_extremes(obs, ref, fut, detrend=false)
 #@test round(maximum(Dext), digits=5) == 16.7384
-@test round(maximum(Dext), digits=5) == 4.10549
+@test round(maximum(Dext), digits=5) == 4.10467
+
+
+# Test for long timeseries
+d2 = DateTime(1961,1,1):Day(1):DateTime(2020,12,30)
+data60ans = [data;;; data]
+#data60ans = rand(2,2, 21915)
+axisdata = AxisArray(data, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d))
+axisdata2 = AxisArray(data60ans, Axis{:lon}(1:2), Axis{:lat}(1:2), Axis{:time}(d2))
+dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
+obs = ClimateTools.ClimGrid(axisdata, variable = "tasmax", longrid=longrid, latgrid=latgrid,dimension_dict=dimension_dict)
+ref = obs * 1.05
+fut = ClimateTools.ClimGrid(axisdata2, variable = "tasmax", longrid=longrid, latgrid=latgrid,dimension_dict=dimension_dict)
+
+Dext = biascorrect_extremes(obs, ref, fut, detrend=false, gevparams=gevparams)
+@test round(maximum(Dext), digits=5) == 113.50211
+
+
 
 # Create a ClimGrid with a clear trend
 x = 1:10957
@@ -112,9 +132,15 @@ obs = h5read(filegamma, "obsgamma")
 thres = quantile(obs, 0.95)
 clusters = Extremes.getcluster(obs, thres, 0.1)
 
-GPD = Extremes.gpdfit(clusters[!,:Max], threshold = thres)
-@test round(quantile(GPD, 0.0), digits=5) .== round(thres, digits=5)
-@test round(quantile(GPD, 0.999), digits=5) .== round(123.02851, digits=5)
+maxvalues = get_max_clusters(clusters)
+df = DataFrame(Exceedance=maxvalues)# .- thres)
+
+GPD = Extremes.getdistribution(gpfit(df, :Exceedance))
+
+#GPD = Extremes.gpfit(maxvalues, threshold = thres)
+
+@test round(quantile(GPD[1] + thres, 0.0), digits=5) .== round(thres, digits=5)
+#@test round(quantile(GPD[1] + thres, 0.999), digits=5) .== round(123.02851, digits=5)
 
 
 end

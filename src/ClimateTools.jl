@@ -18,7 +18,7 @@ using IterTools
 using Statistics
 using Random
 using Dates
-using GeoStats
+# using GeoStats
 # using InverseDistanceWeighting
 using Extremes
 using Distances
@@ -88,6 +88,8 @@ export @isdefined
 export merge
 export minimum, maximum, std, var, mean
 export quantile
+export get_max_clusters
+export get_position_clusters
 export daymean, daysum
 export monthmean, monthsum, temporalmean
 export yearmonthdayhour
