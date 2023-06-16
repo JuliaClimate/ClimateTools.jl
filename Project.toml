@@ -2,12 +2,12 @@ name = "ClimateTools"
 uuid = "4f4ee721-4970-5af2-8560-6c1d960e3231"
 authors = ["Philippe Roy <borghor@yahoo.ca>"]
 repo = "https://github.com/JuliaClimate/ClimateTools.jl.git"
-version = "0.24.0"
+version = "0.24.1"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
 AxisArrays = "39de3d68-74b9-583c-8d2d-e117c070f3a9"
-ClimateBase = "35604d93-0fb8-4872-9436-495b01d137e2"
+#ClimateBase = "35604d93-0fb8-4872-9436-495b01d137e2"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
@@ -32,7 +32,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 [compat]
 ArgCheck = "1, 2"
 AxisArrays = "0.3, 0.4"
-ClimateBase = "0.6"
+#ClimateBase = "0.6"
 DataFrames = "0.19, 0.20, 0.21, 1"
 Distances = "0.7, 0.8, 0.9, 0.10"
 Extremes = "0.3"
