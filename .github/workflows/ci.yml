@@ -15,19 +15,13 @@ jobs:
       fail-fast: false
       matrix:
         version:              
-          - '1'
-        python: [3.10]
+          - '1'        
         os:
-          - ubuntu-latest
-          - macos-latest          
+          - ubuntu-latest          
         arch:
           - x64
     steps:
-      - uses: actions/checkout@v2      
-      - name: Set up 🐍 ${{ matrix.python }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
+      - uses: actions/checkout@v2           
       
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
