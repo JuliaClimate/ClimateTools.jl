@@ -31,12 +31,11 @@ If you'd like to have other climate indices coded, please, submit them through a
 
 ## Features
 
-* Extraction and visualization of CF-compliant netCDF datasets
-* Custom user-provided polygons and start and end date for localized studies
+* Extraction. manipulation and visualization of CF-compliant netCDF datasets
 * Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices. [See list](https://juliaclimate.github.io/ClimateTools.jl/stable/indices/).
 * Regridding of a datasets onto another grid
 * Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)
-* Support for physical units through the [Unitful.jl](https://github.com/ajkeller34/Unitful.jl) package.
+* Post-processing of for extreme values (Roy et al. 2023)
 
 ## Getting started
 
