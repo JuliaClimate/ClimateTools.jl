@@ -18,6 +18,8 @@ In the case a longitude and latitude 2D array is provided, the user needs to pro
 
 ## Experimental
 
+DEPRECATED. Users will have to define their own regridding functions using GeoStats.
+
 ClimateTools also provide a way to uses `GeoStats` geostatistics methods. See function `regrid` for some details.
 
 ```julia
