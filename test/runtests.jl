@@ -8,11 +8,7 @@ using Statistics
 using Dates
 
 @testset "Climat.jl" begin    
-    # Write your tests here.
-
-    # obsfile = joinpath("/gpfs/home/dl2594/.julia/dev/Climat/test/", "data", "obs.nc")
-    # reffile = joinpath("/gpfs/home/dl2594/.julia/dev/Climat/test/", "data", "ref.nc")
-    # futfile = joinpath("/gpfs/home/dl2594/.julia/dev/Climat/test/", "data", "fut.nc")
+    # Write your tests here.    
 
     obsfile = joinpath(dirname(@__FILE__), "data", "obs.nc")
     reffile = joinpath(dirname(@__FILE__), "data", "ref.nc")
