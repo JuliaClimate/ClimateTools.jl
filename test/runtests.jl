@@ -1,13 +1,12 @@
-using Climat
+using ClimateTools
 using Test
 using NetCDF
 using YAXArrays
 using DimensionalData
-# using StableRNGs
 using Statistics
 using Dates
 
-@testset "Climat.jl" begin    
+@testset "ClimateTools.jl" begin    
     # Write your tests here.    
 
     obsfile = joinpath(dirname(@__FILE__), "data", "obs.nc")
@@ -50,40 +49,3 @@ using Dates
     # Plots.density!(qq[:,3,3].data, linewidth=2.5,label="QQ")
 
 end
-
-# # Generation of random data
-# datevec = DateTime(1981,1,1):Dates.Day(1):DateTime(2010,12,31)
-# datevec2 = DateTime(2011,1,1):Dates.Day(1):DateTime(2040,12,31)
-
-# lon = [-75.0, -72.5, -70.0, -67.5]
-# lat = [35.0, 37.5, 40.0, 42.5]
-
-# mu_obs = 0.0;sigma_obs = 5.0
-# mu_ref = 3.15;sigma_ref = 7.4
-# mu_fut = 3.5;sigma_fut = 8.0
-
-# obsdata = rand(Normal(mu_obs, sigma_obs), length(datevec), 4, 4)
-# refdata = rand(Normal(mu_ref, sigma_ref), length(datevec), 4, 4)
-# futdata = rand(Normal(mu_fut, sigma_fut), length(datevec2), 4, 4)
-
-
-# axlist = (
-#     Dim{:Ti}(datevec),
-#     Dim{:lon}(lon),
-#     Dim{:lat}(lat),
-# )
-
-# axlist2 = (
-#     Dim{:Ti}(datevec2),
-#     Dim{:lon}(lon),
-#     Dim{:lat}(lat),
-# )
-
-# properties_obs = Dict("mu" => mu_obs, "sigma" => sigma_obs)
-# obs = YAXArray(axlist, obsdata, properties_obs)
-
-# properties_ref = Dict("mu" => mu_ref, "sigma" => sigma_ref)
-# ref = YAXArray(axlist, refdata, properties_ref)
-
-# properties_fut = Dict("mu" => mu_fut, "sigma" => sigma_fut)
-# fut = YAXArray(axlist2, futdata, properties_fut)
