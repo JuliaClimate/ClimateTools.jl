@@ -1,7 +1,8 @@
-name = "Climat"
-uuid = "37017292-dc18-4eff-ad85-d34743703a14"
-authors = ["Roy", "Philippe [4] <Roy.Philippe4@hydroquebec.com> and contributors"]
-version = "1.0.2"
+name = "ClimateTools"
+uuid = "4f4ee721-4970-5af2-8560-6c1d960e3231"
+authors = ["Philippe Roy <borghor@yahoo.ca>"]
+repo = "https://github.com/JuliaClimate/ClimateTools.jl.git"
+version = "0.24.2"
 
 [deps]
 CFTime = "179af706-886a-5703-950a-314cd64e0468"
