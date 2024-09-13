@@ -1,4 +1,4 @@
-module Climat
+module ClimateTools
 
 using CFTime
 using Dates
