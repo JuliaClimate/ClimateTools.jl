@@ -1,9 +1,9 @@
-using Pkg
-using PyCall
+# using Pkg
+# using PyCall
 
-if lowercase(get(ENV, "CI", "false")) == "true"
+# if lowercase(get(ENV, "CI", "false")) == "true"
 
-        ENV["PYTHON"] = ""
-        Pkg.build("PyCall")
+#         ENV["PYTHON"] = ""
+#         Pkg.build("PyCall")
 
-end
+# end

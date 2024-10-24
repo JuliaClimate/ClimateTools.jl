@@ -1,137 +1,120 @@
 """
-qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method="Additive", detrend=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp::Function = Linear(), extrap::Function = Flat())
+    qqmap(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
 
-Quantile-Quantile mapping bias correction.
+This function performs quantile mapping bias correction on data.
 
-For each julian day of the year (+/- **window** size), a transfer function is estimated through an empirical quantile-quantile mapping. The quantile-quantile transfer function between **ref** and **obs** is etimated on a julian day (and grid-point) basis with a moving window around the julian day. Hence, for a given julian day, the transfer function is then applied to the **fut** dataset for a given julian day.
+## Arguments
+- `obs::YAXArray`: The observed data.
+- `ref::YAXArray`: The reference data.
+- `fut::YAXArray`: The future data.
+- `method::String`: The method to apply on raw data for bias correction. Default is "Additive".
+- `detrend::Bool`: Whether to detrend the data before bias correction. Default is `true`.
+- `order::Int`: The order of the polynomial used for detrending. Default is 4.
+- `window::Int`: The window size (+/- window relative to a given julian day) for calculating the Julian days. Default is 15.
+- `rankn::Int`: The number of quantiles to use for mapping. Default is 50.
+- `qmin::Real`: The minimum quantile value. Default is 0.01.
+- `qmax::Real`: The maximum quantile value. Default is 0.99.
+- `thresnan::Float64`: The threshold for bias correcting a grid based in presence of NaN values. Default is 0.1 (i.e. if there is more than 10% of NaN values, the grid point is not corrected).
+- `keep_original::Bool`: Whether to keep the original data in the output if there is more than the threshold of NaN values. Default is `false`.
+- `interp`: The interpolation method to use between quantiles. Default is `Linear()`.
+- `extrap`: The extrapolation method to use over qmin and qmax. Default is `Interpolations.Flat()`.
 
-**Options**
+## Returns
+- A bias-corrected YAXArray.
 
-**method::String = "Additive" (default) or "Multiplicative"**. Additive is used for most climate variables. Multiplicative is usually bounded variables such as precipitation and humidity.
-
-**detrend::Bool = true (default)**. A 4th order polynomial is adjusted to the time series and the residuals are corrected with the quantile-quantile mapping.
-
-**window::Int = 15 (default)**. The size of the window used to extract the statistical characteristics around a given julian day.
-
-**rankn::Int = 50 (default)**. The number of bins used for the quantile estimations. The quantiles uses by default 50 bins between 0.01 and 0.99. The bahavior between the bins is controlled by the interp keyword argument. The behaviour of the quantile-quantile estimation outside the 0.01 and 0.99 range is controlled by the extrap keyword argument.
-
-**thresnan::Float64 = 0.1 (default)**. The fraction is missing values authorized for the estimation of the quantile-quantile mapping for a given julian days. If there is more than **treshnan** missing values, the output for this given julian days returns NaNs.
-
-**keep_original::Bool = false (default)**. If **keep_original** is set to true, the values are set to the original values in presence of too many NaNs.
-
-**interp = Interpolations.Linear() (default)**. When the data to be corrected lies between 2 quantile bins, the value of the transfer function is linearly interpolated between the 2 closest quantile estimation. The argument is from Interpolations.jl package.
-
-**extrap = Interpolations.Flat() (default)**. The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no "inflation problem" with the bias correction. The argument is from Interpolation.jl package.
 """
-function qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
-
-    # Consistency checks # TODO add more checks for grid definition
-    @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
-    @argcheck size(obs[1], 2) == size(ref[1], 2) == size(fut[1], 2)
-
-    # Modify dates (e.g. 29th feb are dropped/lost by default)
-    obs = ClimateTools.dropfeb29(obs)
-    ref = ClimateTools.dropfeb29(ref)
-    fut = ClimateTools.dropfeb29(fut)
-
-    # Remove trend if specified
-    if detrend == true
-        # Obs
-        obs_polynomials = ClimateTools.polyfit(obs)
-        obs = obs - ClimateTools.polyval(obs, obs_polynomials)
-        # Ref
-        ref_polynomials = ClimateTools.polyfit(ref)
-        ref = ref - ClimateTools.polyval(ref, ref_polynomials)
-        # Fut
-        fut_polynomials = ClimateTools.polyfit(fut)
-        poly_values = ClimateTools.polyval(fut, fut_polynomials)
-        fut = fut - poly_values
-    end
-
-    #Get date vectors
-    datevec_obs = get_timevec(obs)
-    datevec_ref = get_timevec(ref)
-    datevec_fut = get_timevec(fut)
+function qqmap(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+    
+    # Aligning calendars
+    obs = drop29thfeb(obs, dimx=:rlon, dimy=:rlat, dimt=:Ti)
+    ref = drop29thfeb(ref, dimx=:rlon, dimy=:rlat, dimt=:Ti)
+    fut = drop29thfeb(fut, dimx=:rlon, dimy=:rlat, dimt=:Ti)
 
     # Julian days vectors
-    obs_jul = Dates.dayofyear.(datevec_obs)
-    ref_jul = Dates.dayofyear.(datevec_ref)
-    fut_jul = Dates.dayofyear.(datevec_fut)
-
-    # Prepare output array (replicating data type of fut ClimGrid)
-    dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1], 2), size(fut[1], 3)))::Array{typeof(fut[1].data[1]),T} where T
-
+    obs_jul = Dates.dayofyear.(lookup(obs, :Ti))
+    ref_jul = Dates.dayofyear.(lookup(ref, :Ti))
+    fut_jul = Dates.dayofyear.(lookup(fut, :Ti))
+    
+    # # Monthly values of time vector
+    # obs_month = Dates.month.(lookup(obs, :time))
+    # ref_month = Dates.month.(lookup(ref, :time))
+    # fut_month = Dates.month.(lookup(fut, :time))
+    
+    # # Seasonal values of time vector
+    # obs_season = get_seasons(obs_month)
+    # ref_season = get_seasons(ref_month)
+    # fut_season = get_seasons(fut_month)
+    
+    
     if minimum(ref_jul) == 1 && maximum(ref_jul) == 365
         days = 1:365
     else
         days = minimum(ref_jul) + window:maximum(ref_jul) - window
-        start = Dates.monthday(minimum(datevec_obs))
-        finish = Dates.monthday(maximum(datevec_obs))
+        start = Dates.monthday(minimum(obs.time))
+        finish = Dates.monthday(maximum(obs.time))
     end
+    
+    # Dimensions
+    indims = InDims("Ti")
+    outdims = OutDims(Dim{:Ti}(lookup(fut, :Ti)))
 
-    # Reshape. Allows multi-threading on grid points.
-    obsin = reshape(obs[1].data, (size(obs[1].data, 1) * size(obs[1].data, 2), size(obs[1].data, 3)))
-    refin = reshape(ref[1].data, (size(ref[1].data, 1) * size(ref[1].data, 2), size(ref[1].data, 3)))
-    futin = reshape(fut[1].data, (size(fut[1].data, 1) * size(fut[1].data, 2), size(fut[1].data, 3)))
-    dataoutin = reshape(dataout, (size(dataout, 1) * size(dataout, 2), size(dataout, 3)))
+    # @info Threads.nthreads()
 
-    # Looping over grid points using multiple-dispatch calls to qqmap
-    Threads.@threads for k = 1:size(obsin, 1)
-        # for k = 1:size(obsin, 1)
-
-        obsvec = obsin[k,:]
-        refvec = refin[k,:]
-        futvec = futin[k,:]
-
-        dataoutin[k, :] = qqmap(obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul, method=method, detrend=detrend, window=window, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
-
-    end
-
-    # Apply mask
-    dataout = applymask(dataout, obs.msk)
-
-    # Rebuilding ClimGrid
-    lonsymbol = Symbol(fut.dimension_dict["lon"])
-    latsymbol = Symbol(fut.dimension_dict["lat"])
-
-    dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}].val), Axis{latsymbol}(fut[1][Axis{latsymbol}].val), Axis{:time}(datevec_fut))
-
-    timeattrib = fut.timeattrib
-    timeattrib["calendar"] = "365_day"
-
-    globalattribs = fut.globalattribs
-    if haskey(globalattribs, "history")
-        globalattribs["history"] = string(globalattribs["history"], " - ", "Bias-corrected with ClimateTools.jl")
-    else
-        globalattribs["history"] = string("Bias-corrected with ClimateTools.jl")
-    end
-
-    C = ClimGrid(dataout2; longrid = fut.longrid, latgrid = fut.latgrid, msk = fut.msk, grid_mapping = fut.grid_mapping, dimension_dict = fut.dimension_dict, timeattrib = timeattrib, model = fut.model, frequency = fut.frequency, experiment = fut.experiment, run = fut.run, project = fut.project, institute = fut.institute, filename = fut.filename, dataunits = fut.dataunits, latunits = fut.latunits, lonunits = fut.lonunits, variable = fut.variable, typeofvar = fut.typeofvar, typeofcal = "365_day", varattribs = fut.varattribs, globalattribs = globalattribs)
-
-    if detrend == true
-        C = C + poly_values
-    end
-
-    return C
-
+    return mapCube(qqmap, (obs, ref, fut), indims=(indims, indims, indims), outdims=outdims, days, obs_jul, ref_jul, fut_jul, method=method, detrend=detrend, order=order, window=window, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap, nthreads=Threads.nthreads())
+    
 end
 
 """
-qqmap(obsvec::Array{N,1}, refvec::Array{N,1}, futvec::Array{N,1}, days, obs_jul, ref_jul, fut_jul; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat())
+    qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int64=15, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
 
-Quantile-Quantile mapping bias correction for single vector. This is a low level function used by qqmap(A::ClimGrid ..), but can work independently.
+The `qqmap2` function performs quantile mapping bias correction on the `futvec` data using the `obsvec` and `refvec` data as references. It corrects the values in `futvec` for each day specified in `days` based on the quantiles estimated from the corresponding days in `obsvec` and `refvec`.
 
+## Arguments
+- `dataout`: Output array where the corrected values will be stored.
+- `obsvec`: Array of observed values.
+- `refvec`: Array of reference values.
+- `futvec`: Array of future values to be corrected.
+- `days`: Array of days of the year for which correction will be performed.
+- `obs_jul`: Array of Julian day values corresponding to `obsvec`.
+- `ref_jul`: Array of Julian day values corresponding to `refvec`.
+- `fut_jul`: Array of Julian day values corresponding to `futvec`.
+
+## Optional Arguments
+- `method::String`: Method used for correction. Default is "Additive".
+- `detrend::Bool`: Whether to detrend the data before correction. Default is `true`.
+- `order::Int`: Order of the polynomial used for detrending. Default is 4.
+- `window::Int64`: Size of the moving window for selecting reference values. Default is 15.
+- `rankn::Int64`: Number of quantiles to estimate. Default is 50.
+- `qmin::Real`: Minimum quantile value. Default is 0.01.
+- `qmax::Real`: Maximum quantile value. Default is 0.99.
+- `thresnan::Float64`: Threshold for the percentage of NaN values allowed in the data. Default is 0.1.
+- `keep_original::Bool`: Whether to keep the original values in case of too many NaN values. Default is `false`.
+- `interp`: Interpolation method used for building the correction function. Default is `Linear()`.
+- `extrap`: Extrapolation method used for building the correction function. Default is `Interpolations.Flat()`.
+
+The function modifies `dataout` in-place and returns nothing.
 """
-function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::Array{N,1} where N, days, obs_jul, ref_jul, fut_jul; method::String="Additive", detrend::Bool=true, window::Int64=15, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+function qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int64=15, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+    
 
     # range over which quantiles are estimated
     P = range(qmin, stop=qmax, length = rankn)
     obsP = similar(obsvec, length(P))
     refP = similar(refvec, length(P))
     sf_refP = similar(refvec, length(P))
-
-    # Prepare output array
-    dataout = similar(futvec, (size(futvec)))
+    
+    if detrend == true
+        # Obs
+        obs_polynomials = polyfit(obsvec, order=order)
+        obsvec = obsvec - obs_polynomials.(obsvec)
+        # Ref
+        ref_polynomials = polyfit(refvec, order=order)
+        refvec = refvec - ref_polynomials.(refvec)
+        # Fut
+        fut_polynomials = polyfit(futvec, order=order)
+        poly_values = fut_polynomials.(futvec)
+        futvec = futvec - poly_values
+    end
 
     # LOOP OVER ALL DAYS OF THE YEAR
     for ijulian in days
@@ -140,27 +123,29 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
         idxfut = (fut_jul .== ijulian)
 
         # Find all index of moving window around ijulian day of year
-        idxobs = ClimateTools.find_julianday_idx(obs_jul, ijulian, window)
-        idxref = ClimateTools.find_julianday_idx(ref_jul, ijulian, window)
+        idxobs = find_julianday_idx(obs_jul, ijulian, window)
+        idxref = find_julianday_idx(ref_jul, ijulian, window)
 
         obsval = obsvec[idxobs]
         refval = refvec[idxref]
         futval = futvec[idxfut]
+        
+        obsval_unique = unique(obsval)
+        refval_unique = unique(refval)
+        futval_unique = unique(futval)
 
-        # Random perturbation is added to avoid division by zero
+        # Random perturbation is added to avoid division by zero and duplicate values
         if lowercase(method) == "multiplicative"
-            # Seed for reproducible results
-            Random.seed!(42)
-
+            # Random vectors parameters
             init     = 0.000001
             interval = 0.00001
-            stop     = 0.001
-            R = init:interval:stop
+            stop     = 0.001      
 
-            obsval = obsval .+ rand(R, length(obsvec[idxobs]))
-            refval = refval .+ rand(R, length(refvec[idxref]))
-            futval = futval .+ rand(R, length(futvec[idxfut]))
-        end
+            # generate_random_perturbations!(obsval, obsP)#init, interval, stop)
+            # generate_random_perturbations!(refval, refP)#, interval, stop)
+            # generate_random_perturbations!(futval, init, interval, stop)
+            
+        end        
 
         obsvalnan = isnan.(obsval)
         refvalnan = isnan.(refval)
@@ -174,22 +159,24 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
 
             if lowercase(method) == "additive" # used for temperature
                 sf_refP .= obsP .- refP
-                itp = interpolate((refP,), sf_refP, Gridded(interp))
-                itp = extrapolate(itp, extrap) # add extrapolation
+                
+                # Build interpolation
+                itp = build_itp(refP, sf_refP, interp, extrap)
+                
                 # dataout[idxfut] .= itp(futval) .+ futval
                 futval .= itp(futval) .+ futval
 
-                futval[futvalnan] .= 0.0
-
             elseif lowercase(method) == "multiplicative" # used for precipitation
                 sf_refP .= obsP ./ refP
-                sf_refP[sf_refP .< 0] .= eps(1.0)
-                sf_refP[isnan.(sf_refP)] .= 1.0#eps(1.0)#1.0
-                itp = interpolate((refP,), sf_refP, Gridded(interp))
-                itp = extrapolate(itp, extrap) # add extrapolation
-                futval .= itp(futval) .* futval
-
-                futval[futvalnan] .= 0.0
+                sf_refP[sf_refP .< 0] .= 0.0
+                sf_refP[isnan.(sf_refP)] .= 0.0
+                sf_refP[isinf.(sf_refP)] .= 0.0
+                
+                # Build interpolation
+                # generate_random_perturbations(refP, sf_refP)
+                itp = build_itp(refP, sf_refP, interp, extrap)
+                
+                futval .= itp(futval) .* futval                
 
             else
                 error("Wrong method")
@@ -207,446 +194,308 @@ function qqmap(obsvec::Array{N,1} where N, refvec::Array{N,1} where N, futvec::A
             end
         end
     end
-
-    return dataout
+    
+    if detrend == true
+        dataout .= dataout .+ poly_values
+    end
 
 end
 
-"""
-    biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; detrend=false, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Flat(), gev_params::DataFrame, frac=0.25, power=1.0)
+function qqmap_bulk(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
 
-Combine the empirial Quantile-Quantile mapping (see [`qqmap`](@ref)) and Generalized Pareto Distribution bias-correction methods.
 
-The tail of the distribution is corrected with a paramatric GPD, using provided parameters μ, σ and ξ contained in gevparams DataFrame. The DataFrame gevparams has column :lat, :lon, :mu, :sigma and :xi, representing the GEV parameters and the spatial location of the parameters. For each grid point, the function extracts the closest GEV parameters.
+    # Aligning calendars
+    obs = drop29thfeb(obs, dimx=:rlon, dimy=:rlat, dimt=:Ti)
+    ref = drop29thfeb(ref, dimx=:rlon, dimy=:rlat, dimt=:Ti)
+    fut = drop29thfeb(fut, dimx=:rlon, dimy=:rlat, dimt=:Ti)
+    
+    # Dimensions
+    indims = InDims("Ti")
+    outdims = OutDims(Dim{:Ti}(lookup(fut, :Ti)))
 
-**Options specific to GPD**
+    # @info Threads.nthreads()
+    @info "Test"
 
-**gevparams::DataFrame** represents the (external) GEV parameters to correct each grid-points.
+    return mapCube(qqmap_bulk, (obs, ref, fut), indims=(indims, indims, indims), outdims=outdims, method=method, detrend=detrend, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap, nthreads=Threads.nthreads())
+    
+end
 
-**frac=0.25** is the fraction where the cutoff happens between QQM and GPD, as defined by **(maximum(x) - minimum(x))*frac** (e.g. For a maximum value of 150mm and a minimum value of 30mm, the linear transition will be between 30mm and 60mm).
 
-**power=1.0** is the shape of the transition.
+function qqmap_bulk(dataout, obsvec, refvec, futvec; method::String="Additive", detrend::Bool=true, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+    
 
-**Options specific to QQM**
+    # range over which quantiles are estimated
+    P = range(qmin, stop=qmax, length = rankn)
+    obsP = similar(obsvec, length(P))
+    refP = similar(refvec, length(P))
+    sf_refP = similar(refvec, length(P))
 
-**detrend::Bool = false (default)**. A 4th order polynomial is adjusted to the time series and the residuals are corrected.
-
-**window::Int = 15 (default)**. The size of the window used to extract the statistical characteristics around a given julian day.
-
-**rankn::Int = 50 (default)**. The number of bins used for the quantile estimations. The quantiles uses by default 50 bins between 0.01 and 0.99. The bahavior between the bins is controlled by the interp keyword argument. The behaviour of the quantile-quantile estimation outside the 0.01 and 0.99 range is controlled by the extrap keyword argument.
-
-**thresnan::Float64 = 0.1 (default)**. The fraction is missing values authorized for the estimation of the quantile-quantile mapping for a given julian days. If there is more than **treshnan** missing values, the output for this given julian days returns NaNs.
-
-**keep_original::Bool = false (default)**. If **keep_original** is set to true, the values are set to the original values in presence of too many NaNs.
-
-**interp = Interpolations.Linear() (default)**. When the data to be corrected lies between 2 quantile bins, the value of the transfer function is linearly interpolated between the 2 closest quantile estimation. The argument is from Interpolations.jl package.
-
-**extrap = Interpolations.Flat() (default)**. The bahavior of the quantile-quantile transfer function outside the 0.01-0.99 range. Setting it to Flat() ensures that there is no "inflation problem" with the bias correction. The argument is from Interpolation.jl package.
-
-See also: [`qqmap`](@ref)
-"""
-function biascorrect_extremes(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; detrend=false, P::Real=0.95, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat(), gevparams::DataFrame=DataFrame(), frac=0.25, power=1.0, runlength::Int=2)
-
-    # Consistency checks # TODO add more checks for grid definition
-    @argcheck size(obs[1], 1) == size(ref[1], 1) == size(fut[1], 1)
-    @argcheck size(obs[1], 2) == size(ref[1], 2) == size(fut[1], 2)
-
-    qqmap_base = qqmap(obs, ref, fut, method="multiplicative", detrend=detrend, window=window, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
-
-    # Modify dates (e.g. 29th feb are dropped/lost by default)
-    obs = ClimateTools.dropfeb29(obs)
-    ref = ClimateTools.dropfeb29(ref)
-    fut = ClimateTools.dropfeb29(fut)
-
-    # Remove trend if specified
     if detrend == true
         # Obs
-        obs_polynomials = ClimateTools.polyfit(obs)
-        obs = obs - ClimateTools.polyval(obs, obs_polynomials)
+        obs_polynomials = polyfit(obsvec, order=order)
+        obsvec .= obsvec .- obs_polynomials.(obsvec)
         # Ref
-        ref_polynomials = ClimateTools.polyfit(ref)
-        ref = ref - ClimateTools.polyval(ref, ref_polynomials)
+        ref_polynomials = polyfit(refvec, order=order)
+        refvec .= refvec .- ref_polynomials.(refvec)
         # Fut
-        fut_polynomials = ClimateTools.polyfit(fut)
-        poly_values = ClimateTools.polyval(fut, fut_polynomials)
-        fut = fut - poly_values
+        fut_polynomials = polyfit(futvec, order=order)
+        poly_values = fut_polynomials.(futvec)
+        futvec .= futvec .- poly_values
     end
 
-    #Get date vectors
-    datevec_obs = get_timevec(obs)
-    datevec_ref = get_timevec(ref)
-    datevec_fut = get_timevec(fut)
+    obsvecnan = isnan.(obsvec)
+    refvecnan = isnan.(refvec)
+    futvecnan = isnan.(futvec)
 
-    # Condition for a moving window
-    movingwindow = maximum(year.(datevec_fut)) - minimum(year.(datevec_fut)) > (maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)))*1.5
+    if (sum(obsvecnan) < (length(obsvec) * thresnan)) & (sum(refvecnan) < (length(refvec) * thresnan)) & (sum(futvecnan) < (length(futvec) * thresnan))
 
-    # Prepare output array (replicating data type of fut ClimGrid)
-    # dataout = fill(convert(typeof(fut[1].data[1]), NaN), (size(fut[1], 1), size(fut[1], 2), size(fut[1], 3)))::Array{typeof(fut[1].data[1]),T} where T
-    dataout = qqmap_base[1].data
+        # Estimate quantiles for obs and ref for ijulian
+        quantile!(obsP, obsvec[.!obsvecnan], P, sorted = false)
+        quantile!(refP, refvec[.!refvecnan], P, sorted = false)
 
-    # Reshape. Allows multi-threading on grid points.
-    obsin = reshape(obs[1].data, (size(obs[1].data, 1) * size(obs[1].data, 2), size(obs[1].data, 3)))
-    refin = reshape(ref[1].data, (size(ref[1].data, 1) * size(ref[1].data, 2), size(ref[1].data, 3)))
-    futin = reshape(fut[1].data, (size(fut[1].data, 1) * size(fut[1].data, 2), size(fut[1].data, 3)))
-    dataoutin = reshape(dataout, (size(dataout, 1) * size(dataout, 2), size(dataout, 3)))
-    latgrid = reshape(obs.latgrid, (size(obs.latgrid, 1) * size(obs.latgrid, 2)))
-    longrid = reshape(obs.longrid, (size(obs.longrid, 1) * size(obs.longrid, 2)))
-    qqvecin = reshape(qqmap_base[1].data, (size(qqmap_base[1].data, 1) * size(qqmap_base[1].data, 2), size(qqmap_base[1].data, 3)))
+        if lowercase(method) == "additive" # used for temperature
+            sf_refP .= obsP .- refP
+            
+            # Build interpolation
+            itp = build_itp(refP, sf_refP, interp, extrap)
+            
+            # dataout[idxfut] .= itp(futval) .+ futval
+            futvec .= itp(futvec) .+ futvec
 
-    # Looping over grid points using multiple-dispatch calls to qqmap
-    # Threads.@threads for k = 1:size(obsin, 1)
-    for k = 1:size(obsin, 1)
+        elseif lowercase(method) == "multiplicative" # used for precipitation
+            sf_refP .= obsP ./ refP
+            sf_refP[sf_refP .< 0] .= 0.0
+            sf_refP[isnan.(sf_refP)] .= 0.0
+            sf_refP[isinf.(sf_refP)] .= 0.0
+            
+            # Build interpolation
+            # generate_random_perturbations(refP, sf_refP)
+            itp = build_itp(refP, sf_refP, interp, extrap)
+            
+            futvec .= itp(futvec) .* futvec
 
-        obsvec = obsin[k,:]
-        refvec = refin[k,:]
-        futvec = futin[k,:]
+        else
+            error("Wrong method")
+        end
+        # Replace values with new ones
+        dataout .= futvec
+    else
 
-        obsvalnan = isnan.(obsvec)
-        refvalnan = isnan.(refvec)
-        futvalnan = isnan.(futvec)
-
-        if (sum(obsvalnan) < (length(obsvec) * thresnan)) & (sum(refvalnan) < (length(refvec) * thresnan)) & (sum(futvalnan) < (length(futvec) * thresnan))
-
-            # Estimate threshold
-            thres = ClimateTools.get_threshold(obsvec, refvec, thres=P)
-
-            if isempty(gevparams)
-                # If empty, we estimate the GPD on the reference dataset
-                obsclusters = getcluster(obsvec, thres, runlength=runlength)                
-                maxvalues_obs = get_max_clusters(obsclusters)
-                df_obs = DataFrame(Exceedance=maxvalues_obs .- thres)
-
-                # Estimate GPD parameters of fut clusters
-                GPD_obs = Extremes.getdistribution(gpfit(df_obs, :Exceedance))
-                
-                #GPD_obs = gpdfit(obsclusters[!,:Max], threshold = thres)
-
-            else
-                GPD_obs = ClimateTools.estimate_gpd(latgrid[k], longrid[k], gevparams, thres)
-            end
-
-            if movingwindow
-
-                idxi, idxf, idxi_corr, idxf_corr = build_idx_biascorrect(refvec, futvec)
-
-                for c = 1:length(idxi)
-
-                    futvec_tmp = futvec[idxi[c]:idxf[c]]
-
-                    # Get clusters                    
-                    futclusters = getcluster(futvec_tmp, thres, runlength=runlength)
-                    # Estimate GPD parameters of fut clusters
-                    maxvalues = get_max_clusters(futclusters)
-                    df = DataFrame(Exceedance=maxvalues .- thres)                
-                    GPD_fut = gpfit(df, :Exceedance)
-                    dist_fut = Extremes.getdistribution(GPD_fut)
-                    # Calculate quantile values of maximum clusters values
-                    fut_cdf = Extremes.cdf.(dist_fut, maxvalues .- thres)
-
-                    # Estimation of fut values based on provided GPD parameters
-                    newfut = quantile.(GPD_obs, fut_cdf) .+ thres
-
-                    # Linear transition over a quarter of the distance                    
-                    exIDX = get_position_clusters(futclusters)
-
-                    # Get the weights based on frac and power values
-                    transition = ClimateTools.weight(futvec_tmp[exIDX], frac=frac, power=power)
-
-                    # Apply linear transition
-                    newfut_trans = (newfut .* transition) .+ (qqvecin[k, idxi[c] .+ exIDX .- 1] .* (1.0 .- transition))
-
-                    # We put the new data in the bias-corrected vector
-                    # exIDX_corr = findall((idxi[c] .+ futclusters[!,:Position] .-1 .< idxf_corr[c]) .& (idxi[c] .+ futclusters[!,:Position] .- 1 .> idxi_corr[c]))
-
-                    exIDX_corr = findall((idxi[c] .+ exIDX .-1 .< idxf_corr[c]) .& (idxi[c] .+ exIDX .- 1 .> idxi_corr[c]))
-                    # exIDX_corr = findall(futclusters[!,:Position] .< idxf_corr)
-                    # dataoutin[k, idxi+idxi_corr-1:idxi+idxf_corr-1] = qqvecin[k, idxi_corr:idxf_corr]
-
-                    dataoutin[k, idxi[c] .+ exIDX[exIDX_corr] .- 1] .= newfut_trans[exIDX_corr]
-
-                end
-            else
-                # refclusters = getcluster(refvec[k,:], thres, 1.0)                
-                futclusters = getcluster(futvec, thres, runlength=runlength)
-                maxvalues = get_max_clusters(futclusters)
-                df = DataFrame(Exceedance=maxvalues .- thres)                
-                GPD_fut = gpfit(df, :Exceedance)                
-                
-                dist_fut = Extremes.getdistribution(GPD_fut)
-                fut_cdf = Extremes.cdf.(dist_fut, maxvalues .- thres)
-
-                newfut = quantile.(GPD_obs, fut_cdf) .+ thres
-
-                # Linear transition over a quarter of the distance
-                exIDX = get_position_clusters(futclusters)
-                #exIDX = futclusters[!,:Position]
-
-                # Get the weights based on frac and power values
-                transition = ClimateTools.weight(futvec[exIDX], frac=frac, power=power)
-
-                # Apply linear transition
-                newfut_trans = (newfut .* transition) .+ (qqvecin[k, exIDX] .* (1.0 .- transition))
-
-                # We put the new data in the bias-corrected vector                
-                #dataoutin[k, futclusters[!,:Position]] = newfut_trans
-                dataoutin[k, exIDX] = newfut_trans
-
-            end
-
-        # else
-        #
-        #     if keep_original
-        #         # # Replace values with original ones (i.e. too may NaN values for robust quantile estimation)
-        #         dataoutin[k, idxfut] .= futvec
-        #     else
-        #         # DO NOTHING (e.g. if there is no reference, we want NaNs and not original values)
-        #         dataoutin[k, idxfut] .= NaN
-        #     end
+        if keep_original
+            # # Replace values with original ones (i.e. too may NaN values for robust quantile estimation)
+            dataout .= futvec
+        else
+            # DO NOTHING (e.g. if there is no reference, we want NaNs and not original values)
+            dataout .= NaN
         end
     end
-
-    # Apply mask
-    dataout = applymask(dataout, obs.msk)
-
-    # Rebuilding ClimGrid
-    lonsymbol = Symbol(fut.dimension_dict["lon"])
-    latsymbol = Symbol(fut.dimension_dict["lat"])
-
-    dataout2 = AxisArray(dataout, Axis{lonsymbol}(fut[1][Axis{lonsymbol}].val), Axis{latsymbol}(fut[1][Axis{latsymbol}].val), Axis{:time}(datevec_fut))
-
-    timeattrib = fut.timeattrib
-    timeattrib["calendar"] = "365_day"
-
-    globalattribs = fut.globalattribs
-    if haskey(globalattribs, "history")
-        globalattribs["history"] = string(globalattribs["history"], " - ", "Bias-corrected with ClimateTools.jl")
-    else
-        globalattribs["history"] = string("Bias-corrected for extreme values with ClimateTools.jl")
-    end
-
-    C = ClimGrid(dataout2; longrid = fut.longrid, latgrid = fut.latgrid, msk = fut.msk, grid_mapping = fut.grid_mapping, dimension_dict = fut.dimension_dict, timeattrib = timeattrib, model = fut.model, frequency = fut.frequency, experiment = fut.experiment, run = fut.run, project = fut.project, institute = fut.institute, filename = fut.filename, dataunits = fut.dataunits, latunits = fut.latunits, lonunits = fut.lonunits, variable = fut.variable, typeofvar = fut.typeofvar, typeofcal = "365_day", varattribs = fut.varattribs, globalattribs = globalattribs)
 
     if detrend == true
-        C = C + poly_values
+        dataout .= dataout .+ poly_values
     end
 
-    return C
-
-end
-
-"""
-    gev2gpd(μ, σ, ξ, thres)
-
-Transform GEV parameters to GPD parameters (Coles, 2001)
-"""
-function gev2gpd(μ, σ, ξ, thres)
-
-    return σ₂ = σ + ξ * (thres - μ)
 end
 
 
 """
-    weight(x; frac=0.25, power=1.0)
+    generate_random_perturbations(vec::AbstractVector, knots)
 
-Returns the associated weight used in weighting Quantile-Quantile mapping (QQM) and Generalized Pareto Distribution (GPD) bias-correction methods. Used internally by biascorrect_extremes.
+Generate random perturbations for a given vector based on the specified knots.
 
-*frac* is the fraction where the cutoff happens between QQM and GPD, as defined by **(maximum(x) - minimum(x))*frac** (e.g. For a maximum value of 150mm and a minimum value of 30mm, the linear transition will be between 30mm and 60mm) and power is the shape of the transition.
+# Arguments
+- `vec::AbstractVector`: The vector for which perturbations need to be generated.
+- `knots`: The knots associated with each values
+
+# Returns
+- `newdata[!,observations]`: A vector containing the perturbed values.
+
 """
-function weight(x; frac=0.25, power=1.0)
-    ω = ((x .- minimum(x))/((maximum(x) - minimum(x))*frac)).^power
-    ω[ω .> 1.0] .= 1.0
-    return ω
+function generate_random_perturbations(knots::AbstractVector, vec)
+    @info "Generating perturbations..."
+    # @info now()
+
+    data = DataFrame(knots = knots, values = vec)
+
+    observations = :values
+
+    newdata = combine(DataFrames.groupby(data, :knots, sort = false), observations => add_perturbations => observations)
+
+    return newdata[!,observations]
+    
+end
+
+function add_perturbations(x)
+    # Random vectors parameters
+    init     = 0.000001
+    interval = 0.00001
+    stop     = 0.001
+    R = init:interval:stop
+    
+    return x .+ rand(R, length(x))
 end
 
 
-function estimate_gpd(lat, lon, gevparams, thres)
+"""
+    get_seasons(months)
 
-    # Find closest gev parameters
-    l1 = (Float64(lat), Float64(lon))
-    l2 = (Array(gevparams[!,:lat]), Array(gevparams[!,:lon]))
-    dist, idx = findmindist(l1, l2)
+Given a list of months, returns a list of corresponding seasons.
 
-    # Extract GEV parameters
-    μ = gevparams[idx[1], :mu]
-    σ = gevparams[idx[1], :sigma]
-    ξ = gevparams[idx[1], :xi]
+# Arguments
+- `months::Array{Int}`: A list of months represented as integers.
 
-    # Transform to GPD parameters and build reference GP distribution.
-    μ₂ = ClimateTools.gev2gpd(μ, σ, ξ, thres)
-    GPD_obs = Extremes.GeneralizedPareto(μ₂, σ, ξ)
+# Returns
+- `seasons::Array{String}`: A list of corresponding seasons.
 
-    return GPD_obs
 
-end
-
-function build_idx_biascorrect(refvec, futvec)
-
-    # window_length will be roughly the length of REF
-    w_length = length(refvec)#(maximum(year.(datevec_ref)) - minimum(year.(datevec_ref)) + 1)*365
-    # in case of multiple members, we approximate ref length
-    fut_l = length(futvec)
-
-    # The fut series is separated is a few time windows.
-    # We also make the windows overlap to replicate a moving window
-    R = w_length/2:w_length/3:fut_l
-    corrR = range(1, stop=fut_l, length=length(R)-1)
-
-    idxi = Array{Int64}(undef, length(R))
-    idxf = Array{Int64}(undef, length(R))
-    idxi_corr = Array{Int64}(undef, length(R))
-    idxf_corr = Array{Int64}(undef, length(R))
-
-    for c = 1:length(R)
-
-        # idxi = nodes_est[c,1]
-        # idxf = nodes_est[c,2]
-        # idxi_corr = nodes_corr[c]
-        # idxf_corr = nodes_corr[c+1]
-
-        idxi[c] = round(Int, max(R[c]-w_length/2+1,1))
-        idxf[c] = round(Int, min(R[c]+w_length/2,fut_l))
-        # futvec_tmp = futvec[idxi:idxf];
-
-        # However, we want each moving window to correct a smaller portion of the time series
-        idxi_corr[c] = round(Int, idxi[c]+(w_length/2-(w_length/2)/3) - 1)
-        # idxi_corr[c] = round(Int, corrR[c])
-        if c == 1
-            idxi_corr[c] = 1
+"""
+function get_seasons(months)
+    seasons = []
+    for month in months
+        if month in [12, 1, 2]
+            push!(seasons, "Winter")
+        elseif month in [3, 4, 5]
+            push!(seasons, "Spring")
+        elseif month in [6, 7, 8]
+            push!(seasons, "Summer")
+        elseif month in [9, 10, 11]
+            push!(seasons, "Autumn")
         end
-        # idxf_corr = round(Int, idxi + (w_length/2+(w_length/2)/3) - 1)
-
-        if c == length(R)#maximum(w_length/2:w_length/3:fut_l) || idxi+idxf_corr-1 > fut_l
-            idxf_corr[c] = max(round(Int, idxi[c] + w_length-w_length/3),fut_l)
-        else
-            idxf_corr[c] = round(Int, idxi[c] + (w_length/2+(w_length/2)/3) - 1)
-            # idxf_corr[c] = round(Int,corrR[c+1])
-        end
-        # @show idxi
-        # @show idxf
-        # @show idxi_corr
-        # @show idxf_corr
     end
-
-    idxi_corr[2:end] .-= 1
-
-    return idxi, idxf, idxi_corr, idxf_corr
+    return seasons
 end
 
 
+"""
+    build_itp(refP, sf_refP, interp, extrap)
+    
+    Build an interpolation function using the reference points and scaling factors.
+    
+    Arguments:
+    - `refP`: Array of reference points.
+    - `sf_refP`: Scaling factors for the reference points.
+    - `interp`: Interpolation method to use.
+    - `extrap`: Extrapolation method to use.
+    
+    Returns:
+    - `itp`: Interpolation function.
+"""
+function build_itp(refP, sf_refP, interp, extrap)
+    
+    if length(unique(refP)) < length(refP)
+        Interpolations.deduplicate_knots!(refP, move_knots = false)
+    end
+    itp = interpolate((refP,), sf_refP, Gridded(interp))          
+    itp = extrapolate(itp, extrap) # add extrapolation
+    
+    return itp
+    
+end
 
+"""
+    dropfeb29(ds::YAXArray)
 
-#     w_length = length(refvec)
-#     fut_l = length(futvec)
-#     nodes_corr = round.(Int,w_length/2:w_length/3:fut_l-w_length/2)
-#     N = Array{Int64}(undef, length(nodes_corr)+2)
-#     N[1] = 1
-#     N[end] = fut_l
-#     N[2:end-1] .= nodes_corr
+Removes February 29th from the given YAXArray. This function is used for bias correction.
+    
+# Arguments
+- `ds::YAXArray`: The input YAXArray from which February 29th needs to be removed.
 
-#     N_est = Array{Int64}(undef, length(N), 2)
+# Returns
+- `YAXArray`: The modified YAXArray with February 29th removed.
+"""
+function drop29thfeb(ds; dimx=:lon, dimy=:lat, dimt=:Ti)
+    
+    # ds_subset = ds[Time=Dates.monthday.(lookup(ds, :Ti)) .!= [(2,29)]]
+    ds_subset = ds[Ti=Where(x-> Dates.monthday(x) != (2,29))]    
 
-#     for inode = 1:length(N)
+    # Old time vector
+    date_vec = lookup(ds_subset, dimt)
+    # New time vector
+    datevec_noleap = CFTime.reinterpret.(DateTimeNoLeap, date_vec)
 
-#         if inode == 1
-#             N_est[inode, 1] = N[1]
-#             N_est[inode, 2] = N[3]
-#         elseif inode == length(N)
-#             N_est[inode, 1] = N[end-1]
-#             N_est[inode, 2] = N[end]
-#         # elseif inode == length(N) - 1
-#         #     N_est[inode, 1] = N[end-3]
-#         #     N_est[inode, 2] = N[end-1]
-#         else
-#             N_est[inode, 1] = N[inode - 1]
-#             N_est[inode, 2] = N[inode + 1]
-#         end
-#     end
+    # Rebuild the YAXArray
+    newarray = set(ds_subset, Ti => datevec_noleap)
 
-#     return N, N_est
-# end
+    return newarray
 
+    
+end
 
+"""
+    find_julianday_idx(julnb, ijulian, window)
 
-#     # N[1] = 1
-#     # N[end] = fut_l
+Find the indices of julnb that fall within a specified window around ijulian.
 
-#     for inode = 1:length(nodes_corr)
-#         if inode == 1
-#             N[inode, 1] = 1
-#             N[inode, 2] = nodes_corr[inode]
-#         elseif inode == length(nodes_corr)
-#             N[inode] = fut_l
-#         else
-#             N[inode] = 0
-#         end
+# Arguments
+- `julnb::Array{Int,1}`: Array of julian day numbers.
+- `ijulian::Int`: Julian day number around which to find indices.
+- `window::Int`: Size of the window around ijulian.
 
-#     end
+# Returns
+- `idx::BitArray{1}`: Boolean array indicating the indices that fall within the window.
 
-#     nodes_corr = collect(Base.Iterators.partition(w_length/2:fut_l, round(Int,w_length/3)))
-#     nodes_est = collect(Base.Iterators.partition(1:fut_l, round(Int,w_length)))
+# Examples
+"""
+function find_julianday_idx(julnb, ijulian, window)
+    if ijulian <= window
+        idx = @. (julnb >= 1) & (julnb <= (ijulian + window)) | (julnb >= (365 - (window - ijulian))) & (julnb <= 365)
+    elseif ijulian > 365 - window
+        idx = @. (julnb >= 1) & (julnb <= ((window-(365-ijulian)))) | (julnb >= (ijulian-window)) & (julnb <= 365)
+    else
+        idx = @. (julnb <= (ijulian + window)) & (julnb >= (ijulian - window))
+    end
+    return idx
+end
 
-#     Ni = Vector{Int64}(undef, length(nodes_corr))
-#     Nf = Vector{Int64}(undef, length(nodes_corr))
+"""
+    add_attribs(ds, ivar, METHODS, imethod)
+"""
+function add_attribs(ds, ivar, METHODS, imethod)
+    
+    if ivar == "tasmin"
+        ds = YAXArray(ds.axes, ds)#, Dict(["standard_name" => "air_temperature", "units" => "degC"]))
+        
+    elseif ivar == "tasmax"
+        ds = YAXArray(ds.axes, ds)#, Dict(["standard_name" => "air_temperature", "units" => "degC"]))
+        
+    elseif ivar == "pr"
+        ds = YAXArray(ds.axes, ds)#, Dict(["standard_name" => "precipitation_amount", "units" => "mm/d"]))
+    else
+        @error "Wrong variable?!?"
+    end
+    
+end
 
-#     for inode = 1:length(nodes_corr)
+"""
+    polyfit(vec; order=4)
 
-#         for icorr = 1:length(nodes_est)
+Returns an array of the polynomial functions fitted for input vector `vec`.
 
-#             idxi = findall(nodes_corr[inode][1] .== nodes_est[icorr])
-#             idxf = findall(nodes_corr[inode][end] .== nodes_est[icorr])
+# Arguments
+- `vec`: The input vector containing the data points to fit the polynomials.
+- `order`: The order of the polynomial to fit (default is 4).
 
-#             if !isempty(idxi)
-#                 Ni[inode] = icorr
-#             end
-#             if !isempty(idxf)
-#                 Nf[inode] = icorr
-#             end
-#         end
-#     end
+# Returns
+An array of polynomial functions fitted to each grid point in `vec`.
 
-#     # @assert sum(Ni - Nf) == 0
+# Example
+"""
+function polyfit(vec; order=4)
 
-#     return nodes_corr, nodes_est, Ni, Nf
-# end
-
-
-# for n = 1:30000
-#     refvec = rand(10950)
-#     futvec = rand(10950 + n)
-
-#     nodes_corr, nodes_est, Ni, Nf = build_idx_biascorrect(refvec, futvec)
-# end
-
+    x = 1:length(vec)
+    
+    polynomial = Polynomials.fit(x, vec, order)
+    # polynomial[0] = 0.0 # pkoi 0.0?
+    return polynomial
+    
+end
 
 # """
-#     biascorrect_extremes(obs::AxisArray, ref::AxisArray, fut::AxisArray, μ, σ, ξ)
-#
-# Correct the tail of the distribution with a paramatric method, using the parameters μ, σ and ξ.
+#     polyval(vec, polynomial)
+
+#     Returns a vector containing the values, as estimated from polynomial function polynomial.
 # """
-# function biascorrect_extremes(obsvec::AxisArray, refvec::AxisArray, futvec::AxisArray, days, μ::Real, σ::Real, ξ::Real)
-#
-#     obs_jul = dayofyear.(obsvec[Axis{:time}][:])
-#     ref_jul = dayofyear.(refvec[Axis{:time}][:])
-#     fut_jul = dayofyear.(futvec[Axis{:time}][:])
-#
-#     # Prepare output array (replicating data type of fut ClimGrid)
-#     dataout = fill(convert(typeof(futvec.data[1]), NaN), length(futvec))::Array{typeof(fut[1].data[1]),T} where T
-#
-#     if minimum(ref_jul) == 1 && maximum(ref_jul) == 365
-#         days = 1:365
-#     else
-#         days = minimum(ref_jul) + window:maximum(ref_jul) - window
-#         start = Dates.monthday(minimum(datevec_obs))
-#         finish = Dates.monthday(maximum(datevec_obs))
-#     end
-#
-#     threshold = mean([quantile(obsvec[obsvec .>= 1.0], P) quantile(refvec[refvec .>= 1.0], P)])
-#
-#     idx_obs = obsvec .> threshold
-#     idx_ref = refvec .> threshold
-#     idx_fut = futvec .> threshold
-#
-#     dataout .= qqmap(obsvec.data, refvec.data, futvec.data, days, obs_jul, ref_jul, fut_jul, method = "multiplicative", detrend = false)
-#
-#
+# function polyval(vec, polynomial)
+
+#     return polynomial.(vec) # fonction n'est plus nécessaire
+    
 # end
