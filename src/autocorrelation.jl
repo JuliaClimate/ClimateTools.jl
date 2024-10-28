@@ -22,6 +22,6 @@ function autocorrelation(ds; lags=30)
     indims = InDims("Ti")
     outdims = OutDims(Dim{:lags}(collect(1:lags)))    
 
-    return mapCube(Climat.autocorrelation, ds, indims=indims, outdims=outdims, lags=lags, nthreads=Threads.nthreads())
+    return mapCube(ClimateTools.autocorrelation, ds, indims=indims, outdims=outdims, lags=lags, nthreads=Threads.nthreads())
 
 end
