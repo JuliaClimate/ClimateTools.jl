@@ -24,6 +24,7 @@ function autocorrelation(ds; lags=30)
 
     return mapCube(ClimateTools.autocorrelation, ds, indims=indims, outdims=outdims, lags=lags, nthreads=Threads.nthreads())
 
+
 end
 
 function hurst(xout, xin; k::Int=20)
@@ -59,5 +60,7 @@ function hurst(ds; k::Int=20)
     outdims = OutDims()    
 
     return mapCube(ClimateTools.hurst, ds, indims=indims, outdims=outdims, k=k, nthreads=Threads.nthreads())
+
+
 
 end
