@@ -19,7 +19,7 @@ The autocorrelation of the input dataset `ds` along the time dimension.
 function MSModel(ds; k_regime=2, intercept = "switching")
 
     # Dimensions
-    indims = InDims("Ti")
+    indims = InDims("time")
     outdims = OutDims(Dim{:MSM}(1))
     # outdims = OutDims()
 

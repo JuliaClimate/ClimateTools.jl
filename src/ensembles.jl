@@ -15,16 +15,18 @@ Compute the daily maximum, mean, and minimum values from the input array `xin` a
 function ensemble_stats(xout, xin)
     xout .= NaN
     if !all(ismissing, xin)
-        xout[1] = maximum(skipmissing(xin))
-        xout[2] = mean(skipmissing(xin))
-        xout[3] = minimum(skipmissing(xin))
+        xin_missing = xin[.!ismissing.(xin)]
+        xin_nan = xin_missing[.!isnan.(xin_missing)]
+        xout[1] = Statistics.maximum(xin_nan)
+        xout[2] = Statistics.mean(xin_nan)
+        xout[3] = Statistics.minimum(xin_nan)
     end    
 end
 
 """
-        ensemble_stats(cube::YAXArray; dim="Ti")
+        ensemble_stats(cube::YAXArray; dim="time")
 
-Compute the maximum, mean, and minimum values from a YAXArray Cube along dimension `dim` (default to :Ti).
+Compute the maximum, mean, and minimum values from a YAXArray Cube along dimension `dim` (default to :time).
 
 # Arguments
 - `cube::YAXArray`: A Cube of data
@@ -36,7 +38,7 @@ Compute the maximum, mean, and minimum values from a YAXArray Cube along dimensi
 
 
 """
-function ensemble_stats(cube::YAXArray; dim="Ti")    
+function ensemble_stats(cube::YAXArray; dim="time")    
 
       
     # Dimensions

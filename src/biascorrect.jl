@@ -26,14 +26,14 @@ This function performs quantile mapping bias correction on data.
 function qqmap(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
     
     # Aligning calendars
-    obs = drop29thfeb(obs, dimx=:rlon, dimy=:rlat, dimt=:Ti)
-    ref = drop29thfeb(ref, dimx=:rlon, dimy=:rlat, dimt=:Ti)
-    fut = drop29thfeb(fut, dimx=:rlon, dimy=:rlat, dimt=:Ti)
+    obs = drop29thfeb(obs, dimx=:rlon, dimy=:rlat, dimt=:time)
+    ref = drop29thfeb(ref, dimx=:rlon, dimy=:rlat, dimt=:time)
+    fut = drop29thfeb(fut, dimx=:rlon, dimy=:rlat, dimt=:time)
 
     # Julian days vectors
-    obs_jul = Dates.dayofyear.(lookup(obs, :Ti))
-    ref_jul = Dates.dayofyear.(lookup(ref, :Ti))
-    fut_jul = Dates.dayofyear.(lookup(fut, :Ti))
+    obs_jul = Dates.dayofyear.(lookup(obs, :time))
+    ref_jul = Dates.dayofyear.(lookup(ref, :time))
+    fut_jul = Dates.dayofyear.(lookup(fut, :time))
     
     # # Monthly values of time vector
     # obs_month = Dates.month.(lookup(obs, :time))
@@ -55,8 +55,8 @@ function qqmap(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Addi
     end
     
     # Dimensions
-    indims = InDims("Ti")
-    outdims = OutDims(Dim{:Ti}(lookup(fut, :Ti)))
+    indims = InDims("time")
+    outdims = OutDims(Dim{:time}(lookup(fut, :time)))
 
     # @info Threads.nthreads()
 
@@ -205,13 +205,13 @@ function qqmap_bulk(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String=
 
 
     # Aligning calendars
-    obs = drop29thfeb(obs, dimx=:rlon, dimy=:rlat, dimt=:Ti)
-    ref = drop29thfeb(ref, dimx=:rlon, dimy=:rlat, dimt=:Ti)
-    fut = drop29thfeb(fut, dimx=:rlon, dimy=:rlat, dimt=:Ti)
+    obs = drop29thfeb(obs, dimx=:rlon, dimy=:rlat, dimt=:time)
+    ref = drop29thfeb(ref, dimx=:rlon, dimy=:rlat, dimt=:time)
+    fut = drop29thfeb(fut, dimx=:rlon, dimy=:rlat, dimt=:time)
     
     # Dimensions
-    indims = InDims("Ti")
-    outdims = OutDims(Dim{:Ti}(lookup(fut, :Ti)))
+    indims = InDims("time")
+    outdims = OutDims(Dim{:time}(lookup(fut, :time)))
 
     # @info Threads.nthreads()
     @info "Test"
@@ -402,10 +402,10 @@ Removes February 29th from the given YAXArray. This function is used for bias co
 # Returns
 - `YAXArray`: The modified YAXArray with February 29th removed.
 """
-function drop29thfeb(ds; dimx=:lon, dimy=:lat, dimt=:Ti)
+function drop29thfeb(ds; dimx=:lon, dimy=:lat, dimt=:time)
     
-    # ds_subset = ds[Time=Dates.monthday.(lookup(ds, :Ti)) .!= [(2,29)]]
-    ds_subset = ds[Ti=Where(x-> Dates.monthday(x) != (2,29))]    
+    
+    ds_subset = ds[time=Where(x-> Dates.monthday(x) != (2,29))]    
 
     # Old time vector
     date_vec = lookup(ds_subset, dimt)
@@ -413,7 +413,7 @@ function drop29thfeb(ds; dimx=:lon, dimy=:lat, dimt=:Ti)
     datevec_noleap = CFTime.reinterpret.(DateTimeNoLeap, date_vec)
 
     # Rebuild the YAXArray
-    newarray = set(ds_subset, Ti => datevec_noleap)
+    newarray = set(ds_subset, time => datevec_noleap)
 
     return newarray
 

@@ -1,66 +1,93 @@
 """
-    spatialsubset(C::ClimGrid, poly::Array{N, 2})
+    moving_fct(xout, xin, fct)
 
-Returns the spatial subset of ClimGrid C. The spatial subset is defined by the polygon poly, defined on a -180, +180 longitude reference.
+Used as inner function of moving_fct(cube::YAXArray).
+
+See also [`moving_fct(cube::YAXArray)`](@ref).
+"""
+function moving_fct(xout, xin; fct::Function=mean)
+    xout .= fct(skipmissing(xin))
+end
 
 """
-function spatialsubset(C::ClimGrid, poly)
+    moving_fct(cube::YAXArray; fct=mean, lat_before=1, lat_after=1, lon_before=1, lon_after=1))
 
-    # Some checks for polygon poly
-
-    if size(poly, 1) != 2 && size(poly, 2) == 2
-        # transpose
-        poly = poly'
-    end
-
-    lonsymbol = Symbol(C.dimension_dict["lon"])
-    latsymbol = Symbol(C.dimension_dict["lat"])
-
-    longrid = C.longrid
-    latgrid = C.latgrid
-
-    lon = C[1][Axis{lonsymbol}][:]
-    lat = C[1][Axis{latsymbol}][:]
-
-    msk = inpolygrid(longrid, latgrid, poly)
-
-    begin
-        I = findall(!isnan, msk)
-        idlon, idlat = (getindex.(I, 1), getindex.(I, 2))
-    end
-    minXgrid = minimum(idlon)
-    maxXgrid = maximum(idlon)
-    minYgrid = minimum(idlat)
-    maxYgrid = maximum(idlat)
-
-    # Get DATA
-    data = C[1].data
-
-    if ndims(data) == 3
-        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :]
-    elseif ndims(data) == 4
-        data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, :]
-    end
-
-    #new mask (e.g. representing the region of the polygon)
-    msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
-    data = applymask(data, msk)
-
-    # Get lon-lat for such region
-    longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
-    latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
-    lon = lon[minXgrid:maxXgrid]
-    lat = lat[minYgrid:maxYgrid]
-
-    if ndims(data) == 3
-      dataOut = AxisArray(data, Axis{lonsymbol}(lon), Axis{latsymbol}(lat),  Axis{:time}(C[1][Axis{:time}][:]))
-    elseif ndims(data) == 4
-      dataOut = AxisArray(data, Axis{lonsymbol}(lon), Axis{latsymbol}(lat), Axis{:level}(C[1][Axis{:plev}][:]), Axis{:time}(C[1][Axis{:time}][:]))
-    end
-
-    return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=C.grid_mapping, timeattrib=C.timeattrib, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
-
+Spatial moving function. lat_before/after and lon_before/after is the number of pixel used for the bounding box and fct is the function applied
+"""
+function moving_fct(cube::YAXArray; fct::Function=mean, latsouth_pixel=1, latnorth_pixel=1, lonwest_pixel=1, loneast_pixel=1)
+    
+    indims = InDims(MovingWindow("latitude", latsouth_pixel,latnorth_pixel),
+        MovingWindow("longitude", lonwest_pixel,loneast_pixel))
+    outdims=OutDims()
+    mapCube(moving_fct, cube; fct=fct, indims=indims, outdims=outdims)
 end
+
+
+
+
+# """
+#     spatialsubset(A::YAXArray, poly::Array{N, 2})
+
+# Returns the spatial subset of YAXArray A. The spatial subset is defined by the polygon polygon, defined on a -180, +180 longitude reference.
+
+# """
+# function spatialsubset(A::YAXArray, poly)
+
+#     # Some checks for polygon poly
+
+#     if size(poly, 1) != 2 && size(poly, 2) == 2
+#         # transpose
+#         poly = poly'
+#     end
+
+#     lonsymbol = Symbol(C.dimension_dict["lon"])
+#     latsymbol = Symbol(C.dimension_dict["lat"])
+
+#     longrid = C.longrid
+#     latgrid = C.latgrid
+
+#     lon = C[1][Axis{lonsymbol}][:]
+#     lat = C[1][Axis{latsymbol}][:]
+
+#     msk = inpolygrid(longrid, latgrid, poly)
+
+#     begin
+#         I = findall(!isnan, msk)
+#         idlon, idlat = (getindex.(I, 1), getindex.(I, 2))
+#     end
+#     minXgrid = minimum(idlon)
+#     maxXgrid = maximum(idlon)
+#     minYgrid = minimum(idlat)
+#     maxYgrid = maximum(idlat)
+
+#     # Get DATA
+#     data = C[1].data
+
+#     if ndims(data) == 3
+#         data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :]
+#     elseif ndims(data) == 4
+#         data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, :]
+#     end
+
+#     #new mask (e.g. representing the region of the polygon)
+#     msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
+#     data = applymask(data, msk)
+
+#     # Get lon-lat for such region
+#     longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
+#     latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
+#     lon = lon[minXgrid:maxXgrid]
+#     lat = lat[minYgrid:maxYgrid]
+
+#     if ndims(data) == 3
+#       dataOut = AxisArray(data, Axis{lonsymbol}(lon), Axis{latsymbol}(lat),  Axis{:time}(C[1][Axis{:time}][:]))
+#     elseif ndims(data) == 4
+#       dataOut = AxisArray(data, Axis{lonsymbol}(lon), Axis{latsymbol}(lat), Axis{:level}(C[1][Axis{:plev}][:]), Axis{:time}(C[1][Axis{:time}][:]))
+#     end
+
+#     return ClimGrid(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=C.grid_mapping, timeattrib=C.timeattrib, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+
+# end
 
 
 """
@@ -234,3 +261,5 @@ function findmindist(p1::Tuple{Float64, Float64}, p2::Tuple{Array{Float64,1},Arr
     return findmin(dist)
 
 end
+
+
