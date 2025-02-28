@@ -63,9 +63,9 @@ function daily_max_mean_min(cube::YAXArray, kwargs...)
     index_in_cube = [findall(==(i), time_index) for i in unique(time_index)]   
     
     # Dimensions
-    indims = InDims("Ti")    
+    indims = InDims("time")    
     # outdims = OutDims(RangeAxis("time", dates_builder_yearmonthday(new_dates)), CategoricalAxis("stats",["max","mean","min"]))
-    outdims = OutDims(Dim{:Ti}(dates_builder_yearmonthday(new_dates)), CategoricalAxis("stats",["max","mean","min"]))
+    outdims = OutDims(Dim{:time}(dates_builder_yearmonthday(new_dates)), CategoricalAxis("stats",["max","mean","min"]))
     
     mapCube(daily_max_mean_min, cube, indims=indims, outdims=outdims, index_list=index_in_cube)
 end
@@ -87,7 +87,7 @@ A new YAXArray cube with the computed percentiles along the "time", "longitude",
 function percentiles(cube::YAXArray, quantiles=[0.1, 0.5, 0.9];lonname="longitude", latname="latitude")    
     
     indims = InDims("number")    
-    outdims = OutDims("Ti", lonname, latname)
+    outdims = OutDims("time", lonname, latname)
     
     mapCube(percentiles, cube, indims=indims, outdims=outdims, quantiles=quantiles)
 end
@@ -124,8 +124,8 @@ Compute the difference between consecutive time steps in the given `cube`.
 function diff(cube::YAXArray)    
 
 
-    indims = InDims("Ti")    
-    outdims = OutDims("Ti")
+    indims = InDims("time")    
+    outdims = OutDims("time")
     
     mapCube(diff, cube, indims=indims, outdims=outdims)
 end
@@ -161,8 +161,8 @@ A new YAXArray cube with the cumulative sum computed along the "time" dimension.
 """
 function cumsum(cube::YAXArray, kwargs...)    
 
-    indims = InDims("Ti")    
-    outdims = OutDims("Ti")
+    indims = InDims("time")    
+    outdims = OutDims("time")
     
     mapCube(cumsum, cube, indims=indims, outdims=outdims)
 end
@@ -212,14 +212,14 @@ A new `YAXArray` with aggregated data on a daily basis.
 
 """
 function daily_fct(cube::YAXArray; fct::Function=mean, shifthour=0, kwargs...)
-    time_to_index = cube.Ti .+ Dates.Hour(shifthour)
+    time_to_index = cube.time .+ Dates.Hour(shifthour)
     time_index = yearmonthday.(time_to_index)
     new_dates = unique(time_index)
     index_in_cube = [findall(==(i), time_index) for i in unique(time_index)]   
     
     # Dimensions
-    indims = InDims("Ti")        
-    outdims = OutDims(Dim{:Ti}(dates_builder_yearmonthday(new_dates)))
+    indims = InDims("time")        
+    outdims = OutDims(Dim{:time}(dates_builder_yearmonthday(new_dates)))
     
     mapCube(daily_fct, cube, indims=indims, outdims=outdims, fct=fct, index_list=index_in_cube)
 end
@@ -254,14 +254,14 @@ A new YAXArray containing the yearly climatology.
 """
 
 function yearly_clim(cube::YAXArray; fct::Function=mean, kwargs...)
-    time_to_index = cube.Ti;
+    time_to_index = cube.time;
     time_index = year.(time_to_index);
     new_dates = unique(time_index);
     index_in_cube = [findall(==(i), time_index) for i in unique(time_index)]
 
     # Dimensions
-    indims = InDims("Ti")        
-    outdims = OutDims(Dim{:Ti}(dates_builder_yearmonthday_hardcode(new_dates, imois=7, iday=1)))
+    indims = InDims("time")        
+    outdims = OutDims(Dim{:time}(dates_builder_yearmonthday_hardcode(new_dates, imois=7, iday=1)))
 
     mapCube(yearly_clim, cube, fct=fct, indims=indims, outdims=outdims, index_list=index_in_cube)
 end
@@ -295,8 +295,8 @@ function daily_max(cube::YAXArray, kwargs...)
     index_in_cube = [findall(==(i), time_index) for i in unique(time_index)]   
     
     # Dimensions
-    indims = InDims("Ti")        
-    outdims = OutDims(Dim{:Ti}(dates_builder_yearmonthday(new_dates)))
+    indims = InDims("time")        
+    outdims = OutDims(Dim{:time}(dates_builder_yearmonthday(new_dates)))
     
     mapCube(daily_max, cube, indims=indims, outdims=outdims, index_list=index_in_cube)
 end

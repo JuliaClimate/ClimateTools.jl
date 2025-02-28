@@ -12,10 +12,10 @@ Compute the Lomb-Scargle periodogram for a given data cube.
 
 """
 function LombScargle.lombscargle(cube::YAXArray, kwargs...)
-    indims = InDims("Ti")
+    indims = InDims("time")
     lombax = CategoricalAxis("LombScargle", ["Number of Frequencies", "Period with maximal power", "Maximal Power"])
     #@show cube
-    timeax = YAXArrays.getAxis("Ti", cube)
+    timeax = YAXArrays.getAxis("time", cube)
     od = OutDims(lombax)
     mapCube(clombscargle, (cube, timeax), indims=(indims, indims), outdims=od)
 end

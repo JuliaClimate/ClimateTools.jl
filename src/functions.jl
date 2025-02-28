@@ -165,289 +165,17 @@ function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} wh
 
 end
 
-# TODO define interpolation for 4D grid
+function inpolygrid(ds::Dataset, poly::AbstractArray{N,2} where N)
 
-# """
-#     C = regrid(A::ClimGrid, B::ClimGrid; solver=Kriging(), min=[], max=[])
+    londim, latdim = getdimnames(ds)
 
-# Interpolate `ClimGrid` A onto the lon-lat grid of `ClimGrid` B, using the GeoStats.jl methods.
+    longrid_flip = collect(ds["lon"].data)
+    latgrid = collect(ds["lat"].data)
 
-# Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.
 
-# """
-# function regrid(A::ClimGrid, B::ClimGrid; solver=Kriging(), min=[], max=[])
+end 
 
-#     # ---------------------------------------
-#     # Get lat-lon information from ClimGrid B
-#     londest, latdest = ClimateTools.getgrids(B)
 
-#     # Get lat-lon information from ClimGrid A
-#     lonorig, latorig = ClimateTools.getgrids(A)
-#     # points = hcat(lonorig[:], latorig[:])
-
-#     # -----------------------------------------
-#     # Get initial data and time from ClimGrid A
-#     dataorig = A[1].data
-#     timeorig = get_timevec(A)#[1][Axis{:time}][:] # the function will need to loop over time
-
-#     # ---------------------
-#     # Allocate output Array
-#     OUT = zeros(Float64, (size(B.data, 1), size(B.data, 2), length(timeorig)))
-
-#     # ------------------------
-#     # Interpolation
-#     interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, solver=solver, msk=B.msk)
-
-#     if !isempty(min)
-#         OUT[OUT .<= min] .= min
-#     end
-
-#     if !isempty(max)
-#         OUT[OUT .>= max] .= max
-#     end
-
-#     # -----------------------
-#     # Construct AxisArrays and ClimGrid struct from array OUT
-#     latsymbol = Symbol(B.dimension_dict["lat"])
-#     lonsymbol = Symbol(B.dimension_dict["lon"])
-#     dataOut = AxisArray(OUT, Axis{lonsymbol}(B[1][Axis{lonsymbol}][:]), Axis{latsymbol}(B[1][Axis{latsymbol}][:]), Axis{:time}(timeorig))
-
-#     C = ClimateTools.ClimGrid(dataOut, longrid=B.longrid, latgrid=B.latgrid, msk=B.msk, grid_mapping=B.grid_mapping, dimension_dict=B.dimension_dict, timeattrib=A.timeattrib, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=B.latunits, lonunits=B.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
-
-# end
-
-# """
-#     interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, vari; frac=0.5)
-
-# Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `kriging` and 'inv_distance'. frac is the fraction of data points used.
-# """
-# function interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest; solver=solver, msk=[])
-
-#     # Ensure we have same coords type
-#     if typeof(lonorig[1]) != typeof(londest[1]) # means we're going towards Float32
-#         if typeof(dataorig[1]) != Float32
-#             dataorig = Float32.(dataorig)
-#         end
-#         if typeof(lonorig[1]) == Float64
-#             lonorig = Float32.(lonorig)
-#         end
-#         if typeof(londest[1]) == Float64
-#             londest = Float32.(londest)
-#         end
-#         if typeof(latorig[1]) == Float64
-#             latorig = Float32.(latorig)
-#         end
-#         if typeof(lonorig[1]) == Float64
-#             lonorig = Float32.(lonorig)
-#         end
-#     end
-
-#     # Variable
-#     # target = Symbol(vari)
-
-#     # Destination grid
-#     SG = StructuredGrid(londest, latdest)
-
-#     # # Solver
-#     # n = Int(floor(frac*length(lonorig[:])))
-#     #
-#     # if lowercase(method) == "kriging"
-#     #     solver = Kriging(target => (maxneighbors=n,))
-#     # elseif lowercase(method) == "inv_dist"
-#     #     solver = InvDistWeight(target => (neighbors=n,))
-#     # end
-
-
-#     # Threads.@threads for t = 1:length(timeorig)
-#     p = Progress(length(timeorig), 5, "Regridding: ")
-#     for t = 1:length(timeorig)
-
-#         SD = StructuredGridData(OrderedDict(target => dataorig[:, :, t]), lonorig, latorig)
-
-#         problem = EstimationProblem(SD, SG, target)
-#         solution = solve(problem, solver)
-#         data_interp = reshape(solution.mean[target], size(londest))
-
-#         # Apply mask from ClimGrid destination
-#         if !isempty(msk)
-#             OUT[:, :, t] = data_interp .* msk
-#         else
-#             OUT[:, :, t] = data_interp
-#         end
-
-#         next!(p)
-#     end
-# end
-
-
-"""
-    C = griddata(A::ClimGrid, B::ClimGrid; min=[], max=[])
-
-Interpolate `ClimGrid` A onto the lon-lat grid of `ClimGrid` B,
-where A and B are `ClimGrid`.
-
-Min and max optional keyword are used to constraint the results of the interpolation. For example, interpolating bounded fields can lead to unrealilstic values, such as negative precipitation. In that case, one would use min=0.0 to convert negative precipitation to 0.0.
-
-"""
-function griddata(A::ClimGrid, B::ClimGrid; method="linear", min=[], max=[])
-
-    # ---------------------------------------
-    # Get lat-lon information from ClimGrid B
-    londest, latdest = ClimateTools.getgrids(B)
-
-    # Get lat-lon information from ClimGrid A
-    lonorig, latorig = ClimateTools.getgrids(A)
-    points = hcat(lonorig[:], latorig[:])
-
-    # -----------------------------------------
-    # Get initial data and time from ClimGrid A
-    dataorig = A[1].data
-    timeorig = get_timevec(A)#[1][Axis{:time}][:] # the function will need to loop over time
-
-    # ---------------------
-    # Allocate output Array
-    OUT = zeros(Float64, (size(B.data, 1), size(B.data, 2), length(timeorig)))
-
-    # ------------------------
-    # Interpolation
-    # interp!(OUT, timeorig, dataorig, lonorig, latorig, londest, latdest, A.variable, frac=frac)
-    griddata!(OUT, timeorig, dataorig, points, londest, latdest, method=method, msk=B.msk)
-
-    if !isempty(min)
-        OUT[OUT .<= min] .= min
-    end
-
-    if !isempty(max)
-        OUT[OUT .>= max] .= max
-    end
-
-    # -----------------------
-    # Construct AxisArrays and ClimGrid struct from array OUT
-    latsymbol = Symbol(B.dimension_dict["lat"])
-    lonsymbol = Symbol(B.dimension_dict["lon"])
-    dataOut = AxisArray(OUT, Axis{lonsymbol}(B[1][Axis{lonsymbol}][:]), Axis{latsymbol}(B[1][Axis{latsymbol}][:]), Axis{:time}(timeorig))
-
-    C = ClimateTools.ClimGrid(dataOut, longrid=B.longrid, latgrid=B.latgrid, msk=B.msk, grid_mapping=B.grid_mapping, dimension_dict=B.dimension_dict, timeattrib=A.timeattrib, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits=B.latunits, lonunits=B.lonunits, variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
-
-end
-
-"""
-    C = griddata(A::ClimGrid, londest::AbstractArray{N, 1} where N, latdest::AbstractArray{N, 1} where N)
-
-Interpolate `ClimGrid` A onto lat-lon grid defined by londest and latdest vector or array. If an array is provided, it is assumed that the grid is curvilinear (not a regular lon-lat grid) and the user needs to provide the dimension vector ("x" and "y") for such a grid.
-
-"""
-function griddata(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::AbstractArray{N, T} where N where T; method="linear", dimx=[], dimy=[], min=[], max=[])
-
-    # Get lat-lon information from ClimGrid A
-    lonorig, latorig = getgrids(A)
-    points = hcat(lonorig[:], latorig[:])
-
-    # -----------------------------------------
-    # Get initial data and time from ClimGrid A
-    dataorig = A[1].data
-    timeorig = A[1][Axis{:time}][:] # the function will need to loop over time
-
-    if ndims(lon) == 1
-        londest, latdest = ndgrid(lon, lat)
-        dimx = lon
-        dimy = lat
-    elseif ndims(lon) == 2
-        londest = lon
-        latdest = lat
-        @assert !isempty(dimx)
-        @assert !isempty(dimy)
-    else
-        throw(error("Grid should be a vector or a grid"))
-    end
-
-    # ---------------------
-    # Allocate output Array
-    if ndims(lon) == 1
-        OUT = zeros(Float64, (length(lon), length(lat), length(timeorig)))
-    elseif ndims(lon) == 2
-        OUT = zeros(Float64, (size(lon, 1), size(lon, 2), length(timeorig)))
-    end
-
-    # ------------------------
-    # Interpolation
-    griddata!(OUT, timeorig, dataorig, points, londest, latdest, method=method)
-
-    if !isempty(min)
-        OUT[OUT .<= min] .= min
-    end
-
-    if !isempty(max)
-        OUT[OUT .>= max] .= max
-    end
-
-    # -----------------------
-    # Construct AxisArrays and ClimGrid struct from array OUT
-    dataOut = AxisArray(OUT, Axis{:x}(dimx), Axis{:y}(dimy), Axis{:time}(timeorig))
-    msk = Array{Float64}(ones((size(OUT, 1), size(OUT, 2))))
-
-    if ndims(lon) == 1
-        grid_mapping = Dict(["grid_mapping_name" => "Regular_longitude_latitude"])
-        dimension_dict = Dict(["lon" => "lon", "lat" => "lat"])
-    elseif ndims(lon) == 2
-        grid_mapping = Dict(["grid_mapping_name" => "Curvilinear_grid"])
-        dimension_dict = Dict(["lon" => "x", "lat" => "y"])
-    end
-
-    C = ClimateTools.ClimGrid(dataOut, longrid=londest, latgrid=latdest, msk=msk, grid_mapping=grid_mapping, dimension_dict=dimension_dict, timeattrib=A.timeattrib, model=A.model, frequency=A.frequency, experiment=A.experiment, run=A.run, project=A.project, institute=A.institute, filename=A.filename, dataunits=A.dataunits, latunits="degrees_north", lonunits="degrees_east", variable=A.variable, typeofvar=A.typeofvar, typeofcal=A.typeofcal, varattribs=A.varattribs, globalattribs=A.globalattribs)
-
-end
-
-"""
-    griddata!(OUT, timeorig, dataorig, points, londest, latdest, method, ;msk=[])
-Interpolation of `dataorig` onto longitude grid `londest` and latitude grid `latdest`. Used internally by `regrid`.
-"""
-function griddata!(OUT, timeorig, dataorig, points, londest, latdest; method="linear", msk=[])
-
-    p = Progress(length(timeorig), 5, "Regridding: ")
-    for t = 1:length(timeorig)
-
-        # Points values
-        val = dataorig[:, :, t][:]
-
-        # Call scipy griddata
-        data_interp = scipy.griddata(points, val, (londest, latdest), method=method)
-
-        # Apply mask from ClimGrid destination
-        if !isempty(msk)
-            OUT[:, :, t] .= data_interp .* msk
-        else
-            OUT[:, :, t] .= data_interp
-        end
-
-        next!(p)
-    end
-end
-
-"""
-    getgrids(C::ClimGrid)
-
-Returns longitude and latitude grids of ClimGrid C.
-"""
-function getgrids(C::ClimGrid)
-    longrid = C.longrid
-    latgrid = C.latgrid
-    return longrid, latgrid
-end
-
-"""
-    getdims(C::ClimGrid)
-
-Returns dimensions vectors of C
-"""
-function getdims(C::ClimGrid)
-    latsymbol, lonsymbol = ClimateTools.getsymbols(C)
-    x = C[1][Axis{lonsymbol}][:]
-    y = C[1][Axis{latsymbol}][:]
-    timevec = get_timevec(C)
-
-    return x, y, timevec
-end
 
 """
     applymask(A::AbstractArray{N, n}, mask::AbstractArray{N, n})
@@ -506,16 +234,16 @@ function applymask(A::AbstractArray{N,1} where N, mask::AbstractArray{N, 1} wher
     return modA
 end
 
-function applymask(C::ClimGrid, mask::AbstractArray{N, 1} where N)
+# function applymask(C::ClimGrid, mask::AbstractArray{N, 1} where N)
 
-    A = C.data.data
+#     A = C.data.data
 
-    modA = applymask(A, mask)
+#     modA = applymask(A, mask)
 
-    Anew = buildarrayinterface(modA, C)
+#     Anew = buildarrayinterface(modA, C)
 
-    return ClimGrid(Anew, longrid=C.longrid, latgrid=C.latgrid, msk=mask, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
-end
+#     return ClimGrid(Anew, longrid=C.longrid, latgrid=C.latgrid, msk=mask, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
+# end
 
 macro isdefined(var)
     quote
@@ -586,189 +314,189 @@ function permute_east_west2D(data::AbstractArray{N,2} where N, iwest, ieast)
 
 end
 
-"""
-    ensemble_mean(C::ClimGrid...)
+# """
+#     ensemble_mean(C::ClimGrid...)
 
-Returns the Ensemble mean of ClimGrids C..
-"""
-function ensemble_mean(C; skipnan=true)
+# Returns the Ensemble mean of ClimGrids C..
+# """
+# function ensemble_mean(C; skipnan=true)
 
-    # Create list of AxisArrays contained inside the ClimGrids
-    # Climref = C[1]
-    axisarrays = Array{Any}(undef, length(C))
-    # unitsClims = Array{Any}(undef, length(C))
+#     # Create list of AxisArrays contained inside the ClimGrids
+#     # Climref = C[1]
+#     axisarrays = Array{Any}(undef, length(C))
+#     # unitsClims = Array{Any}(undef, length(C))
 
-    for k = 1:length(C)
-        # datatmp[.!isnan.(datatmp)
-        axisarrays[k] = periodmean(C[k])[1]#[1][.!isnan.(C[k][1])], dims=3)
-        # unitsClims[k] = unit(C[k][1][1])
-    end
+#     for k = 1:length(C)
+#         # datatmp[.!isnan.(datatmp)
+#         axisarrays[k] = periodmean(C[k])[1]#[1][.!isnan.(C[k][1])], dims=3)
+#         # unitsClims[k] = unit(C[k][1][1])
+#     end
 
-    # if length(unique(unitsClims)) != 1
-    #     throw(error("ClimGrids needs to have the same physical units."))
-    # end
+#     # if length(unique(unitsClims)) != 1
+#     #     throw(error("ClimGrids needs to have the same physical units."))
+#     # end
 
-    # ENSEMBLE MEAN
-    n = length(axisarrays) # number of members
-    dataout = sum(axisarrays) / n # ensemble mean
+#     # ENSEMBLE MEAN
+#     n = length(axisarrays) # number of members
+#     dataout = sum(axisarrays) / n # ensemble mean
 
-    # # reapply unit
-    # dataout = [dataout][1]unitsClims[1]
+#     # # reapply unit
+#     # dataout = [dataout][1]unitsClims[1]
 
-    # Build AxisArray
-    data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
+#     # Build AxisArray
+#     data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
 
 
-    # Ensemble metadata
-    globalattribs = Dict()
-    globalattribs["history"] = "Ensemble mean"
-    globalattribs["models"] = ""
-    for k = 1:length(C)
-        globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
-    end
+#     # Ensemble metadata
+#     globalattribs = Dict()
+#     globalattribs["history"] = "Ensemble mean"
+#     globalattribs["models"] = ""
+#     for k = 1:length(C)
+#         globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
+#     end
 
-    # Return ClimGrid
-    return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble mean", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+#     # Return ClimGrid
+#     return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble mean", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
 
-end
+# end
 
-"""
-    ensemble_std(C::ClimGrid...)
+# """
+#     ensemble_std(C::ClimGrid...)
 
-Returns the Ensemble standard deviation of climatological means of ClimGrids C..
-"""
-function ensemble_std(C; skipnan=true)
+# Returns the Ensemble standard deviation of climatological means of ClimGrids C..
+# """
+# function ensemble_std(C; skipnan=true)
 
-    # Create list of AxisArrays contained inside the ClimGrids
-    # Climref = C[1]
-    axisarrays = Array{Any}(undef, length(C))
-    # unitsClims = Array{Any}(undef, length(C))
+#     # Create list of AxisArrays contained inside the ClimGrids
+#     # Climref = C[1]
+#     axisarrays = Array{Any}(undef, length(C))
+#     # unitsClims = Array{Any}(undef, length(C))
 
-    for k = 1:length(C)
-        # datatmp[.!isnan.(datatmp)
-        axisarrays[k] = periodmean(C[k])[1]#[1][.!isnan.(C[k][1])], dims=3)
-        # unitsClims[k] = unit(C[k][1][1])
-    end
+#     for k = 1:length(C)
+#         # datatmp[.!isnan.(datatmp)
+#         axisarrays[k] = periodmean(C[k])[1]#[1][.!isnan.(C[k][1])], dims=3)
+#         # unitsClims[k] = unit(C[k][1][1])
+#     end
 
-    # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
-        # if length(unique(unitsClims)) != 1
-        #     throw(error("ClimGrids needs to have the same physical units."))
-        # end
-    # end
+#     # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
+#         # if length(unique(unitsClims)) != 1
+#         #     throw(error("ClimGrids needs to have the same physical units."))
+#         # end
+#     # end
 
-    # ENSEMBLE STD
-    dataout = std(axisarrays)
+#     # ENSEMBLE STD
+#     dataout = std(axisarrays)
 
-    # # reapply unit
-    # dataout = [dataout][1]unitsClims[1]
+#     # # reapply unit
+#     # dataout = [dataout][1]unitsClims[1]
 
-    # Build AxisArray
-    data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
+#     # Build AxisArray
+#     data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
 
-    # Ensemble metadata
-    globalattribs = Dict()
-    globalattribs["history"] = "Ensemble mean"
-    globalattribs["models"] = ""
-    for k = 1:length(C)
-        globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
-    end
+#     # Ensemble metadata
+#     globalattribs = Dict()
+#     globalattribs["history"] = "Ensemble mean"
+#     globalattribs["models"] = ""
+#     for k = 1:length(C)
+#         globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
+#     end
 
-    # Return ClimGrid
-    return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble standard deviation", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+#     # Return ClimGrid
+#     return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble standard deviation", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
 
-end
+# end
 
-"""
-    ensemble_max(C::ClimGrid...)
+# """
+#     ensemble_max(C::ClimGrid...)
 
-Returns the Ensemble maximum of climatological means of ClimGrids C..
-"""
-function ensemble_max(C; skipnan=true)
+# Returns the Ensemble maximum of climatological means of ClimGrids C..
+# """
+# function ensemble_max(C; skipnan=true)
 
-    # Create list of AxisArrays contained inside the ClimGrids
-    # Climref = C[1]
-    axisarrays = Array{Any}(undef, length(C))
-    # unitsClims = Array{Any}(undef, length(C))
+#     # Create list of AxisArrays contained inside the ClimGrids
+#     # Climref = C[1]
+#     axisarrays = Array{Any}(undef, length(C))
+#     # unitsClims = Array{Any}(undef, length(C))
 
-    for k = 1:length(C)
-        # datatmp[.!isnan.(datatmp)
-        axisarrays[k] = periodmean(C[k])[1]#[1][.!isnan.(C[k][1])], dims=3)
-        # unitsClims[k] = unit(C[k][1][1])
-    end
+#     for k = 1:length(C)
+#         # datatmp[.!isnan.(datatmp)
+#         axisarrays[k] = periodmean(C[k])[1]#[1][.!isnan.(C[k][1])], dims=3)
+#         # unitsClims[k] = unit(C[k][1][1])
+#     end
 
-    # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
-        # if length(unique(unitsClims)) != 1
-        #     throw(error("ClimGrids needs to have the same physical units."))
-        # end
-    # end
+#     # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
+#         # if length(unique(unitsClims)) != 1
+#         #     throw(error("ClimGrids needs to have the same physical units."))
+#         # end
+#     # end
 
-    # ENSEMBLE MAX
-    dataout = maximum(axisarrays)
+#     # ENSEMBLE MAX
+#     dataout = maximum(axisarrays)
 
-    # # reapply unit
-    # dataout = [dataout][1]unitsClims[1]
+#     # # reapply unit
+#     # dataout = [dataout][1]unitsClims[1]
 
-    # Build AxisArray
-    data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
+#     # Build AxisArray
+#     data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
 
-    # Ensemble metadata
-    globalattribs = Dict()
-    globalattribs["history"] = "Ensemble mean"
-    globalattribs["models"] = ""
-    for k = 1:length(C)
-        globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
-    end
+#     # Ensemble metadata
+#     globalattribs = Dict()
+#     globalattribs["history"] = "Ensemble mean"
+#     globalattribs["models"] = ""
+#     for k = 1:length(C)
+#         globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
+#     end
 
-    # Return ClimGrid
-    return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble maximum", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+#     # Return ClimGrid
+#     return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble maximum", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
 
-end
+# end
 
-"""
-    ensemble_min(C::ClimGrid...)
+# """
+#     ensemble_min(C::ClimGrid...)
 
-Returns the Ensemble minimum of climatological means of ClimGrids C..
-"""
-function ensemble_min(C; skipnan=true)
+# Returns the Ensemble minimum of climatological means of ClimGrids C..
+# """
+# function ensemble_min(C; skipnan=true)
 
-    # Create list of AxisArrays contained inside the ClimGrids
-    # Climref = C[1]
-    axisarrays = Array{Any}(undef, length(C))
-    # unitsClims = Array{Any}(undef, length(C))
+#     # Create list of AxisArrays contained inside the ClimGrids
+#     # Climref = C[1]
+#     axisarrays = Array{Any}(undef, length(C))
+#     # unitsClims = Array{Any}(undef, length(C))
 
-    for k = 1:length(C)
-        # datatmp[.!isnan.(datatmp)
-        axisarrays[k] = periodmean(C[k])[1]#[1][.!isnan.(C[k][1])], dims=3)
-        # unitsClims[k] = unit(C[k][1][1])
-    end
+#     for k = 1:length(C)
+#         # datatmp[.!isnan.(datatmp)
+#         axisarrays[k] = periodmean(C[k])[1]#[1][.!isnan.(C[k][1])], dims=3)
+#         # unitsClims[k] = unit(C[k][1][1])
+#     end
 
-    # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
-        # if length(unique(unitsClims)) != 1
-        #     throw(error("ClimGrids needs to have the same physical units."))
-        # end
-    # end
+#     # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
+#         # if length(unique(unitsClims)) != 1
+#         #     throw(error("ClimGrids needs to have the same physical units."))
+#         # end
+#     # end
 
-    # ENSEMBLE MIN
-    dataout = minimum(axisarrays)
+#     # ENSEMBLE MIN
+#     dataout = minimum(axisarrays)
 
-    # # reapply unit
-    # dataout = [dataout][1]unitsClims[1]
+#     # # reapply unit
+#     # dataout = [dataout][1]unitsClims[1]
 
-    # Build AxisArray
-    data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
+#     # Build AxisArray
+#     data_axis = ClimateTools.buildarrayinterface(dataout, C[1])
 
-    # Ensemble metadata
-    globalattribs = Dict()
-    globalattribs["history"] = "Ensemble mean"
-    globalattribs["models"] = ""
-    for k = 1:length(C)
-        globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
-    end
+#     # Ensemble metadata
+#     globalattribs = Dict()
+#     globalattribs["history"] = "Ensemble mean"
+#     globalattribs["models"] = ""
+#     for k = 1:length(C)
+#         globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
+#     end
 
-    # Return ClimGrid
-    return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble minimum", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+#     # Return ClimGrid
+#     return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble minimum", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
 
-end
+# end
 
 function maximum(arrays::Array{Any})
 
@@ -822,57 +550,57 @@ function minimum(arrays::Array{Any})
 end
 
 
-"""
-    polyfit(C::ClimGrid)
+# """
+#     polyfit(C::ClimGrid)
 
-Returns an array of the polynomials functions of each grid points contained in ClimGrid C.
-"""
-function polyfit(C::ClimGrid)
+# Returns an array of the polynomials functions of each grid points contained in ClimGrid C.
+# """
+# function polyfit(C::ClimGrid)
 
-    x = collect(1:length(C[1][Axis{:time}][:]))
-    dataout = Array{Polynomial{typeof(C[1][1,1,1])}}(undef, size(C[1], 1),size(C[1], 2))
+#     x = collect(1:length(C[1][Axis{:time}][:]))
+#     dataout = Array{Polynomial{typeof(C[1][1,1,1])}}(undef, size(C[1], 1),size(C[1], 2))
 
-    # Reshaping for multi-threads
-    datain_rshp = reshape(C[1].data, size(C[1].data,1)*size(C[1].data,2), size(C[1].data,3))
-    dataout_rshp = reshape(dataout, size(dataout,1)*size(dataout,2),size(dataout,3))
+#     # Reshaping for multi-threads
+#     datain_rshp = reshape(C[1].data, size(C[1].data,1)*size(C[1].data,2), size(C[1].data,3))
+#     dataout_rshp = reshape(dataout, size(dataout,1)*size(dataout,2),size(dataout,3))
 
-    # Threads.@threads for k = 1:size(datain_rshp,1)
-    for k = 1:size(datain_rshp,1)
-        y = datain_rshp[k,:]
-        polynomial = Polynomials.fit(x, y, 4)
-        polynomial[0] = 0.0
-        dataout_rshp[k] = polynomial
+#     # Threads.@threads for k = 1:size(datain_rshp,1)
+#     for k = 1:size(datain_rshp,1)
+#         y = datain_rshp[k,:]
+#         polynomial = Polynomials.fit(x, y, 4)
+#         polynomial[0] = 0.0
+#         dataout_rshp[k] = polynomial
 
-    end
+#     end
 
-    return dataout
-end
+#     return dataout
+# end
 
-"""
-    polyval(C::ClimGrid, polynomial::Array{Poly{Float64}})
+# """
+#     polyval(C::ClimGrid, polynomial::Array{Poly{Float64}})
 
-    Returns a ClimGrid containing the values, as estimated from polynomial function polyn.
-"""
-function polyval(C::ClimGrid, polynomial::Array{Polynomial{N},2} where N)
+#     Returns a ClimGrid containing the values, as estimated from polynomial function polyn.
+# """
+# function polyval(C::ClimGrid, polynomial::Array{Polynomial{N},2} where N)
 
-    datain = C[1].data
-    dataout = Array{typeof(C[1][1,1,1])}(undef, (size(C[1], 1), size(C[1],2), size(C[1], 3)))
+#     datain = C[1].data
+#     dataout = Array{typeof(C[1][1,1,1])}(undef, (size(C[1], 1), size(C[1],2), size(C[1], 3)))
 
-    # Reshape
-    datain_rshp = reshape(datain, size(datain,1)*size(datain,2),size(datain,3))
-    dataout_rshp = reshape(dataout, size(dataout,1)*size(dataout,2),size(dataout,3))
-    polynomial_rshp = reshape(polynomial, size(polynomial,1)*size(polynomial,2))
+#     # Reshape
+#     datain_rshp = reshape(datain, size(datain,1)*size(datain,2),size(datain,3))
+#     dataout_rshp = reshape(dataout, size(dataout,1)*size(dataout,2),size(dataout,3))
+#     polynomial_rshp = reshape(polynomial, size(polynomial,1)*size(polynomial,2))
 
-    # Threads.@threads for k = 1:size(datain_rshp,1)
-    for k = 1:size(datain_rshp,1)
-        val = polynomial_rshp[k].(datain_rshp[k,:])
-        dataout_rshp[k,:] = val
-    end
+#     # Threads.@threads for k = 1:size(datain_rshp,1)
+#     for k = 1:size(datain_rshp,1)
+#         val = polynomial_rshp[k].(datain_rshp[k,:])
+#         dataout_rshp[k,:] = val
+#     end
 
-    dataout2 = buildarrayinterface(dataout, C)
+#     dataout2 = buildarrayinterface(dataout, C)
 
-    return ClimGrid(dataout2; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
-end
+#     return ClimGrid(dataout2; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+# end
 
 """
     extension(url::String)
@@ -948,49 +676,49 @@ function get_threshold(obsvec, refvec; thres=0.95)
     return mean([quantile(obsvec[obsvec .>= 1.0],thres) quantile(refvec[refvec .>= 1.0], thres)])
 end
 
-function timestep(C::ClimGrid, ts::Tuple)
-    D = temporalsubset(C, ts, ts)
-end
+# function timestep(C::ClimGrid, ts::Tuple)
+#     D = temporalsubset(C, ts, ts)
+# end
 
-function timestep(C::ClimGrid, ts::Int)
-    timevec = get_timevec(C)
-    d = timevec[ts]
-    t = (year(d), month(d), day(d))
-    D = temporalsubset(C, t, t)
-end
+# function timestep(C::ClimGrid, ts::Int)
+#     timevec = get_timevec(C)
+#     d = timevec[ts]
+#     t = (year(d), month(d), day(d))
+#     D = temporalsubset(C, t, t)
+# end
 
-function timestep(C::ClimGrid, d)
-    t = (year(d), month(d), day(d), hour(d), minute(d), second(d))
-    D = temporalsubset(C, t, t)
-end
+# function timestep(C::ClimGrid, d)
+#     t = (year(d), month(d), day(d), hour(d), minute(d), second(d))
+#     D = temporalsubset(C, t, t)
+# end
 
-function get_max_clusters(x::Vector{Cluster})
+# function get_max_clusters(x::Vector{Cluster})
 
     
-    dataout = Array{typeof(x[1].value[1])}(undef,0)
+#     dataout = Array{typeof(x[1].value[1])}(undef,0)
 
-    for i = eachindex(x)        
-        append!(dataout, x[i].value)
-    end
-
-
-    return dataout
-
-end
-
-function get_position_clusters(x::Vector{Cluster})
-
-    dataout = Array{Int}(undef, 0)
-
-    for i = eachindex(x)
-        append!(dataout, x[i].position)
-        #dataout[i] = x[i].position[1]
-    end
+#     for i = eachindex(x)        
+#         append!(dataout, x[i].value)
+#     end
 
 
-    return dataout
+#     return dataout
 
-end
+# end
+
+# function get_position_clusters(x::Vector{Cluster})
+
+#     dataout = Array{Int}(undef, 0)
+
+#     for i = eachindex(x)
+#         append!(dataout, x[i].position)
+#         #dataout[i] = x[i].position[1]
+#     end
+
+
+#     return dataout
+
+# end
 
 
 """
@@ -1001,217 +729,217 @@ Calculate mean while omitting NaN, Inf, etc.
 finitemean(x) = mean(filter(x -> !isnan(x)&isfinite(x),x))
 finitemean(x,y) = mapslices(finitemean,x,dims=y)
 
-"""
-    periodmean(C::ClimGrid; startdate::Tuple, enddate::Tuple)
+# """
+#     periodmean(C::ClimGrid; startdate::Tuple, enddate::Tuple)
 
-Mean of array data over a given period.
-"""
-function periodmean(C::ClimGrid; level=1, start_date::Tuple=(Inf, ), end_date::Tuple=(Inf,))
+# Mean of array data over a given period.
+# """
+# function periodmean(C::ClimGrid; level=1, start_date::Tuple=(Inf, ), end_date::Tuple=(Inf,))
 
-    if start_date != (Inf,) || end_date != (Inf,)
-        C = temporalsubset(C, start_date, end_date)
-    end
+#     if start_date != (Inf,) || end_date != (Inf,)
+#         C = temporalsubset(C, start_date, end_date)
+#     end
 
-    datain = C.data.data
+#     datain = C.data.data
 
-    # Mean and squeeze
-    if ndims(datain) == 2
-        dataout = datain
-    elseif ndims(datain) == 3
-        if size(datain, 3) == 1 # already an average on single value
-            dataout = dropdims(datain, dims=3)
-        else
-            dataout = dropdims(finitemean(datain, 3), dims=3)
-        end
-    elseif ndims(datain) == 4
-        datain_lev = datain[:,:,level,:] # extract level
-        if size(datain_lev, 3) == 1
-            dataout = dropdims(datain_lev, dims=3)
-        else
-            dataout = dropdims(finitemean(datain_lev, 3), dims=3)
-        end
-    end
+#     # Mean and squeeze
+#     if ndims(datain) == 2
+#         dataout = datain
+#     elseif ndims(datain) == 3
+#         if size(datain, 3) == 1 # already an average on single value
+#             dataout = dropdims(datain, dims=3)
+#         else
+#             dataout = dropdims(finitemean(datain, 3), dims=3)
+#         end
+#     elseif ndims(datain) == 4
+#         datain_lev = datain[:,:,level,:] # extract level
+#         if size(datain_lev, 3) == 1
+#             dataout = dropdims(datain_lev, dims=3)
+#         else
+#             dataout = dropdims(finitemean(datain_lev, 3), dims=3)
+#         end
+#     end
 
-    # Build output AxisArray
-    FD = buildarray_climato(C, dataout)
+#     # Build output AxisArray
+#     FD = buildarray_climato(C, dataout)
 
-    # Return climGrid type containing the indice
-    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
-end
+#     # Return climGrid type containing the indice
+#     return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
+# end
 
-"""
-    verticalmean(C::ClimGrid; startdate::Tuple, enddate::Tuple)
+# """
+#     verticalmean(C::ClimGrid; startdate::Tuple, enddate::Tuple)
 
-Mean of array data over all vertical levels.
-"""
-function verticalmean(C::ClimGrid)
+# Mean of array data over all vertical levels.
+# """
+# function verticalmean(C::ClimGrid)
 
-    datain = C.data.data
+#     datain = C.data.data
 
-    if ndims(datain) < 4
-        error("There is no vertical levels in the dataset")
-    end
+#     if ndims(datain) < 4
+#         error("There is no vertical levels in the dataset")
+#     end
 
-    if size(datain, 3) == 1 # Only one vertical level
-        dataout = dropdims(datain[:, :, :, :], dims = 3)
-    else
-        dataout = dropdims(finitemean(datain, 3), dims=3)
-    end
+#     if size(datain, 3) == 1 # Only one vertical level
+#         dataout = dropdims(datain[:, :, :, :], dims = 3)
+#     else
+#         dataout = dropdims(finitemean(datain, 3), dims=3)
+#     end
 
-    # Build output AxisArray
-    FD = buildarray_verticalmean(C, dataout)
+#     # Build output AxisArray
+#     FD = buildarray_verticalmean(C, dataout)
 
-    # Return climGrid type containing the indice
-    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
-end
+#     # Return climGrid type containing the indice
+#     return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
+# end
 
-function buildarray_climato(C::ClimGrid, dataout)
-    lonsymbol = Symbol(C.dimension_dict["lon"])
-    latsymbol = Symbol(C.dimension_dict["lat"])
-    if ndims(dataout) == 2 # original was a 3D field
-        FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}].val), Axis{latsymbol}(C[1][Axis{latsymbol}].val))
-    elseif ndims(dataout) == 3 # original was a 4D field
-        levsymbol = Symbol(C.dimension_dict["height"])
-        FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}].val), Axis{latsymbol}(C[1][Axis{latsymbol}].val), Axis{levsymbol}(C[1][Axis{levsymbol}].val))
-    end
-    return FD
-end
+# function buildarray_climato(C::ClimGrid, dataout)
+#     lonsymbol = Symbol(C.dimension_dict["lon"])
+#     latsymbol = Symbol(C.dimension_dict["lat"])
+#     if ndims(dataout) == 2 # original was a 3D field
+#         FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}].val), Axis{latsymbol}(C[1][Axis{latsymbol}].val))
+#     elseif ndims(dataout) == 3 # original was a 4D field
+#         levsymbol = Symbol(C.dimension_dict["height"])
+#         FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}].val), Axis{latsymbol}(C[1][Axis{latsymbol}].val), Axis{levsymbol}(C[1][Axis{levsymbol}].val))
+#     end
+#     return FD
+# end
 
-function buildarray_verticalmean(C::ClimGrid, dataout)
-    lonsymbol = Symbol(C.dimension_dict["lon"])
-    latsymbol = Symbol(C.dimension_dict["lat"])
-    timesymbol = Symbol(C.dimension_dict["time"])
+# function buildarray_verticalmean(C::ClimGrid, dataout)
+#     lonsymbol = Symbol(C.dimension_dict["lon"])
+#     latsymbol = Symbol(C.dimension_dict["lat"])
+#     timesymbol = Symbol(C.dimension_dict["time"])
 
-    FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}].val), Axis{latsymbol}(C[1][Axis{latsymbol}].val), Axis{timesymbol}(C[1][Axis{timesymbol}].val))
+#     FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}].val), Axis{latsymbol}(C[1][Axis{latsymbol}].val), Axis{timesymbol}(C[1][Axis{timesymbol}].val))
 
-    return FD
-end
+#     return FD
+# end
 
-function buildarrayinterface(axisArraytmp, A)
-    latsymbol = Symbol(A.dimension_dict["lat"])
-    lonsymbol = Symbol(A.dimension_dict["lon"])
-    if ndims(axisArraytmp) == 2
-        axisArray = AxisArray(axisArraytmp, Axis{lonsymbol}(A[1][Axis{lonsymbol}].val), Axis{latsymbol}(A[1][Axis{latsymbol}].val))
-    elseif ndims(axisArraytmp) == 3
-        axisArray = AxisArray(axisArraytmp, Axis{lonsymbol}(A[1][Axis{lonsymbol}].val), Axis{latsymbol}(A[1][Axis{latsymbol}].val), Axis{:time}(A[1][Axis{:time}].val))
-    elseif ndims(axisArraytmp) == 4
-        axisArray = AxisArray(axisArraytmp, Axis{lonsymbol}(A[1][Axis{lonsymbol}].val), Axis{latsymbol}(A[1][Axis{latsymbol}].val), Axis{:plev}(A[1][Axis{:plev}].val), Axis{:time}(A[1][Axis{:time}].val))
-    end
-    return axisArray
-end
+# function buildarrayinterface(axisArraytmp, A)
+#     latsymbol = Symbol(A.dimension_dict["lat"])
+#     lonsymbol = Symbol(A.dimension_dict["lon"])
+#     if ndims(axisArraytmp) == 2
+#         axisArray = AxisArray(axisArraytmp, Axis{lonsymbol}(A[1][Axis{lonsymbol}].val), Axis{latsymbol}(A[1][Axis{latsymbol}].val))
+#     elseif ndims(axisArraytmp) == 3
+#         axisArray = AxisArray(axisArraytmp, Axis{lonsymbol}(A[1][Axis{lonsymbol}].val), Axis{latsymbol}(A[1][Axis{latsymbol}].val), Axis{:time}(A[1][Axis{:time}].val))
+#     elseif ndims(axisArraytmp) == 4
+#         axisArray = AxisArray(axisArraytmp, Axis{lonsymbol}(A[1][Axis{lonsymbol}].val), Axis{latsymbol}(A[1][Axis{latsymbol}].val), Axis{:plev}(A[1][Axis{:plev}].val), Axis{:time}(A[1][Axis{:time}].val))
+#     end
+#     return axisArray
+# end
 
-function buildarray_annual(C::ClimGrid, dataout, numYears)
-    lonsymbol = Symbol(C.dimension_dict["lon"])
-    latsymbol = Symbol(C.dimension_dict["lat"])
-    FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}].val), Axis{latsymbol}(C[1][Axis{latsymbol}].val), Axis{:time}(Dates.year.(DateTime.(numYears))))
-    return FD
-end
+# function buildarray_annual(C::ClimGrid, dataout, numYears)
+#     lonsymbol = Symbol(C.dimension_dict["lon"])
+#     latsymbol = Symbol(C.dimension_dict["lat"])
+#     FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}].val), Axis{latsymbol}(C[1][Axis{latsymbol}].val), Axis{:time}(Dates.year.(DateTime.(numYears))))
+#     return FD
+# end
 
-function buildarray_resample(C::ClimGrid, dataout, newtime)
-    lonsymbol = Symbol(C.dimension_dict["lon"])
-    latsymbol = Symbol(C.dimension_dict["lat"])
-    FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}].val), Axis{latsymbol}(C[1][Axis{latsymbol}].val), Axis{:time}(newtime))
-    return FD
-end
+# function buildarray_resample(C::ClimGrid, dataout, newtime)
+#     lonsymbol = Symbol(C.dimension_dict["lon"])
+#     latsymbol = Symbol(C.dimension_dict["lat"])
+#     FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}].val), Axis{latsymbol}(C[1][Axis{latsymbol}].val), Axis{:time}(newtime))
+#     return FD
+# end
 
 
-"""
-    function temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
+# """
+#     function temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
 
-Returns the temporal subset of ClimGrid C. The temporal subset is defined by a start and end date.
+# Returns the temporal subset of ClimGrid C. The temporal subset is defined by a start and end date.
 
-"""
-function temporalsubset(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
+# """
+# function temporalsubset(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
 
-    T = typeof(get_timevec(C)[1])
-    timeV = get_timevec(C)
-    idxtimebeg, idxtimeend = timeindex(timeV, datebeg, dateend, T)
+#     T = typeof(get_timevec(C)[1])
+#     timeV = get_timevec(C)
+#     idxtimebeg, idxtimeend = timeindex(timeV, datebeg, dateend, T)
 
-    # startdate = buildtimetype(datebeg, T)
-    # enddate = buildtimetype(dateend, T)
+#     # startdate = buildtimetype(datebeg, T)
+#     # enddate = buildtimetype(dateend, T)
 
-    # some checkups
-    @argcheck idxtimebeg <= idxtimeend
+#     # some checkups
+#     @argcheck idxtimebeg <= idxtimeend
 
-    dataOut = C[1][Axis{:time}(idxtimebeg:idxtimeend)]
+#     dataOut = C[1][Axis{:time}(idxtimebeg:idxtimeend)]
 
-    # The following control ensure that a 1-timestep temporal subset returns a 3D Array with time information on the timestep. i.e. startdate == enddate
-    if ndims(dataOut) == 2
-        timeV = startdate
-        latsymbol = Symbol(C.dimension_dict["lat"])
-        lonsymbol = Symbol(C.dimension_dict["lon"])
-        data2 = fill(NaN, (size(dataOut,1), size(dataOut, 2), 1))
-        data2[:,:,1] = dataOut
-        dataOut = AxisArray(data2, Axis{lonsymbol}(C[1][Axis{lonsymbol}].val), Axis{latsymbol}(C[1][Axis{latsymbol}].val), Axis{:time}(C[1][Axis{:time}].val))
+#     # The following control ensure that a 1-timestep temporal subset returns a 3D Array with time information on the timestep. i.e. startdate == enddate
+#     if ndims(dataOut) == 2
+#         timeV = startdate
+#         latsymbol = Symbol(C.dimension_dict["lat"])
+#         lonsymbol = Symbol(C.dimension_dict["lon"])
+#         data2 = fill(NaN, (size(dataOut,1), size(dataOut, 2), 1))
+#         data2[:,:,1] = dataOut
+#         dataOut = AxisArray(data2, Axis{lonsymbol}(C[1][Axis{lonsymbol}].val), Axis{latsymbol}(C[1][Axis{latsymbol}].val), Axis{:time}(C[1][Axis{:time}].val))
 
-    end
+#     end
 
-    return ClimGrid(dataOut, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+#     return ClimGrid(dataOut, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
-end
+# end
 
-"""
-    get_timevec(C::ClimGrid)
+# """
+#     get_timevec(C::ClimGrid)
 
-Returns time vector of ClimGrid C.
-"""
-get_timevec(C::ClimGrid) = C[1][Axis{:time}][:]
+# Returns time vector of ClimGrid C.
+# """
+# get_timevec(C::ClimGrid) = C[1][Axis{:time}][:]
 
-"""
-    buildtimetype(datetuple, f)
+# """
+#     buildtimetype(datetuple, f)
 
-Returns the adequate DateTime for temporal subsetting using DateType *f*
-"""
-function buildtimetype(date_tuple, f)
+# Returns the adequate DateTime for temporal subsetting using DateType *f*
+# """
+# function buildtimetype(date_tuple, f)
 
-    if length(date_tuple) == 1
-        dateout = f(date_tuple[1], 01, 01)
-    elseif length(date_tuple) == 2
-        dateout = f(date_tuple[1], date_tuple[2], 01)
-    elseif length(date_tuple) == 3
-        dateout = f(date_tuple[1], date_tuple[2], date_tuple[3])
-    elseif length(date_tuple) == 4
-        dateout = f(date_tuple[1], date_tuple[2], date_tuple[3], date_tuple[4], 00, 00)
-    elseif length(date_tuple) == 5
-        dateout = f(date_tuple[1], date_tuple[2], date_tuple[3], date_tuple[4], date_tuple[5], 00)
-    elseif length(date_tuple) == 6
-        dateout = f(date_tuple[1], date_tuple[2], date_tuple[3], date_tuple[4], date_tuple[5], date_tuple[6])
-    end
+#     if length(date_tuple) == 1
+#         dateout = f(date_tuple[1], 01, 01)
+#     elseif length(date_tuple) == 2
+#         dateout = f(date_tuple[1], date_tuple[2], 01)
+#     elseif length(date_tuple) == 3
+#         dateout = f(date_tuple[1], date_tuple[2], date_tuple[3])
+#     elseif length(date_tuple) == 4
+#         dateout = f(date_tuple[1], date_tuple[2], date_tuple[3], date_tuple[4], 00, 00)
+#     elseif length(date_tuple) == 5
+#         dateout = f(date_tuple[1], date_tuple[2], date_tuple[3], date_tuple[4], date_tuple[5], 00)
+#     elseif length(date_tuple) == 6
+#         dateout = f(date_tuple[1], date_tuple[2], date_tuple[3], date_tuple[4], date_tuple[5], date_tuple[6])
+#     end
 
-    return dateout
-end
+#     return dateout
+# end
 
-"""
-    timeindex(timeVec, start_date, end_date, T)
+# """
+#     timeindex(timeVec, start_date, end_date, T)
 
-Return the index of time vector specified by start_date and end_date. T is the DateTime type (see NCDatasets.jl documentation).
-"""
-function timeindex(timeV, datebeg::Tuple, dateend::Tuple, T)
+# Return the index of time vector specified by start_date and end_date. T is the DateTime type (see NCDatasets.jl documentation).
+# """
+# function timeindex(timeV, datebeg::Tuple, dateend::Tuple, T)
 
-    # Start Date
-    if !isinf(datebeg[1])
-        # Build DateTime type
-        start_date = buildtimetype(datebeg, T)
-        # @argcheck start_date >= timeV[1]
-        idxtimebeg = findfirst(timeV .>= start_date)[1]
-    else
-        idxtimebeg = 1
-    end
-    # End date
-    if !isinf(dateend[1])
-        # Build DateTime type
-        end_date = buildtimetype(dateend, T)
-        # @argcheck end_date <= timeV[end]
-        idxtimeend = findlast(timeV .<= end_date)[1]
-    else
-        idxtimeend = length(timeV)
-    end
+#     # Start Date
+#     if !isinf(datebeg[1])
+#         # Build DateTime type
+#         start_date = buildtimetype(datebeg, T)
+#         # @argcheck start_date >= timeV[1]
+#         idxtimebeg = findfirst(timeV .>= start_date)[1]
+#     else
+#         idxtimebeg = 1
+#     end
+#     # End date
+#     if !isinf(dateend[1])
+#         # Build DateTime type
+#         end_date = buildtimetype(dateend, T)
+#         # @argcheck end_date <= timeV[end]
+#         idxtimeend = findlast(timeV .<= end_date)[1]
+#     else
+#         idxtimeend = length(timeV)
+#     end
 
-    if !isinf(datebeg[1]) && !isinf(dateend[1])
-        @argcheck start_date <= end_date
-    end
-    return idxtimebeg, idxtimeend
-end
+#     if !isinf(datebeg[1]) && !isinf(dateend[1])
+#         @argcheck start_date <= end_date
+#     end
+#     return idxtimebeg, idxtimeend
+# end
 
 
 # """

@@ -13,15 +13,16 @@ Compute the daily sum of ERA5 land data. **used internally**
 - Missing values are represented as `missing` in the input array and are replaced with `NaN` before computation.
 
 """
-function ERA5Land_dailysum(xout, xin; index_list = time_to_index)
+function ERA5Land_dailysum(xout, xin; index_list)
     
     xout .= NaN
     if !all(ismissing, xin)
         for i in eachindex(index_list)
             data = view(xin, index_list[i])
+            # data = xin[index_list[i]]
             if !all(ismissing, data)
                 diffxin = Base.diff(replace(data, missing => NaN))
-                xout[i] = sum(.!isnan.(diffxin))
+                xout[i] = sum(diffxin[.!isnan.(diffxin)])
             end
         end        
     end    
@@ -49,16 +50,15 @@ function ERA5Land_dailysum(cube::YAXArray; keep_1stday=false, kwargs...)
     new_dates = unique(time_index)
     
     if keep_1stday
-        firstindex = 1        
+        firstidx = 1        
     else
-        firstindex = 2
+        firstidx = 2
     end
-    index_in_cube = [findall(==(i), time_index) for i in unique(time_index)][firstindex:end]    
+    index_in_cube = [findall(==(i), time_index) for i in unique(time_index)][firstidx:end]    
     
     # Dimensions
-    indims = InDims("Ti")
-    # outdims = OutDims(RangeAxis("time", dates_builder_yearmonthday(new_dates[firstindex:end])))
-    outdims = OutDims(Dim{:Ti}(dates_builder_yearmonthday(new_dates[firstindex:end])))
+    indims = InDims("time")    
+    outdims = OutDims(Dim{:time}(dates_builder_yearmonthday(new_dates[firstidx:end])))
     
     return mapCube(ERA5Land_dailysum, cube, indims=indims, outdims=outdims, index_list=index_in_cube)
     
