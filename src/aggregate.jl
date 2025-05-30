@@ -67,7 +67,7 @@ function daily_max_mean_min(cube::YAXArray, kwargs...)
     # outdims = OutDims(RangeAxis("time", dates_builder_yearmonthday(new_dates)), CategoricalAxis("stats",["max","mean","min"]))
     outdims = OutDims(Dim{:time}(dates_builder_yearmonthday(new_dates)), CategoricalAxis("stats",["max","mean","min"]))
     
-    mapCube(daily_max_mean_min, cube, indims=indims, outdims=outdims, index_list=index_in_cube)
+    mapCube(daily_max_mean_min, cube, indims=indims, outdims=outdims, index_list=index_in_cube, nthreads=Threads.nthreads())
 end
 
 
@@ -89,7 +89,7 @@ function percentiles(cube::YAXArray, quantiles=[0.1, 0.5, 0.9];lonname="longitud
     indims = InDims("number")    
     outdims = OutDims("time", lonname, latname)
     
-    mapCube(percentiles, cube, indims=indims, outdims=outdims, quantiles=quantiles)
+    mapCube(percentiles, cube, indims=indims, outdims=outdims, quantiles=quantiles, nthreads=Threads.nthreads())
 end
 
 """
@@ -127,7 +127,7 @@ function diff(cube::YAXArray)
     indims = InDims("time")    
     outdims = OutDims("time")
     
-    mapCube(diff, cube, indims=indims, outdims=outdims)
+    mapCube(diff, cube, indims=indims, outdims=outdims, nthreads=Threads.nthreads())
 end
 
 """
@@ -164,7 +164,7 @@ function cumsum(cube::YAXArray, kwargs...)
     indims = InDims("time")    
     outdims = OutDims("time")
     
-    mapCube(cumsum, cube, indims=indims, outdims=outdims)
+    mapCube(cumsum, cube, indims=indims, outdims=outdims, nthreads=Threads.nthreads())
 end
 
 
@@ -221,7 +221,7 @@ function daily_fct(cube::YAXArray; fct::Function=mean, shifthour=0, kwargs...)
     indims = InDims("time")        
     outdims = OutDims(Dim{:time}(dates_builder_yearmonthday(new_dates)))
     
-    mapCube(daily_fct, cube, indims=indims, outdims=outdims, fct=fct, index_list=index_in_cube)
+    mapCube(daily_fct, cube, indims=indims, outdims=outdims, fct=fct, index_list=index_in_cube, nthreads=Threads.nthreads())
 end
 
 
@@ -263,7 +263,7 @@ function yearly_clim(cube::YAXArray; fct::Function=mean, kwargs...)
     indims = InDims("time")        
     outdims = OutDims(Dim{:time}(dates_builder_yearmonthday_hardcode(new_dates, imois=7, iday=1)))
 
-    mapCube(yearly_clim, cube, fct=fct, indims=indims, outdims=outdims, index_list=index_in_cube)
+    mapCube(yearly_clim, cube, fct=fct, indims=indims, outdims=outdims, index_list=index_in_cube, nthreads=Threads.nthreads())
 end
 
 """
@@ -298,5 +298,5 @@ function daily_max(cube::YAXArray, kwargs...)
     indims = InDims("time")        
     outdims = OutDims(Dim{:time}(dates_builder_yearmonthday(new_dates)))
     
-    mapCube(daily_max, cube, indims=indims, outdims=outdims, index_list=index_in_cube)
+    mapCube(daily_max, cube, indims=indims, outdims=outdims, index_list=index_in_cube, nthreads=Threads.nthreads())
 end

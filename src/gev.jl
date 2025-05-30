@@ -20,7 +20,7 @@ function rlevels_cube(xout, xin; threshold=nothing, rlevels = [1, 2, 5, 10, 25, 
 
             xout .= [x.value[1] for x in r_h]
 
-        else            
+        else       
             xout .= missing
             return
         end
