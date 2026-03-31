@@ -48,4 +48,5 @@ using Dates
     # Plots.density!(fut[:,3,3].data, linewidth=2.5,label="FUT")
     # Plots.density!(qq[:,3,3].data, linewidth=2.5,label="QQ")
 
+    include("aggregate_test.jl")
 end

@@ -1,69 +1,69 @@
 
 
-"""
-    resample(C::ClimGrid, startmonth::Int64, endmonth::Int64)
+# """
+#     resample(C::ClimGrid, startmonth::Int64, endmonth::Int64)
 
-Return a resampled subset of ClimGrid C based on months.
-"""
-function resample(C::ClimGrid, startmonth::Int64, endmonth::Int64)
+# Return a resampled subset of ClimGrid C based on months.
+# """
+# function resample(C::ClimGrid, startmonth::Int64, endmonth::Int64)
 
-    @argcheck startmonth >= minimum(Dates.month.(C[1][Axis{:time}][:]))
-    @argcheck startmonth <= maximum(Dates.month.(C[1][Axis{:time}][:]))
+#     @argcheck startmonth >= minimum(Dates.month.(C[1][Axis{:time}][:]))
+#     @argcheck startmonth <= maximum(Dates.month.(C[1][Axis{:time}][:]))
 
-    if startmonth <= endmonth
-        # Each matrix [:,:,i] represent data for a day
-        datain = C.data.data
-        # Date vector
-        datevecin = C[1][Axis{:time}][:]
-        # Where are the data between startmonth and endmonth
-        index = (Dates.month.(datevecin) .<= endmonth) .&  (Dates.month.(datevecin) .>= startmonth)
-        # Keep only data between startmonth and endmonth
-        dataout = datain[:,:,index]
-        datevecout = datevecin[index]
-        # Create the ClimGrid output
-        lonsymbol = Symbol(C.dimension_dict["lon"])
-        latsymbol = Symbol(C.dimension_dict["lat"])
-        axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]),    Axis{:time}(datevecout))
+#     if startmonth <= endmonth
+#         # Each matrix [:,:,i] represent data for a day
+#         datain = C.data.data
+#         # Date vector
+#         datevecin = C[1][Axis{:time}][:]
+#         # Where are the data between startmonth and endmonth
+#         index = (Dates.month.(datevecin) .<= endmonth) .&  (Dates.month.(datevecin) .>= startmonth)
+#         # Keep only data between startmonth and endmonth
+#         dataout = datain[:,:,index]
+#         datevecout = datevecin[index]
+#         # Create the ClimGrid output
+#         lonsymbol = Symbol(C.dimension_dict["lon"])
+#         latsymbol = Symbol(C.dimension_dict["lat"])
+#         axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]),    Axis{:time}(datevecout))
 
-    elseif endmonth < startmonth
-        # Each matrix [:,:,i] represent data for a day
-        datain = C.data.data
-        # Date vector
-        datevecin = C[1][Axis{:time}][:]
-        # Where are the data between startmonth and endmonth
-        index = (Dates.month.(datevecin) .<= endmonth) .|  (Dates.month.(datevecin) .>= startmonth)
-        # Keep only data between startmonth and endmonth
-        dataout = datain[:,:,index]
-        datevecout = datevecin[index]
-        # Create the ClimGrid output
-        lonsymbol = Symbol(C.dimension_dict["lon"])
-        latsymbol = Symbol(C.dimension_dict["lat"])
-        axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(datevecout))
-    end
+#     elseif endmonth < startmonth
+#         # Each matrix [:,:,i] represent data for a day
+#         datain = C.data.data
+#         # Date vector
+#         datevecin = C[1][Axis{:time}][:]
+#         # Where are the data between startmonth and endmonth
+#         index = (Dates.month.(datevecin) .<= endmonth) .|  (Dates.month.(datevecin) .>= startmonth)
+#         # Keep only data between startmonth and endmonth
+#         dataout = datain[:,:,index]
+#         datevecout = datevecin[index]
+#         # Create the ClimGrid output
+#         lonsymbol = Symbol(C.dimension_dict["lon"])
+#         latsymbol = Symbol(C.dimension_dict["lat"])
+#         axisout = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}][:]), Axis{latsymbol}(C[1][Axis{latsymbol}][:]), Axis{:time}(datevecout))
+#     end
 
-    return ClimGrid(axisout, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping,dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project,institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable,typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
-end
+#     return ClimGrid(axisout, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping,dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project,institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable,typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+# end
 
-"""
-    resample(C::ClimGrid, season::String)
+# """
+#     resample(C::ClimGrid, season::String)
 
-Return a resampled subset of ClimGrid C for a given season. Season options are: "DJF" (December-February), "MAM" (March-May), "JJA" (June-August), "SON" (September-November)
-"""
-function resample(C::ClimGrid, season::String)
-    if lowercase(season) == "djf"
-      D = resample(C, 12, 2)
-    elseif lowercase(season) == "mam"
-      D = resample(C, 3, 5)
-    elseif lowercase(season) == "jja"
-      D = resample(C, 6, 8)
-    elseif lowercase(season) == "son"
-      D = resample(C, 9, 11)
-    else
-      error("Wrong season name. Options are DJF (December-February; Winter), MAM (March-May; Spring), JJA (June-August; Summer) and SON (September-November; Fall)")
-    end
+# Return a resampled subset of ClimGrid C for a given season. Season options are: "DJF" (December-February), "MAM" (March-May), "JJA" (June-August), "SON" (September-November)
+# """
+# function resample(C::ClimGrid, season::String)
+#     if lowercase(season) == "djf"
+#       D = resample(C, 12, 2)
+#     elseif lowercase(season) == "mam"
+#       D = resample(C, 3, 5)
+#     elseif lowercase(season) == "jja"
+#       D = resample(C, 6, 8)
+#     elseif lowercase(season) == "son"
+#       D = resample(C, 9, 11)
+#     else
+#       error("Wrong season name. Options are DJF (December-February; Winter), MAM (March-May; Spring), JJA (June-August; Summer) and SON (September-November; Fall)")
+#     end
 
-    return D
-end
+#     return D
+# end
 
 
 # function timeindex(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
@@ -106,145 +106,145 @@ end
 
 
 
-"""
-    daymean(C::ClimGrid)
+# """
+#     daymean(C::ClimGrid)
 
-Returns the daily average given a sub-daily ClimGrid.
-"""
-function daymean(C::ClimGrid)
+# Returns the daily average given a sub-daily ClimGrid.
+# """
+# function daymean(C::ClimGrid)
 
-    datain = C[1].data
-    timevec   = get_timevec(C)
-    T = typeof(timevec[1])
+#     datain = C[1].data
+#     timevec   = get_timevec(C)
+#     T = typeof(timevec[1])
 
-    nbdays = unique(yearmonthday.(timevec))
-    nbdays_len = length(nbdays)
-    dataout = Array{typeof(datain[1])}(undef, (size(C[1], 1), size(C[1], 2), nbdays_len))
-    newtime = Array{T}(undef, nbdays_len)
+#     nbdays = unique(yearmonthday.(timevec))
+#     nbdays_len = length(nbdays)
+#     dataout = Array{typeof(datain[1])}(undef, (size(C[1], 1), size(C[1], 2), nbdays_len))
+#     newtime = Array{T}(undef, nbdays_len)
 
-    # loop over year-month-days
-    Threads.@threads for iday in 1:nbdays_len
+#     # loop over year-month-days
+#     Threads.@threads for iday in 1:nbdays_len
 
-        daytmp = nbdays[iday]
-        datefind = T(daytmp[1], daytmp[2], daytmp[3])
-        idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind) && Dates.day(x) == Dates.day(datefind), timevec)
+#         daytmp = nbdays[iday]
+#         datefind = T(daytmp[1], daytmp[2], daytmp[3])
+#         idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind) && Dates.day(x) == Dates.day(datefind), timevec)
 
-        dataout[:, :, iday] = Statistics.mean(datain[:, :, idx], dims=3)
-        newtime[iday] = datefind
+#         dataout[:, :, iday] = Statistics.mean(datain[:, :, idx], dims=3)
+#         newtime[iday] = datefind
 
-    end
+#     end
 
-    # Build output AxisArray
-    FD = buildarray_resample(C, dataout, newtime)
+#     # Build output AxisArray
+#     FD = buildarray_resample(C, dataout, newtime)
 
-    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+#     return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
-end
+# end
 
-"""
-    daysum(C::ClimGrid)
+# """
+#     daysum(C::ClimGrid)
 
-Returns the daily sum given a sub-daily ClimGrid C.
-"""
-function daysum(C::ClimGrid)
+# Returns the daily sum given a sub-daily ClimGrid C.
+# """
+# function daysum(C::ClimGrid)
 
-    datain = C[1].data
-    timevec   = get_timevec(C)
-    T = typeof(timevec[1])
+#     datain = C[1].data
+#     timevec   = get_timevec(C)
+#     T = typeof(timevec[1])
 
-    nbdays = unique(yearmonthday.(timevec))
-    nbdays_len = length(nbdays)
-    dataout = Array{typeof(datain[1])}(undef, (size(C[1], 1), size(C[1], 2), nbdays_len))
-    newtime = Array{T}(undef, nbdays_len)
+#     nbdays = unique(yearmonthday.(timevec))
+#     nbdays_len = length(nbdays)
+#     dataout = Array{typeof(datain[1])}(undef, (size(C[1], 1), size(C[1], 2), nbdays_len))
+#     newtime = Array{T}(undef, nbdays_len)
 
-    # loop over year-month-days
-    Threads.@threads for iday in 1:nbdays_len
+#     # loop over year-month-days
+#     Threads.@threads for iday in 1:nbdays_len
 
-        daytmp = nbdays[iday]
-        datefind = T(daytmp[1], daytmp[2], daytmp[3])
-        idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind) && Dates.day(x) == Dates.day(datefind), timevec)
+#         daytmp = nbdays[iday]
+#         datefind = T(daytmp[1], daytmp[2], daytmp[3])
+#         idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind) && Dates.day(x) == Dates.day(datefind), timevec)
 
-        dataout[:, :, iday] = Statistics.sum(datain[:, :, idx], dims=3)
-        newtime[iday] = datefind
+#         dataout[:, :, iday] = Statistics.sum(datain[:, :, idx], dims=3)
+#         newtime[iday] = datefind
 
-    end
+#     end
 
-    # Build output AxisArray
-    FD = buildarray_resample(C, dataout, newtime)
+#     # Build output AxisArray
+#     FD = buildarray_resample(C, dataout, newtime)
 
-    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+#     return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
-end
+# end
 
-"""
-    monthmean(C::ClimGrid)
+# """
+#     monthmean(C::ClimGrid)
 
-Returns monthly means of ClimGrid C.
-"""
-function monthmean(C::ClimGrid)
+# Returns monthly means of ClimGrid C.
+# """
+# function monthmean(C::ClimGrid)
 
-    datain = C[1].data
-    timevec = get_timevec(C)
-    T = typeof(timevec[1])
+#     datain = C[1].data
+#     timevec = get_timevec(C)
+#     T = typeof(timevec[1])
 
-    nbmonth = unique(yearmonth.(timevec))
-    nbmonth_len = length(nbmonth)
-    dataout = Array{typeof(datain[1])}(undef, (size(C[1], 1), size(C[1], 2), nbmonth_len))
-    newtime = Array{T}(undef, nbmonth_len)
+#     nbmonth = unique(yearmonth.(timevec))
+#     nbmonth_len = length(nbmonth)
+#     dataout = Array{typeof(datain[1])}(undef, (size(C[1], 1), size(C[1], 2), nbmonth_len))
+#     newtime = Array{T}(undef, nbmonth_len)
 
-    # loop over year-month-days
-    Threads.@threads for imonth in 1:nbmonth_len
+#     # loop over year-month-days
+#     Threads.@threads for imonth in 1:nbmonth_len
 
-        monthtmp = nbmonth[imonth]
-        datefind = T(monthtmp[1], monthtmp[2])
-        idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind), timevec)
+#         monthtmp = nbmonth[imonth]
+#         datefind = T(monthtmp[1], monthtmp[2])
+#         idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind), timevec)
 
-        dataout[:, :, imonth] = Statistics.mean(datain[:, :, idx], dims=3)
-        newtime[imonth] = datefind
+#         dataout[:, :, imonth] = Statistics.mean(datain[:, :, idx], dims=3)
+#         newtime[imonth] = datefind
 
-    end
+#     end
 
-    # Build output AxisArray
-    FD = buildarray_resample(C, dataout, newtime)
+#     # Build output AxisArray
+#     FD = buildarray_resample(C, dataout, newtime)
 
-    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+#     return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
-end
+# end
 
-"""
-    monthsum(C::ClimGrid)
+# """
+#     monthsum(C::ClimGrid)
 
-Returns monthly sums of ClimGrid C.
-"""
-function monthsum(C::ClimGrid)
+# Returns monthly sums of ClimGrid C.
+# """
+# function monthsum(C::ClimGrid)
 
-    datain = C[1].data
-    timevec = get_timevec(C)
-    T = typeof(timevec[1])
+#     datain = C[1].data
+#     timevec = get_timevec(C)
+#     T = typeof(timevec[1])
 
-    nbmonth = unique(yearmonth.(timevec))
-    nbmonth_len = length(nbmonth)
-    dataout = Array{typeof(datain[1])}(undef, (size(C[1], 1), size(C[1], 2), nbmonth_len))
-    newtime = Array{T}(undef, nbmonth_len)
+#     nbmonth = unique(yearmonth.(timevec))
+#     nbmonth_len = length(nbmonth)
+#     dataout = Array{typeof(datain[1])}(undef, (size(C[1], 1), size(C[1], 2), nbmonth_len))
+#     newtime = Array{T}(undef, nbmonth_len)
 
-    # loop over year-month-days
-    Threads.@threads for imonth in 1:nbmonth_len
+#     # loop over year-month-days
+#     Threads.@threads for imonth in 1:nbmonth_len
 
-        monthtmp = nbmonth[imonth]
-        datefind = T(monthtmp[1], monthtmp[2])
-        idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind), timevec)
+#         monthtmp = nbmonth[imonth]
+#         datefind = T(monthtmp[1], monthtmp[2])
+#         idx = findall(x -> Dates.year(x) == Dates.year(datefind) && Dates.month(x) == Dates.month(datefind), timevec)
 
-        dataout[:, :, imonth] = Statistics.sum(datain[:, :, idx], dims=3)
-        newtime[imonth] = datefind
+#         dataout[:, :, imonth] = Statistics.sum(datain[:, :, idx], dims=3)
+#         newtime[imonth] = datefind
 
-    end
+#     end
 
-    # Build output AxisArray
-    FD = buildarray_resample(C, dataout, newtime)
+#     # Build output AxisArray
+#     FD = buildarray_resample(C, dataout, newtime)
 
-    return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+#     return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency="day", experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
-end
+# end
 
 """
     timeresolution(timevec::CFVariable)
@@ -343,28 +343,28 @@ function daymean_factor(rez::String)
 
 end
 
-"""
-    dropfeb29(C::ClimGrid)
+# """
+#     dropfeb29(C::ClimGrid)
 
-Removes february 29th. Needed for bias correction.
-"""
-function dropfeb29(C::ClimGrid)
-    date_vec = get_timevec(C) # [1][Axis{:time}][:]
-    f = typeof(date_vec[1])
-    feb29th = (Dates.month.(date_vec) .== Dates.month(f(2000, 2, 2))) .& (Dates.day.(date_vec) .== Dates.day(29))
-    dataout = C[1].data[:, :, .!feb29th] # drop for data
-    date_vec = date_vec[.!feb29th] # drop for calendar
+# Removes february 29th. Needed for bias correction.
+# """
+# function dropfeb29(C::ClimGrid)
+#     date_vec = get_timevec(C) # [1][Axis{:time}][:]
+#     f = typeof(date_vec[1])
+#     feb29th = (Dates.month.(date_vec) .== Dates.month(f(2000, 2, 2))) .& (Dates.day.(date_vec) .== Dates.day(29))
+#     dataout = C[1].data[:, :, .!feb29th] # drop for data
+#     date_vec = date_vec[.!feb29th] # drop for calendar
 
-    datevec_noleap = Array{DateTimeNoLeap}(undef, length(date_vec))
+#     datevec_noleap = Array{DateTimeNoLeap}(undef, length(date_vec))
 
-    for id = 1:size(date_vec, 1)
-        datevec_noleap[id] = reinterpret(DateTimeNoLeap, date_vec[id])
-    end
+#     for id = 1:size(date_vec, 1)
+#         datevec_noleap[id] = reinterpret(DateTimeNoLeap, date_vec[id])
+#     end
 
-    dataout = buildarray_resample(C, dataout, datevec_noleap)
+#     dataout = buildarray_resample(C, dataout, datevec_noleap)
 
-    return ClimGrid(dataout; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
-end
+#     return ClimGrid(dataout; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+# end
 
 """
     leapyears(datevec)

@@ -28,7 +28,14 @@ function dates_builder_yearmonth_hardcode(x, imois)
     return out
 end
 
+function dates_builder_monthly_resample(x)
+    out = DateTime[]
+    for i in eachindex(x)
+        push!(out, DateTime(x[i][1], x[i][2], 15))
+    end
 
+    return out
+end
 
 function dates_builder_yearmonthday(x)
     out = DateTime[]

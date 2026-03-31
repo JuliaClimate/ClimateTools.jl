@@ -37,9 +37,11 @@ include("utils.jl")
 export daily_fct, climato_tp, subsample, dates_builder_yearmonth, dates_builder_yearmonth_hardcode, dates_builder_yearmonthday, dates_builder_yearmonthday_hardcode, diff, cumsum, yearly_clim
 export ERA5Land_dailysum
 export m2mm
-export yearly_clim
+export yearly_resample
+export monthly_resample
 export quantiles
 export regrid_cube
+export regrid_curvilinear_to_regular, regrid_rotated_curvilinear_to_regular
 export qqmap, qqmap_bulk
 export ensemble_fct
 export autocorrelation

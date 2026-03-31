@@ -257,6 +257,39 @@ julia> mapclimgrid(modelinterp, region = "Quebec", titlestr="MIROC5 - Interpolat
 
 Notice that there is no new information created here. The interpolation is using Scipy's griddata under the hood and is simply a linear interpolation onto the *obs* grid.
 
+### Regridding a rotated-pole curvilinear grid (quick example)
+
+The following small example shows how to convert a curvilinear rotated-pole grid (2D longitude/latitude arrays associated with dimensions `rlon` and `rlat`) to a regular longitude/latitude grid and then regrid data onto it. Use these snippets as a starting point — in real datasets the rotated lon/lat arrays and the rotated-pole metadata come from the file attributes.
+
+```julia
+# Minimal example using the package helpers
+using ClimateTools: rotated_to_geographic, regrid_rotated_curvilinear_to_regular
+
+# Synthetic rotated-pole lon/lat on a small 3×3 grid (rlon x rlat)
+rlon = [0.0 10.0 20.0; 0.0 10.0 20.0; 0.0 10.0 20.0]
+rlat = [-10.0 -10.0 -10.0; 0.0 0.0 0.0; 10.0 10.0 10.0]
+
+# Rotated pole coordinates (degrees) from the dataset metadata
+grid_north_longitude = 10.0
+grid_north_latitude = 45.0
+
+# Convert to geographic lon/lat
+longeo, latgeo = rotated_to_geographic(rlon, rlat, grid_north_longitude, grid_north_latitude)
+
+# Create a small synthetic field on the curvilinear grid
+data = [sin(deg2rad(latgeo[i,j])) + cos(deg2rad(longeo[i,j])) for i=1:size(longeo,1), j=1:size(longeo,2)]
+
+# Destination regular lon/lat vectors (1D)
+londest = collect(-20.0:20.0:20.0)
+latdest = collect(-20.0:20.0:20.0)
+
+# Regrid. The implementation will try an efficient gridded path if possible,
+# otherwise it uses a pure-Julia inverse-distance weighted scattered interpolator.
+regridded = regrid_rotated_curvilinear_to_regular(longeo, latgeo, data, londest, latdest)
+
+@show size(regridded)
+```
+
 ### Quantile-quantile mapping
 
 The high-resolution local information is integrated into `ClimGrid modelinterp` at the bias correction step. There is a daily transfer function applied on a quantile basis.The call signature is `qqmap(obs, ref, fut)` where the transfer function is estimated between `obs` and `ref` and applied on `fut`. Note that `ref` and `fut` can be the same, as in this example. A typical use-case would be `obs` and `ref` covering the same (historical, e.g. 1961-2010) temporal window and `fut` being a simulation covering a future climatological period (which could be a mix of historic and future, such as 1961-2090). This step is computationally intensive (uses of multiple threads can help here if set by the user).

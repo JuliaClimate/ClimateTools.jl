@@ -184,15 +184,26 @@ Apply a function `fct` to aggregate data from `xin` into `xout` on a daily basis
 function daily_fct(xout, xin; fct::Function, index_list = time_to_index)
     
     xout .= NaN
-    if !all(ismissing, xin)
+    if !all(x -> ismissing(x) || (x isa Number && isnan(x)), xin)
         for i in eachindex(index_list)
             data = view(xin, index_list[i])
-            if !all(ismissing, data)
-                xout[i] = fct(skipmissing(data))
+            if !all(x -> ismissing(x) || (x isa Number && isnan(x)), data)
+                x1 = data[.!ismissing.(data)]
+                x2 = x1[.!isnan.(x1)]
+                xout[i] = fct(x2)
             end
         end
-        
+        return
     end
+    # if !all(ismissing, xin)
+    #     for i in eachindex(index_list)
+    #         data = view(xin, index_list[i])
+    #         if !all(ismissing, data)
+    #             xout[i] = fct(skipmissing(data))
+    #         end
+    #     end
+        
+    # end
     
 end 
 
@@ -224,8 +235,48 @@ function daily_fct(cube::YAXArray; fct::Function=mean, shifthour=0, kwargs...)
     mapCube(daily_fct, cube, indims=indims, outdims=outdims, fct=fct, index_list=index_in_cube, nthreads=Threads.nthreads())
 end
 
+function yearly_resample(xout, xin; fct::Function=mean, index_list = time_to_index)
+    
+    xout .= NaN
+    if !all(x -> ismissing(x) || (x isa Number && isnan(x)), xin)
+    # if !all(ismissing, xin)
+        for i in eachindex(index_list)
+            data = view(xin, index_list[i])
+            if !all(x -> ismissing(x) || (x isa Number && isnan(x)), data)
+                xout[i] = fct(skipmissing(data[.!isnan.(data)]))
+            end
+        end
+        
+    end
+    
+end 
+"""
+    yearly_resample(cube::YAXArray; fct::Function=mean, kwargs...)
 
-function yearly_clim(xout, xin; fct::Function=mean, index_list = time_to_index)
+Compute the yearly fct on yearly values of a YAXArray.
+
+# Arguments
+- `cube::YAXArray`: The input YAXArray containing the data.
+- `fct::Function`: The function to be applied to each yearly subset of the data. Default is `mean`.
+- `kwargs...`: Additional keyword arguments to be passed to the function. **not yet implemented**
+
+# Returns
+A new YAXArray containing the yearly climatology.
+"""
+function yearly_resample(cube::YAXArray; fct::Function=mean, kwargs...)
+    time_to_index = cube.time;
+    time_index = year.(time_to_index);
+    new_dates = unique(time_index);
+    index_in_cube = [findall(==(i), time_index) for i in unique(time_index)]
+
+    # Dimensions
+    indims = InDims("time")        
+    outdims = OutDims(Dim{:time}(dates_builder_yearmonthday_hardcode(new_dates, imois=7, iday=1)))
+
+    mapCube(yearly_resample, cube, fct=fct, indims=indims, outdims=outdims, index_list=index_in_cube, nthreads=Threads.nthreads())
+end
+
+function monthly_resample(xout, xin; fct::Function=mean, index_list = time_to_index)
     
     xout .= NaN
     if !all(ismissing, xin)
@@ -239,31 +290,31 @@ function yearly_clim(xout, xin; fct::Function=mean, index_list = time_to_index)
     end
     
 end 
-"""
-    yearly_clim(cube::YAXArray; fct::Function=mean, kwargs...)
 
-Compute the yearly climatology of a YAXArray.
+"""
+    monthly_resample(cube::YAXArray; fct::Function=mean, kwargs...)
+
+Compute the fct on monthly resampling of a YAXArray.
 
 # Arguments
 - `cube::YAXArray`: The input YAXArray containing the data.
-- `fct::Function`: The function to be applied to each yearly subset of the data. Default is `mean`.
+- `fct::Function`: The function to be applied to each monthly subset of the data. Default is `mean`.
 - `kwargs...`: Additional keyword arguments to be passed to the function. **not yet implemented**
 
 # Returns
-A new YAXArray containing the yearly climatology.
+A new YAXArray containing the monthly climatology.
 """
-
-function yearly_clim(cube::YAXArray; fct::Function=mean, kwargs...)
+function monthly_resample(cube::YAXArray; fct::Function=mean, kwargs...)
     time_to_index = cube.time;
-    time_index = year.(time_to_index);
+    time_index = yearmonth.(time_to_index);
     new_dates = unique(time_index);
     index_in_cube = [findall(==(i), time_index) for i in unique(time_index)]
 
     # Dimensions
     indims = InDims("time")        
-    outdims = OutDims(Dim{:time}(dates_builder_yearmonthday_hardcode(new_dates, imois=7, iday=1)))
+    outdims = OutDims(Dim{:time}(dates_builder_monthly_resample(new_dates)))
 
-    mapCube(yearly_clim, cube, fct=fct, indims=indims, outdims=outdims, index_list=index_in_cube, nthreads=Threads.nthreads())
+    mapCube(monthly_resample, cube, fct=fct, indims=indims, outdims=outdims, index_list=index_in_cube, nthreads=Threads.nthreads())
 end
 
 """
