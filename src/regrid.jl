@@ -336,7 +336,7 @@ function regrid_curvilinear_to_regular(source, dest; grid_north_longitude, grid_
     end
 
     data = try
-        # ClimGrid-like: first AxisArray stored as source[1]
+        # legacy grid struct-like: first AxisArray stored as source[1]
         source[1].data
     catch
         try

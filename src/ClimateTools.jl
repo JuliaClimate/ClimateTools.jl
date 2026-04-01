@@ -24,6 +24,7 @@ include("climatology.jl")
 include("ensembles.jl")
 include("functions.jl")
 include("gev.jl")
+include("legacy_compat.jl")
 include("markov.jl")
 include("power.jl")
 include("plotting.jl")
@@ -39,11 +40,16 @@ export ERA5Land_dailysum
 export m2mm
 export yearly_resample
 export monthly_resample
+export daymean, daysum
+export annualmax, annualmin, annualmean, annualsum
+export prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover, customthresunder
+export vaporpressure, approx_surfacepressure, wbgt, diurnaltemperature, meantemperature
+export timeresolution, daymean_factor, pr_timefactor
 export quantiles
 export regrid_cube
 export regrid_curvilinear_to_regular, regrid_rotated_curvilinear_to_regular
-export qqmap, qqmap_bulk
-export ensemble_fct
+export qqmap, qqmap_bulk, biascorrect_extremes
+export ensemble_fct, ensemble_stats
 export autocorrelation
 export hurst
 export MSModel

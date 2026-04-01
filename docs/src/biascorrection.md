@@ -1,13 +1,52 @@
-# Bias correction
+# Bias Correction
 
-Quantile-quantile mapping (Themeßl et al. 2012, Grenier et al. 2015) is provided with ClimateTools.jl through the function [`qqmap`](@ref).
+## Quantile Mapping
+
+Use `qqmap` for day-of-year based quantile mapping on YAXArray/Cube data.
 
 ```julia
-qqmap(obs::ClimGrid, ref::ClimGrid, fut::ClimGrid; method::String="Additive", detrend::Bool=true, window::Int=15, rankn::Int=50, thresnan::Float64=0.1, keep_original::Bool=false, interp = Linear(), extrap = Flat())
+qq = qqmap(obs, ref, fut;
+    method="additive",
+    detrend=true,
+    window=15,
+    rankn=50,
+    qmin=0.01,
+    qmax=0.99)
 ```
 
-More information can be found in these references.
+## Bulk Variant
 
-Themeßl, Matthias Jakob, Andreas Gobiet, and Georg Heinrich. 2012. “Empirical-Statistical Downscaling and Error Correction of Regional Climate Models and Its Impact on the Climate Change Signal.” Climatic Change 112 (2). Springer: 449–68.
+```julia
+qq_bulk = qqmap_bulk(obs, ref, fut; method="multiplicative")
+```
 
-Grenier, Patrick, Ramón de Elía, and Diane Chaumont. 2015. “Chances of Short-Term Cooling Estimated from a Selection of CMIP5-Based Climate Scenarios during 2006-2035 over Canada.” Journal of Climate, January 2015. American Meteorological Society. doi:10.1175/JCLI-D-14-00224.1.
+## Extreme-Value Tail Correction
+
+Use `biascorrect_extremes` when you want multiplicative quantile mapping plus
+an explicit GPD-based correction of upper-tail values.
+
+```julia
+dext = biascorrect_extremes(obs, ref, fut;
+    detrend=false,
+    P=0.95,
+    runlength=2,
+    frac=0.25,
+    power=1.0)
+```
+
+The function accepts optional external extreme-value parameters with columns
+`lat`, `lon`, `mu`, `sigma`, and `xi`:
+
+```julia
+using DataFrames
+
+gevparams = DataFrame(
+    lat=[45.0, 46.0],
+    lon=[-73.0, -72.0],
+    mu=[20.0, 21.5],
+    sigma=[4.0, 4.5],
+    xi=[0.10, 0.08],
+)
+
+dext = biascorrect_extremes(obs, ref, fut; gevparams=gevparams)
+```

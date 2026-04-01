@@ -1,46 +1,41 @@
-# Home
+# ClimateTools.jl
 
-## Overview
+ClimateTools.jl provides climate-analysis functions on top of YAXArrays.jl.
 
-ClimateTools.jl is a collection of commonly-used tools in Climate science. Basics of climate field analysis will be covered, with some forays into exploratory techniques. The package is aimed to ease the typical steps of analysis climate models outputs from netCDF files that follows [Climate Forecast conventions](http://cfconventions.org/) and the creation of [climate scenarios](https://www.ouranos.ca/publication-scientifique/Guidebook-2016.pdf).
+## Data Model
 
-## Philosophy
+All high-level APIs operate on YAXArray/Cube objects.
 
-The idea behind ClimateTools is that most, if not all, climate fields can be represented by a 2D (e.g. topography), 3D (e.g. air temperature) or 4D (e.g. winds at multiple levels) grids that are georeferenced. Those grids are named [`ClimGrid`](@ref) in ClimateTools. Every functions acts on such structure and returns a similar structure. The `ClimGrid` structure contains all elements needed to be manipulated: latitude, longitude, calendars, variable attributes, etc. that was either available in the original netCDF file or that was inferred by the metadata. Note that a `ClimGrid` is defined for a single variable.
-
-The metadata follows the various transformations and is modified when necessary. For example, calculating the annual number of days with precipitation higher than 1mm will modify the variable name from `pr` (for precipitation) to `prcp1`, the name of the indicator. It will not, however, modify the base variable type (it will remain `pr`).
-
-## Notes
-
-The climate indices and bias correction functions are coded to leverage **multiple threads**. To gain maximum performance, use (bash shell Linux/MacOSX) `export JULIA_NUM_THREADS=n`, where _n_ is the number of threads. To get an idea of the number of threads you can use type (in Julia) `Sys.THREADS`. This is especially useful for bias correction.
-
-## Features
-
-* Climate scenarios creation
-* Extraction and visualization of CF-compliant netCDF datasets
-* Custom user-provided polygons and start and end date for localized studies
-* Climate indices from The joint CCl/CLIVAR/JCOMM Expert Team (ET) on Climate Change Detection and Indices (ETCCDI) as well as custom climate indices
-* Regridding of a datasets onto another grid
-* Post-processing of climate timeseries using Quantile-Quantile mapping method (cf. Themeßl et al. 2012, Piani et al. 2010)
-* Exportation of results to a CF-compliant netCDF file
-* Support for typical climate models calendars: 360_day, 365_day, Standard, Prolectip Gregorian through [NCDatasets.jl](https://github.com/Alexander-Barth/NCDatasets.jl).
-* Support for physical units through the [Unitful.jl](https://github.com/ajkeller34/Unitful.jl) package.
-
-
-## Contributors
-
-If you'd like to have other climate indices coded, please, submit them through a Pull Request! I'd be more than happy to include them. Alternatively, provide the equation in Issues.
-
-## TO-DO
-
-* Dashboard tool. This will return the main characteristics of a ClimGrid: maps of minimum, maximum and mean climatological values, seasonal cycle, timeseries of annual maximum, minimum and mean values, etc...
-* Extreme value theory analysis
-
-## Documentation
-
-This documentation was built using [Documenter.jl](https://github.com/JuliaDocs).
-
-```@example
-using Dates # hide
-println("Documentation built $(Dates.now()) with Julia $(VERSION)") # hide
+```julia
+using YAXArrays
+cube = Cube(open_dataset("myfile.nc"))
 ```
+
+## Typical Pipeline
+
+1. Read data as YAXArray/Cube.
+2. Apply preprocessing or bias correction.
+3. Compute daily/yearly summaries and indices.
+4. Regrid or visualize results.
+
+```julia
+using ClimateTools
+qq = qqmap(obs, ref, fut; method="additive")
+ann = annualmax(qq)
+```
+
+## Included Documentation
+
+- Installation
+- Datasets and subsetting
+- Bias correction
+- Indices and aggregations
+- Interpolation and regridding
+- Examples
+- Function overview (full exported API list)
+
+## Additional Capabilities
+
+- Extreme-value bias correction with `biascorrect_extremes`
+- Return-level estimation with `rlevels_cube`
+- Time-series diagnostics with `autocorrelation` and `hurst`

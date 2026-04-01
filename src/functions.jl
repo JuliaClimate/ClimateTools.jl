@@ -234,7 +234,7 @@ function applymask(A::AbstractArray{N,1} where N, mask::AbstractArray{N, 1} wher
     return modA
 end
 
-# function applymask(C::ClimGrid, mask::AbstractArray{N, 1} where N)
+# function applymask(C::legacy grid struct, mask::AbstractArray{N, 1} where N)
 
 #     A = C.data.data
 
@@ -242,7 +242,7 @@ end
 
 #     Anew = buildarrayinterface(modA, C)
 
-#     return ClimGrid(Anew, longrid=C.longrid, latgrid=C.latgrid, msk=mask, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
+#     return legacy grid struct(Anew, longrid=C.longrid, latgrid=C.latgrid, msk=mask, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
 # end
 
 macro isdefined(var)
@@ -315,13 +315,13 @@ function permute_east_west2D(data::AbstractArray{N,2} where N, iwest, ieast)
 end
 
 # """
-#     ensemble_mean(C::ClimGrid...)
+#     ensemble_mean(C::legacy grid struct...)
 
-# Returns the Ensemble mean of ClimGrids C..
+# Returns the Ensemble mean of legacy grid arrays C..
 # """
 # function ensemble_mean(C; skipnan=true)
 
-#     # Create list of AxisArrays contained inside the ClimGrids
+#     # Create list of AxisArrays contained inside the legacy grid arrays
 #     # Climref = C[1]
 #     axisarrays = Array{Any}(undef, length(C))
 #     # unitsClims = Array{Any}(undef, length(C))
@@ -333,7 +333,7 @@ end
 #     end
 
 #     # if length(unique(unitsClims)) != 1
-#     #     throw(error("ClimGrids needs to have the same physical units."))
+#     #     throw(error("legacy grid arrays needs to have the same physical units."))
 #     # end
 
 #     # ENSEMBLE MEAN
@@ -355,19 +355,19 @@ end
 #         globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
 #     end
 
-#     # Return ClimGrid
-#     return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble mean", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+#     # Return legacy grid struct
+#     return legacy grid struct(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble mean", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
 
 # end
 
 # """
-#     ensemble_std(C::ClimGrid...)
+#     ensemble_std(C::legacy grid struct...)
 
-# Returns the Ensemble standard deviation of climatological means of ClimGrids C..
+# Returns the Ensemble standard deviation of climatological means of legacy grid arrays C..
 # """
 # function ensemble_std(C; skipnan=true)
 
-#     # Create list of AxisArrays contained inside the ClimGrids
+#     # Create list of AxisArrays contained inside the legacy grid arrays
 #     # Climref = C[1]
 #     axisarrays = Array{Any}(undef, length(C))
 #     # unitsClims = Array{Any}(undef, length(C))
@@ -380,7 +380,7 @@ end
 
 #     # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
 #         # if length(unique(unitsClims)) != 1
-#         #     throw(error("ClimGrids needs to have the same physical units."))
+#         #     throw(error("legacy grid arrays needs to have the same physical units."))
 #         # end
 #     # end
 
@@ -401,19 +401,19 @@ end
 #         globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
 #     end
 
-#     # Return ClimGrid
-#     return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble standard deviation", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+#     # Return legacy grid struct
+#     return legacy grid struct(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble standard deviation", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
 
 # end
 
 # """
-#     ensemble_max(C::ClimGrid...)
+#     ensemble_max(C::legacy grid struct...)
 
-# Returns the Ensemble maximum of climatological means of ClimGrids C..
+# Returns the Ensemble maximum of climatological means of legacy grid arrays C..
 # """
 # function ensemble_max(C; skipnan=true)
 
-#     # Create list of AxisArrays contained inside the ClimGrids
+#     # Create list of AxisArrays contained inside the legacy grid arrays
 #     # Climref = C[1]
 #     axisarrays = Array{Any}(undef, length(C))
 #     # unitsClims = Array{Any}(undef, length(C))
@@ -426,7 +426,7 @@ end
 
 #     # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
 #         # if length(unique(unitsClims)) != 1
-#         #     throw(error("ClimGrids needs to have the same physical units."))
+#         #     throw(error("legacy grid arrays needs to have the same physical units."))
 #         # end
 #     # end
 
@@ -447,19 +447,19 @@ end
 #         globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
 #     end
 
-#     # Return ClimGrid
-#     return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble maximum", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+#     # Return legacy grid struct
+#     return legacy grid struct(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble maximum", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
 
 # end
 
 # """
-#     ensemble_min(C::ClimGrid...)
+#     ensemble_min(C::legacy grid struct...)
 
-# Returns the Ensemble minimum of climatological means of ClimGrids C..
+# Returns the Ensemble minimum of climatological means of legacy grid arrays C..
 # """
 # function ensemble_min(C; skipnan=true)
 
-#     # Create list of AxisArrays contained inside the ClimGrids
+#     # Create list of AxisArrays contained inside the legacy grid arrays
 #     # Climref = C[1]
 #     axisarrays = Array{Any}(undef, length(C))
 #     # unitsClims = Array{Any}(undef, length(C))
@@ -472,7 +472,7 @@ end
 
 #     # if typeof(unitsClims[1]) != Unitful.FreeUnits{(),NoDims,nothing}
 #         # if length(unique(unitsClims)) != 1
-#         #     throw(error("ClimGrids needs to have the same physical units."))
+#         #     throw(error("legacy grid arrays needs to have the same physical units."))
 #         # end
 #     # end
 
@@ -493,8 +493,8 @@ end
 #         globalattribs["models"] = string(globalattribs["models"], ", ", C[k].model)
 #     end
 
-#     # Return ClimGrid
-#     return ClimGrid(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble minimum", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
+#     # Return legacy grid struct
+#     return legacy grid struct(data_axis, longrid=C[1].longrid, latgrid=C[1].latgrid, msk=C[1].msk, grid_mapping=C[1].grid_mapping, dimension_dict=C[1].dimension_dict, timeattrib=C[1].timeattrib, model=globalattribs["models"], frequency="Climatology ensemble minimum", experiment="Multi-models ensemble", run="Multi-models ensemble", project="Multi-models ensemble", institute="Multi-models ensemble", filename="muliple_files", dataunits=C[1].dataunits, latunits=C[1].latunits, lonunits=C[1].lonunits, variable=C[1].variable, typeofvar=C[1].typeofvar, typeofcal="Climatology", varattribs=C[1].varattribs, globalattribs=globalattribs)
 
 # end
 
@@ -551,11 +551,11 @@ end
 
 
 # """
-#     polyfit(C::ClimGrid)
+#     polyfit(C::legacy grid struct)
 
-# Returns an array of the polynomials functions of each grid points contained in ClimGrid C.
+# Returns an array of the polynomials functions of each grid points contained in legacy grid struct C.
 # """
-# function polyfit(C::ClimGrid)
+# function polyfit(C::legacy grid struct)
 
 #     x = collect(1:length(C[1][Axis{:time}][:]))
 #     dataout = Array{Polynomial{typeof(C[1][1,1,1])}}(undef, size(C[1], 1),size(C[1], 2))
@@ -577,11 +577,11 @@ end
 # end
 
 # """
-#     polyval(C::ClimGrid, polynomial::Array{Poly{Float64}})
+#     polyval(C::legacy grid struct, polynomial::Array{Poly{Float64}})
 
-#     Returns a ClimGrid containing the values, as estimated from polynomial function polyn.
+#     Returns a legacy grid struct containing the values, as estimated from polynomial function polyn.
 # """
-# function polyval(C::ClimGrid, polynomial::Array{Polynomial{N},2} where N)
+# function polyval(C::legacy grid struct, polynomial::Array{Polynomial{N},2} where N)
 
 #     datain = C[1].data
 #     dataout = Array{typeof(C[1][1,1,1])}(undef, (size(C[1], 1), size(C[1],2), size(C[1], 3)))
@@ -599,7 +599,7 @@ end
 
 #     dataout2 = buildarrayinterface(dataout, C)
 
-#     return ClimGrid(dataout2; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+#     return legacy grid struct(dataout2; longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 # end
 
 """
@@ -617,27 +617,27 @@ function extension(url::String)
 end
 
 # """
-#     get_units(C::ClimGrid)
+#     get_units(C::legacy grid struct)
 #
-# Returns the adequate units of Unitful of ClimGrid C.
+# Returns the adequate units of Unitful of legacy grid struct C.
 # """
 # function get_units(C)
 #     return unit(C[1][1,1,1])
 # end
 
 # """
-#     uconvert(a::Units, C::ClimGrid)
+#     uconvert(a::Units, C::legacy grid struct)
 #
-# Convert a ClimGrid [`ClimateTools.ClimGrid`](@ref) to different units. The conversion will fail if the target units `a` have a different dimension than the dimension of the quantity `x`.
+# Convert a legacy grid struct [`ClimateTools.legacy grid struct`](@ref) to different units. The conversion will fail if the target units `a` have a different dimension than the dimension of the quantity `x`.
 # """
 #
-# function uconvert(a::Units, C::ClimGrid)
+# function uconvert(a::Units, C::legacy grid struct)
 #
 #     dataconv = uconvert.(a, C[1])
 #
 #     dataaxis = buildarrayinterface(dataconv, C)
 #
-#     ClimGrid(dataaxis, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=string(unit(dataconv[1])), latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+#     legacy grid struct(dataaxis, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=string(unit(dataconv[1])), latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 #
 # end
 
@@ -676,18 +676,18 @@ function get_threshold(obsvec, refvec; thres=0.95)
     return mean([quantile(obsvec[obsvec .>= 1.0],thres) quantile(refvec[refvec .>= 1.0], thres)])
 end
 
-# function timestep(C::ClimGrid, ts::Tuple)
+# function timestep(C::legacy grid struct, ts::Tuple)
 #     D = temporalsubset(C, ts, ts)
 # end
 
-# function timestep(C::ClimGrid, ts::Int)
+# function timestep(C::legacy grid struct, ts::Int)
 #     timevec = get_timevec(C)
 #     d = timevec[ts]
 #     t = (year(d), month(d), day(d))
 #     D = temporalsubset(C, t, t)
 # end
 
-# function timestep(C::ClimGrid, d)
+# function timestep(C::legacy grid struct, d)
 #     t = (year(d), month(d), day(d), hour(d), minute(d), second(d))
 #     D = temporalsubset(C, t, t)
 # end
@@ -730,11 +730,11 @@ finitemean(x) = mean(filter(x -> !isnan(x)&isfinite(x),x))
 finitemean(x,y) = mapslices(finitemean,x,dims=y)
 
 # """
-#     periodmean(C::ClimGrid; startdate::Tuple, enddate::Tuple)
+#     periodmean(C::legacy grid struct; startdate::Tuple, enddate::Tuple)
 
 # Mean of array data over a given period.
 # """
-# function periodmean(C::ClimGrid; level=1, start_date::Tuple=(Inf, ), end_date::Tuple=(Inf,))
+# function periodmean(C::legacy grid struct; level=1, start_date::Tuple=(Inf, ), end_date::Tuple=(Inf,))
 
 #     if start_date != (Inf,) || end_date != (Inf,)
 #         C = temporalsubset(C, start_date, end_date)
@@ -764,15 +764,15 @@ finitemean(x,y) = mapslices(finitemean,x,dims=y)
 #     FD = buildarray_climato(C, dataout)
 
 #     # Return climGrid type containing the indice
-#     return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
+#     return legacy grid struct(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
 # end
 
 # """
-#     verticalmean(C::ClimGrid; startdate::Tuple, enddate::Tuple)
+#     verticalmean(C::legacy grid struct; startdate::Tuple, enddate::Tuple)
 
 # Mean of array data over all vertical levels.
 # """
-# function verticalmean(C::ClimGrid)
+# function verticalmean(C::legacy grid struct)
 
 #     datain = C.data.data
 
@@ -790,10 +790,10 @@ finitemean(x,y) = mapslices(finitemean,x,dims=y)
 #     FD = buildarray_verticalmean(C, dataout)
 
 #     # Return climGrid type containing the indice
-#     return ClimGrid(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
+#     return legacy grid struct(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
 # end
 
-# function buildarray_climato(C::ClimGrid, dataout)
+# function buildarray_climato(C::legacy grid struct, dataout)
 #     lonsymbol = Symbol(C.dimension_dict["lon"])
 #     latsymbol = Symbol(C.dimension_dict["lat"])
 #     if ndims(dataout) == 2 # original was a 3D field
@@ -805,7 +805,7 @@ finitemean(x,y) = mapslices(finitemean,x,dims=y)
 #     return FD
 # end
 
-# function buildarray_verticalmean(C::ClimGrid, dataout)
+# function buildarray_verticalmean(C::legacy grid struct, dataout)
 #     lonsymbol = Symbol(C.dimension_dict["lon"])
 #     latsymbol = Symbol(C.dimension_dict["lat"])
 #     timesymbol = Symbol(C.dimension_dict["time"])
@@ -828,14 +828,14 @@ finitemean(x,y) = mapslices(finitemean,x,dims=y)
 #     return axisArray
 # end
 
-# function buildarray_annual(C::ClimGrid, dataout, numYears)
+# function buildarray_annual(C::legacy grid struct, dataout, numYears)
 #     lonsymbol = Symbol(C.dimension_dict["lon"])
 #     latsymbol = Symbol(C.dimension_dict["lat"])
 #     FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}].val), Axis{latsymbol}(C[1][Axis{latsymbol}].val), Axis{:time}(Dates.year.(DateTime.(numYears))))
 #     return FD
 # end
 
-# function buildarray_resample(C::ClimGrid, dataout, newtime)
+# function buildarray_resample(C::legacy grid struct, dataout, newtime)
 #     lonsymbol = Symbol(C.dimension_dict["lon"])
 #     latsymbol = Symbol(C.dimension_dict["lat"])
 #     FD = AxisArray(dataout, Axis{lonsymbol}(C[1][Axis{lonsymbol}].val), Axis{latsymbol}(C[1][Axis{latsymbol}].val), Axis{:time}(newtime))
@@ -844,12 +844,12 @@ finitemean(x,y) = mapslices(finitemean,x,dims=y)
 
 
 # """
-#     function temporalsubset(C::ClimGrid, startdate::Date, enddate::Date)
+#     function temporalsubset(C::legacy grid struct, startdate::Date, enddate::Date)
 
-# Returns the temporal subset of ClimGrid C. The temporal subset is defined by a start and end date.
+# Returns the temporal subset of legacy grid struct C. The temporal subset is defined by a start and end date.
 
 # """
-# function temporalsubset(C::ClimGrid, datebeg::Tuple, dateend::Tuple)
+# function temporalsubset(C::legacy grid struct, datebeg::Tuple, dateend::Tuple)
 
 #     T = typeof(get_timevec(C)[1])
 #     timeV = get_timevec(C)
@@ -874,16 +874,16 @@ finitemean(x,y) = mapslices(finitemean,x,dims=y)
 
 #     end
 
-#     return ClimGrid(dataOut, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+#     return legacy grid struct(dataOut, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
 
 # end
 
 # """
-#     get_timevec(C::ClimGrid)
+#     get_timevec(C::legacy grid struct)
 
-# Returns time vector of ClimGrid C.
+# Returns time vector of legacy grid struct C.
 # """
-# get_timevec(C::ClimGrid) = C[1][Axis{:time}][:]
+# get_timevec(C::legacy grid struct) = C[1][Axis{:time}][:]
 
 # """
 #     buildtimetype(datetuple, f)
@@ -943,11 +943,11 @@ finitemean(x,y) = mapslices(finitemean,x,dims=y)
 
 
 # """
-#     getunit(C::ClimGrid)
+#     getunit(C::legacy grid struct)
 #
-# Returns the physical unit of ClimGrid C
+# Returns the physical unit of legacy grid struct C
 # """
-# function getunit(C::ClimGrid)
+# function getunit(C::legacy grid struct)
 #     # Get unit
 #     units_all = unique(unit.(C[1]))
 #     return un = units_all[.!ismissing.(units_all)]

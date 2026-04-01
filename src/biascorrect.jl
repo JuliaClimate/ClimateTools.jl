@@ -23,17 +23,32 @@ This function performs quantile mapping bias correction on data.
 - A bias-corrected YAXArray.
 
 """
+function _time_dim_symbol(ds)
+    try
+        lookup(ds, :time)
+        return :time
+    catch
+    end
+    try
+        lookup(ds, :Ti)
+        return :Ti
+    catch
+    end
+    error("Could not infer time dimension symbol. Expected :time.")
+end
+
 function qqmap(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+    timedim = _time_dim_symbol(obs)
     
     # Aligning calendars
-    obs = drop29thfeb(obs, dimx=:rlon, dimy=:rlat, dimt=:time)
-    ref = drop29thfeb(ref, dimx=:rlon, dimy=:rlat, dimt=:time)
-    fut = drop29thfeb(fut, dimx=:rlon, dimy=:rlat, dimt=:time)
+    obs = drop29thfeb(obs, dimt=timedim)
+    ref = drop29thfeb(ref, dimt=timedim)
+    fut = drop29thfeb(fut, dimt=timedim)
 
     # Julian days vectors
-    obs_jul = Dates.dayofyear.(lookup(obs, :time))
-    ref_jul = Dates.dayofyear.(lookup(ref, :time))
-    fut_jul = Dates.dayofyear.(lookup(fut, :time))
+    obs_jul = Dates.dayofyear.(lookup(obs, timedim))
+    ref_jul = Dates.dayofyear.(lookup(ref, timedim))
+    fut_jul = Dates.dayofyear.(lookup(fut, timedim))
     
     # # Monthly values of time vector
     # obs_month = Dates.month.(lookup(obs, :time))
@@ -46,17 +61,15 @@ function qqmap(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Addi
     # fut_season = get_seasons(fut_month)
     
     
-    if minimum(ref_jul) == 1 && maximum(ref_jul) == 365
+    if Base.minimum(ref_jul) == 1 && Base.maximum(ref_jul) == 365
         days = 1:365
     else
-        days = minimum(ref_jul) + window:maximum(ref_jul) - window
-        start = Dates.monthday(minimum(obs.time))
-        finish = Dates.monthday(maximum(obs.time))
+        days = Base.minimum(ref_jul) + window:Base.maximum(ref_jul) - window
     end
     
     # Dimensions
-    indims = InDims("time")
-    outdims = OutDims(Dim{:time}(lookup(fut, :time)))
+    indims = InDims(string(timedim))
+    outdims = OutDims(Dim{:time}(lookup(fut, timedim)))
 
     # @info Threads.nthreads()
 
@@ -202,26 +215,27 @@ function qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul;
 end
 
 function qqmap_bulk(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+    timedim = _time_dim_symbol(obs)
 
 
     # Aligning calendars
-    obs = drop29thfeb(obs, dimx=:rlon, dimy=:rlat, dimt=:time)
-    ref = drop29thfeb(ref, dimx=:rlon, dimy=:rlat, dimt=:time)
-    fut = drop29thfeb(fut, dimx=:rlon, dimy=:rlat, dimt=:time)
+    obs = drop29thfeb(obs, dimt=timedim)
+    ref = drop29thfeb(ref, dimt=timedim)
+    fut = drop29thfeb(fut, dimt=timedim)
     
     # Dimensions
-    indims = InDims("time")
-    outdims = OutDims(Dim{:time}(lookup(fut, :time)))
+    indims = InDims(string(timedim))
+    outdims = OutDims(Dim{:time}(lookup(fut, timedim)))
 
     # @info Threads.nthreads()
     @info "Test"
 
-    return mapCube(qqmap_bulk, (obs, ref, fut), indims=(indims, indims, indims), outdims=outdims, method=method, detrend=detrend, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap, nthreads=Threads.nthreads())
+    return mapCube(qqmap_bulk, (obs, ref, fut), indims=(indims, indims, indims), outdims=outdims, method=method, detrend=detrend, order=order, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap, nthreads=Threads.nthreads())
     
 end
 
 
-function qqmap_bulk(dataout, obsvec, refvec, futvec; method::String="Additive", detrend::Bool=true, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+function qqmap_bulk(dataout, obsvec, refvec, futvec; method::String="Additive", detrend::Bool=true, order::Int=4, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
     
 
     # range over which quantiles are estimated
@@ -294,6 +308,271 @@ function qqmap_bulk(dataout, obsvec, refvec, futvec; method::String="Additive", 
         dataout .= dataout .+ poly_values
     end
 
+end
+
+function _find_dim_in_axes(cube::YAXArray, candidates::Tuple)
+    names = name.(cube.axes)
+    for cand in candidates
+        if cand in names
+            return cand
+        end
+    end
+    return nothing
+end
+
+function _flatten_coord_values(cube::YAXArray, spatial_dims::Vector{Symbol}, target_dim::Symbol)
+    target_pos = findfirst(==(target_dim), spatial_dims)
+    target_pos === nothing && error("Could not find dimension $(target_dim) in spatial dimensions.")
+
+    spatial_sizes = Tuple(length(lookup(cube, d)) for d in spatial_dims)
+    target_lookup = lookup(cube, target_dim)
+    out = Vector{Float64}(undef, prod(spatial_sizes))
+
+    for (i, idx) in enumerate(CartesianIndices(spatial_sizes))
+        out[i] = Float64(target_lookup[idx[target_pos]])
+    end
+
+    return out
+end
+
+function _cube_to_timeseries_matrix(cube::YAXArray, timedim::Symbol, spatial_dims::Vector{Symbol})
+    names = collect(name.(cube.axes))
+    perm = Int[]
+
+    for d in spatial_dims
+        idx = findfirst(==(d), names)
+        idx === nothing && error("Missing dimension $(d) in input cube.")
+        push!(perm, idx)
+    end
+
+    tidx = findfirst(==(timedim), names)
+    tidx === nothing && error("Missing time dimension $(timedim) in input cube.")
+    push!(perm, tidx)
+
+    arr = permutedims(Array(cube), Tuple(perm))
+    spatial_shape = size(arr)[1:end-1]
+    mat = reshape(arr, :, size(arr, ndims(arr)))
+
+    return mat, spatial_shape
+end
+
+function _matrix_to_cube_array(data::AbstractMatrix, spatial_shape, spatial_dims::Vector{Symbol}, timedim::Symbol, target_names::Vector{Symbol})
+    reshaped = reshape(data, (spatial_shape..., size(data, 2)))
+    current_names = vcat(spatial_dims, [timedim])
+    perm = [findfirst(==(n), current_names) for n in target_names]
+    any(isnothing.(perm)) && error("Could not map current dimensions back to target dimensions.")
+
+    return permutedims(reshaped, Tuple(Int.(perm)))
+end
+
+function _get_max_clusters(clusters)
+    out = Float64[]
+    for c in clusters
+        append!(out, c.value)
+    end
+    return out
+end
+
+function _get_position_clusters(clusters)
+    out = Int[]
+    for c in clusters
+        append!(out, c.position)
+    end
+    return out
+end
+
+function _fit_gpd_distribution(vec::Vector{Float64}, thres::Real; runlength::Int=2)
+    try
+        clusters = Extremes.getcluster(vec, thres, runlength=runlength)
+        maxvalues = _get_max_clusters(clusters)
+        positions = _get_position_clusters(clusters)
+        isempty(maxvalues) && return nothing, Int[], Float64[]
+
+        exceedances = maxvalues .- thres
+        model = Extremes.gpfit(exceedances)
+        dist = Extremes.getdistribution(model)[1]
+        return dist, positions, maxvalues
+    catch
+        return nothing, Int[], Float64[]
+    end
+end
+
+function _threshold_from_vectors(obsvec::Vector{Float64}, refvec::Vector{Float64}; P::Real=0.95)
+    obsvals = [x for x in obsvec if isfinite(x) && x >= 1.0]
+    refvals = [x for x in refvec if isfinite(x) && x >= 1.0]
+    if isempty(obsvals) || isempty(refvals)
+        return NaN
+    end
+    return mean((quantile(obsvals, P), quantile(refvals, P)))
+end
+
+function gev2gpd(mu::Real, sigma::Real, xi::Real, thres::Real)
+    return sigma + xi * (thres - mu)
+end
+
+function _extremes_weight(x; frac=0.25, power=1.0)
+    denom = (Base.maximum(x) - Base.minimum(x)) * frac
+    if denom == 0
+        return ones(length(x))
+    end
+    w = ((x .- Base.minimum(x)) ./ denom) .^ power
+    w[w .> 1.0] .= 1.0
+    return w
+end
+
+function estimate_gpd(lat::Real, lon::Real, gevparams::DataFrame, thres::Real)
+    lats = Float64.(Array(gevparams[!, :lat]))
+    lons = Float64.(Array(gevparams[!, :lon]))
+    d2 = (lats .- Float64(lat)) .^ 2 .+ (lons .- Float64(lon)) .^ 2
+    idx = Base.argmin(d2)
+
+    mu = gevparams[idx, :mu]
+    sigma = gevparams[idx, :sigma]
+    xi = gevparams[idx, :xi]
+    sigma2 = gev2gpd(mu, sigma, xi, thres)
+
+    return Extremes.GeneralizedPareto(sigma2, sigma, xi)
+end
+
+function build_idx_biascorrect(refvec::Vector{Float64}, futvec::Vector{Float64})
+    w_length = length(refvec)
+    fut_l = length(futvec)
+
+    R = w_length / 2:w_length / 3:fut_l
+
+    idxi = Vector{Int}(undef, length(R))
+    idxf = Vector{Int}(undef, length(R))
+    idxi_corr = Vector{Int}(undef, length(R))
+    idxf_corr = Vector{Int}(undef, length(R))
+
+    for c in eachindex(R)
+        idxi[c] = round(Int, max(R[c] - w_length / 2 + 1, 1))
+        idxf[c] = round(Int, min(R[c] + w_length / 2, fut_l))
+
+        idxi_corr[c] = round(Int, idxi[c] + (w_length / 2 - (w_length / 2) / 3) - 1)
+        if c == 1
+            idxi_corr[c] = 1
+        end
+
+        if c == length(R)
+            idxf_corr[c] = max(round(Int, idxi[c] + w_length - w_length / 3), fut_l)
+        else
+            idxf_corr[c] = round(Int, idxi[c] + (w_length / 2 + (w_length / 2) / 3) - 1)
+        end
+    end
+
+    if length(idxi_corr) > 1
+        idxi_corr[2:end] .-= 1
+    end
+
+    return idxi, idxf, idxi_corr, idxf_corr
+end
+
+"""
+    biascorrect_extremes(obs::YAXArray, ref::YAXArray, fut::YAXArray; kwargs...)
+
+Bias-correct future data with multiplicative QQ mapping and an extreme-tail GPD adjustment.
+The base correction is done by `qqmap(..., method="multiplicative")`, then identified
+cluster extremes in `fut` are remapped from the fitted future tail distribution to either
+an observed-tail GPD (estimated from `obs`) or an externally provided parameter table.
+"""
+function biascorrect_extremes(obs::YAXArray, ref::YAXArray, fut::YAXArray; detrend::Bool=false, P::Real=0.95, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat(), gevparams::DataFrame=DataFrame(), frac=0.25, power=1.0, runlength::Int=2)
+    obs_tdim = _time_dim_symbol(obs)
+    ref_tdim = _time_dim_symbol(ref)
+    fut_tdim = _time_dim_symbol(fut)
+
+    qqmap_base = qqmap(obs, ref, fut; method="multiplicative", detrend=detrend, window=window, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+
+    obs_noleap = drop29thfeb(obs, dimt=obs_tdim)
+    ref_noleap = drop29thfeb(ref, dimt=ref_tdim)
+    fut_noleap = drop29thfeb(fut, dimt=fut_tdim)
+
+    datevec_ref = lookup(ref_noleap, ref_tdim)
+    datevec_fut = lookup(fut_noleap, fut_tdim)
+    movingwindow = (Base.maximum(year.(datevec_fut)) - Base.minimum(year.(datevec_fut))) > (Base.maximum(year.(datevec_ref)) - Base.minimum(year.(datevec_ref))) * 1.5
+
+    spatial_dims = Symbol[d for d in name.(fut_noleap.axes) if d != fut_tdim]
+
+    obs2d, _ = _cube_to_timeseries_matrix(obs_noleap, obs_tdim, spatial_dims)
+    ref2d, _ = _cube_to_timeseries_matrix(ref_noleap, ref_tdim, spatial_dims)
+    fut2d, _ = _cube_to_timeseries_matrix(fut_noleap, fut_tdim, spatial_dims)
+    qq2d, qq_spatial_shape = _cube_to_timeseries_matrix(qqmap_base, :time, spatial_dims)
+    dataout2d = copy(qq2d)
+
+    latflat = Float64[]
+    lonflat = Float64[]
+    if !isempty(gevparams)
+        latdim = _find_dim_in_axes(fut_noleap, (:lat, :latitude, :rlat, :y))
+        londim = _find_dim_in_axes(fut_noleap, (:lon, :longitude, :rlon, :x))
+        (latdim === nothing || londim === nothing) && error("`gevparams` was provided but latitude/longitude dimensions could not be inferred.")
+        latflat = _flatten_coord_values(fut_noleap, spatial_dims, latdim)
+        lonflat = _flatten_coord_values(fut_noleap, spatial_dims, londim)
+    end
+
+    for k in axes(obs2d, 1)
+        obsvec = Float64.(coalesce.(obs2d[k, :], NaN))
+        refvec = Float64.(coalesce.(ref2d[k, :], NaN))
+        futvec = Float64.(coalesce.(fut2d[k, :], NaN))
+
+        obs_nanfrac = count(isnan, obsvec) / length(obsvec)
+        ref_nanfrac = count(isnan, refvec) / length(refvec)
+        fut_nanfrac = count(isnan, futvec) / length(futvec)
+
+        if obs_nanfrac < thresnan && ref_nanfrac < thresnan && fut_nanfrac < thresnan
+            thres = _threshold_from_vectors(obsvec, refvec; P=P)
+            !isfinite(thres) && continue
+
+            gpd_obs = nothing
+            if isempty(gevparams)
+                gpd_obs, _, _ = _fit_gpd_distribution(obsvec, thres; runlength=runlength)
+            else
+                gpd_obs = estimate_gpd(latflat[k], lonflat[k], gevparams, thres)
+            end
+            gpd_obs === nothing && continue
+
+            if movingwindow
+                idxi, idxf, idxi_corr, idxf_corr = build_idx_biascorrect(refvec, futvec)
+
+                for c in eachindex(idxi)
+                    futvec_tmp = futvec[idxi[c]:idxf[c]]
+                    gpd_fut, ex_idx, maxvalues = _fit_gpd_distribution(futvec_tmp, thres; runlength=runlength)
+                    (gpd_fut === nothing || isempty(ex_idx)) && continue
+
+                    fut_cdf = Extremes.cdf.(Ref(gpd_fut), maxvalues .- thres)
+                    fut_cdf = clamp.(fut_cdf, 1e-6, 1 - 1e-6)
+                    newfut = Extremes.quantile.(Ref(gpd_obs), fut_cdf) .+ thres
+
+                    transition = _extremes_weight(futvec_tmp[ex_idx]; frac=frac, power=power)
+                    ex_global = idxi[c] .+ ex_idx .- 1
+
+                    in_corr = (ex_global .< idxf_corr[c]) .& (ex_global .> idxi_corr[c])
+                    !any(in_corr) && continue
+
+                    selected_global = ex_global[in_corr]
+                    selected_new = newfut[in_corr]
+                    selected_transition = transition[in_corr]
+                    qqbase = qq2d[k, selected_global]
+
+                    dataout2d[k, selected_global] .= selected_new .* selected_transition .+ qqbase .* (1 .- selected_transition)
+                end
+            else
+                gpd_fut, ex_idx, maxvalues = _fit_gpd_distribution(futvec, thres; runlength=runlength)
+                (gpd_fut === nothing || isempty(ex_idx)) && continue
+
+                fut_cdf = Extremes.cdf.(Ref(gpd_fut), maxvalues .- thres)
+                fut_cdf = clamp.(fut_cdf, 1e-6, 1 - 1e-6)
+                newfut = Extremes.quantile.(Ref(gpd_obs), fut_cdf) .+ thres
+
+                transition = _extremes_weight(futvec[ex_idx]; frac=frac, power=power)
+                qqbase = qq2d[k, ex_idx]
+                dataout2d[k, ex_idx] .= newfut .* transition .+ qqbase .* (1 .- transition)
+            end
+        end
+    end
+
+    target_names = collect(Symbol.(name.(qqmap_base.axes)))
+    dataout = _matrix_to_cube_array(dataout2d, qq_spatial_shape, spatial_dims, :time, target_names)
+    return YAXArray(qqmap_base.axes, dataout)
 end
 
 
@@ -404,8 +683,7 @@ Removes February 29th from the given YAXArray. This function is used for bias co
 """
 function drop29thfeb(ds; dimx=:lon, dimy=:lat, dimt=:time)
     
-    
-    ds_subset = ds[time=Where(x-> Dates.monthday(x) != (2,29))]    
+    ds_subset = ds[Dim{dimt}(Where(x -> Dates.monthday(x) != (2,29)))]
 
     # Old time vector
     date_vec = lookup(ds_subset, dimt)
@@ -413,7 +691,7 @@ function drop29thfeb(ds; dimx=:lon, dimy=:lat, dimt=:time)
     datevec_noleap = CFTime.reinterpret.(DateTimeNoLeap, date_vec)
 
     # Rebuild the YAXArray
-    newarray = set(ds_subset, time => datevec_noleap)
+    newarray = set(ds_subset, dimt => datevec_noleap)
 
     return newarray
 
