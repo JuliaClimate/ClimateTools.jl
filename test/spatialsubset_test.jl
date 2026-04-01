@@ -58,4 +58,11 @@
     @test size(sub_qc_360) == size(sub_qc)
     arr_qc_360 = Array(sub_qc_360)
     @test all((isnan.(arr_qc) .& isnan.(arr_qc_360)) .| (arr_qc .== arr_qc_360))
+
+    # Disk-backed cube should stay lazy after spatialsubset.
+    ncfile = joinpath(dirname(@__FILE__), "data", "sresa1b_ncar_ccsm3-example.nc")
+    cube_disk = Cube(open_dataset(ncfile))
+    sub_disk = spatialsubset(cube_disk, shp_poly)
+    @test !(sub_disk.data isa Array)
+    @test occursin("BroadcastDiskArray", string(typeof(sub_disk.data)))
 end
