@@ -54,6 +54,7 @@ export autocorrelation
 export hurst
 export MSModel
 export rlevels_cube
+export spatialsubset
 
 
 end

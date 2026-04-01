@@ -143,10 +143,10 @@ function inpolygrid(lon::AbstractArray{N, 2} where N, lat::AbstractArray{N,2} wh
         end
 
         # get_limits of polyn
-        minlon = minimum(polyn[1, :])
-        maxlon = maximum(polyn[1, :])
-        minlat = minimum(polyn[2, :])
-        maxlat = maximum(polyn[2, :])
+        minlon = Base.minimum(polyn[1, :])
+        maxlon = Base.maximum(polyn[1, :])
+        minlat = Base.minimum(polyn[2, :])
+        maxlat = Base.maximum(polyn[2, :])
 
         begin
             I = Base.findall((lon .<= maxlon) .& (lon .>= minlon) .& (lat .>= minlat) .& (lat .<= maxlat))

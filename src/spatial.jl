@@ -25,69 +25,128 @@ end
 
 
 
-# """
-#     spatialsubset(A::YAXArray, poly::Array{N, 2})
+"""
+    spatialsubset(cube::YAXArray, poly)
 
-# Returns the spatial subset of YAXArray A. The spatial subset is defined by the polygon polygon, defined on a -180, +180 longitude reference.
+Return a polygon-masked spatial subset of a YAXArray.
 
-# """
-# function spatialsubset(A::YAXArray, poly)
+The polygon is expected to be in lon/lat coordinates on a -180 to 180
+longitude convention. `poly` can be provided as a 2xN matrix or an Nx2
+matrix.
 
-#     # Some checks for polygon poly
+"""
+function _normalize_polygon(poly)
+    ndims(poly) == 2 || error("Polygon must be a 2D array with lon/lat coordinates.")
 
-#     if size(poly, 1) != 2 && size(poly, 2) == 2
-#         # transpose
-#         poly = poly'
-#     end
+    if size(poly, 1) == 2
+        return Float64.(poly)
+    elseif size(poly, 2) == 2
+        return Float64.(poly')
+    else
+        error("Polygon must be a 2xN or Nx2 array.")
+    end
+end
 
-#     lonsymbol = Symbol(C.dimension_dict["lon"])
-#     latsymbol = Symbol(C.dimension_dict["lat"])
+function _find_spatial_dim(cube::YAXArray, candidates::Tuple)
+    dim_names = Tuple(name.(cube.axes))
+    for candidate in candidates
+        if candidate in dim_names
+            return candidate
+        end
+    end
+    return nothing
+end
 
-#     longrid = C.longrid
-#     latgrid = C.latgrid
+function _align_longitude_reference(lon::AbstractVector, poly::AbstractMatrix)
+    lon_aligned = Float64.(lon)
+    poly_aligned = copy(poly)
 
-#     lon = C[1][Axis{lonsymbol}][:]
-#     lat = C[1][Axis{latsymbol}][:]
+    valid = .!isnan.(poly_aligned[1, :])
+    if !any(valid)
+        return lon_aligned, poly_aligned
+    end
 
-#     msk = inpolygrid(longrid, latgrid, poly)
+    if Base.maximum(lon_aligned) > 180 && any(poly_aligned[1, valid] .< 0)
+        lon_aligned = map(x -> x >= 180 ? x - 360 : x, lon_aligned)
+    elseif Base.maximum(lon_aligned) <= 180 && any(poly_aligned[1, valid] .> 180)
+        poly_aligned[1, valid] = ifelse.(poly_aligned[1, valid] .> 180, poly_aligned[1, valid] .- 360, poly_aligned[1, valid])
+    end
 
-#     begin
-#         I = findall(!isnan, msk)
-#         idlon, idlat = (getindex.(I, 1), getindex.(I, 2))
-#     end
-#     minXgrid = minimum(idlon)
-#     maxXgrid = maximum(idlon)
-#     minYgrid = minimum(idlat)
-#     maxYgrid = maximum(idlat)
+    return lon_aligned, poly_aligned
+end
 
-#     # Get DATA
-#     data = C[1].data
+function spatialsubset(cube::YAXArray, poly)
+    poly2 = _normalize_polygon(poly)
 
-#     if ndims(data) == 3
-#         data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :]
-#     elseif ndims(data) == 4
-#         data = data[minXgrid:maxXgrid, minYgrid:maxYgrid, :, :]
-#     end
+    lonsymbol = _find_spatial_dim(cube, (:longitude, :lon, :x, :rlon))
+    latsymbol = _find_spatial_dim(cube, (:latitude, :lat, :y, :rlat))
 
-#     #new mask (e.g. representing the region of the polygon)
-#     msk = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
-#     data = applymask(data, msk)
+    lonsymbol === nothing && error("Could not find longitude dimension in cube.")
+    latsymbol === nothing && error("Could not find latitude dimension in cube.")
 
-#     # Get lon-lat for such region
-#     longrid = longrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
-#     latgrid = latgrid[minXgrid:maxXgrid, minYgrid:maxYgrid]
-#     lon = lon[minXgrid:maxXgrid]
-#     lat = lat[minYgrid:maxYgrid]
+    lon = collect(lookup(cube, lonsymbol))
+    lat = collect(lookup(cube, latsymbol))
 
-#     if ndims(data) == 3
-#       dataOut = AxisArray(data, Axis{lonsymbol}(lon), Axis{latsymbol}(lat),  Axis{:time}(C[1][Axis{:time}][:]))
-#     elseif ndims(data) == 4
-#       dataOut = AxisArray(data, Axis{lonsymbol}(lon), Axis{latsymbol}(lat), Axis{:level}(C[1][Axis{:plev}][:]), Axis{:time}(C[1][Axis{:time}][:]))
-#     end
+    lon_mask, poly_mask = _align_longitude_reference(lon, poly2)
 
-#     return legacy grid struct(dataOut, longrid=longrid, latgrid=latgrid, msk=msk, grid_mapping=C.grid_mapping, timeattrib=C.timeattrib, dimension_dict=C.dimension_dict, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable=C.variable, typeofvar=C.typeofvar, typeofcal=C.typeofcal, varattribs=C.varattribs, globalattribs=C.globalattribs)
+    longrid, latgrid = ndgrid(lon_mask, Float64.(lat))
+    msk = inpolygrid(longrid, latgrid, poly_mask)
 
-# end
+    I = findall(!isnan, msk)
+    isempty(I) && error("Polygon does not overlap cube grid.")
+
+    idlon = getindex.(I, 1)
+    idlat = getindex.(I, 2)
+
+    minXgrid = Base.minimum(idlon)
+    maxXgrid = Base.maximum(idlon)
+    minYgrid = Base.minimum(idlat)
+    maxYgrid = Base.maximum(idlat)
+
+    data = Array(cube)
+    names = collect(name.(cube.axes))
+    lonpos = findfirst(==(lonsymbol), names)
+    latpos = findfirst(==(latsymbol), names)
+
+    indices = Any[Colon() for _ in 1:ndims(data)]
+    indices[lonpos] = minXgrid:maxXgrid
+    indices[latpos] = minYgrid:maxYgrid
+
+    datasub = data[indices...]
+    msksub = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
+
+    maskshape = ntuple(i -> i == lonpos ? size(msksub, 1) : (i == latpos ? size(msksub, 2) : 1), ndims(datasub))
+    masked = datasub .* reshape(msksub, maskshape)
+
+    axes_out = map(cube.axes) do ax
+        axname = name(ax)
+        if axname == lonsymbol
+            Dim{lonsymbol}(lookup(cube, lonsymbol)[minXgrid:maxXgrid])
+        elseif axname == latsymbol
+            Dim{latsymbol}(lookup(cube, latsymbol)[minYgrid:maxYgrid])
+        else
+            ax
+        end
+    end
+
+    return YAXArray(axes_out, masked)
+end
+
+function spatialsubset(C::AbstractVector, poly)
+    isempty(C) && error("Input container is empty.")
+    C[1] isa YAXArray || error("Expected first element of input container to be a YAXArray.")
+
+    out = copy(C)
+    out[1] = spatialsubset(C[1], poly)
+    return out
+end
+
+function spatialsubset(C::Tuple, poly)
+    isempty(C) && error("Input container is empty.")
+    C[1] isa YAXArray || error("Expected first element of input container to be a YAXArray.")
+
+    return (spatialsubset(C[1], poly), Base.tail(C)...)
+end
 
 
 """
@@ -237,8 +296,8 @@ end
 
 function meridian_check(poly)
 
-    minpoly = minimum(poly[1, .!isnan.(poly[1, :])])
-    maxpoly = maximum(poly[1, .!isnan.(poly[1, :])])
+    minpoly = Base.minimum(poly[1, .!isnan.(poly[1, :])])
+    maxpoly = Base.maximum(poly[1, .!isnan.(poly[1, :])])
 
     meridian = false
     if sign(minpoly)*sign(maxpoly) == sign(-1.0) # polygon crosses the meridian
