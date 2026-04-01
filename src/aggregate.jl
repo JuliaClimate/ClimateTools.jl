@@ -13,6 +13,15 @@
 # end
 
 """
+    _valid_values(xin)
+
+Return the non-missing, non-NaN values contained in `xin`.
+"""
+function _valid_values(xin)
+    return [x for x in xin if !(ismissing(x) || (x isa Number && isnan(x)))]
+end
+
+"""
     daily_max_mean_min(xout, xin)
 
 Compute the daily maximum, mean, and minimum values from the input array `xin` and store the results in the output array `xout`.
@@ -28,13 +37,14 @@ Compute the daily maximum, mean, and minimum values from the input array `xin` a
 """
 function daily_max_mean_min(xout, xin; index_list)
     xout .= NaN
-    if !all(ismissing, xin)
+    if !isempty(_valid_values(xin))
         for i in eachindex(index_list)
             data = view(xin, index_list[i])
-            if !all(ismissing, data)
-                xout[i,1] = maximum(skipmissing(data))
-                xout[i,2] = mean(skipmissing(data))
-                xout[i,3] = minimum(skipmissing(data))
+            values = _valid_values(data)
+            if !isempty(values)
+                xout[i,1] = maximum(values)
+                xout[i,2] = mean(values)
+                xout[i,3] = minimum(values)
             end
         end        
     end    
@@ -184,13 +194,12 @@ Apply a function `fct` to aggregate data from `xin` into `xout` on a daily basis
 function daily_fct(xout, xin; fct::Function, index_list = time_to_index)
     
     xout .= NaN
-    if !all(x -> ismissing(x) || (x isa Number && isnan(x)), xin)
+    if !isempty(_valid_values(xin))
         for i in eachindex(index_list)
             data = view(xin, index_list[i])
-            if !all(x -> ismissing(x) || (x isa Number && isnan(x)), data)
-                x1 = data[.!ismissing.(data)]
-                x2 = x1[.!isnan.(x1)]
-                xout[i] = fct(x2)
+            values = _valid_values(data)
+            if !isempty(values)
+                xout[i] = fct(values)
             end
         end
         return
@@ -238,12 +247,12 @@ end
 function yearly_resample(xout, xin; fct::Function=mean, index_list = time_to_index)
     
     xout .= NaN
-    if !all(x -> ismissing(x) || (x isa Number && isnan(x)), xin)
-    # if !all(ismissing, xin)
+    if !isempty(_valid_values(xin))
         for i in eachindex(index_list)
             data = view(xin, index_list[i])
-            if !all(x -> ismissing(x) || (x isa Number && isnan(x)), data)
-                xout[i] = fct(skipmissing(data[.!isnan.(data)]))
+            values = _valid_values(data)
+            if !isempty(values)
+                xout[i] = fct(values)
             end
         end
         
@@ -279,11 +288,12 @@ end
 function monthly_resample(xout, xin; fct::Function=mean, index_list = time_to_index)
     
     xout .= NaN
-    if !all(ismissing, xin)
+    if !isempty(_valid_values(xin))
         for i in eachindex(index_list)
             data = view(xin, index_list[i])
-            if !all(ismissing, data)
-                xout[i] = fct(skipmissing(data))
+            values = _valid_values(data)
+            if !isempty(values)
+                xout[i] = fct(values)
             end
         end
         
@@ -327,11 +337,12 @@ index_list =
 function daily_max(xout, xin; index_list = time_to_index)
     
     xout .= NaN
-    if !all(ismissing, xin)
+    if !isempty(_valid_values(xin))
         for i in eachindex(index_list)
             data = view(xin, index_list[i])
-            if !all(ismissing, data)
-                xout[i] = maximum(skipmissing(data))
+            values = _valid_values(data)
+            if !isempty(values)
+                xout[i] = maximum(values)
             end
         end
         

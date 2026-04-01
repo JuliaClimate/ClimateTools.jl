@@ -1,34 +1,25 @@
-# Interpolation
+# Interpolation and Regridding
 
-A typical step in climate analysis is to interpolate a given grid onto another grid. `ClimateTools` provides such a tool by wrapping Scipy griddata function. It is intended for visualization or as a 1st step before bias-correcting the `ClimGrid` dataset.
+ClimateTools provides YAXArrays-native regridding utilities.
 
-[`griddata`](@ref) function will interpolate the data contained in `ClimGrid A` into the coordinates of `ClimGrid B` and returns a new `ClimGrid C` which contains the interpolated data of `A` into the grid of `B`.
+## Regular Grid Regridding
 
 ```julia
-C = griddata(A::ClimGrid, B::ClimGrid)
+out = regrid_cube(source_cube, destination_cube)
 ```
 
-It is also possible to interpolate a `ClimGrid` onto specified longitude and latitude vectors and arrays.
+## Curvilinear/Rotated Grid Regridding
 
 ```julia
-C = griddata(A::ClimGrid, lon::AbstractArray{N, T} where N where T, lat::AbstractArray{N, T} where N where T; dimx=[], dimy=[], method::String="linear", min=[], max=[])
+out = regrid_curvilinear_to_regular(source, dest;
+    grid_north_longitude=0.0,
+    grid_north_latitude=90.0)
 ```
 
-In the case a longitude and latitude 2D array is provided, the user needs to provide the dimension vectors for `x` and `y`.
-
-## Experimental
-
-DEPRECATED. Users will have to define their own regridding functions using GeoStats.
-
-ClimateTools also provide a way to uses `GeoStats` geostatistics methods. See function `regrid` for some details.
+For rotated grids with explicit arrays:
 
 ```julia
-using GeoStats
-using ClimateTools
-
-target = :pr # e.g. precipitation
-n = 30 # max number of neighboring points
-solver = Kriging(target => (maxneighbors=n,))
-
-C = regrid(A::ClimGrid, B::ClimGrid, solver=solver)
+out = regrid_rotated_curvilinear_to_regular(lonrot, latrot, data, londest, latdest;
+    grid_north_longitude=0.0,
+    grid_north_latitude=90.0)
 ```

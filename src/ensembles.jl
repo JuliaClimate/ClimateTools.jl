@@ -38,7 +38,7 @@ Compute the maximum, mean, and minimum values from a YAXArray Cube along dimensi
 
 
 """
-function ensemble_stats(cube::YAXArray; dim="time")    
+function ensemble_stats(cube::YAXArray; dim="time")
 
       
     # Dimensions
@@ -48,3 +48,5 @@ function ensemble_stats(cube::YAXArray; dim="time")
     
     mapCube(ensemble_stats, cube, indims=indims, outdims=outdims)
 end
+
+ensemble_fct(cube::YAXArray; dim="time") = ensemble_stats(cube; dim=dim)

@@ -49,4 +49,7 @@ using Dates
     # Plots.density!(qq[:,3,3].data, linewidth=2.5,label="QQ")
 
     include("aggregate_test.jl")
+    include("legacy_compat_test.jl")
+    include("biascorrect_yax_test.jl")
+    include("biascorrect_extremes_test.jl")
 end

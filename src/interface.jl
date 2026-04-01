@@ -1,10 +1,6 @@
-# function getsymbols(C::ClimGrid)
-#     latsymbol = Symbol(C.dimension_dict["lat"])
-#     lonsymbol = Symbol(C.dimension_dict["lon"])
+"""
+Public data-processing interfaces are implemented directly on YAXArrays in
+loaded source files.
 
-#     return latsymbol, lonsymbol
-# end
-
-
-
-
+Retired: legacy legacy grid struct-specific interface layer.
+"""
