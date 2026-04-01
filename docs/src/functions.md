@@ -45,6 +45,10 @@
 - `regrid_curvilinear_to_regular`
 - `regrid_rotated_curvilinear_to_regular`
 
+## Spatial
+
+- `spatialsubset`
+
 ## Thermodynamics
 
 - `vaporpressure`

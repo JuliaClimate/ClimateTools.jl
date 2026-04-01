@@ -52,4 +52,5 @@ using Dates
     include("legacy_compat_test.jl")
     include("biascorrect_yax_test.jl")
     include("biascorrect_extremes_test.jl")
+    include("spatialsubset_test.jl")
 end

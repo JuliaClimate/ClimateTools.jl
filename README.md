@@ -1,5 +1,15 @@
 # ClimateTools.jl
 
+[![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
+[![CI](https://github.com/JuliaClimate/ClimateTools.jl/workflows/CI/badge.svg)](https://github.com/JuliaClimate/ClimateTools.jl/actions)
+[![codecov](https://codecov.io/gh/JuliaClimate/ClimateTools.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaClimate/ClimateTools.jl)
+[![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliaclimate.github.io/ClimateTools.jl/stable)
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://juliaclimate.github.io/ClimateTools.jl/dev)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/JuliaClimate/ClimateTools.jl)](https://github.com/JuliaClimate/ClimateTools.jl/releases)
+[![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
+[![DOI](https://zenodo.org/badge/76293821.svg)](https://zenodo.org/badge/latestdoi/76293821)
+[![chat](https://img.shields.io/badge/chat-on%20gitter-bc0067.svg)](https://gitter.im/ClimateTools-jl)
+
 ClimateTools.jl is a climate-analysis toolkit built on top of YAXArrays.jl.
 
 ## Status
