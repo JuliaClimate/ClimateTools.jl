@@ -55,4 +55,5 @@ using Dates
     include("spatialsubset_test.jl")
     include("regrid_test.jl")
     include("functions_new_test.jl")
+    include("xclim_indices_test.jl")
 end
