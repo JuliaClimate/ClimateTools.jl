@@ -2,6 +2,8 @@
 
 ClimateTools.jl provides climate-analysis functions on top of YAXArrays.jl.
 
+ClimateTools now uses the YAXArrays `xmap` pattern for most whole-dimension reductions and transforms while preserving the same public YAXArray-oriented API.
+
 ## Data Model
 
 All high-level APIs operate on YAXArray/Cube objects.
@@ -23,6 +25,12 @@ using ClimateTools
 qq = qqmap(obs, ref, fut; method="additive")
 ann = annualmax(qq)
 ```
+
+## Compute Pattern
+
+If you are extending ClimateTools internals, prefer `xmap` for operations that reduce or replace complete dimensions such as time aggregations, period reductions, quantile summaries, or regridding over full source grids.
+
+`mapCube` still appears in a few specialized implementations where the current YAXArrays `xmap` rules are more restrictive. The main case is a multi-input workflow where arrays share a dimension name but do not share the same coordinate values, such as the `obs`/`ref`/`fut` time axes used by quantile mapping.
 
 ## Included Documentation
 

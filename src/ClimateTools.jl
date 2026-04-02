@@ -19,6 +19,7 @@ using DataFrames
 using MarSwitching
 using Shapefile
 
+include("xmap_utils.jl")
 include("aggregate.jl")
 include("autocorrelation.jl")
 include("biascorrect.jl")

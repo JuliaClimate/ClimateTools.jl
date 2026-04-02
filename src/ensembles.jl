@@ -39,14 +39,12 @@ Compute the maximum, mean, and minimum values from a YAXArray Cube along dimensi
 
 """
 function ensemble_stats(cube::YAXArray; dim="time")
-
-      
-    # Dimensions
-    indims = InDims(dim)    
-    # outdims = OutDims(RangeAxis("time", dates_builder_yearmonthday(new_dates)), CategoricalAxis("stats",["max","mean","min"]))
-    outdims = OutDims(Dim{:stats}(["max","mean","min"]))
-    
-    mapCube(ensemble_stats, cube, indims=indims, outdims=outdims)
+    return _xmap_call(
+        ensemble_stats,
+        cube;
+        reduced_dims=dim,
+        output_axes=(Dim{:stats}(["max", "mean", "min"]),),
+    )
 end
 
 ensemble_fct(cube::YAXArray; dim="time") = ensemble_stats(cube; dim=dim)

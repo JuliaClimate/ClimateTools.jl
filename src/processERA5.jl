@@ -56,10 +56,12 @@ function ERA5Land_dailysum(cube::YAXArray; keep_1stday=false, kwargs...)
     end
     index_in_cube = [findall(==(i), time_index) for i in unique(time_index)][firstidx:end]    
     
-    # Dimensions
-    indims = InDims("time")    
-    outdims = OutDims(Dim{:time}(dates_builder_yearmonthday(new_dates[firstidx:end])))
-    
-    return mapCube(ERA5Land_dailysum, cube, indims=indims, outdims=outdims, index_list=index_in_cube)
+    return _xmap_call(
+        ERA5Land_dailysum,
+        cube;
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(dates_builder_yearmonthday(new_dates[firstidx:end])),),
+        function_kwargs=(index_list=index_in_cube,),
+    )
     
 end

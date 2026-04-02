@@ -67,11 +67,8 @@ function qqmap(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Addi
         days = Base.minimum(ref_jul) + window:Base.maximum(ref_jul) - window
     end
     
-    # Dimensions
     indims = InDims(string(timedim))
     outdims = OutDims(Dim{:time}(lookup(fut, timedim)))
-
-    # @info Threads.nthreads()
 
     return mapCube(qqmap, (obs, ref, fut), indims=(indims, indims, indims), outdims=outdims, days, obs_jul, ref_jul, fut_jul, method=method, detrend=detrend, order=order, window=window, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap, nthreads=Threads.nthreads())
     
@@ -223,12 +220,8 @@ function qqmap_bulk(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String=
     ref = drop29thfeb(ref, dimt=timedim)
     fut = drop29thfeb(fut, dimt=timedim)
     
-    # Dimensions
     indims = InDims(string(timedim))
     outdims = OutDims(Dim{:time}(lookup(fut, timedim)))
-
-    # @info Threads.nthreads()
-    @info "Test"
 
     return mapCube(qqmap_bulk, (obs, ref, fut), indims=(indims, indims, indims), outdims=outdims, method=method, detrend=detrend, order=order, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap, nthreads=Threads.nthreads())
     

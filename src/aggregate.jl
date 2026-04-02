@@ -72,12 +72,13 @@ function daily_max_mean_min(cube::YAXArray, kwargs...)
     new_dates = unique(time_index)
     index_in_cube = [findall(==(i), time_index) for i in unique(time_index)]   
     
-    # Dimensions
-    indims = InDims("time")    
-    # outdims = OutDims(RangeAxis("time", dates_builder_yearmonthday(new_dates)), CategoricalAxis("stats",["max","mean","min"]))
-    outdims = OutDims(Dim{:time}(dates_builder_yearmonthday(new_dates)), CategoricalAxis("stats",["max","mean","min"]))
-    
-    mapCube(daily_max_mean_min, cube, indims=indims, outdims=outdims, index_list=index_in_cube, nthreads=Threads.nthreads())
+    return _xmap_call(
+        daily_max_mean_min,
+        cube;
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(dates_builder_yearmonthday(new_dates)), CategoricalAxis("stats", ["max", "mean", "min"])),
+        function_kwargs=(index_list=index_in_cube,),
+    )
 end
 
 
@@ -132,12 +133,7 @@ Compute the difference between consecutive time steps in the given `cube`.
 
 """
 function diff(cube::YAXArray)    
-
-
-    indims = InDims("time")    
-    outdims = OutDims("time")
-    
-    mapCube(diff, cube, indims=indims, outdims=outdims, nthreads=Threads.nthreads())
+    return _xmap_call(diff, cube; reduced_dims=:time, output_axes=(Dim{:time}(lookup(cube, :time)),))
 end
 
 """
@@ -170,11 +166,7 @@ A new YAXArray cube with the cumulative sum computed along the "time" dimension.
 
 """
 function cumsum(cube::YAXArray, kwargs...)    
-
-    indims = InDims("time")    
-    outdims = OutDims("time")
-    
-    mapCube(cumsum, cube, indims=indims, outdims=outdims, nthreads=Threads.nthreads())
+    return _xmap_call(cumsum, cube; reduced_dims=:time, output_axes=(Dim{:time}(lookup(cube, :time)),))
 end
 
 
@@ -237,11 +229,13 @@ function daily_fct(cube::YAXArray; fct::Function=mean, shifthour=0, kwargs...)
     new_dates = unique(time_index)
     index_in_cube = [findall(==(i), time_index) for i in unique(time_index)]   
     
-    # Dimensions
-    indims = InDims("time")        
-    outdims = OutDims(Dim{:time}(dates_builder_yearmonthday(new_dates)))
-    
-    mapCube(daily_fct, cube, indims=indims, outdims=outdims, fct=fct, index_list=index_in_cube, nthreads=Threads.nthreads())
+    return _xmap_call(
+        daily_fct,
+        cube;
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(dates_builder_yearmonthday(new_dates)),),
+        function_kwargs=(fct=fct, index_list=index_in_cube),
+    )
 end
 
 function yearly_resample(xout, xin; fct::Function=mean, index_list = time_to_index)
@@ -278,11 +272,13 @@ function yearly_resample(cube::YAXArray; fct::Function=mean, kwargs...)
     new_dates = unique(time_index);
     index_in_cube = [findall(==(i), time_index) for i in unique(time_index)]
 
-    # Dimensions
-    indims = InDims("time")        
-    outdims = OutDims(Dim{:time}(dates_builder_yearmonthday_hardcode(new_dates, imois=7, iday=1)))
-
-    mapCube(yearly_resample, cube, fct=fct, indims=indims, outdims=outdims, index_list=index_in_cube, nthreads=Threads.nthreads())
+    return _xmap_call(
+        yearly_resample,
+        cube;
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(dates_builder_yearmonthday_hardcode(new_dates, imois=7, iday=1)),),
+        function_kwargs=(fct=fct, index_list=index_in_cube),
+    )
 end
 
 function monthly_resample(xout, xin; fct::Function=mean, index_list = time_to_index)
@@ -320,11 +316,13 @@ function monthly_resample(cube::YAXArray; fct::Function=mean, kwargs...)
     new_dates = unique(time_index);
     index_in_cube = [findall(==(i), time_index) for i in unique(time_index)]
 
-    # Dimensions
-    indims = InDims("time")        
-    outdims = OutDims(Dim{:time}(dates_builder_monthly_resample(new_dates)))
-
-    mapCube(monthly_resample, cube, fct=fct, indims=indims, outdims=outdims, index_list=index_in_cube, nthreads=Threads.nthreads())
+    return _xmap_call(
+        monthly_resample,
+        cube;
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(dates_builder_monthly_resample(new_dates)),),
+        function_kwargs=(fct=fct, index_list=index_in_cube),
+    )
 end
 
 """
@@ -356,9 +354,11 @@ function daily_max(cube::YAXArray, kwargs...)
     new_dates = unique(time_index);
     index_in_cube = [findall(==(i), time_index) for i in unique(time_index)]   
     
-    # Dimensions
-    indims = InDims("time")        
-    outdims = OutDims(Dim{:time}(dates_builder_yearmonthday(new_dates)))
-    
-    mapCube(daily_max, cube, indims=indims, outdims=outdims, index_list=index_in_cube, nthreads=Threads.nthreads())
+    return _xmap_call(
+        daily_max,
+        cube;
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(dates_builder_yearmonthday(new_dates)),),
+        function_kwargs=(index_list=index_in_cube,),
+    )
 end

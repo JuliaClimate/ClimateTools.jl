@@ -17,12 +17,12 @@ The autocorrelation of the input dataset `ds` along the time dimension.
 
 """
 function MSModel(ds; k_regime=2, intercept = "switching")
-
-    # Dimensions
-    indims = InDims("time")
-    outdims = OutDims(Dim{:MSM}(1))
-    # outdims = OutDims()
-
-    return mapCube(Climat.MSModel, ds, indims=indims, outdims=outdims, k_regime=k_regime, intercept=intercept, nthreads=Threads.nthreads())
+    return _xmap_call(
+        Climat.MSModel,
+        ds;
+        reduced_dims=:time,
+        output_axes=(Dim{:MSM}(1),),
+        function_kwargs=(k_regime=k_regime, intercept=intercept),
+    )
 
 end

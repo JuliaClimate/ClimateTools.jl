@@ -815,23 +815,21 @@ function regrid(cube::YAXArray, regridder::Regridder; skipna::Bool=false, na_thr
 
     source_lon_name, source_lat_name, source_lon_flip, source_lat_flip = _source_grid_state(cube, regridder)
 
-    indims = InDims(string(source_lon_name), string(source_lat_name))
-    outdims = OutDims(
-        Dim{regridder.dest_lon_name}(regridder.dest_lon),
-        Dim{regridder.dest_lat_name}(regridder.dest_lat),
-    )
-
-    return mapCube(
+    return _xmap_call(
         _apply_regridder!,
         cube;
-        regridder=regridder,
-        source_lon_flip=source_lon_flip,
-        source_lat_flip=source_lat_flip,
-        skipna=skipna,
-        na_thres=na_thres,
-        indims=indims,
-        outdims=outdims,
-        nthreads=Threads.nthreads(),
+        reduced_dims=(source_lon_name, source_lat_name),
+        output_axes=(
+            Dim{regridder.dest_lon_name}(regridder.dest_lon),
+            Dim{regridder.dest_lat_name}(regridder.dest_lat),
+        ),
+        function_kwargs=(
+            regridder=regridder,
+            source_lon_flip=source_lon_flip,
+            source_lat_flip=source_lat_flip,
+            skipna=skipna,
+            na_thres=na_thres,
+        ),
     )
 end
 

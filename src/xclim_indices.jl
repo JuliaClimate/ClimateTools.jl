@@ -44,10 +44,13 @@ end
 
 function _period_reduce(cube::YAXArray; reducer::Function, freq="YS")
     index_list, dates = _period_groups(cube.time, freq)
-    indims = InDims("time")
-    outdims = OutDims(Dim{:time}(dates))
-
-    return mapCube(_period_reduce_kernel, cube; indims=indims, outdims=outdims, index_list=index_list, reducer=reducer, nthreads=Threads.nthreads())
+    return _xmap_call(
+        _period_reduce_kernel,
+        cube;
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(dates),),
+        function_kwargs=(index_list=index_list, reducer=reducer),
+    )
 end
 
 function _rolling_sum_kernel(xout, xin; window::Int)
@@ -67,9 +70,13 @@ function _rolling_sum_kernel(xout, xin; window::Int)
 end
 
 function _rolling_sum(cube::YAXArray; window::Int)
-    indims = InDims("time")
-    outdims = OutDims("time")
-    return mapCube(_rolling_sum_kernel, cube; indims=indims, outdims=outdims, window=window, nthreads=Threads.nthreads())
+    return _xmap_call(
+        _rolling_sum_kernel,
+        cube;
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(lookup(cube, :time)),),
+        function_kwargs=(window=window,),
+    )
 end
 
 function _resolve_reducer(op::Function)
@@ -280,20 +287,18 @@ end
 function _threshold_count_pair(first::YAXArray, second::YAXArray; first_thresh, second_thresh, freq="YS", first_op, second_op)
     _ensure_matching_time_axis(first, second)
     index_list, dates = _period_groups(first.time, freq)
-    indims = (InDims("time"), InDims("time"))
-    outdims = OutDims(Dim{:time}(dates))
-
-    return mapCube(
+    return _xmap_call(
         _threshold_count_pair_kernel,
         (first, second);
-        indims=indims,
-        outdims=outdims,
-        index_list=index_list,
-        comparator_first=_comparison_operator(first_op),
-        threshold_first=first_thresh,
-        comparator_second=_comparison_operator(second_op),
-        threshold_second=second_thresh,
-        nthreads=Threads.nthreads(),
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(dates),),
+        function_kwargs=(
+            index_list=index_list,
+            comparator_first=_comparison_operator(first_op),
+            threshold_first=first_thresh,
+            comparator_second=_comparison_operator(second_op),
+            threshold_second=second_thresh,
+        ),
     )
 end
 
@@ -370,22 +375,20 @@ end
 function _spell_stat_pair(first::YAXArray, second::YAXArray; first_thresh, second_thresh, freq="YS", first_op, second_op, window::Int=1, stat::Symbol)
     _ensure_matching_time_axis(first, second)
     index_list, dates = _period_groups(first.time, freq)
-    indims = (InDims("time"), InDims("time"))
-    outdims = OutDims(Dim{:time}(dates))
-
-    return mapCube(
+    return _xmap_call(
         _spell_stat_pair_kernel,
         (first, second);
-        indims=indims,
-        outdims=outdims,
-        index_list=index_list,
-        comparator_first=_comparison_operator(first_op),
-        threshold_first=first_thresh,
-        comparator_second=_comparison_operator(second_op),
-        threshold_second=second_thresh,
-        window=window,
-        stat=stat,
-        nthreads=Threads.nthreads(),
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(dates),),
+        function_kwargs=(
+            index_list=index_list,
+            comparator_first=_comparison_operator(first_op),
+            threshold_first=first_thresh,
+            comparator_second=_comparison_operator(second_op),
+            threshold_second=second_thresh,
+            window=window,
+            stat=stat,
+        ),
     )
 end
 
@@ -472,17 +475,12 @@ end
 function _threshold_count_against(cube::YAXArray, threshold_cube::YAXArray; freq="YS", op=">")
     _ensure_matching_time_axis(cube, threshold_cube)
     index_list, dates = _period_groups(cube.time, freq)
-    indims = (InDims("time"), InDims("time"))
-    outdims = OutDims(Dim{:time}(dates))
-
-    return mapCube(
+    return _xmap_call(
         _threshold_count_against_kernel,
         (cube, threshold_cube);
-        indims=indims,
-        outdims=outdims,
-        index_list=index_list,
-        comparator=_comparison_operator(op),
-        nthreads=Threads.nthreads(),
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(dates),),
+        function_kwargs=(index_list=index_list, comparator=_comparison_operator(op)),
     )
 end
 
@@ -490,18 +488,12 @@ function _windowed_threshold_run_count_against(cube::YAXArray, threshold_cube::Y
     window >= 1 || error("window must be >= 1")
     _ensure_matching_time_axis(cube, threshold_cube)
     index_list, dates = _period_groups(cube.time, freq)
-    indims = (InDims("time"), InDims("time"))
-    outdims = OutDims(Dim{:time}(dates))
-
-    return mapCube(
+    return _xmap_call(
         _windowed_threshold_run_count_against_kernel,
         (cube, threshold_cube);
-        indims=indims,
-        outdims=outdims,
-        index_list=index_list,
-        comparator=_comparison_operator(op),
-        window=window,
-        nthreads=Threads.nthreads(),
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(dates),),
+        function_kwargs=(index_list=index_list, comparator=_comparison_operator(op), window=window),
     )
 end
 

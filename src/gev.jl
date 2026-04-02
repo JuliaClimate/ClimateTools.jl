@@ -50,14 +50,14 @@ The return levels of the input dataset `ds` along the time dimension.
 
 """
 function rlevels_cube(ds::YAXArray; threshold=nothing, rlevels = [1, 2, 5, 10, 25, 50, 100, 1000], minimalvalue=1.0, latsouth_pixel=0, latnorth_pixel=0, lonwest_pixel=0, loneast_pixel=0, lonname="longitude", latname="latitude")
-
-    # Dimensions
-    # indims = InDims(MovingWindow(latname, latsouth_pixel,latnorth_pixel), MovingWindow(lonname, lonwest_pixel,loneast_pixel), "Ti")
-    indims = InDims("time")
-    outdims = OutDims(Dim{:rlevels}(rlevels))
-    # outdims = OutDims(outtype=Vector{ReturnLevel{MaximumLikelihoodAbstractExtremeValueModel{ThresholdExceedance}}})
-
-    return mapCube(rlevels_cube, ds, indims=indims, outdims=outdims, threshold=threshold, rlevels=rlevels, minimalvalue=minimalvalue, nthreads=Threads.nthreads())
+    return _xmap_call(
+        rlevels_cube,
+        ds;
+        reduced_dims=:time,
+        output_axes=(Dim{:rlevels}(rlevels),),
+        function_kwargs=(threshold=threshold, rlevels=rlevels, minimalvalue=minimalvalue),
+        outtype=Union{Missing, Float64},
+    )
 
 end
 
@@ -99,10 +99,12 @@ end
 
 
 function gpfit_cube(ds::YAXArray; threshold=nothing)
-
-    indims = InDims("time")
-    outdims = OutDims(outtype=Union{Missing, MaximumLikelihoodAbstractExtremeValueModel})
-
-    return mapCube(gpfit_cube, ds, indims=indims, outdims=outdims, threshold=threshold, nthreads=Threads.nthreads())
+    return _xmap_call(
+        gpfit_cube,
+        ds;
+        reduced_dims=:time,
+        function_kwargs=(threshold=threshold,),
+        outtype=Union{Missing, MaximumLikelihoodAbstractExtremeValueModel},
+    )
 
 end
