@@ -41,7 +41,11 @@
 
 ## Regridding
 
+- `Regridder`
+- `regrid`
 - `regrid_cube`
+- `save_regridder`
+- `load_regridder`
 - `regrid_curvilinear_to_regular`
 - `regrid_rotated_curvilinear_to_regular`
 

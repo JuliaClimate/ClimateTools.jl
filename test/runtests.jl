@@ -53,4 +53,5 @@ using Dates
     include("biascorrect_yax_test.jl")
     include("biascorrect_extremes_test.jl")
     include("spatialsubset_test.jl")
+    include("regrid_test.jl")
 end

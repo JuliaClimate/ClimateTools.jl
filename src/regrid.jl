@@ -1,201 +1,590 @@
-
 """
-    regrid_cube(source::YAXArray, dest::YAXArray; lonname_source = :longitude,
-                latname_source = :latitude, lonname_dest = :longitude,
-                latname_dest = :latitude) -> YAXArray
+    Regridder(source::YAXArray, dest::YAXArray; method="bilinear",
+              lonname_source=:longitude, latname_source=:latitude,
+              lonname_dest=:longitude, latname_dest=:latitude)
 
-Regrids a `YAXArray` cube to a target grid using linear interpolation between nodes.
-This implementation handles regular lon/lat grids. For curvilinear rotated-pole
-grids use `regrid_rotated_curvilinear_to_regular` or `regrid_curvilinear_to_regular`.
+Build a reusable regridding object inspired by xESMF: compute interpolation
+weights once and apply them many times.
+
+Supported methods:
+- `"bilinear"` (alias: `"linear"`)
+- `"nearest_s2d"` (alias: `"nearest"`)
+
+Regridders can be persisted with `save_regridder` and `load_regridder` for
+lightweight reuse across sessions.
 """
-function regrid_cube(source::YAXArray, dest::YAXArray; lonname_source = :longitude, latname_source=:latitude, lonname_dest=:longitude, latname_dest=:latitude)
+abstract type AbstractRegridWeights end
 
-    # subset to avoid edge effects
-    source_spatial = source[Dim{lonname_source}(Base.minimum(lookup(dest, lonname_dest))..Base.maximum(lookup(dest, lonname_dest))), Dim{latname_source}(Base.minimum(lookup(dest, latname_dest))..Base.maximum(lookup(dest,latname_dest)))]
+const REGRIDDER_SERIALIZATION_VERSION = 1
 
-    dest_spatial = dest[Dim{lonname_dest}(Base.minimum(lookup(source_spatial, lonname_source))..Base.maximum(lookup(source_spatial, lonname_source))), Dim{latname_dest}(Base.minimum(lookup(source_spatial,latname_source))..Base.maximum(lookup(source_spatial,latname_source)))]
+struct BilinearWeights <: AbstractRegridWeights
+    i0::Vector{Int}
+    i1::Vector{Int}
+    j0::Vector{Int}
+    j1::Vector{Int}
+    w00::Vector{Float64}
+    w10::Vector{Float64}
+    w01::Vector{Float64}
+    w11::Vector{Float64}
+    nx_out::Int
+    ny_out::Int
+end
 
-    # Source grid
-    xg1, yg1 = collect(source_spatial.longitude), collect(source_spatial.latitude)
-    Interpolations.deduplicate_knots!([xg1,yg1], move_knots = true)
-    
-    if Base.diff(xg1)[1] < 0.0 # vector needs to be monotonically increasing
-        source_spatial = reverse(source_spatial, dims=Dim{:longitude})
-        xg1 = reverse(xg1)
+struct NearestWeights <: AbstractRegridWeights
+    src_linear_index::Vector{Int}
+    nx_out::Int
+    ny_out::Int
+end
+
+struct Regridder{W<:AbstractRegridWeights}
+    method::Symbol
+    source_lon_name::Symbol
+    source_lat_name::Symbol
+    dest_lon_name::Symbol
+    dest_lat_name::Symbol
+    source_lon_flip::Bool
+    source_lat_flip::Bool
+    source_lon::Vector{Float64}
+    source_lat::Vector{Float64}
+    dest_lon::Vector{Float64}
+    dest_lat::Vector{Float64}
+    weights::W
+end
+
+function _normalize_regrid_method(method::String)
+    m = lowercase(method)
+    if m in ("linear", "bilinear")
+        return :bilinear
+    elseif m in ("nearest", "nearest_s2d")
+        return :nearest_s2d
+    elseif m == "idw"
+        return :idw
     end
-    
-    if Base.diff(yg1)[1] < 0.0 # vector needs to be monotonically increasing
-        source_spatial = reverse(source_spatial, dims=Dim{:latitude})
-        yg1 = reverse(yg1)
+    error("Unsupported regridding method: $(method)")
+end
+
+function _resolve_dim_name(cube::YAXArray, requested::Symbol, candidates::Tuple)
+    dim_names = Tuple(name.(cube.axes))
+    if requested in dim_names
+        return requested
     end
-    
-    # Destination grid
-    xg2, yg2 = collect(dest_spatial.longitude), collect(dest_spatial.latitude)
-    Interpolations.deduplicate_knots!([xg2,yg2], move_knots = true)
-    
-    if Base.diff(xg2)[1] < 0.0
-        xg2 = reverse(xg2)
+
+    for cand in candidates
+        if cand in dim_names
+            return cand
+        end
     end
-    
-    if Base.diff(yg2)[1] < 0.0
-        yg2 = reverse(yg2)
+
+    error("Could not find dimension $(requested) or any of $(candidates) in cube axes $(dim_names)")
+end
+
+function _prepare_source_coordinate(coord::AbstractVector, label::Symbol)
+    out = Float64.(collect(coord))
+    isempty(out) && error("Source coordinate $(label) is empty.")
+
+    if length(out) == 1
+        return out, false
     end
-    
-    coords = Iterators.product(xg2,yg2)
-    
-    # Dimensions for distributed calculations
-    indims = InDims(string(lonname_source),string(latname_source))
-    outdims = OutDims(Dim{lonname_source}(xg2), Dim{latname_source}(yg2))
-    
-    return mapCube(regrid_cube, source_spatial; xg1=xg1, yg1=yg1, coords=coords, indims=indims, outdims=outdims)
-    
+
+    any(Base.diff(out) .== 0.0) && error("Source coordinate $(label) contains duplicate values.")
+
+    if issorted(out)
+        return out, false
+    elseif issorted(out; rev=true)
+        return reverse(out), true
+    end
+
+    error("Source coordinate $(label) must be monotonic (ascending or descending).")
+end
+
+function _bracket_position(x::Float64, grid::Vector{Float64})
+    n = length(grid)
+    n == 1 && return 1, 1, 0.0
+
+    if x <= grid[1]
+        return 1, 2, 0.0
+    elseif x >= grid[end]
+        return n - 1, n, 1.0
+    end
+
+    i0 = searchsortedlast(grid, x)
+    i1 = i0 + 1
+    denom = grid[i1] - grid[i0]
+    t = denom == 0.0 ? 0.0 : (x - grid[i0]) / denom
+
+    return i0, i1, clamp(t, 0.0, 1.0)
+end
+
+function _build_bilinear_weights(source_lon::Vector{Float64}, source_lat::Vector{Float64}, dest_lon::Vector{Float64}, dest_lat::Vector{Float64})
+    nx_out = length(dest_lon)
+    ny_out = length(dest_lat)
+    nout = nx_out * ny_out
+
+    i0 = Vector{Int}(undef, nout)
+    i1 = Vector{Int}(undef, nout)
+    j0 = Vector{Int}(undef, nout)
+    j1 = Vector{Int}(undef, nout)
+    w00 = Vector{Float64}(undef, nout)
+    w10 = Vector{Float64}(undef, nout)
+    w01 = Vector{Float64}(undef, nout)
+    w11 = Vector{Float64}(undef, nout)
+
+    k = 1
+    for j in 1:ny_out
+        y = dest_lat[j]
+        jy0, jy1, ty = _bracket_position(y, source_lat)
+
+        for i in 1:nx_out
+            x = dest_lon[i]
+            ix0, ix1, tx = _bracket_position(x, source_lon)
+
+            i0[k] = ix0
+            i1[k] = ix1
+            j0[k] = jy0
+            j1[k] = jy1
+
+            if ix0 == ix1 && jy0 == jy1
+                w00[k] = 1.0
+                w10[k] = 0.0
+                w01[k] = 0.0
+                w11[k] = 0.0
+            elseif ix0 == ix1
+                w00[k] = 1.0 - ty
+                w10[k] = 0.0
+                w01[k] = ty
+                w11[k] = 0.0
+            elseif jy0 == jy1
+                w00[k] = 1.0 - tx
+                w10[k] = tx
+                w01[k] = 0.0
+                w11[k] = 0.0
+            else
+                w00[k] = (1.0 - tx) * (1.0 - ty)
+                w10[k] = tx * (1.0 - ty)
+                w01[k] = (1.0 - tx) * ty
+                w11[k] = tx * ty
+            end
+
+            k += 1
+        end
+    end
+
+    return BilinearWeights(i0, i1, j0, j1, w00, w10, w01, w11, nx_out, ny_out)
+end
+
+function _nearest_lon_index(source_lon::Vector{Float64}, x::Float64)
+    best_i = 1
+    best_d = abs(mod(source_lon[1] - x + 180.0, 360.0) - 180.0)
+
+    for i in 2:length(source_lon)
+        d = abs(mod(source_lon[i] - x + 180.0, 360.0) - 180.0)
+        if d < best_d
+            best_d = d
+            best_i = i
+        end
+    end
+
+    return best_i
+end
+
+function _build_nearest_weights(source_lon::Vector{Float64}, source_lat::Vector{Float64}, dest_lon::Vector{Float64}, dest_lat::Vector{Float64})
+    nx_out = length(dest_lon)
+    ny_out = length(dest_lat)
+    nout = nx_out * ny_out
+    src_linear_index = Vector{Int}(undef, nout)
+
+    k = 1
+    for j in 1:ny_out
+        y = dest_lat[j]
+        j_src = argmin(abs.(source_lat .- y))
+
+        for i in 1:nx_out
+            x = dest_lon[i]
+            i_src = _nearest_lon_index(source_lon, x)
+            src_linear_index[k] = i_src + (j_src - 1) * length(source_lon)
+            k += 1
+        end
+    end
+
+    return NearestWeights(src_linear_index, nx_out, ny_out)
+end
+
+function Regridder(source::YAXArray, dest::YAXArray; method::String="bilinear", lonname_source=:longitude, latname_source=:latitude, lonname_dest=:longitude, latname_dest=:latitude)
+    source_lon_name = _resolve_dim_name(source, lonname_source, (:longitude, :lon, :x, :rlon))
+    source_lat_name = _resolve_dim_name(source, latname_source, (:latitude, :lat, :y, :rlat))
+    dest_lon_name = _resolve_dim_name(dest, lonname_dest, (:longitude, :lon, :x, :rlon))
+    dest_lat_name = _resolve_dim_name(dest, latname_dest, (:latitude, :lat, :y, :rlat))
+
+    source_lon, source_lon_flip = _prepare_source_coordinate(lookup(source, source_lon_name), source_lon_name)
+    source_lat, source_lat_flip = _prepare_source_coordinate(lookup(source, source_lat_name), source_lat_name)
+
+    dest_lon = Float64.(collect(lookup(dest, dest_lon_name)))
+    dest_lat = Float64.(collect(lookup(dest, dest_lat_name)))
+
+    method_symbol = _normalize_regrid_method(method)
+    if method_symbol == :bilinear
+        weights = _build_bilinear_weights(source_lon, source_lat, dest_lon, dest_lat)
+    elseif method_symbol == :nearest_s2d
+        weights = _build_nearest_weights(source_lon, source_lat, dest_lon, dest_lat)
+    else
+        error("Method $(method) is not supported by Regridder. Use bilinear/linear or nearest/nearest_s2d.")
+    end
+
+    return Regridder(
+        method_symbol,
+        source_lon_name,
+        source_lat_name,
+        dest_lon_name,
+        dest_lat_name,
+        source_lon_flip,
+        source_lat_flip,
+        source_lon,
+        source_lat,
+        dest_lon,
+        dest_lat,
+        weights,
+    )
+end
+
+function _weights_payload(weights::BilinearWeights)
+    return (
+        type=:bilinear,
+        i0=weights.i0,
+        i1=weights.i1,
+        j0=weights.j0,
+        j1=weights.j1,
+        w00=weights.w00,
+        w10=weights.w10,
+        w01=weights.w01,
+        w11=weights.w11,
+        nx_out=weights.nx_out,
+        ny_out=weights.ny_out,
+    )
+end
+
+function _weights_payload(weights::NearestWeights)
+    return (
+        type=:nearest_s2d,
+        src_linear_index=weights.src_linear_index,
+        nx_out=weights.nx_out,
+        ny_out=weights.ny_out,
+    )
+end
+
+function _weights_from_payload(payload)
+    if payload.type == :bilinear
+        return BilinearWeights(
+            payload.i0,
+            payload.i1,
+            payload.j0,
+            payload.j1,
+            payload.w00,
+            payload.w10,
+            payload.w01,
+            payload.w11,
+            payload.nx_out,
+            payload.ny_out,
+        )
+    elseif payload.type == :nearest_s2d
+        return NearestWeights(payload.src_linear_index, payload.nx_out, payload.ny_out)
+    end
+
+    error("Unsupported serialized weights type: $(payload.type)")
+end
+
+function _regridder_payload(regridder::Regridder)
+    return (
+        version=REGRIDDER_SERIALIZATION_VERSION,
+        method=regridder.method,
+        source_lon_name=regridder.source_lon_name,
+        source_lat_name=regridder.source_lat_name,
+        dest_lon_name=regridder.dest_lon_name,
+        dest_lat_name=regridder.dest_lat_name,
+        source_lon_flip=regridder.source_lon_flip,
+        source_lat_flip=regridder.source_lat_flip,
+        source_lon=regridder.source_lon,
+        source_lat=regridder.source_lat,
+        dest_lon=regridder.dest_lon,
+        dest_lat=regridder.dest_lat,
+        weights=_weights_payload(regridder.weights),
+    )
+end
+
+function _regridder_from_payload(payload)
+    hasproperty(payload, :version) || error("Serialized regridder is missing a format version.")
+    payload.version == REGRIDDER_SERIALIZATION_VERSION || error("Unsupported serialized regridder version: $(payload.version)")
+
+    return Regridder(
+        payload.method,
+        payload.source_lon_name,
+        payload.source_lat_name,
+        payload.dest_lon_name,
+        payload.dest_lat_name,
+        payload.source_lon_flip,
+        payload.source_lat_flip,
+        Float64.(collect(payload.source_lon)),
+        Float64.(collect(payload.source_lat)),
+        Float64.(collect(payload.dest_lon)),
+        Float64.(collect(payload.dest_lat)),
+        _weights_from_payload(payload.weights),
+    )
+end
+
+function _same_grid(a::AbstractVector{Float64}, b::AbstractVector{Float64}; atol::Float64=1e-10)
+    length(a) == length(b) || return false
+    return all(isapprox.(a, b; atol=atol, rtol=0.0))
+end
+
+function _source_grid_state(cube::YAXArray, regridder::Regridder)
+    lon_name = _resolve_dim_name(cube, regridder.source_lon_name, (:longitude, :lon, :x, :rlon))
+    lat_name = _resolve_dim_name(cube, regridder.source_lat_name, (:latitude, :lat, :y, :rlat))
+
+    source_lon, source_lon_flip = _prepare_source_coordinate(lookup(cube, lon_name), lon_name)
+    source_lat, source_lat_flip = _prepare_source_coordinate(lookup(cube, lat_name), lat_name)
+
+    _same_grid(source_lon, regridder.source_lon) || error("Source longitude coordinates do not match the Regridder source grid.")
+    _same_grid(source_lat, regridder.source_lat) || error("Source latitude coordinates do not match the Regridder source grid.")
+
+    return lon_name, lat_name, source_lon_flip, source_lat_flip
+end
+
+@inline function _is_missing_or_nan(x)
+    if ismissing(x)
+        return true
+    end
+    if x isa AbstractFloat
+        return isnan(x)
+    end
+    return false
+end
+
+function _weighted_value(vals::NTuple{4,Any}, weights::NTuple{4,Float64}; skipna::Bool=false, na_thres::Float64=1.0)
+    valid = ntuple(i -> !_is_missing_or_nan(vals[i]), 4)
+
+    if !skipna
+        all(valid) || return NaN
+        return sum(Float64(vals[i]) * weights[i] for i in 1:4)
+    end
+
+    totalw = sum(weights)
+    validw = sum(valid[i] ? weights[i] : 0.0 for i in 1:4)
+    totalw == 0.0 && return NaN
+
+    missing_ratio = 1.0 - validw / totalw
+    if validw == 0.0 || missing_ratio > na_thres
+        return NaN
+    end
+
+    return sum(valid[i] ? Float64(vals[i]) * weights[i] : 0.0 for i in 1:4) / validw
+end
+
+function _apply_regridder!(xout, xin; regridder::Regridder, source_lon_flip::Bool=false, source_lat_flip::Bool=false, skipna::Bool=false, na_thres::Float64=1.0)
+    field = xin
+    if source_lon_flip
+        field = reverse(field, dims=1)
+    end
+    if source_lat_flip
+        field = reverse(field, dims=2)
+    end
+
+    if regridder.weights isa BilinearWeights
+        w = regridder.weights
+        k = 1
+        for j in 1:w.ny_out
+            for i in 1:w.nx_out
+                vals = (
+                    field[w.i0[k], w.j0[k]],
+                    field[w.i1[k], w.j0[k]],
+                    field[w.i0[k], w.j1[k]],
+                    field[w.i1[k], w.j1[k]],
+                )
+                ww = (w.w00[k], w.w10[k], w.w01[k], w.w11[k])
+                xout[i, j] = _weighted_value(vals, ww; skipna=skipna, na_thres=na_thres)
+                k += 1
+            end
+        end
+    elseif regridder.weights isa NearestWeights
+        w = regridder.weights
+        k = 1
+        for j in 1:w.ny_out
+            for i in 1:w.nx_out
+                v = field[w.src_linear_index[k]]
+                xout[i, j] = _is_missing_or_nan(v) ? NaN : Float64(v)
+                k += 1
+            end
+        end
+    else
+        error("Unsupported regridder weights type: $(typeof(regridder.weights))")
+    end
+
+    return nothing
 end
 
 """
-    regrid_cube(xout, xin; xg1, yg1, coords)
+    regrid(cube::YAXArray, regridder::Regridder; skipna=false, na_thres=1.0)
 
-Low-level per-chunk interpolation used by `mapCube`.
+Apply a precomputed regridder to a cube. Extra non-spatial dimensions are
+preserved. The source lon/lat coordinates must match the grid used to build or
+load the regridder.
 """
-function regrid_cube(xout, xin; xg1, yg1, coords)
+function regrid(cube::YAXArray, regridder::Regridder; skipna::Bool=false, na_thres::Float64=1.0)
+    (0.0 <= na_thres <= 1.0) || error("na_thres must be in [0, 1].")
 
+    source_lon_name, source_lat_name, source_lon_flip, source_lat_flip = _source_grid_state(cube, regridder)
 
+    indims = InDims(string(source_lon_name), string(source_lat_name))
+    outdims = OutDims(
+        Dim{regridder.dest_lon_name}(regridder.dest_lon),
+        Dim{regridder.dest_lat_name}(regridder.dest_lat),
+    )
 
-    # Interpolation structure
-    itp = interpolate((xg1,yg1), xin, Gridded(Linear()))
-    etpf = extrapolate(itp, Interpolations.Flat())
-
-    return xout .= (c->etpf(c...)).(coords)
+    return mapCube(
+        _apply_regridder!,
+        cube;
+        regridder=regridder,
+        source_lon_flip=source_lon_flip,
+        source_lat_flip=source_lat_flip,
+        skipna=skipna,
+        na_thres=na_thres,
+        indims=indims,
+        outdims=outdims,
+        nthreads=Threads.nthreads(),
+    )
 end
 
+(regridder::Regridder)(cube::YAXArray; kwargs...) = regrid(cube, regridder; kwargs...)
 
-# Utilities for rotated-pole curvilinear -> regular lon/lat regridding
+"""
+    save_regridder(path, regridder)
+
+Persist a regridder and its precomputed weights to a lightweight binary file for
+reuse across sessions in the same ClimateTools/Julia environment.
+"""
+function save_regridder(path::AbstractString, regridder::Regridder)
+    open(path, "w") do io
+        Serialization.serialize(io, _regridder_payload(regridder))
+    end
+
+    return path
+end
+
+"""
+    load_regridder(path) -> Regridder
+
+Load a regridder saved with `save_regridder`.
+"""
+function load_regridder(path::AbstractString)
+    payload = open(path, "r") do io
+        Serialization.deserialize(io)
+    end
+
+    return _regridder_from_payload(payload)
+end
+
+"""
+    regrid_cube(source::YAXArray, dest::YAXArray; kwargs...) -> YAXArray
+
+Compatibility wrapper around the Regridder workflow.
+"""
+function regrid_cube(source::YAXArray, dest::YAXArray; lonname_source=:longitude, latname_source=:latitude, lonname_dest=:longitude, latname_dest=:latitude, method::String="linear", skipna::Bool=false, na_thres::Float64=1.0)
+    regridder = Regridder(
+        source,
+        dest;
+        method=method,
+        lonname_source=lonname_source,
+        latname_source=latname_source,
+        lonname_dest=lonname_dest,
+        latname_dest=latname_dest,
+    )
+
+    return regrid(source, regridder; skipna=skipna, na_thres=na_thres)
+end
 
 """
     idw_griddata(pts, vals, londest2, latdest2; k=8, p=2)
 
-Simple inverse-distance-weighted (IDW) scattered interpolator implemented in pure Julia.
-`pts` is an N×2 matrix with columns (lon, lat), `vals` is length-N, and
-`londest2`, `latdest2` are destination 2D arrays. Returns a 2D Array of interpolated values.
+Simple inverse-distance-weighted (IDW) scattered interpolator.
 """
 function idw_griddata(pts::AbstractMatrix, vals::AbstractVector, londest2, latdest2; k::Int=8, p::Real=2)
-    nsrc = size(pts,1)
-    nx, ny = size(londest2)
-    out = Array{promote_type(eltype(vals),Float64)}(undef, nx, ny)
+    valid = .!isnan.(vals)
+    pts_valid = pts[valid, :]
+    vals_valid = vals[valid]
 
-    # pre-extract source lon/lat vectors
-    lon_src = pts[:,1]
-    lat_src = pts[:,2]
-
-    # Attempt to use NearestNeighbors.jl for k-NN queries if available (faster for large N)
-    use_kdtree = false
-    KDT = nothing
-    try
-        @eval begin
-            import NearestNeighbors
-        end
-        use_kdtree = true
-    catch
-        use_kdtree = false
+    if isempty(vals_valid)
+        return fill(NaN, size(londest2))
     end
 
+    nsrc = size(pts_valid, 1)
+    nx, ny = size(londest2)
+    out = Array{Float64}(undef, nx, ny)
+
+    lon_src = pts_valid[:, 1]
+    lat_src = pts_valid[:, 2]
+
+    use_kdtree = true
+
     if use_kdtree
-        # Build KDTree on lon/lat. Note: KDTree expects points as columns.
-        # We'll adjust for longitude wrapping by duplicating longitudes shifted by ±360
         try
-            # To handle longitude wrapping near the dateline, duplicate source points
-            # shifted by ±360° in longitude. Keep track of original indices so we can
-            # map KDTree results back to the original vals vector.
-            lon_wrap = pts[:,1]
-            lat_wrap = pts[:,2]
-            pts_base = hcat(lon_wrap, lat_wrap)
-
-            # create shifted copies
-            pts_minus = hcat(lon_wrap .- 360.0, lat_wrap)
-            pts_plus  = hcat(lon_wrap .+ 360.0, lat_wrap)
-
-            # concatenated points (rows -> points); KDTree expects columns
+            pts_base = hcat(lon_src, lat_src)
+            pts_minus = hcat(lon_src .- 360.0, lat_src)
+            pts_plus = hcat(lon_src .+ 360.0, lat_src)
             pts_all = vcat(pts_base, pts_minus, pts_plus)
-            pts_mat = transpose(pts_all)
+            kdt = NearestNeighbors.KDTree(transpose(pts_all))
 
-            # build KDTree
-            kdt = NearestNeighbors.KDTree(pts_mat)
-
-            # mapping from concatenated index back to original index
-            nbase = size(pts_base,1)
-            function map_index(idx)
-                mod1(idx, nbase)
-            end
+            nbase = size(pts_base, 1)
+            map_index(idx) = mod1(idx, nbase)
 
             for j in 1:ny
                 for i in 1:nx
-                    xo = londest2[i,j]
-                    yo = latdest2[i,j]
-
-                    # query k nearest neighbors
+                    xo = londest2[i, j]
+                    yo = latdest2[i, j]
                     ksel = min(k, nbase)
                     inds, dists = NearestNeighbors.knn(kdt, [xo, yo], ksel, true)
-                    # dists are squared Euclidean distances; take sqrt
                     dsel = sqrt.(dists)
 
-                    # exact match
-                    if any(x->x < 1e-12, dsel)
-                        rel = findfirst(x->x < 1e-12, dsel)
-                        idx0 = map_index(inds[rel])
-                        out[i,j] = vals[idx0]
+                    hit = findfirst(x -> x < 1e-12, dsel)
+                    if hit !== nothing
+                        out[i, j] = vals_valid[map_index(inds[hit])]
                         continue
                     end
 
                     orig_inds = map(map_index, inds)
-                    vsel = vals[orig_inds]
+                    vsel = vals_valid[orig_inds]
                     w = 1.0 ./ (dsel .^ p)
                     wsum = sum(w)
-                    if wsum == 0.0
-                        out[i,j] = NaN
-                    else
-                        out[i,j] = sum(w .* vsel) / wsum
-                    end
+                    out[i, j] = wsum == 0.0 ? NaN : sum(w .* vsel) / wsum
                 end
             end
-        catch err
-            @debug "KDTree IDW path failed, falling back to brute-force: $err"
-            # fall back to brute-force below
+
+            return out
+        catch
             use_kdtree = false
         end
     end
 
-    if !use_kdtree
-        for j in 1:ny
-            for i in 1:nx
-                xo = londest2[i,j]
-                yo = latdest2[i,j]
+    for j in 1:ny
+        for i in 1:nx
+            xo = londest2[i, j]
+            yo = latdest2[i, j]
 
-                # compute shortest longitude difference (wrap across ±180)
-                dx = mod.(lon_src .- xo .+ 180.0, 360.0) .- 180.0
-                dy = lat_src .- yo
-                d = sqrt.(dx.^2 .+ dy.^2)
+            dx = mod.(lon_src .- xo .+ 180.0, 360.0) .- 180.0
+            dy = lat_src .- yo
+            d = sqrt.(dx .^ 2 .+ dy .^ 2)
 
-                # if any source point coincides exactly with the target, return its value
-                idx0 = findfirst(x->iszero(x) || x < 1e-12, d)
-                if idx0 !== nothing
-                    out[i,j] = vals[idx0]
-                    continue
-                end
-
-                # select k nearest neighbours (or all if fewer)
-                ksel = min(k, nsrc)
-                # partial sort to get indices of nearest k
-                inds = partialsortperm(d, 1:ksel)
-                dsel = d[inds]
-                vsel = vals[inds]
-
-                w = 1.0 ./ (dsel .^ p)
-                wsum = sum(w)
-                if wsum == 0.0
-                    out[i,j] = NaN
-                else
-                    out[i,j] = sum(w .* vsel) / wsum
-                end
+            hit = findfirst(x -> x < 1e-12, d)
+            if hit !== nothing
+                out[i, j] = vals_valid[hit]
+                continue
             end
+
+            ksel = min(k, nsrc)
+            inds = partialsortperm(d, 1:ksel)
+            dsel = d[inds]
+            vsel = vals_valid[inds]
+
+            w = 1.0 ./ (dsel .^ p)
+            wsum = sum(w)
+            out[i, j] = wsum == 0.0 ? NaN : sum(w .* vsel) / wsum
         end
     end
 
@@ -205,174 +594,141 @@ end
 """
     rotated_to_geographic(rlon, rlat, grid_north_longitude, grid_north_latitude)
 
-Convert rotated-pole coordinates (rlon, rlat) to geographic longitude/latitude
-using the CF rotated_pole convention. Inputs are in degrees. Returns (lon, lat)
-arrays in degrees with the same shape as inputs.
+Convert rotated-pole coordinates (rlon, rlat) to geographic longitude/latitude.
 """
 function rotated_to_geographic(rlon::AbstractArray, rlat::AbstractArray, grid_north_longitude::Real, grid_north_latitude::Real)
-    # convert degrees -> radians
-    deg2rad = pi/180.0
-    φr = rlat .* deg2rad
-    λr = rlon .* deg2rad
-    β = grid_north_latitude * deg2rad
-    λp = grid_north_longitude * deg2rad
+    deg2rad = pi / 180.0
+    phi_r = rlat .* deg2rad
+    lambda_r = rlon .* deg2rad
+    beta = grid_north_latitude * deg2rad
+    lambda_p = grid_north_longitude * deg2rad
 
-    # CF rotated pole
-    sinφ = sin(β) .* sin(φr) .+ cos(β) .* cos(φr) .* cos(λr)
-    φ = asin.(sinφ)
+    sin_phi = sin(beta) .* sin(phi_r) .+ cos(beta) .* cos(phi_r) .* cos(lambda_r)
+    phi = asin.(sin_phi)
 
-    y = cos(φr) .* sin(λr)
-    x = cos(β) .* sin(φr) .- sin(β) .* cos(φr) .* cos(λr)
-    λ = λp .+ atan.(y, x)
+    y = cos(phi_r) .* sin(lambda_r)
+    x = cos(beta) .* sin(phi_r) .- sin(beta) .* cos(phi_r) .* cos(lambda_r)
+    lambda = lambda_p .+ atan.(y, x)
 
-    lat = φ ./ deg2rad
-    lon = λ ./ deg2rad
-    # normalize lon to [-180,180]
+    lat = phi ./ deg2rad
+    lon = lambda ./ deg2rad
     lon = mod.(lon .+ 180.0, 360.0) .- 180.0
 
     return lon, lat
 end
 
-
-"""
-    regrid_rotated_curvilinear_to_regular(lonrot, latrot, data, londest, latdest; grid_north_longitude, grid_north_latitude, method="linear")
-
-Convert rotated-pole curvilinear (2D lon/lat) `lonrot`, `latrot` and source
-`data` (2D) into geographic coordinates and interpolate onto the destination
-grid (`londest`, `latdest`) using SciPy's griddata (via PyCall). `londest` and
-`latdest` may be 1D vectors (regular grid) or 2D mesh arrays.
-"""
-function regrid_rotated_curvilinear_to_regular(lonrot::AbstractArray, latrot::AbstractArray, data::AbstractArray, londest, latdest; grid_north_longitude, grid_north_latitude, method::String="linear")
-    @assert size(lonrot) == size(latrot) == size(data)
-
-    # convert rotated -> geographic
-    lont, latt = rotated_to_geographic(lonrot, latrot, grid_north_longitude, grid_north_latitude)
-
-    # ensure destination grids are 2D arrays
+function _destination_grid(londest, latdest)
     if ndims(londest) == 1 && ndims(latdest) == 1
-        londest2, latdest2 = ndgrid(londest, latdest)
-    else
-        londest2 = londest
-        latdest2 = latdest
+        return ndgrid(Float64.(collect(londest)), Float64.(collect(latdest)))
+    elseif ndims(londest) == 2 && ndims(latdest) == 2
+        size(londest) == size(latdest) || error("2D destination lon/lat arrays must have the same shape.")
+        return Float64.(londest), Float64.(latdest)
     end
 
-    # Try to detect if the source lon/lat are separable (rectilinear grid)
-   (m, n) = size(lont)
-    separable = false
-    try
-        # check if all columns of lont are equal (lon varies only with i)
-        cols_equal = all([maximum(abs.(lont[:,j] .- lont[:,1])) < 1e-8 for j in 1:n])
-        # check if all rows of latt are equal (lat varies only with j)
-        rows_equal = all([maximum(abs.(latt[i,:] .- latt[1,:])) < 1e-8 for i in 1:m])
-        if cols_equal && rows_equal
-            separable = true
-            xg1 = vec(lont[:,1])
-            yg1 = vec(latt[1,:])
-            # ensure increasing knots
-            Interpolations.deduplicate_knots!([xg1, yg1], move_knots=true)
-            if length(xg1) > 1 && Base.diff(xg1)[1] < 0.0
-                xg1 = reverse(xg1)
-                data = reverse(data, dims=1)
-            end
-            if length(yg1) > 1 && Base.diff(yg1)[1] < 0.0
-                yg1 = reverse(yg1)
-                data = reverse(data, dims=2)
-            end
-
-            # Gridded interpolation via Interpolations.jl
-            itp = interpolate((xg1, yg1), data, Gridded(Linear()))
-            etpf = extrapolate(itp, Interpolations.Flat())
-            nx, ny = size(londest2)
-            out = similar(londest2, Float64)
-            for j in 1:ny
-                for i in 1:nx
-                    out[i,j] = etpf(londest2[i,j], latdest2[i,j])
-                end
-            end
-            return out
-        end
-    catch err
-        # any failure, fall back to IDW
-        @debug "gridded interpolation detection failed: $err"
-    end
-
-    # Flatten points and values for IDW fallback
-    pts = hcat(vec(lont), vec(latt))
-    vals = vec(data)
-
-    out = idw_griddata(pts, vals, londest2, latdest2; k=8, p=2)
-
-    return out
+    error("Destination grid must be either two 1D vectors or two 2D arrays.")
 end
 
+function _is_separable_grid(lon2d::AbstractArray, lat2d::AbstractArray; atol::Float64=1e-8)
+    m, n = size(lon2d)
+    cols_equal = all(Base.maximum(abs.(lon2d[:, j] .- lon2d[:, 1])) < atol for j in 1:n)
+    rows_equal = all(Base.maximum(abs.(lat2d[i, :] .- lat2d[1, :])) < atol for i in 1:m)
+    return cols_equal && rows_equal
+end
 
-"""
-    regrid_curvilinear_to_regular(source, dest; grid_north_longitude, grid_north_latitude, method)
+function _regrid_curvilinear_field(loncurv::AbstractArray, latcurv::AbstractArray, data::AbstractArray, londest, latdest; method::String="linear")
+    size(loncurv) == size(latcurv) || error("loncurv and latcurv must have the same shape.")
+    size(loncurv) == size(data) || error("Curvilinear coordinates and data must have the same shape.")
 
-Wrapper that extracts rotated curvilinear lon/lat and data from common container
-shapes used in this package (objects exposing `.longrid` / `.latgrid` and
-`[1].data`) and calls `regrid_rotated_curvilinear_to_regular`.
-"""
-function regrid_curvilinear_to_regular(source, dest; grid_north_longitude, grid_north_latitude, method::String="linear")
-    # try to extract rotated lon/lat and data from common container shapes
-    lonrot = try
-        source.longrid
-    catch
-        try
-            source.longitude
-        catch
-            error("Could not find rotated longrid on source (expected .longrid or .longitude)")
+    method_symbol = _normalize_regrid_method(method)
+    londest2, latdest2 = _destination_grid(londest, latdest)
+    data_float = Float64.(coalesce.(data, NaN))
+
+    if method_symbol == :bilinear && _is_separable_grid(loncurv, latcurv)
+        xg1 = vec(Float64.(loncurv[:, 1]))
+        yg1 = vec(Float64.(latcurv[1, :]))
+
+        if length(xg1) > 1 && Base.diff(xg1)[1] < 0.0
+            xg1 = reverse(xg1)
+            data_float = reverse(data_float, dims=1)
         end
-    end
-
-    latrot = try
-        source.latgrid
-    catch
-        try
-            source.latitude
-        catch
-            error("Could not find rotated latgrid on source (expected .latgrid or .latitude)")
+        if length(yg1) > 1 && Base.diff(yg1)[1] < 0.0
+            yg1 = reverse(yg1)
+            data_float = reverse(data_float, dims=2)
         end
-    end
 
-    data = try
-        # legacy grid struct-like: first AxisArray stored as source[1]
-        source[1].data
-    catch
-        try
-            Array(source)
-        catch
-            error("Could not extract data array from source")
-        end
-    end
+        Interpolations.deduplicate_knots!([xg1, yg1], move_knots=true)
+        itp = interpolate((xg1, yg1), data_float, Gridded(Linear()))
+        etpf = extrapolate(itp, Interpolations.Flat())
 
-    # destination grid
-    londest = try
-        dest.longrid
-    catch
-        try
-            dest.longitude
-        catch
-            try
-                dest[1][Dim{:longitude}][]
-            catch
-                error("Could not find destination grid on dest (expected .longrid/.longitude)")
+        out = similar(londest2, Float64)
+        for j in axes(out, 2)
+            for i in axes(out, 1)
+                out[i, j] = etpf(londest2[i, j], latdest2[i, j])
             end
         end
-    end
-    latdest = try
-        dest.latgrid
-    catch
-        try
-            dest.latitude
-        catch
-            try
-                dest[1][Dim{:latitude}][]
-            catch
-                error("Could not find destination grid on dest (expected .latgrid/.latitude)")
-            end
-        end
+        return out
     end
 
-    return regrid_rotated_curvilinear_to_regular(lonrot, latrot, data, londest, latdest; grid_north_longitude=grid_north_longitude, grid_north_latitude=grid_north_latitude, method=method)
+    pts = hcat(vec(Float64.(loncurv)), vec(Float64.(latcurv)))
+    vals = vec(data_float)
+
+    if method_symbol == :nearest_s2d
+        return idw_griddata(pts, vals, londest2, latdest2; k=1, p=2)
+    end
+
+    return idw_griddata(pts, vals, londest2, latdest2; k=8, p=2)
+end
+
+"""
+    regrid_curvilinear_to_regular(loncurv, latcurv, data, londest, latdest; method="linear")
+
+Regrid a field from a curvilinear lon/lat grid to a regular destination grid.
+"""
+function regrid_curvilinear_to_regular(loncurv::AbstractArray, latcurv::AbstractArray, data::AbstractArray, londest, latdest; method::String="linear")
+    return _regrid_curvilinear_field(loncurv, latcurv, data, londest, latdest; method=method)
+end
+
+"""
+    regrid_rotated_curvilinear_to_regular(lonrot, latrot, data, londest, latdest;
+                                          grid_north_longitude,
+                                          grid_north_latitude,
+                                          method="linear")
+
+Regrid a field from a rotated curvilinear grid to a regular destination grid.
+"""
+function regrid_rotated_curvilinear_to_regular(lonrot::AbstractArray, latrot::AbstractArray, data::AbstractArray, londest, latdest; grid_north_longitude, grid_north_latitude, method::String="linear")
+    lon_geo, lat_geo = rotated_to_geographic(lonrot, latrot, grid_north_longitude, grid_north_latitude)
+    return _regrid_curvilinear_field(lon_geo, lat_geo, data, londest, latdest; method=method)
+end
+
+"""
+    regrid_curvilinear_to_regular(source::YAXArray, dest::YAXArray; kwargs...)
+
+YAXArrays interface for curvilinear-to-regular regridding of 2D fields.
+"""
+function regrid_curvilinear_to_regular(source::YAXArray, dest::YAXArray; lonname_source=:longitude, latname_source=:latitude, lonname_dest=:longitude, latname_dest=:latitude, method::String="linear")
+    source_lon_name = _resolve_dim_name(source, lonname_source, (:longitude, :lon, :x, :rlon))
+    source_lat_name = _resolve_dim_name(source, latname_source, (:latitude, :lat, :y, :rlat))
+    dest_lon_name = _resolve_dim_name(dest, lonname_dest, (:longitude, :lon, :x, :rlon))
+    dest_lat_name = _resolve_dim_name(dest, latname_dest, (:latitude, :lat, :y, :rlat))
+
+    data = Array(source)
+    ndims(data) == 2 || error("regrid_curvilinear_to_regular(source::YAXArray, dest::YAXArray) currently supports 2D source fields only.")
+
+    lon_lookup = lookup(source, source_lon_name)
+    lat_lookup = lookup(source, source_lat_name)
+    if ndims(lon_lookup) == 1 && ndims(lat_lookup) == 1
+        loncurv, latcurv = ndgrid(Float64.(collect(lon_lookup)), Float64.(collect(lat_lookup)))
+    else
+        loncurv = Float64.(Array(lon_lookup))
+        latcurv = Float64.(Array(lat_lookup))
+        size(loncurv) == size(data) || error("Curvilinear source longitude coordinates must match source data shape.")
+        size(latcurv) == size(data) || error("Curvilinear source latitude coordinates must match source data shape.")
+    end
+
+    londest = Float64.(collect(lookup(dest, dest_lon_name)))
+    latdest = Float64.(collect(lookup(dest, dest_lat_name)))
+
+    out = _regrid_curvilinear_field(loncurv, latcurv, data, londest, latdest; method=method)
+    return YAXArray((Dim{dest_lon_name}(londest), Dim{dest_lat_name}(latdest)), out)
 end
