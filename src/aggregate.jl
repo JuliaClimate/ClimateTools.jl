@@ -152,7 +152,7 @@ Compute the cumulative sum of the elements in `xin` and store the result in `xou
 """
 function cumsum(xout, xin)    
     
-    xout .=  cumsum(xin)
+    xout .=  Base.cumsum(xin)
    
 end
 

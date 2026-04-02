@@ -15,7 +15,7 @@ lightweight reuse across sessions.
 """
 abstract type AbstractRegridWeights end
 
-const REGRIDDER_SERIALIZATION_VERSION = 1
+const REGRIDDER_SERIALIZATION_VERSION = 2
 
 struct BilinearWeights <: AbstractRegridWeights
     i0::Vector{Int}
@@ -34,6 +34,14 @@ struct NearestWeights <: AbstractRegridWeights
     src_linear_index::Vector{Int}
     nx_out::Int
     ny_out::Int
+end
+
+struct IDWWeights <: AbstractRegridWeights
+    src_indices::Matrix{Int}      # k × nout
+    src_weights::Matrix{Float64}  # k × nout
+    nx_out::Int
+    ny_out::Int
+    k::Int
 end
 
 struct Regridder{W<:AbstractRegridWeights}
@@ -209,7 +217,298 @@ function _build_nearest_weights(source_lon::Vector{Float64}, source_lat::Vector{
     return NearestWeights(src_linear_index, nx_out, ny_out)
 end
 
+function _build_idw_weights(source_lon2d::AbstractMatrix, source_lat2d::AbstractMatrix,
+                            dest_lon::Vector{Float64}, dest_lat::Vector{Float64};
+                            k::Int=8, p::Real=2)
+    nx_out = length(dest_lon)
+    ny_out = length(dest_lat)
+    nout = nx_out * ny_out
+
+    lon_src = vec(Float64.(source_lon2d))
+    lat_src = vec(Float64.(source_lat2d))
+    nsrc = length(lon_src)
+
+    # Build KDTree with longitude wrap-around copies
+    pts_base = hcat(lon_src, lat_src)
+    pts_minus = hcat(lon_src .- 360.0, lat_src)
+    pts_plus = hcat(lon_src .+ 360.0, lat_src)
+    pts_all = vcat(pts_base, pts_minus, pts_plus)
+    kdt = NearestNeighbors.KDTree(transpose(pts_all))
+    nbase = nsrc
+    map_index(idx) = mod1(idx, nbase)
+
+    kuse = min(k, nbase)
+    src_indices = Matrix{Int}(undef, kuse, nout)
+    src_weights = Matrix{Float64}(undef, kuse, nout)
+
+    idx = 1
+    for j in 1:ny_out
+        for i in 1:nx_out
+            xo = dest_lon[i]
+            yo = dest_lat[j]
+            inds, dists = NearestNeighbors.knn(kdt, [xo, yo], kuse, true)
+            # NearestNeighbors.knn returns Euclidean distances
+            orig_inds = map(map_index, inds)
+
+            hit = findfirst(x -> x < 1e-12, dists)
+            if hit !== nothing
+                src_indices[1, idx] = orig_inds[hit]
+                src_weights[1, idx] = 1.0
+                for ki in 2:kuse
+                    src_indices[ki, idx] = orig_inds[ki]
+                    src_weights[ki, idx] = 0.0
+                end
+            else
+                w = 1.0 ./ (dists .^ p)
+                wsum = sum(w)
+                for ki in 1:kuse
+                    src_indices[ki, idx] = orig_inds[ki]
+                    src_weights[ki, idx] = wsum == 0.0 ? 0.0 : w[ki] / wsum
+                end
+            end
+
+            idx += 1
+        end
+    end
+
+    return IDWWeights(src_indices, src_weights, nx_out, ny_out, kuse)
+end
+
+"""
+    _detect_grid_mapping(cube::YAXArray)
+
+Return the `grid_mapping` attribute from cube metadata, or `nothing`.
+"""
+function _detect_grid_mapping(cube::YAXArray)
+    meta = cube.properties
+    if haskey(meta, "grid_mapping")
+        return String(meta["grid_mapping"])
+    end
+    return nothing
+end
+
+"""
+    _extract_rotated_pole_params(ds::Dataset)
+
+Extract (grid_north_pole_longitude, grid_north_pole_latitude) from the
+`rotated_pole` variable in a Dataset.
+"""
+function _extract_rotated_pole_params(ds::Dataset)
+    rp = nothing
+    for varname in (:rotated_pole, :rotated_latitude_longitude)
+        try
+            rp = ds[varname]
+            break
+        catch
+        end
+    end
+    rp === nothing && error("Dataset does not contain a 'rotated_pole' or 'rotated_latitude_longitude' variable.")
+
+    meta = rp.properties
+
+    north_pole_lon = get(meta, "grid_north_pole_longitude", nothing)
+    north_pole_lat = get(meta, "grid_north_pole_latitude", nothing)
+
+    if north_pole_lon === nothing || north_pole_lat === nothing
+        error("rotated_pole variable is missing grid_north_pole_longitude/latitude attributes. " *
+              "Available attributes: $(collect(keys(meta)))")
+    end
+
+    return Float64(north_pole_lon), Float64(north_pole_lat)
+end
+
+"""
+    _extract_geographic_coords(ds::Dataset, cube::YAXArray, grid_mapping::String)
+
+Obtain the 2D geographic lon/lat arrays for a cube with a non-trivial grid
+mapping. First tries to read companion `lon`/`lat` variables from the
+Dataset; if unavailable, computes them from rotated-pole parameters.
+"""
+function _extract_geographic_coords(ds::Dataset, cube::YAXArray, grid_mapping::String)
+    # Try to get 2D lon/lat from the dataset
+    lon2d = nothing
+    lat2d = nothing
+
+    for lonvar in (:lon, :longitude)
+        try
+            c = ds[lonvar]
+            if ndims(c) >= 2
+                lon2d = Float64.(Array(c))
+                break
+            end
+        catch
+        end
+    end
+
+    for latvar in (:lat, :latitude)
+        try
+            c = ds[latvar]
+            if ndims(c) >= 2
+                lat2d = Float64.(Array(c))
+                break
+            end
+        catch
+        end
+    end
+
+    if lon2d !== nothing && lat2d !== nothing
+        return lon2d, lat2d
+    end
+
+    # Fall back: compute from rotated pole parameters
+    if lowercase(grid_mapping) == "rotated_pole" || lowercase(grid_mapping) == "rotated_latitude_longitude"
+        north_pole_lon, north_pole_lat = _extract_rotated_pole_params(ds)
+
+        source_lon_name = _resolve_dim_name(cube, :rlon, (:rlon, :x, :longitude, :lon))
+        source_lat_name = _resolve_dim_name(cube, :rlat, (:rlat, :y, :latitude, :lat))
+        rlon = Float64.(collect(lookup(cube, source_lon_name)))
+        rlat = Float64.(collect(lookup(cube, source_lat_name)))
+        rlon2d, rlat2d = ndgrid(rlon, rlat)
+        lon2d, lat2d = rotated_to_geographic(rlon2d, rlat2d, north_pole_lon, north_pole_lat)
+        return lon2d, lat2d
+    end
+
+    error("Could not extract 2D geographic coordinates from Dataset for grid_mapping='$(grid_mapping)'. " *
+          "Provide companion 'lon'/'lat' 2D variables in the Dataset.")
+end
+
+function _collect_dataset_coordinate(coord)
+    try
+        return Float64.(collect(lookup(coord)))
+    catch
+        return Float64.(collect(coord))
+    end
+end
+
+function _extract_dataset_coordinate(dest::Dataset, requested::Symbol, candidates::Tuple)
+    names = unique((requested, candidates...))
+
+    for name in names
+        if hasproperty(dest, name)
+            coord = getproperty(dest, name)
+            values = _collect_dataset_coordinate(coord)
+            ndims(values) == 1 || error("Destination coordinate $(name) must be 1D for rectilinear regridding.")
+            return name, values
+        end
+
+        try
+            coord = dest[name]
+            values = _collect_dataset_coordinate(coord)
+            ndims(values) == 1 || error("Destination coordinate $(name) must be 1D for rectilinear regridding.")
+            return name, values
+        catch
+        end
+    end
+
+    error("Destination Dataset does not expose coordinate $(requested) or any of $(candidates).")
+end
+
+function _destination_grid_cube(dest::Dataset; lonname_dest::Symbol=:longitude, latname_dest::Symbol=:latitude)
+    dest_lon_name, dest_lon = _extract_dataset_coordinate(dest, lonname_dest, (:longitude, :lon, :x, :rlon))
+    dest_lat_name, dest_lat = _extract_dataset_coordinate(dest, latname_dest, (:latitude, :lat, :y, :rlat))
+
+    return YAXArray(
+        (Dim{dest_lon_name}(dest_lon), Dim{dest_lat_name}(dest_lat)),
+        zeros(length(dest_lon), length(dest_lat)),
+    )
+end
+
+"""
+    Regridder(ds::Dataset, varname::Symbol, dest::YAXArray; kwargs...)
+
+Build a `Regridder` from a Dataset that may contain a rotated or curvilinear
+grid. The Dataset is inspected for `grid_mapping` metadata, companion 2D
+`lon`/`lat` variables, and rotated-pole parameters. The resulting regridder
+can then be applied to individual cubes extracted from the same Dataset.
+
+# Keywords
+- `method="bilinear"`: interpolation method (also accepts `"nearest"`, `"idw"`)
+- `lonname_dest=:longitude`, `latname_dest=:latitude`: destination axis names
+- `k=8`: number of neighbours for IDW interpolation
+- `p=2`: IDW power parameter
+"""
+function Regridder(ds::Dataset, varname::Symbol, dest::YAXArray;
+                   method::String="bilinear",
+                   lonname_dest=:longitude, latname_dest=:latitude,
+                   k::Int=8, p::Real=2)
+    cube = ds[varname]
+
+    grid_mapping = _detect_grid_mapping(cube)
+
+    if grid_mapping === nothing
+        # No special grid mapping – delegate to the rectilinear constructor
+        return Regridder(cube, dest; method=method, lonname_dest=lonname_dest, latname_dest=latname_dest)
+    end
+
+    # --- curvilinear / rotated grid path ---
+    source_lon_name = _resolve_dim_name(cube, :rlon, (:rlon, :x, :longitude, :lon))
+    source_lat_name = _resolve_dim_name(cube, :rlat, (:rlat, :y, :latitude, :lat))
+
+    dest_lon_name = _resolve_dim_name(dest, lonname_dest, (:longitude, :lon, :x))
+    dest_lat_name = _resolve_dim_name(dest, latname_dest, (:latitude, :lat, :y))
+    dest_lon = Float64.(collect(lookup(dest, dest_lon_name)))
+    dest_lat = Float64.(collect(lookup(dest, dest_lat_name)))
+
+    lon2d, lat2d = _extract_geographic_coords(ds, cube, grid_mapping)
+
+    weights = _build_idw_weights(lon2d, lat2d, dest_lon, dest_lat; k=k, p=p)
+
+    # Store the raw (unsorted) rotated coordinates for later validation
+    source_lon_raw = Float64.(collect(lookup(cube, source_lon_name)))
+    source_lat_raw = Float64.(collect(lookup(cube, source_lat_name)))
+
+    return Regridder(
+        :idw,
+        source_lon_name,
+        source_lat_name,
+        dest_lon_name,
+        dest_lat_name,
+        false,  # no flip for curvilinear
+        false,
+        source_lon_raw,
+        source_lat_raw,
+        dest_lon,
+        dest_lat,
+        weights,
+    )
+end
+
+"""
+    Regridder(ds::Dataset, varname::Symbol, dest::Dataset; kwargs...)
+
+Resolve the destination grid from Dataset coordinates and build a reusable
+regridder. The destination Dataset only needs to expose lon/lat coordinates;
+the destination variable name is not used.
+"""
+function Regridder(ds::Dataset, varname::Symbol, dest::Dataset;
+                   method::String="bilinear",
+                   lonname_dest=:longitude, latname_dest=:latitude,
+                   k::Int=8, p::Real=2)
+    dest_cube = _destination_grid_cube(dest; lonname_dest=lonname_dest, latname_dest=latname_dest)
+
+    return Regridder(
+        ds,
+        varname,
+        dest_cube;
+        method=method,
+        lonname_dest=lonname_dest,
+        latname_dest=latname_dest,
+        k=k,
+        p=p,
+    )
+end
+
 function Regridder(source::YAXArray, dest::YAXArray; method::String="bilinear", lonname_source=:longitude, latname_source=:latitude, lonname_dest=:longitude, latname_dest=:latitude)
+    # Detect rotated / curvilinear grids that cannot be handled from a plain cube
+    gm = _detect_grid_mapping(source)
+    dim_names = Tuple(name.(source.axes))
+    if gm !== nothing || :rlon in dim_names || :rlat in dim_names
+        error("Source cube uses a non-geographic coordinate system " *
+              "(grid_mapping=$(repr(gm)), dims=$(dim_names)). " *
+              "Use Regridder(dataset::Dataset, varname::Symbol, dest) to regrid " *
+              "from Datasets with rotated or curvilinear grids.")
+    end
+
     source_lon_name = _resolve_dim_name(source, lonname_source, (:longitude, :lon, :x, :rlon))
     source_lat_name = _resolve_dim_name(source, latname_source, (:latitude, :lat, :y, :rlat))
     dest_lon_name = _resolve_dim_name(dest, lonname_dest, (:longitude, :lon, :x, :rlon))
@@ -271,6 +570,17 @@ function _weights_payload(weights::NearestWeights)
     )
 end
 
+function _weights_payload(weights::IDWWeights)
+    return (
+        type=:idw,
+        src_indices=weights.src_indices,
+        src_weights=weights.src_weights,
+        nx_out=weights.nx_out,
+        ny_out=weights.ny_out,
+        k=weights.k,
+    )
+end
+
 function _weights_from_payload(payload)
     if payload.type == :bilinear
         return BilinearWeights(
@@ -287,6 +597,14 @@ function _weights_from_payload(payload)
         )
     elseif payload.type == :nearest_s2d
         return NearestWeights(payload.src_linear_index, payload.nx_out, payload.ny_out)
+    elseif payload.type == :idw
+        return IDWWeights(
+            Matrix{Int}(payload.src_indices),
+            Matrix{Float64}(payload.src_weights),
+            payload.nx_out,
+            payload.ny_out,
+            payload.k,
+        )
     end
 
     error("Unsupported serialized weights type: $(payload.type)")
@@ -312,7 +630,7 @@ end
 
 function _regridder_from_payload(payload)
     hasproperty(payload, :version) || error("Serialized regridder is missing a format version.")
-    payload.version == REGRIDDER_SERIALIZATION_VERSION || error("Unsupported serialized regridder version: $(payload.version)")
+    payload.version in (1, REGRIDDER_SERIALIZATION_VERSION) || error("Unsupported serialized regridder version: $(payload.version)")
 
     return Regridder(
         payload.method,
@@ -338,6 +656,15 @@ end
 function _source_grid_state(cube::YAXArray, regridder::Regridder)
     lon_name = _resolve_dim_name(cube, regridder.source_lon_name, (:longitude, :lon, :x, :rlon))
     lat_name = _resolve_dim_name(cube, regridder.source_lat_name, (:latitude, :lat, :y, :rlat))
+
+    if regridder.weights isa IDWWeights
+        # IDW indices reference the original array layout; validate raw order
+        source_lon = Float64.(collect(lookup(cube, lon_name)))
+        source_lat = Float64.(collect(lookup(cube, lat_name)))
+        _same_grid(source_lon, regridder.source_lon) || error("Source longitude coordinates do not match the Regridder source grid.")
+        _same_grid(source_lat, regridder.source_lat) || error("Source latitude coordinates do not match the Regridder source grid.")
+        return lon_name, lat_name, false, false
+    end
 
     source_lon, source_lon_flip = _prepare_source_coordinate(lookup(cube, lon_name), lon_name)
     source_lat, source_lat_flip = _prepare_source_coordinate(lookup(cube, lat_name), lat_name)
@@ -411,6 +738,38 @@ function _apply_regridder!(xout, xin; regridder::Regridder, source_lon_flip::Boo
                 v = field[w.src_linear_index[k]]
                 xout[i, j] = _is_missing_or_nan(v) ? NaN : Float64(v)
                 k += 1
+            end
+        end
+    elseif regridder.weights isa IDWWeights
+        w = regridder.weights
+        idx = 1
+        for j in 1:w.ny_out
+            for i in 1:w.nx_out
+                val = 0.0
+                total_w = 0.0
+                any_valid = false
+                all_valid = true
+                for ki in 1:w.k
+                    src_idx = w.src_indices[ki, idx]
+                    wt = w.src_weights[ki, idx]
+                    v = field[src_idx]
+                    if _is_missing_or_nan(v)
+                        all_valid = false
+                    else
+                        val += Float64(v) * wt
+                        total_w += wt
+                        any_valid = true
+                    end
+                end
+                if !skipna
+                    xout[i, j] = all_valid ? val : NaN
+                elseif !any_valid || total_w == 0.0
+                    xout[i, j] = NaN
+                else
+                    missing_ratio = 1.0 - total_w
+                    xout[i, j] = missing_ratio > na_thres ? NaN : val / total_w
+                end
+                idx += 1
             end
         end
     else
@@ -498,6 +857,37 @@ function regrid_cube(source::YAXArray, dest::YAXArray; lonname_source=:longitude
     )
 
     return regrid(source, regridder; skipna=skipna, na_thres=na_thres)
+end
+
+"""
+    regrid_cube(ds::Dataset, varname::Symbol, dest::YAXArray; kwargs...) -> YAXArray
+
+Convenience wrapper that builds a `Regridder` from a Dataset and applies it.
+Handles rotated and curvilinear grids automatically.
+"""
+function regrid_cube(ds::Dataset, varname::Symbol, dest::YAXArray; method::String="linear", lonname_dest=:longitude, latname_dest=:latitude, skipna::Bool=false, na_thres::Float64=1.0, k::Int=8, p::Real=2)
+    regridder = Regridder(ds, varname, dest; method=method, lonname_dest=lonname_dest, latname_dest=latname_dest, k=k, p=p)
+    return regrid(ds[varname], regridder; skipna=skipna, na_thres=na_thres)
+end
+
+"""
+    regrid_cube(ds::Dataset, varname::Symbol, dest::Dataset; kwargs...) -> YAXArray
+
+Convenience wrapper that resolves the destination grid from Dataset
+coordinates before building and applying a `Regridder`.
+"""
+function regrid_cube(ds::Dataset, varname::Symbol, dest::Dataset; method::String="linear", lonname_dest=:longitude, latname_dest=:latitude, skipna::Bool=false, na_thres::Float64=1.0, k::Int=8, p::Real=2)
+    regridder = Regridder(
+        ds,
+        varname,
+        dest;
+        method=method,
+        lonname_dest=lonname_dest,
+        latname_dest=latname_dest,
+        k=k,
+        p=p,
+    )
+    return regrid(ds[varname], regridder; skipna=skipna, na_thres=na_thres)
 end
 
 """
