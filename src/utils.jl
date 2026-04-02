@@ -56,32 +56,13 @@ function dates_builder_yearmonthday_hardcode(x; imois=1, iday=1)
 end
 
 function subsample(cube::YAXArray; month1=1, month2=12)
-    
-    # On vérifie s'il y a un overlap sur l'année (e.g. on aimerait novembre, décember et janvier)
-    if month2 < month1 # overlap annuel
-        newcube1 = cube[time=Where(x -> month(x) >= month1)]
-        newcube2 = cube[time=Where(x -> month(x) <= month2)]
-
-        # newcube1 = renameaxis!(newcube1, :time=>:Ti)
-        # newcube2 = renameaxis!(newcube2, :time=>:Ti)
-        
-        
-        newlookupvals = vcat(collect(newcube1.time), collect(newcube2.time))
-        # newlookupvals = vcat(collect(newcube1.Ti), collect(newcube2.Ti))
-
-        # newcube = cat(newcube1, newcube2; dims=DimensionalData.Dimensions.Ti(newlookupvals))
-        newcube = cat(newcube1, newcube2; dims=Dim{:time}(newlookupvals))
-        # Dim{:time}(newlookupvals)
-
-
-        # newcube = renameaxis!(newcube2, :Ti=>:time)
-        
+    predicate = if month2 < month1
+        x -> month(x) >= month1 || month(x) <= month2
     else
-        newcube = cube[time=Where(x -> month(x) <= month2 .&& month(x) >= month1)]
+        x -> month1 <= month(x) <= month2
     end
-    
-    return newcube    
-    
+
+    return cube[time=Where(predicate)]
 end
 
 """

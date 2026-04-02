@@ -86,6 +86,28 @@ end
     months_in_sub2 = month.(collect(sub2.time))
     @test all(m -> m >= 11 || m <= 2, months_in_sub2)
     @test length(months_in_sub2) > 0
+
+    dates_in_sub2 = collect(sub2.time)
+    @test issorted(dates_in_sub2)
+    @test first(dates_in_sub2) == Date(2020, 1, 1)
+    @test last(dates_in_sub2) == Date(2020, 12, 31)
+
+    # Multi-year selection should keep the original chronological order while
+    # allowing gaps between retained periods.
+    multi_year_cube = _make_daily_cube(start=Date(2019,1,1), stop=Date(2021,12,31))
+
+    may_only = subsample(multi_year_cube; month1=5, month2=5)
+    may_dates = collect(may_only.time)
+    @test all(==(5), month.(may_dates))
+    @test issorted(may_dates)
+    @test [year(first(may_dates)), year(last(may_dates))] == [2019, 2021]
+    @test any(Base.diff(may_dates) .> Day(1))
+
+    ndjf = subsample(multi_year_cube; month1=11, month2=2)
+    ndjf_dates = collect(ndjf.time)
+    @test issorted(ndjf_dates)
+    @test all(d -> month(d) >= 11 || month(d) <= 2, ndjf_dates)
+    @test any(Base.diff(ndjf_dates) .> Day(1))
 end
 
 
