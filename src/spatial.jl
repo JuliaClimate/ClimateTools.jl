@@ -103,33 +103,21 @@ function spatialsubset(cube::YAXArray, poly)
     minYgrid = Base.minimum(idlat)
     maxYgrid = Base.maximum(idlat)
 
-    data = Array(cube)
     names = collect(name.(cube.axes))
     lonpos = findfirst(==(lonsymbol), names)
     latpos = findfirst(==(latsymbol), names)
 
-    indices = Any[Colon() for _ in 1:ndims(data)]
+    indices = Any[Colon() for _ in 1:ndims(cube)]
     indices[lonpos] = minXgrid:maxXgrid
     indices[latpos] = minYgrid:maxYgrid
 
-    datasub = data[indices...]
+    cubesub = view(cube, indices...)
     msksub = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
 
-    maskshape = ntuple(i -> i == lonpos ? size(msksub, 1) : (i == latpos ? size(msksub, 2) : 1), ndims(datasub))
-    masked = datasub .* reshape(msksub, maskshape)
+    maskshape = ntuple(i -> i == lonpos ? size(msksub, 1) : (i == latpos ? size(msksub, 2) : 1), ndims(cubesub))
+    masked_data = cubesub.data .* reshape(Float32.(msksub), maskshape)
 
-    axes_out = map(cube.axes) do ax
-        axname = name(ax)
-        if axname == lonsymbol
-            Dim{lonsymbol}(lookup(cube, lonsymbol)[minXgrid:maxXgrid])
-        elseif axname == latsymbol
-            Dim{latsymbol}(lookup(cube, latsymbol)[minYgrid:maxYgrid])
-        else
-            ax
-        end
-    end
-
-    return YAXArray(axes_out, masked)
+    return YAXArray(cubesub.axes, masked_data)
 end
 
 function spatialsubset(C::AbstractVector, poly)

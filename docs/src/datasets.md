@@ -38,7 +38,7 @@ cube = Cube(open_dataset("data.nc"))
 
 # Coordinates are [lon; lat], NaN starts a polygon segment.
 poly = [NaN -80.0 -72.0 -72.0 -80.0 -80.0;
-	NaN  45.0  45.0  50.0  50.0  45.0]
+        NaN  45.0  45.0  50.0  50.0  45.0]
 
 sub = spatialsubset(cube, poly)
 ```
@@ -54,6 +54,7 @@ sub = spatialsubset(cube, poly)
 
 Notes:
 
-- `spatialsubset` returns a YAXArray with a bounding-box crop and polygon mask applied.
+- `spatialsubset` returns a lazily-evaluated YAXArray with a bounding-box crop and polygon mask applied.
+- The input cube is not fully loaded in memory for subsetting.
 - The function supports longitude coordinates in either `-180..180` or `0..360` conventions.
 - If the polygon does not overlap the grid, an error is raised.
