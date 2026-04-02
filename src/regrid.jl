@@ -498,6 +498,30 @@ function Regridder(ds::Dataset, varname::Symbol, dest::Dataset;
     )
 end
 
+"""
+    Regridder(source::YAXArray, dest::Dataset; kwargs...)
+
+Build a reusable regridder from a plain source cube and destination Dataset
+coordinates. The destination Dataset only needs to expose lon/lat coordinates;
+destination variable values are not used.
+"""
+function Regridder(source::YAXArray, dest::Dataset;
+                   method::String="bilinear",
+                   lonname_source=:longitude, latname_source=:latitude,
+                   lonname_dest=:longitude, latname_dest=:latitude)
+    dest_cube = _destination_grid_cube(dest; lonname_dest=lonname_dest, latname_dest=latname_dest)
+
+    return Regridder(
+        source,
+        dest_cube;
+        method=method,
+        lonname_source=lonname_source,
+        latname_source=latname_source,
+        lonname_dest=lonname_dest,
+        latname_dest=latname_dest,
+    )
+end
+
 function Regridder(source::YAXArray, dest::YAXArray; method::String="bilinear", lonname_source=:longitude, latname_source=:latitude, lonname_dest=:longitude, latname_dest=:latitude)
     # Detect rotated / curvilinear grids that cannot be handled from a plain cube
     gm = _detect_grid_mapping(source)
@@ -888,6 +912,26 @@ function regrid_cube(ds::Dataset, varname::Symbol, dest::Dataset; method::String
         p=p,
     )
     return regrid(ds[varname], regridder; skipna=skipna, na_thres=na_thres)
+end
+
+"""
+    regrid_cube(source::YAXArray, dest::Dataset; kwargs...) -> YAXArray
+
+Compatibility wrapper around the Regridder workflow using destination Dataset
+coordinates.
+"""
+function regrid_cube(source::YAXArray, dest::Dataset; lonname_source=:longitude, latname_source=:latitude, lonname_dest=:longitude, latname_dest=:latitude, method::String="linear", skipna::Bool=false, na_thres::Float64=1.0)
+    regridder = Regridder(
+        source,
+        dest;
+        method=method,
+        lonname_source=lonname_source,
+        latname_source=latname_source,
+        lonname_dest=lonname_dest,
+        latname_dest=latname_dest,
+    )
+
+    return regrid(source, regridder; skipna=skipna, na_thres=na_thres)
 end
 
 """

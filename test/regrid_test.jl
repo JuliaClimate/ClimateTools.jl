@@ -34,6 +34,14 @@ using Dates
 
     out_compat = regrid_cube(source3d, target_grid; method="linear")
     @test Array(out_compat) ≈ Array(out3d)
+
+    dest_dataset = Dataset(target=target_grid)
+    regridder_dataset_dest = Regridder(source3d, dest_dataset; method="linear")
+    out_dataset_dest = regrid(source3d, regridder_dataset_dest)
+    @test Array(out_dataset_dest) ≈ Array(out3d)
+
+    out_dataset_compat = regrid_cube(source3d, dest_dataset; method="linear")
+    @test Array(out_dataset_compat) ≈ Array(out3d)
 end
 
 @testset "Regridder nearest and skipna" begin
