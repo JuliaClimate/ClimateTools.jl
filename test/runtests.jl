@@ -6,7 +6,7 @@ using DimensionalData
 using Statistics
 using Dates
 
-@testset "ClimateTools.jl" begin    
+@testset verbose = true "ClimateTools.jl" begin
     # Write your tests here.    
 
     obsfile = joinpath(dirname(@__FILE__), "data", "obs.nc")
