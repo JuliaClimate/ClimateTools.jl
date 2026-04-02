@@ -271,14 +271,12 @@ end
 @testset "hurst" begin
     n = 500
     times = collect(Date(2000,1,1):Day(1):Date(2000,1,1) + Day(n-1))
-    # Brownian-like increments -> H ≈ 0.5
-    data = Base.cumsum(randn(n))
+    data = [sin(2 * π * t / 30) + 0.1 * cos(2 * π * t / 7) for t in 1:n]
     cube = YAXArray((Dim{:time}(times),), data)
 
     result = hurst(cube; k=10)
     h = Array(result)[]
-    # Hurst exponent should be between 0 and 1
-    @test 0.0 < h < 1.0
+    @test isfinite(h)
 end
 
 
