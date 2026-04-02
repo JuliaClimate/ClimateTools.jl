@@ -17,13 +17,13 @@ The autocorrelation of the input dataset `ds` along the time dimension.
 
 """
 function autocorrelation(ds; lags=30)
-
-    # Dimensions
-    indims = InDims("time")
-    outdims = OutDims(Dim{:lags}(collect(1:lags)))    
-
-    return mapCube(ClimateTools.autocorrelation, ds, indims=indims, outdims=outdims, lags=lags, nthreads=Threads.nthreads())
-
+    return _xmap_call(
+        ClimateTools.autocorrelation,
+        ds;
+        reduced_dims=:time,
+        output_axes=(Dim{:lags}(collect(1:lags)),),
+        function_kwargs=(lags=lags,),
+    )
 
 end
 
@@ -53,14 +53,6 @@ Calculate the Hurst exponent for a time series of dataset `ds`. The Hurst expone
 
 """
 function hurst(ds; k::Int=20)
-
-    # Dimensions
-    indims = InDims("time")
-    # outdims = OutDims(Dim{:hurst}(1))    
-    outdims = OutDims()    
-
-    return mapCube(ClimateTools.hurst, ds, indims=indims, outdims=outdims, k=k, nthreads=Threads.nthreads())
-
-
+    return _xmap_call(ClimateTools.hurst, ds; reduced_dims=:time, function_kwargs=(k=k,))
 
 end

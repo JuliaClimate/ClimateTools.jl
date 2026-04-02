@@ -52,9 +52,13 @@ function _yearly_count(cube::YAXArray; predicate)
     time_index = year.(cube.time)
     unique_years = unique(time_index)
     index_list = [findall(==(value), time_index) for value in unique_years]
-    indims = InDims("time")
-    outdims = OutDims(Dim{:time}(dates_builder_yearmonthday_hardcode(unique_years, imois=7, iday=1)))
-    return mapCube(_yearly_count, cube; predicate=predicate, indims=indims, outdims=outdims, index_list=index_list, nthreads=Threads.nthreads())
+    return _xmap_call(
+        _yearly_count,
+        cube;
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(dates_builder_yearmonthday_hardcode(unique_years, imois=7, iday=1)),),
+        function_kwargs=(predicate=predicate, index_list=index_list),
+    )
 end
 
 """

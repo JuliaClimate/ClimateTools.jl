@@ -12,11 +12,14 @@
 
 ClimateTools.jl is a climate-analysis toolkit built on top of YAXArrays.jl.
 
+ClimateTools now prefers the YAXArrays `xmap` pattern for whole-dimension transforms and reductions, which keeps the package aligned with the current YAXArrays compute model.
+
 ## Status
 
 - Active development
 - Julia 1.10+
 - Data model: YAXArray/Cube
+- YAXArrays compatibility: `0.7`
 
 ## Installation
 
@@ -45,6 +48,8 @@ fut = Cube(open_dataset("fut.nc"))
 qq = qqmap(obs, ref, fut; method="additive", detrend=true)
 ann = annualmax(qq)
 ```
+
+Internally, operations such as `annualmax`, `daily_fct`, `regrid`, `quantiles`, `ensemble_stats`, and the xclim-style period reductions now use `xmap` where the mapping is naturally expressed over whole dimensions. A few specialized paths still use `mapCube`, mainly when multiple inputs share a dimension name but legitimately carry different coordinate values, as in `qqmap(obs, ref, fut)`.
 
 ## Main Features
 
