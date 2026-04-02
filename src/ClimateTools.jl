@@ -7,12 +7,14 @@ using DimensionalData
 using Extremes
 using LombScargle
 using LongMemory
+using Serialization
 using Statistics
 using YAXArrays
 using NetCDF
 using Zarr
 using Polynomials
 using Interpolations
+using NearestNeighbors
 using DataFrames
 using MarSwitching
 using Shapefile
@@ -46,7 +48,7 @@ export prcp1, frostdays, summerdays, icingdays, tropicalnights, customthresover,
 export vaporpressure, approx_surfacepressure, wbgt, diurnaltemperature, meantemperature
 export timeresolution, daymean_factor, pr_timefactor
 export quantiles
-export regrid_cube
+export Regridder, regrid, regrid_cube, save_regridder, load_regridder
 export regrid_curvilinear_to_regular, regrid_rotated_curvilinear_to_regular
 export qqmap, qqmap_bulk, biascorrect_extremes
 export ensemble_fct, ensemble_stats
