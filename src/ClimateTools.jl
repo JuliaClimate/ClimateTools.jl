@@ -69,6 +69,7 @@ export Regridder, regrid, regrid_cube, save_regridder, load_regridder
 export regrid_curvilinear_to_regular, regrid_rotated_curvilinear_to_regular
 export qqmap, qqmap_bulk, biascorrect_extremes
 export TVCModel, fit_tvc, apply_tvc, tvc
+export geomap, geomapfacet, timeseriesplot, statsplot
 export ensemble_fct, ensemble_stats
 export autocorrelation
 export hurst

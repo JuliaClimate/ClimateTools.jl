@@ -36,6 +36,21 @@ These functions are useful when:
 - summarizing a stack of realizations
 - deriving ensemble-level diagnostics after bias correction
 
+Those summaries now connect directly to the plotting layer. Two common patterns are:
+
+```julia
+fig = timeseriesplot(cube;
+    selectors=(longitude=10, latitude=12),
+    mode=:mean_ribbon)
+
+stats = ensemble_stats(cube; dim="member")
+fig2 = timeseriesplot(stats;
+    selectors=(longitude=10, latitude=12),
+    mode=:stats)
+```
+
+For geographic comparison of members, use `geomapfacet(cube; facetdim=:member, selectors=(time=1,))`.
+
 ## Where This Fits in the Workflow
 
 Arithmetic and ensemble summaries are often the final layer after you have:

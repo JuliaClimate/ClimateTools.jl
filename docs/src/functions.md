@@ -62,6 +62,13 @@ These are often used after bias correction or in post-processing chains.
 - `quantiles`: grouped quantile summaries over a selected dimension
 - `rlevels_cube`: return-level estimation on cubes
 
+## Plotting
+
+- `geomap`: single-panel geographic plotting for regular and rotated-grid data
+- `geomapfacet`: faceted geographic plotting over time or ensemble-like dimensions
+- `timeseriesplot`: line, multi-member, ribbon, and `ensemble_stats`-aware time-series plots
+- `statsplot`: histogram, boxplot, scatter, and grouped ensemble-distribution plots
+
 ## Time-Series and Regime Diagnostics
 
 - `autocorrelation`
