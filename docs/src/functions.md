@@ -27,6 +27,10 @@ The full index catalog lives on the dedicated [indices page](indices.md).
 - `qqmap`
 - `qqmap_bulk`
 - `biascorrect_extremes`
+- `TVCModel`
+- `fit_tvc`
+- `apply_tvc`
+- `tvc`
 
 ## Time Helpers
 
