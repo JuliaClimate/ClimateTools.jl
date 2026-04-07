@@ -1,0 +1,24 @@
+# References
+
+This page collects the main literature and methodological references used in the ClimateTools documentation.
+
+## Bias Correction
+
+- Themeßl, M. J., Gobiet, A., and Leuprecht, A. Empirical-statistical downscaling and error correction of regional climate models and its impact on the climate change signal. Theoretical and Applied Climatology, 2012.
+- Piani, C., Haerter, J. O., and Coppola, E. Statistical bias correction for daily precipitation in regional climate models over Europe. Theoretical and Applied Climatology, 2010.
+
+These references motivate the quantile-mapping workflows exposed through `qqmap` and related functions.
+
+## Time Variability Correction
+
+- Shao, Y., Bishop, C. H., Hobeichi, S., Nishant, N., Abramowitz, G., and Sherwood, S. Time Variability Correction of CMIP6 Climate Change Projections. Journal of Advances in Modeling Earth Systems, 2024. DOI: 10.1029/2023MS003640.
+
+This is the methodological reference for `tvc`, `fit_tvc`, and `apply_tvc`.
+
+## Climate Indicators
+
+The grouped index interface in ClimateTools overlaps conceptually with ETCCDI and xclim-style climate-indicator workflows, especially for threshold counts, spell-duration indices, and percentile-based indices.
+
+## Regridding and Scenario Construction
+
+The ClimateTools documentation uses workflow-oriented documentation patterns inspired by the broader climate-services ecosystem, including xclim’s separation of tutorials, workflow guides, and API reference.

@@ -1,46 +1,63 @@
 # Interpolation and Regridding
 
-ClimateTools provides YAXArrays-native regridding utilities.
+Regridding is usually the bridge between raw datasets and a comparable climate-scenario workflow. Observations and model simulations often start on different grids, and most bias-correction methods are easiest to interpret once the fields share a common spatial support.
 
-## Reusable Regridder Workflow (xESMF-style)
+## When to Regrid
 
-Build a `Regridder` once and reuse it across multiple variables/time slices.
+You should usually regrid when:
+
+- observations and simulations are on different regular grids
+- the simulation uses a rotated pole or curvilinear mesh
+- you need a common analysis grid for multi-model comparison
+- you want the corrected scenario on the observational grid
+
+## Choosing a Method
+
+ClimateTools exposes two main `Regridder` methods for general workflows:
+
+- `"bilinear"` or `"linear"`: smoother, usually preferred for temperature-like continuous fields
+- `"nearest_s2d"` or `"nearest"`: simpler nearest-neighbor transfer, useful when continuity is less important or for categorical behavior
+
+As a rough rule:
+
+- use bilinear for temperature and pressure-like continuous variables
+- be more cautious with precipitation and thresholded variables, especially at coastlines or sharp gradients
+
+## Reusable `Regridder` Workflow
+
+Build the regridder once and reuse it across multiple variables or periods.
 
 ```julia
 regridder = Regridder(source_grid_cube, destination_grid_cube; method="bilinear")
 
 out1 = regrid(source_cube_1, regridder)
-out2 = regridder(source_cube_2)  # equivalent callable form
+out2 = regridder(source_cube_2)
 ```
 
-Supported methods for `Regridder`:
+This is the preferred workflow when you will apply the same geometry transformation many times.
 
-- `"bilinear"` (alias `"linear"`)
-- `"nearest_s2d"` (alias `"nearest"`)
-
-You can also persist a regridder for lightweight reuse across sessions:
+## Persisting a Regridder
 
 ```julia
 save_regridder("regridder.bin", regridder)
 regridder = load_regridder("regridder.bin")
 ```
 
-Saved regridders validate the incoming source lon/lat grid before applying the
-weights. The binary format is intended for reuse within the same Julia and
-ClimateTools environment.
+Saved regridders validate the incoming source lon-lat grid before applying the weights. The saved format is intended for reuse within the same Julia and ClimateTools environment.
 
-`skipna` and `na_thres` can be passed when applying the regridder:
+## Missing Values During Regridding
+
+`skipna` and `na_thres` control how missing values affect the output.
 
 ```julia
 out = regrid(source_cube, regridder; skipna=true, na_thres=0.25)
 ```
 
-## Rotated-Pole and Curvilinear Grids (Dataset path)
+These keywords matter when the source grid contains masks, coastlines, or large missing regions.
 
-For datasets with a `grid_mapping` attribute (e.g. rotated-pole grids from
-ClimEx/CRCM5), pass the **Dataset** instead of a plain cube so that the
-`Regridder` can access the companion 2D `lon`/`lat` variables and the
-`rotated_pole` metadata:
+## Dataset-Aware Workflow for Rotated or Curvilinear Grids
+
+For datasets with a `grid_mapping` attribute, pass the dataset rather than a plain variable cube. This lets ClimateTools find the supporting 2D geographic coordinates and projection metadata.
 
 ```julia
 using YAXArrays
@@ -51,54 +68,41 @@ dest = YAXArray(
     zeros(length(dest_lon), length(dest_lat)),
 )
 
-# Build once from the Dataset
 regridder = Regridder(ds, :pr, dest)
-
-# Apply to any cube sharing the same rlon/rlat grid
 out = regrid(ds[:pr], regridder)
 ```
 
-The Dataset constructor automatically:
-1. Detects `grid_mapping` in the variable metadata.
-2. Reads 2D `lon`/`lat` arrays from the Dataset, or computes them via
-   `rotated_to_geographic` using the `rotated_pole` variable attributes.
-3. Builds IDW interpolation weights in geographic coordinates.
+The dataset constructor automatically:
 
-A one-shot convenience wrapper is also available:
+1. detects `grid_mapping` in the variable metadata
+2. reads 2D `lon` and `lat` arrays when available
+3. derives geographic coordinates from the rotated-pole metadata when needed
 
-```julia
-out = regrid_cube(ds, :pr, dest)
-```
+This is the correct route for many regional climate-model products.
 
-The destination can also be provided as a `Dataset`. ClimateTools will prefer a
-Dataset-level lon/lat coordinates directly; the destination variable name is
-not used:
+## One-Shot Regridding
 
-```julia
-out = regrid_cube(climex, :pr, era5)
-```
-
-Passing a plain `YAXArray` with `rlon`/`rlat` dimensions or a `grid_mapping`
-attribute directly to `Regridder(cube, dest)` will raise an error with a
-message explaining how to use the Dataset path instead.
-
-## Compatibility Wrapper
-
-For one-off use, `regrid_cube` remains available and internally uses `Regridder`:
+For one-off use, `regrid_cube` remains available.
 
 ```julia
 out = regrid_cube(source_cube, destination_cube)
 ```
 
-## Curvilinear/Rotated Grid Regridding
+Or, with a dataset-aware source:
 
-For already-geographic curvilinear lon/lat arrays:
+```julia
+out = regrid_cube(ds, :pr, dest)
+```
+
+## Curvilinear and Explicit Array Interfaces
+
+For already-geographic curvilinear grids:
 
 ```julia
 out = regrid_curvilinear_to_regular(loncurv, latcurv, data, londest, latdest; method="linear")
 ```
 
-YAXArrays interface for 2D curvilinear fields:
+For a 2D YAXArray field on a curvilinear grid:
 
 ```julia
 out = regrid_curvilinear_to_regular(source_cube_2d, destination_grid_cube; method="linear")
@@ -111,3 +115,21 @@ out = regrid_rotated_curvilinear_to_regular(lonrot, latrot, data, londest, latde
     grid_north_longitude=0.0,
     grid_north_latitude=90.0)
 ```
+
+## Common Pitfalls
+
+- Passing a rotated-grid variable cube directly to `Regridder(cube, dest)` instead of using the dataset-aware constructor
+- Regridding after bias correction instead of before, which can make interpretation harder
+- Ignoring missing-value behavior over coastlines or masked domains
+- Comparing observational and model fields before confirming that the lon-lat conventions are compatible
+
+## Role in Scenario Construction
+
+In a climate-scenario workflow, regridding usually comes before bias correction:
+
+1. choose the target grid
+2. regrid the historical and future simulations
+3. regrid the observation if needed
+4. run the correction method on aligned fields
+
+See [Building Climate Scenarios](scenarios.md) for an end-to-end example.

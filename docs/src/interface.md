@@ -1,17 +1,27 @@
-# Interface
+# Arithmetic and Ensembles
 
-ClimateTools functions are defined on YAXArray/Cube values.
+ClimateTools is designed to feel like ordinary Julia array work on top of labeled gridded data.
 
-## Arithmetic
+## Arithmetic on Compatible Cubes
 
-Use native broadcasting and arithmetic with compatible cubes.
+Use native broadcasting and arithmetic when cubes are already aligned.
 
 ```julia
 anom = fut .- ref
 ratio = fut ./ ref
 ```
 
+Typical use cases include:
+
+- anomaly fields
+- ratios or percent change fields
+- corrected-minus-raw comparison maps
+
+As always, alignment matters. If the grids or time axes differ, regrid or subset before applying arithmetic.
+
 ## Ensemble Helpers
+
+`ensemble_stats` summarizes along a chosen dimension.
 
 ```julia
 stats = ensemble_stats(cube; dim="time")
@@ -19,3 +29,19 @@ stats2 = ensemble_fct(cube; dim="time")
 ```
 
 `ensemble_fct` is an alias of `ensemble_stats`.
+
+These functions are useful when:
+
+- working with multi-member simulations
+- summarizing a stack of realizations
+- deriving ensemble-level diagnostics after bias correction
+
+## Where This Fits in the Workflow
+
+Arithmetic and ensemble summaries are often the final layer after you have:
+
+1. opened and aligned the data
+2. regridded the datasets if needed
+3. bias-corrected the simulation fields
+
+At that stage, cube arithmetic becomes a compact way to compare scenarios.

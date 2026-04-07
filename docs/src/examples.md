@@ -1,6 +1,8 @@
 # Examples
 
-## End-to-end Workflow
+This page collects worked examples that connect multiple parts of the package instead of only isolated function calls.
+
+## Example 1: Basic Bias Correction and Annual Maximum
 
 ```julia
 using ClimateTools
@@ -11,22 +13,62 @@ ref = Cube(open_dataset("ref.nc"))
 fut = Cube(open_dataset("fut.nc"))
 
 qq = qqmap(obs, ref, fut; method="additive", detrend=true)
-ann = annualmax(qq)
-
-# Optional regrid
-# ann_rg = regrid_cube(ann, target_cube)
+txx = annualmax(qq)
 ```
 
-## Daily Aggregation
+Use this pattern when the goal is to derive a corrected future field and then summarize it annually.
+
+## Example 2: Monthly Wet-Day Fraction
 
 ```julia
-daily_mean = daymean(fut)
-daily_sum = daysum(fut)
+wet_fraction = wetdays_prop(pr; thresh=5.0, freq="MS")
 ```
 
-## Thermodynamic Helpers
+This is a common first diagnostic when comparing present and future precipitation regimes.
+
+## Example 3: Regrid Then Correct
+
+```julia
+regridder = Regridder(hist, obs; method="bilinear")
+hist_rg = regrid(hist, regridder)
+fut_rg = regrid(fut, regridder)
+
+qq = qqmap(obs, hist_rg, fut_rg; method="additive")
+```
+
+This is the preferred order for many climate-scenario workflows: regrid first, then bias-correct.
+
+## Example 4: Time Variability Correction
+
+```julia
+tvc_out = tvc(obs, hist, fut;
+	scales=[365, 183, 92, 46, 23, 12, 6, 3, 2],
+	eig_floor=1e-8)
+```
+
+Use this when correcting variability across time scales matters as much as correcting the marginal distribution.
+
+## Example 5: Thermodynamic Post-Processing
 
 ```julia
 vp = vaporpressure(huss, ps)
 wb = wbgt(tas, vp)
 ```
+
+This type of workflow is typical after you have already prepared a corrected scenario field.
+
+## Example 6: Polygon-Based Regional Study
+
+```julia
+poly = ClimateTools.extractpoly("region.shp", n=1)
+regional = spatialsubset(cube, poly)
+regional_txx = tx_max(regional)
+```
+
+This pattern is useful for impact studies over watersheds, administrative regions, or user-defined polygons.
+
+## Where to Go Next
+
+- [Quick Start](quickstart.md) for the minimal onboarding path
+- [Building Climate Scenarios](scenarios.md) for the full observational-plus-simulation workflow
+- [Validation and Diagnostics](validation.md) for how to assess outputs

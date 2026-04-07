@@ -10,15 +10,23 @@
 [![DOI](https://zenodo.org/badge/76293821.svg)](https://zenodo.org/badge/latestdoi/76293821)
 [![chat](https://img.shields.io/badge/chat-on%20gitter-bc0067.svg)](https://gitter.im/ClimateTools-jl)
 
-ClimateTools.jl is a climate-analysis toolkit built on top of YAXArrays.jl.
+ClimateTools.jl is a climate-analysis toolkit built on top of YAXArrays.jl for gridded observations, reanalyses, and climate-model simulations.
 
-ClimateTools now prefers the YAXArrays `xmap` pattern for whole-dimension transforms and reductions, which keeps the package aligned with the current YAXArrays compute model.
+The package focuses on the typical climate-services workflow:
+
+1. Read CF-style gridded datasets as `YAXArray` or `Cube` objects.
+2. Subset them in time and space.
+3. Regrid simulations and observations onto a common domain.
+4. Bias-correct simulations with quantile mapping, extreme-value correction, or time-variability correction.
+5. Compute indicators, aggregations, and diagnostics.
+
+ClimateTools now prefers the YAXArrays `xmap` pattern for whole-dimension transforms and reductions. A few specialized multi-input workflows still rely on `mapCube`, notably bias-correction methods where several series share a dimension name such as `time` but legitimately have different coordinate values.
 
 ## Status
 
 - Active development
 - Julia 1.10+
-- Data model: YAXArray/Cube
+- Data model: `YAXArray` / `Cube`
 - YAXArrays compatibility: `0.7`
 
 ## Installation
@@ -35,7 +43,7 @@ using Pkg
 Pkg.develop(path="/path/to/ClimateTools")
 ```
 
-## Core Workflow (YAXArrays-native)
+## Quick Start
 
 ```julia
 using ClimateTools
@@ -49,17 +57,46 @@ qq = qqmap(obs, ref, fut; method="additive", detrend=true)
 ann = annualmax(qq)
 ```
 
-Internally, operations such as `annualmax`, `daily_fct`, `regrid`, `quantiles`, `ensemble_stats`, and the xclim-style period reductions now use `xmap` where the mapping is naturally expressed over whole dimensions. A few specialized paths still use `mapCube`, mainly when multiple inputs share a dimension name but legitimately carry different coordinate values, as in `qqmap(obs, ref, fut)`.
+That small example already illustrates the main ClimateTools workflow: open data, bias-correct, then compute a climate summary.
 
-## Main Features
+## Main Capabilities
 
-- Quantile mapping bias correction: `qqmap`, `qqmap_bulk`
-- Daily and yearly aggregation: `daily_fct`, `daymean`, `daysum`, `yearly_resample`, `monthly_resample`
-- Annual indices and threshold counts: `annualmax`, `annualmin`, `annualmean`, `annualsum`, `prcp1`, `frostdays`, `summerdays`, `icingdays`, `tropicalnights`, `customthresover`, `customthresunder`
-- Thermodynamic helpers: `vaporpressure`, `approx_surfacepressure`, `wbgt`, `diurnaltemperature`, `meantemperature`
-- Regridding utilities: `regrid_cube`, `regrid_curvilinear_to_regular`, `regrid_rotated_curvilinear_to_regular`
-- Ensemble summaries: `ensemble_stats`, `ensemble_fct`
+- Dataset opening and subsetting with YAXArrays and DimensionalData selectors
+- Regridding on regular, curvilinear, and rotated-pole grids
+- Bias correction with `qqmap`, `qqmap_bulk`, `biascorrect_extremes`, and `tvc`
+- Aggregations such as `daymean`, `daysum`, `annualmax`, `annualmean`, and `annualsum`
+- A large catalog of temperature, precipitation, threshold, and spell-duration indices
+- Ensemble summaries and time-series diagnostics
+- Thermodynamic helper functions and return-level estimation
+
+## Documentation Map
+
+The stable documentation is organized around workflows first and reference second.
+
+- Quick start: open data, inspect dimensions, compute a first result
+- Data and subsetting: time ranges, polygons, coordinate conventions
+- Interpolation and regridding: regular, rotated, and curvilinear workflows
+- Bias correction: method selection, assumptions, and validation
+- Building climate scenarios: observations plus simulations, interpolation, correction, diagnostics, and derived indicators
+- Indices and aggregations: grouped by climate-analysis task
+- API overview: exported functions by category
+
+## Climate Scenarios
+
+One of the primary use cases for ClimateTools is climate-scenario construction. A typical scenario workflow is:
+
+1. Choose a reference observation or reanalysis dataset.
+2. Open one or more model simulations for a historical and future period.
+3. Align calendars, time windows, and grids.
+4. Interpolate observations and simulations to a common grid if necessary.
+5. Bias-correct the model series using a method suited to the variable and objective.
+6. Validate the corrected fields and compute indicators, maps, or summary tables.
+
+The documentation includes a dedicated guide for this workflow.
 
 ## Documentation
 
-See `docs/src/` for full YAXArrays-based usage examples.
+See the built documentation at:
+
+- Stable: [https://juliaclimate.github.io/ClimateTools.jl/stable](https://juliaclimate.github.io/ClimateTools.jl/stable)
+- Dev: [https://juliaclimate.github.io/ClimateTools.jl/dev](https://juliaclimate.github.io/ClimateTools.jl/dev)
