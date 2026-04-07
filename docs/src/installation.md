@@ -1,85 +1,83 @@
 # Installation
 
-## Installing ClimateTools.jl
+## Stable Package Installation
 
-Once the Python dependencies are properly installed you can then install ClimateTools in Julia.
-
-```julia
-pkg> add ClimateTools # Tagged release
-```
-
-## Installing ClimatePlots.jl
-
-
-Plotting data and results is done through the [ClimatePlots.jl](https://github.com/JuliaClimate/ClimatePlots.jl) package.
-
-Under the hood, ClimatePlots.jl requires some Python packages for mapping purpose and is currently using Cartopy. To ensure that ClimatePlots works properly, it is recommended to use Julia's built-in Python distribution which can properly load the required Python packages.
-
-Hence, the best approach is to simply configure PyCall as follows:
+Install ClimateTools from the general Julia package registry:
 
 ```julia
-julia> using Pkg; Pkg.add("PyCall")
-julia> ENV["PYTHON"]=""
-julia> Pkg.build("PyCall")
+using Pkg
+Pkg.add("ClimateTools")
 ```
-Then, once PyCall configured, installation is the standard command.
+
+ClimateTools targets Julia 1.10 and newer.
+
+## Development Installation
+
+To work on the package locally:
 
 ```julia
-pkg> add ClimatePlots # Tagged release
+using Pkg
+Pkg.develop(path="/path/to/ClimateTools")
 ```
 
-## Alternatives Python distribution
+## Core Dependencies
 
-It is also possible to use your own Python distribution instead of Julia's Python.
+ClimateTools is built around:
 
-### Approach no. 1 Use Anaconda or main system Python distribution
+- `YAXArrays.jl` for labeled gridded arrays and dataset loading
+- `DimensionalData.jl` selectors for subsetting
+- `Interpolations.jl`, `NearestNeighbors.jl`, and related tools for interpolation and regridding
 
-The first approach is to use Anaconda or the system Python distribution and ensure that you can import the following packages. By far, the easiest solution is to use Anaconda, which can easily install the Basemap dependency.
+Most workflows do not require a Python stack.
 
-**1.1 Python dependencies**
+## Recommended Environment
 
-* matplotlib
-* cartopy
-* cmocean
-
-**1.2 Testing Python installation**
-
-No matter the approach used, it is recommended to test the Python environment and see if you can import the required Python packages.
-
-```python
-#python
->>> import cartopy
->>> import matplotlib.pyplot as plt
->>> import cmocean as cm
-```
-
-**1.2 Building PyCall**
-After the confirmation that the Python dependencies can be loaded in Python, the user needs to build PyCall with the same Python version. Alternatively, if PyCall is already built, it may be only a matter of installing the Python dependencies with the PyCall's Python version by using `pip`.
+For reproducible work, it is recommended to create a dedicated Julia environment:
 
 ```julia
-ENV["PYTHON"]="path_to_python_distribution"
-pkg> build PyCall
+using Pkg
+Pkg.activate("climate-project")
+Pkg.add(["ClimateTools", "YAXArrays", "Plots"])
 ```
 
-## Approach no. 2. Use a Conda virtual environment and link PyCall.jl to it
+## Optional Plotting Stack
 
-If the main system Python distribution is not set-up properly, the recommended approach is to use a Conda environment. Cartopy is much easier to install through this approach. It is simply a matter of creating a virtual Python environment with Conda and installing the required packages and then linking Julia's PyCall.jl package to this virtual Conda environment. More information can be found in [PyCall](https://github.com/JuliaPy/PyCall.jl) documentation for custom Conda environment.
+ClimateTools itself does not require a specific plotting package. The documentation examples use generic Julia plotting tools rather than a package-specific plotting dependency.
 
-**Create a virtual environment with Conda**
+Common choices include:
 
-```bash
-$ conda create -name ClimateTools python=3.6
-$ conda activate ClimateTools
-$ conda install -c conda-forge matplotlib --strict-channel-priority
-$ conda install -c conda-forge cartopy --strict-channel-priority
-$ conda install -c conda-forge cmocean --strict-channel-priority
-$ which python # gives you the path of Conda virtual environment to use in the next steps.
-```
+- `Plots.jl` for quick inspection plots
+- `Makie.jl` for more customized figures
+- GIS or Python tools outside Julia for publication-quality cartographic layouts
 
-Once those packages are installed, you need to tell PyCall.jl (in Julia) to use this Conda environment in Julia.
+## Reading Datasets
+
+Most users will also need `YAXArrays.jl` explicitly in their project when opening files:
 
 ```julia
-julia> using PyCall
-julia> ENV["PYTHON"]="...PATH TO CONDA PYTHON..." # find the path with "which python" at previous step
-julia> using Pkg; Pkg.build("PyCall")
+using ClimateTools
+using YAXArrays
+
+cube = Cube(open_dataset("mydata.nc"))
 ```
+
+## Building the Documentation Locally
+
+If you want to build this documentation site from the repository root:
+
+```julia
+using Pkg
+Pkg.activate("docs")
+Pkg.instantiate()
+include("docs/make.jl")
+```
+
+## Notes on Python and PyCall
+
+Older ClimateTools workflows often relied on a Python-backed plotting stack. That is no longer required for the core package workflows documented here.
+
+If your own visualization workflow uses `PyCall`, Cartopy, or other Python tools, manage that environment separately from the ClimateTools installation.
+
+## Next Step
+
+After installation, continue with the [Quick Start](quickstart.md) page.

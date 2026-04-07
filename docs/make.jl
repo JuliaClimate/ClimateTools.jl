@@ -2,14 +2,6 @@ using Pkg
 Pkg.activate(@__DIR__)
 CI = get(ENV, "CI", nothing) == "true"
 
-# PyCall is optional for docs and may be absent from the docs environment.
-try
-    ENV["PYTHON"] = ""
-    Pkg.build("PyCall")
-catch
-    @info "Skipping PyCall build in docs environment"
-end
-
 using Documenter, ClimateTools
 
 makedocs(sitename = "ClimateTools.jl",
@@ -18,17 +10,22 @@ makedocs(sitename = "ClimateTools.jl",
     prettyurls = CI,
     ),
     pages = [
-       "index.md",
-       "installation.md",
-       "datasets.md",
-       "indices.md",
-       "interpolation.md",
-       "biascorrection.md",
-       "maps.md",
-       "interface.md",
-       "examples.md",
-       "functions.md",
-       ]
+    "Home" => "index.md",
+    "Installation" => "installation.md",
+    "Quick Start" => "quickstart.md",
+    "Data and Subsetting" => "datasets.md",
+    "Interpolation and Regridding" => "interpolation.md",
+    "Bias Correction" => "biascorrection.md",
+    "Building Climate Scenarios" => "scenarios.md",
+    "Indices and Aggregations" => "indices.md",
+    "Examples" => "examples.md",
+    "Visualization" => "maps.md",
+    "Arithmetic and Ensembles" => "interface.md",
+    "Validation and Diagnostics" => "validation.md",
+    "Troubleshooting" => "troubleshooting.md",
+    "API Overview" => "functions.md",
+    "References" => "references.md",
+    ]
 
 )
 
