@@ -5,6 +5,7 @@ using CFTime
 using Dates
 using DimensionalData
 using Extremes
+using LinearAlgebra
 using LombScargle
 using LongMemory
 using Serialization
@@ -28,6 +29,7 @@ include("ensembles.jl")
 include("functions.jl")
 include("gev.jl")
 include("legacy_compat.jl")
+include("tvc.jl")
 include("xclim_indices.jl")
 include("markov.jl")
 include("power.jl")
@@ -66,6 +68,7 @@ export quantiles
 export Regridder, regrid, regrid_cube, save_regridder, load_regridder
 export regrid_curvilinear_to_regular, regrid_rotated_curvilinear_to_regular
 export qqmap, qqmap_bulk, biascorrect_extremes
+export TVCModel, fit_tvc, apply_tvc, tvc
 export ensemble_fct, ensemble_stats
 export autocorrelation
 export hurst

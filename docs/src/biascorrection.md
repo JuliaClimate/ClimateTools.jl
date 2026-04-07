@@ -50,3 +50,29 @@ gevparams = DataFrame(
 
 dext = biascorrect_extremes(obs, ref, fut; gevparams=gevparams)
 ```
+
+## Time Variability Correction
+
+Use `tvc` to apply the Time Variability Correction method of Shao et al. (2024),
+DOI 10.1029/2023MS003640. The method targets covariance across and between
+multiple time scales while preserving the validation series event sequence.
+
+```julia
+corrected = tvc(obs, raw_train, raw_val;
+    scales=[365, 183, 92, 46, 23, 12, 6, 3, 2],
+    eig_floor=1e-8,
+    keep_original=false)
+```
+
+For repeated applications to multiple validation series, fit the model once and
+reuse it:
+
+```julia
+model = fit_tvc(obs_series, raw_train_series; scales=[365, 183, 92, 46, 23, 12, 6, 3, 2])
+corrected_series = apply_tvc(model, raw_val_series)
+```
+
+`tvc` returns a series on the validation time axis. The leading warm-up segment,
+whose length is `sum(scales) - length(scales)`, is filled with `NaN` because the
+multiscale rolling decomposition needs prior samples before the correction is
+well-defined.
