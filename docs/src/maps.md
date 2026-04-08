@@ -94,6 +94,46 @@ fig = geomapfacet(cube;
     title="Daily fields")
 ```
 
+If you want all panels to use one common geographic window, even when the facet payloads do not share the same spatial extent, enable `shared_spatial_limits`:
+
+```julia
+fig = geomapfacet(cube;
+    facetdim=:time,
+    ncols=3,
+    shared_spatial_limits=true)
+```
+
+This is separate from `limits=...`:
+
+- `shared_spatial_limits=true` computes one unioned longitude-latitude window from all facet payloads
+- `limits=((lonmin, lonmax), (latmin, latmax))` enforces an explicit user-defined window
+
+Projection sharing is now explicit as well:
+
+- `shared_projection=true` keeps one common destination projection across all panels
+- `shared_projection=false` allows `dest` to vary per panel
+- `shared_dest` is accepted as an alias for the same boolean behavior
+
+With a shared projection, pass one `dest` string for all panels:
+
+```julia
+fig = geomapfacet(cube;
+    facetdim=:time,
+    indices=1:2,
+    shared_projection=true,
+    dest="+proj=eqearth +lon_0=0")
+```
+
+If you want panel-specific projections, disable projection sharing and pass either a collection or a function:
+
+```julia
+fig = geomapfacet(cube;
+    facetdim=:time,
+    indices=1:2,
+    shared_projection=false,
+    dest=["+proj=eqearth +lon_0=0", "+proj=longlat +datum=WGS84"])
+```
+
 For ensemble data, facet over the ensemble dimension and fix the time slice with `selectors`:
 
 ```julia

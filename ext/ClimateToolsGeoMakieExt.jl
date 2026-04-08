@@ -249,6 +249,17 @@ function _resolve_dest(payload, dest, lon_0)
     return _default_dest(payload.lon, payload.lat; lon_0=lon_0)
 end
 
+function _default_dest_from_limits(lonlims::Tuple, latlims::Tuple; lon_0::Real=0.0)
+    lon_span = lonlims[2] - lonlims[1]
+    lat_span = latlims[2] - latlims[1]
+
+    if lon_span > 300 && lat_span > 120
+        return "+proj=eqearth +lon_0=$(lon_0)"
+    end
+
+    return DEFAULT_SOURCE_PROJ
+end
+
 function _expand_limit_pair(lo::Real, hi::Real; fraction::Real=0.0)
     if lo == hi
         pad = max(abs(Float64(lo)) * 0.01, 1e-6)
@@ -267,6 +278,73 @@ function _payload_limits(payload; lon_0::Real=0.0, padding_fraction::Tuple{<:Rea
     lonlims = _expand_limit_pair(lon_min, lon_max; fraction=padding_fraction[1])
     latlims = _expand_limit_pair(lat_min, lat_max; fraction=padding_fraction[2])
     return (lonlims, latlims)
+end
+
+function _shared_payload_limits(payloads; lon_0::Real=0.0, padding_fraction::Tuple{<:Real,<:Real}=(0.0, 0.0))
+    lon_mins = Float64[]
+    lon_maxs = Float64[]
+    lat_mins = Float64[]
+    lat_maxs = Float64[]
+
+    for payload in payloads
+        normalized = _normalized_map_payload(payload; lon_0=lon_0)
+        lon_min, lon_max = _axis_extent(normalized.lon)
+        lat_min, lat_max = _axis_extent(normalized.lat)
+        push!(lon_mins, lon_min)
+        push!(lon_maxs, lon_max)
+        push!(lat_mins, lat_min)
+        push!(lat_maxs, lat_max)
+    end
+
+    isempty(lon_mins) && return nothing
+
+    lonlims = _expand_limit_pair(Base.minimum(lon_mins), Base.maximum(lon_maxs); fraction=padding_fraction[1])
+    latlims = _expand_limit_pair(Base.minimum(lat_mins), Base.maximum(lat_maxs); fraction=padding_fraction[2])
+    return (lonlims, latlims)
+end
+
+function _facet_limits(payloads; limits=nothing, shared_spatial_limits::Bool=false, fit_limits::Bool=true, lon_0::Real=0.0, padding_fraction::Tuple{<:Real,<:Real}=(0.0, 0.0))
+    limits !== nothing && return limits
+    shared_spatial_limits || return nothing
+    fit_limits || return nothing
+    return _shared_payload_limits(payloads; lon_0=lon_0, padding_fraction=padding_fraction)
+end
+
+function _shared_projection_flag(shared_projection::Bool, shared_dest)
+    isnothing(shared_dest) && return shared_projection
+    return Bool(shared_dest)
+end
+
+function _shared_dest_value(payloads; dest, lon_0::Real=0.0)
+    if isnothing(dest)
+        shared_limits = _shared_payload_limits(payloads; lon_0=lon_0)
+        shared_limits === nothing && return nothing
+        return _default_dest_from_limits(shared_limits[1], shared_limits[2]; lon_0=lon_0)
+    elseif dest isa Function
+        error("When `shared_projection=true`, `dest` must be a single projection string or `nothing`, not a function.")
+    elseif dest isa AbstractVector || dest isa Tuple
+        error("When `shared_projection=true`, `dest` must be a single projection string or `nothing`, not a collection of per-panel projections.")
+    end
+
+    return dest
+end
+
+function _panel_destinations(payloads, labels; dest=nothing, shared_projection::Bool=true, lon_0::Real=0.0)
+    if shared_projection
+        shared_dest = _shared_dest_value(payloads; dest=dest, lon_0=lon_0)
+        return fill(shared_dest, length(payloads))
+    end
+
+    if isnothing(dest)
+        return [nothing for _ in payloads]
+    elseif dest isa Function
+        return [dest(payloads[index], labels[index], index) for index in eachindex(payloads)]
+    elseif dest isa AbstractVector || dest isa Tuple
+        length(dest) == length(payloads) || error("Per-panel `dest` must have the same length as the number of facet panels.")
+        return collect(dest)
+    end
+
+    return fill(dest, length(payloads))
 end
 
 function _resolved_limits(payload; limits=nothing, fit_limits::Bool=true, lon_0::Real=0.0, padding_fraction::Tuple{<:Real,<:Real}=(0.0, 0.0))
@@ -534,13 +612,16 @@ function ClimateTools.geomap(ds::Dataset, varname::Symbol; selectors=(;), dim=no
     return fig
 end
 
-function ClimateTools.geomapfacet(cube::YAXArray; facetdim, selectors=(;), indices=nothing, maxpanels=nothing, ncols=3, panel_titles=nothing, title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, shared_colorrange::Bool=true, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, colorbar::Bool=true, colorbar_label=nothing, colorbar_position::Symbol=:right, frame::Bool=true, limits=nothing, fit_limits::Bool=true, limit_padding::Tuple{<:Real,<:Real}=(0.0, 0.0), figure_size=nothing, axis_kwargs=(;), surface_kwargs=(;), colorbar_kwargs=(;))
+function ClimateTools.geomapfacet(cube::YAXArray; facetdim, selectors=(;), indices=nothing, maxpanels=nothing, ncols=3, panel_titles=nothing, title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, shared_colorrange::Bool=true, shared_spatial_limits::Bool=false, shared_projection::Bool=true, shared_dest=nothing, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, colorbar::Bool=true, colorbar_label=nothing, colorbar_position::Symbol=:right, frame::Bool=true, limits=nothing, fit_limits::Bool=true, limit_padding::Tuple{<:Real,<:Real}=(0.0, 0.0), figure_size=nothing, axis_kwargs=(;), surface_kwargs=(;), colorbar_kwargs=(;))
     payloads, labels = _facet_payloads(cube; facetdim=Symbol(facetdim), selectors=selectors, indices=indices, maxpanels=maxpanels)
     panel_count = length(payloads)
     ncols = max(1, min(ncols, panel_count))
     nrows = cld(panel_count, ncols)
     resolved_size = isnothing(figure_size) ? (380 * ncols + (colorbar && colorbar_position == :right ? 120 : 0), 280 * nrows + (colorbar && colorbar_position == :bottom ? 110 : 0)) : figure_size
     resolved_colorrange = isnothing(colorrange) && shared_colorrange ? _colorrange_from_payloads(payloads) : colorrange
+    resolved_limits = _facet_limits(payloads; limits=limits, shared_spatial_limits=shared_spatial_limits, fit_limits=fit_limits, lon_0=lon_0, padding_fraction=limit_padding)
+    resolved_shared_projection = _shared_projection_flag(shared_projection, shared_dest)
+    resolved_dests = _panel_destinations(payloads, labels; dest=dest, shared_projection=resolved_shared_projection, lon_0=lon_0)
 
     fig = Makie.Figure(size=resolved_size)
     title === nothing || Makie.Label(fig[0, 1:ncols], title, fontsize=22)
@@ -551,7 +632,7 @@ function ClimateTools.geomapfacet(cube::YAXArray; facetdim, selectors=(;), indic
         _, plotobj = _render_map_axis!(slot, payloads[panel_index];
             title=_panel_title(panel_titles, Symbol(facetdim), labels[panel_index], panel_index),
             source=source,
-            dest=dest,
+            dest=resolved_dests[panel_index],
             lon_0=lon_0,
             colormap=colormap,
             colorrange=resolved_colorrange,
@@ -559,8 +640,8 @@ function ClimateTools.geomapfacet(cube::YAXArray; facetdim, selectors=(;), indic
             coastline_color=coastline_color,
             coastline_width=coastline_width,
             frame=frame,
-            limits=limits,
-            fit_limits=fit_limits,
+            limits=resolved_limits,
+            fit_limits=fit_limits && isnothing(resolved_limits),
             padding_fraction=limit_padding,
             axis_kwargs=axis_kwargs,
             surface_kwargs=surface_kwargs,
@@ -576,13 +657,16 @@ function ClimateTools.geomapfacet(cube::YAXArray; facetdim, selectors=(;), indic
     return fig
 end
 
-function ClimateTools.geomapfacet(ds::Dataset, varname::Symbol; facetdim, selectors=(;), indices=nothing, maxpanels=nothing, ncols=3, panel_titles=nothing, title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, shared_colorrange::Bool=true, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, colorbar::Bool=true, colorbar_label=nothing, colorbar_position::Symbol=:right, frame::Bool=true, limits=nothing, fit_limits::Bool=true, limit_padding::Tuple{<:Real,<:Real}=(0.0, 0.0), figure_size=nothing, axis_kwargs=(;), surface_kwargs=(;), colorbar_kwargs=(;))
+function ClimateTools.geomapfacet(ds::Dataset, varname::Symbol; facetdim, selectors=(;), indices=nothing, maxpanels=nothing, ncols=3, panel_titles=nothing, title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, shared_colorrange::Bool=true, shared_spatial_limits::Bool=false, shared_projection::Bool=true, shared_dest=nothing, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, colorbar::Bool=true, colorbar_label=nothing, colorbar_position::Symbol=:right, frame::Bool=true, limits=nothing, fit_limits::Bool=true, limit_padding::Tuple{<:Real,<:Real}=(0.0, 0.0), figure_size=nothing, axis_kwargs=(;), surface_kwargs=(;), colorbar_kwargs=(;))
     payloads, labels = _facet_payloads(ds, varname; facetdim=Symbol(facetdim), selectors=selectors, indices=indices, maxpanels=maxpanels)
     panel_count = length(payloads)
     ncols = max(1, min(ncols, panel_count))
     nrows = cld(panel_count, ncols)
     resolved_size = isnothing(figure_size) ? (380 * ncols + (colorbar && colorbar_position == :right ? 120 : 0), 280 * nrows + (colorbar && colorbar_position == :bottom ? 110 : 0)) : figure_size
     resolved_colorrange = isnothing(colorrange) && shared_colorrange ? _colorrange_from_payloads(payloads) : colorrange
+    resolved_limits = _facet_limits(payloads; limits=limits, shared_spatial_limits=shared_spatial_limits, fit_limits=fit_limits, lon_0=lon_0, padding_fraction=limit_padding)
+    resolved_shared_projection = _shared_projection_flag(shared_projection, shared_dest)
+    resolved_dests = _panel_destinations(payloads, labels; dest=dest, shared_projection=resolved_shared_projection, lon_0=lon_0)
 
     fig = Makie.Figure(size=resolved_size)
     title === nothing || Makie.Label(fig[0, 1:ncols], title, fontsize=22)
@@ -593,7 +677,7 @@ function ClimateTools.geomapfacet(ds::Dataset, varname::Symbol; facetdim, select
         _, plotobj = _render_map_axis!(slot, payloads[panel_index];
             title=_panel_title(panel_titles, Symbol(facetdim), labels[panel_index], panel_index),
             source=source,
-            dest=dest,
+            dest=resolved_dests[panel_index],
             lon_0=lon_0,
             colormap=colormap,
             colorrange=resolved_colorrange,
@@ -601,8 +685,8 @@ function ClimateTools.geomapfacet(ds::Dataset, varname::Symbol; facetdim, select
             coastline_color=coastline_color,
             coastline_width=coastline_width,
             frame=frame,
-            limits=limits,
-            fit_limits=fit_limits,
+            limits=resolved_limits,
+            fit_limits=fit_limits && isnothing(resolved_limits),
             padding_fraction=limit_padding,
             axis_kwargs=axis_kwargs,
             surface_kwargs=surface_kwargs,

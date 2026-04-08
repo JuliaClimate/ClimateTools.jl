@@ -42,6 +42,25 @@
     @test fig_facet isa GeoMakie.Makie.Figure
     @test length(fig_facet.content) >= 4
 
+    fig_facet_shared = geomapfacet(cube; facetdim=:time, ncols=2, shared_spatial_limits=true, limit_padding=(0.05, 0.05))
+    @test fig_facet_shared isa GeoMakie.Makie.Figure
+    facet_axes = filter(x -> x isa GeoMakie.GeoAxis, fig_facet_shared.content)
+    @test length(facet_axes) == length(times)
+    shared_limits = facet_axes[1].limits[]
+    @test all(ax -> ax.limits[] == shared_limits, facet_axes)
+
+    fig_facet_proj_shared = geomapfacet(cube; facetdim=:time, indices=1:2, shared_projection=true, dest="+proj=eqearth +lon_0=0")
+    proj_shared_axes = filter(x -> x isa GeoMakie.GeoAxis, fig_facet_proj_shared.content)
+    @test length(proj_shared_axes) == 2
+    @test all(ax -> ax.dest[] == "+proj=eqearth +lon_0=0", proj_shared_axes)
+
+    fig_facet_proj_split = geomapfacet(cube; facetdim=:time, indices=1:2, shared_projection=false,
+        dest=["+proj=eqearth +lon_0=0", "+proj=longlat +datum=WGS84"])
+    proj_split_axes = filter(x -> x isa GeoMakie.GeoAxis, fig_facet_proj_split.content)
+    @test length(proj_split_axes) == 2
+    @test proj_split_axes[1].dest[] == "+proj=eqearth +lon_0=0"
+    @test proj_split_axes[2].dest[] == "+proj=longlat +datum=WGS84"
+
     fig_member_facet = geomapfacet(member_cube; facetdim=:member, selectors=(time=1,), ncols=2)
     @test fig_member_facet isa GeoMakie.Makie.Figure
 
