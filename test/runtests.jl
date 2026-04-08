@@ -57,4 +57,5 @@ using Dates
     include("functions_new_test.jl")
     include("xclim_indices_test.jl")
     include("tvc_test.jl")
+    include("plotting_test.jl")
 end

@@ -42,9 +42,28 @@ Pkg.add(["ClimateTools", "YAXArrays", "Plots"])
 
 ## Optional Plotting Stack
 
-ClimateTools itself does not require a specific plotting package. The documentation examples use generic Julia plotting tools rather than a package-specific plotting dependency.
+ClimateTools keeps plotting optional. The built-in plotting helpers are activated through a package extension when `GeoMakie.jl` is available.
 
-Common choices include:
+To use the ClimateTools plotting API:
+
+```julia
+using Pkg
+Pkg.add(["ClimateTools", "GeoMakie", "CairoMakie"])
+```
+
+Then load the packages in your session:
+
+```julia
+using ClimateTools
+using GeoMakie
+using CairoMakie
+
+CairoMakie.activate!()
+```
+
+`GeoMakie.jl` provides the map projection layer and `CairoMakie.jl` is a reliable backend for scripts, tests, and documentation builds. For interactive work you can replace `CairoMakie` with `GLMakie` or another Makie backend.
+
+Other common choices still include:
 
 - `Plots.jl` for quick inspection plots
 - `Makie.jl` for more customized figures
