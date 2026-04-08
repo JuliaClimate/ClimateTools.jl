@@ -249,6 +249,32 @@ function _resolve_dest(payload, dest, lon_0)
     return _default_dest(payload.lon, payload.lat; lon_0=lon_0)
 end
 
+function _expand_limit_pair(lo::Real, hi::Real; fraction::Real=0.0)
+    if lo == hi
+        pad = max(abs(Float64(lo)) * 0.01, 1e-6)
+        return (Float64(lo) - pad, Float64(hi) + pad)
+    end
+
+    span = Float64(hi) - Float64(lo)
+    pad = span * Float64(fraction)
+    return (Float64(lo) - pad, Float64(hi) + pad)
+end
+
+function _payload_limits(payload; lon_0::Real=0.0, padding_fraction::Tuple{<:Real,<:Real}=(0.0, 0.0))
+    normalized = _normalized_map_payload(payload; lon_0=lon_0)
+    lon_min, lon_max = _axis_extent(normalized.lon)
+    lat_min, lat_max = _axis_extent(normalized.lat)
+    lonlims = _expand_limit_pair(lon_min, lon_max; fraction=padding_fraction[1])
+    latlims = _expand_limit_pair(lat_min, lat_max; fraction=padding_fraction[2])
+    return (lonlims, latlims)
+end
+
+function _resolved_limits(payload; limits=nothing, fit_limits::Bool=true, lon_0::Real=0.0, padding_fraction::Tuple{<:Real,<:Real}=(0.0, 0.0))
+    limits !== nothing && return limits
+    fit_limits || return nothing
+    return _payload_limits(payload; lon_0=lon_0, padding_fraction=padding_fraction)
+end
+
 function _apply_axis_visibility!(ax, frame::Bool)
     frame && return ax
     Makie.hidedecorations!(ax)
@@ -260,16 +286,26 @@ function _draw_coastlines!(ax; color=:black, linewidth=1.0)
     Makie.lines!(ax, GeoMakie.coastlines(); color=color, linewidth=linewidth)
 end
 
-function _render_map_axis!(slot, payload; title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, frame::Bool=true, axis_kwargs=(;), surface_kwargs=(;))
+function _render_map_axis!(slot, payload; title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, frame::Bool=true, limits=nothing, fit_limits::Bool=true, padding_fraction::Tuple{<:Real,<:Real}=(0.0, 0.0), axis_kwargs=(;), surface_kwargs=(;))
     normalized = _normalized_map_payload(payload; lon_0=lon_0)
     dest_proj = _resolve_dest(normalized, dest, lon_0)
-    ax = GeoMakie.GeoAxis(slot; source=source, dest=dest_proj, title=title, axis_kwargs...)
-    plotobj = Makie.surface!(ax, normalized.lon, normalized.lat, normalized.field;
-        shading=Makie.NoShading,
-        colormap=colormap,
-        colorrange=colorrange,
-        surface_kwargs...,
-    )
+    resolved_limits = _resolved_limits(normalized; limits=limits, fit_limits=fit_limits, lon_0=lon_0, padding_fraction=padding_fraction)
+    axis_options = isnothing(resolved_limits) ? axis_kwargs : merge((; limits=resolved_limits), axis_kwargs)
+    ax = GeoMakie.GeoAxis(slot; source=source, dest=dest_proj, title=title, axis_options...)
+    plotobj = if isnothing(colorrange)
+        Makie.surface!(ax, normalized.lon, normalized.lat, normalized.field;
+            shading=Makie.NoShading,
+            colormap=colormap,
+            surface_kwargs...,
+        )
+    else
+        Makie.surface!(ax, normalized.lon, normalized.lat, normalized.field;
+            shading=Makie.NoShading,
+            colormap=colormap,
+            colorrange=colorrange,
+            surface_kwargs...,
+        )
+    end
 
     coastlines && _draw_coastlines!(ax; color=coastline_color, linewidth=coastline_width)
     _apply_axis_visibility!(ax, frame)
@@ -446,7 +482,7 @@ function _grouped_values_from_cube(cube::YAXArray; selectors=(;), groupdim)
     return labels, grouped
 end
 
-function ClimateTools.geomap(cube::YAXArray; selectors=(;), dim=nothing, index=1, title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, colorbar::Bool=false, colorbar_label=nothing, colorbar_position::Symbol=:right, frame::Bool=true, figure_size=(900, 500), axis_kwargs=(;), surface_kwargs=(;), colorbar_kwargs=(;))
+function ClimateTools.geomap(cube::YAXArray; selectors=(;), dim=nothing, index=1, title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, colorbar::Bool=false, colorbar_label=nothing, colorbar_position::Symbol=:right, frame::Bool=true, limits=nothing, fit_limits::Bool=true, limit_padding::Tuple{<:Real,<:Real}=(0.0, 0.0), figure_size=(900, 500), axis_kwargs=(;), surface_kwargs=(;), colorbar_kwargs=(;))
     payload = _map_payload(cube; selectors=selectors, dim=dim, index=index)
     fig = Makie.Figure(size=figure_size)
     layout = _single_map_layout(fig, colorbar, colorbar_position)
@@ -461,6 +497,9 @@ function ClimateTools.geomap(cube::YAXArray; selectors=(;), dim=nothing, index=1
         coastline_color=coastline_color,
         coastline_width=coastline_width,
         frame=frame,
+        limits=limits,
+        fit_limits=fit_limits,
+        padding_fraction=limit_padding,
         axis_kwargs=axis_kwargs,
         surface_kwargs=surface_kwargs,
     )
@@ -469,7 +508,7 @@ function ClimateTools.geomap(cube::YAXArray; selectors=(;), dim=nothing, index=1
     return fig
 end
 
-function ClimateTools.geomap(ds::Dataset, varname::Symbol; selectors=(;), dim=nothing, index=1, title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, colorbar::Bool=false, colorbar_label=nothing, colorbar_position::Symbol=:right, frame::Bool=true, figure_size=(900, 500), axis_kwargs=(;), surface_kwargs=(;), colorbar_kwargs=(;))
+function ClimateTools.geomap(ds::Dataset, varname::Symbol; selectors=(;), dim=nothing, index=1, title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, colorbar::Bool=false, colorbar_label=nothing, colorbar_position::Symbol=:right, frame::Bool=true, limits=nothing, fit_limits::Bool=true, limit_padding::Tuple{<:Real,<:Real}=(0.0, 0.0), figure_size=(900, 500), axis_kwargs=(;), surface_kwargs=(;), colorbar_kwargs=(;))
     payload = _map_payload(ds, varname; selectors=selectors, dim=dim, index=index)
     fig = Makie.Figure(size=figure_size)
     layout = _single_map_layout(fig, colorbar, colorbar_position)
@@ -484,6 +523,9 @@ function ClimateTools.geomap(ds::Dataset, varname::Symbol; selectors=(;), dim=no
         coastline_color=coastline_color,
         coastline_width=coastline_width,
         frame=frame,
+        limits=limits,
+        fit_limits=fit_limits,
+        padding_fraction=limit_padding,
         axis_kwargs=axis_kwargs,
         surface_kwargs=surface_kwargs,
     )
@@ -492,7 +534,7 @@ function ClimateTools.geomap(ds::Dataset, varname::Symbol; selectors=(;), dim=no
     return fig
 end
 
-function ClimateTools.geomapfacet(cube::YAXArray; facetdim, selectors=(;), indices=nothing, maxpanels=nothing, ncols=3, panel_titles=nothing, title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, shared_colorrange::Bool=true, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, colorbar::Bool=true, colorbar_label=nothing, colorbar_position::Symbol=:right, frame::Bool=true, figure_size=nothing, axis_kwargs=(;), surface_kwargs=(;), colorbar_kwargs=(;))
+function ClimateTools.geomapfacet(cube::YAXArray; facetdim, selectors=(;), indices=nothing, maxpanels=nothing, ncols=3, panel_titles=nothing, title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, shared_colorrange::Bool=true, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, colorbar::Bool=true, colorbar_label=nothing, colorbar_position::Symbol=:right, frame::Bool=true, limits=nothing, fit_limits::Bool=true, limit_padding::Tuple{<:Real,<:Real}=(0.0, 0.0), figure_size=nothing, axis_kwargs=(;), surface_kwargs=(;), colorbar_kwargs=(;))
     payloads, labels = _facet_payloads(cube; facetdim=Symbol(facetdim), selectors=selectors, indices=indices, maxpanels=maxpanels)
     panel_count = length(payloads)
     ncols = max(1, min(ncols, panel_count))
@@ -517,6 +559,9 @@ function ClimateTools.geomapfacet(cube::YAXArray; facetdim, selectors=(;), indic
             coastline_color=coastline_color,
             coastline_width=coastline_width,
             frame=frame,
+            limits=limits,
+            fit_limits=fit_limits,
+            padding_fraction=limit_padding,
             axis_kwargs=axis_kwargs,
             surface_kwargs=surface_kwargs,
         )
@@ -531,7 +576,7 @@ function ClimateTools.geomapfacet(cube::YAXArray; facetdim, selectors=(;), indic
     return fig
 end
 
-function ClimateTools.geomapfacet(ds::Dataset, varname::Symbol; facetdim, selectors=(;), indices=nothing, maxpanels=nothing, ncols=3, panel_titles=nothing, title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, shared_colorrange::Bool=true, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, colorbar::Bool=true, colorbar_label=nothing, colorbar_position::Symbol=:right, frame::Bool=true, figure_size=nothing, axis_kwargs=(;), surface_kwargs=(;), colorbar_kwargs=(;))
+function ClimateTools.geomapfacet(ds::Dataset, varname::Symbol; facetdim, selectors=(;), indices=nothing, maxpanels=nothing, ncols=3, panel_titles=nothing, title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, shared_colorrange::Bool=true, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, colorbar::Bool=true, colorbar_label=nothing, colorbar_position::Symbol=:right, frame::Bool=true, limits=nothing, fit_limits::Bool=true, limit_padding::Tuple{<:Real,<:Real}=(0.0, 0.0), figure_size=nothing, axis_kwargs=(;), surface_kwargs=(;), colorbar_kwargs=(;))
     payloads, labels = _facet_payloads(ds, varname; facetdim=Symbol(facetdim), selectors=selectors, indices=indices, maxpanels=maxpanels)
     panel_count = length(payloads)
     ncols = max(1, min(ncols, panel_count))
@@ -556,6 +601,9 @@ function ClimateTools.geomapfacet(ds::Dataset, varname::Symbol; facetdim, select
             coastline_color=coastline_color,
             coastline_width=coastline_width,
             frame=frame,
+            limits=limits,
+            fit_limits=fit_limits,
+            padding_fraction=limit_padding,
             axis_kwargs=axis_kwargs,
             surface_kwargs=surface_kwargs,
         )

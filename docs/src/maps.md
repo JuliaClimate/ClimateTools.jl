@@ -44,10 +44,28 @@ fig = geomap(cube;
 The most useful map keywords are:
 
 - `source`, `dest`, `lon_0` for explicit projection control
+- `limits`, `fit_limits`, `limit_padding` for controlling the displayed longitude-latitude extent
 - `colorbar`, `colorbar_label`, `colorbar_position` for layout and legend-like scaling
 - `coastline_color`, `coastline_width` for cartographic emphasis
 - `frame` to suppress axis decorations in cleaner publication layouts
 - `axis_kwargs`, `surface_kwargs`, `colorbar_kwargs` for lower-level Makie customization
+
+By default, `geomap` and `geomapfacet` now fit the visible map extent to the minimum and maximum longitude and latitude of the plotted data. This works for both ordinary lon-lat grids and rotated-pole inputs once they have been transformed back to geographic coordinates.
+
+If you want to override the default view window explicitly:
+
+```julia
+fig = geomap(cube;
+    dim=:time,
+    index=1,
+    limits=((-75.0, -55.0), (43.0, 63.0)))
+```
+
+If you want GeoMakie to manage the limits instead, disable the automatic fit:
+
+```julia
+fig = geomap(cube; dim=:time, index=1, fit_limits=false)
+```
 
 If your cube still has additional non-spatial dimensions, use `selectors` to reduce them first or specify which dimension should be sliced:
 

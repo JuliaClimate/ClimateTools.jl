@@ -22,6 +22,22 @@
     @test fig_map isa GeoMakie.Makie.Figure
     @test length(fig_map.content) >= 2
 
+    geoaxes = filter(x -> x isa GeoMakie.GeoAxis, fig_map.content)
+    @test length(geoaxes) == 1
+    default_limits = geoaxes[1].limits[]
+    @test default_limits[1][1] ≈ minimum(lon)
+    @test default_limits[1][2] ≈ maximum(lon)
+    @test default_limits[2][1] ≈ minimum(lat)
+    @test default_limits[2][2] ≈ maximum(lat)
+
+    fig_override = geomap(cube; dim=:time, index=1, limits=((-70.0, -60.0), (45.0, 55.0)))
+    override_axis = only(filter(x -> x isa GeoMakie.GeoAxis, fig_override.content))
+    @test override_axis.limits[] == ((-70.0, -60.0), (45.0, 55.0))
+
+    render_path = tempname() * ".png"
+    CairoMakie.save(render_path, fig_map)
+    @test isfile(render_path)
+
     fig_facet = geomapfacet(cube; facetdim=:time, ncols=2, colorbar=true, title="Daily slices")
     @test fig_facet isa GeoMakie.Makie.Figure
     @test length(fig_facet.content) >= 4
@@ -53,6 +69,33 @@
 
     fig_grouped_stats = statsplot(member_cube; groupdim=:member, kind=:boxplot)
     @test fig_grouped_stats isa GeoMakie.Makie.Figure
+end
+
+@testset "GeoMakie plotting with reversed latitude" begin
+    using GeoMakie
+    using CairoMakie
+
+    CairoMakie.activate!()
+
+    lon = collect(-82.0:0.25:-50.0)
+    lat = collect(64.0:-0.25:42.0)
+    times = [DateTime(2026, 2, 7, hour) for hour in 0:23]
+    data = reshape(Float32.(range(0.0f0, 0.0041475296f0; length=length(lon) * length(lat) * length(times))), length(lon), length(lat), length(times))
+    cube = YAXArray((Dim{:longitude}(lon), Dim{:latitude}(lat), Dim{:time}(times)), data)
+
+    fig = geomap(cube; dim=:time, index=1)
+    @test fig isa GeoMakie.Makie.Figure
+
+    axis = only(filter(x -> x isa GeoMakie.GeoAxis, fig.content))
+    fitted_limits = axis.limits[]
+    @test fitted_limits[1][1] ≈ minimum(lon)
+    @test fitted_limits[1][2] ≈ maximum(lon)
+    @test fitted_limits[2][1] ≈ minimum(lat)
+    @test fitted_limits[2][2] ≈ maximum(lat)
+
+    render_path = tempname() * ".png"
+    CairoMakie.save(render_path, fig)
+    @test isfile(render_path)
 end
 
 @testset "GeoMakie rotated-pole plotting" begin
