@@ -101,6 +101,33 @@ fig = statsplot(ensemble_cube;
 
 This is useful for checking whether one or two members dominate the overall ensemble spread.
 
+## Example 10: Save and Reuse Extreme-Value Fits
+
+```julia
+using ClimateTools, YAXArrays, Serialization
+
+cube = Cube(open_dataset("pr_daily.nc"))
+
+gp_fit = gpfit_cube(cube;
+    dim=:time,
+    threshold_quantile=0.95,
+    minimalvalue=0.0,
+    return_thresholds=true,
+    n_obs_per_block=365)
+
+open("gpfit_cube.jls", "w") do io
+    serialize(io, gp_fit)
+end
+
+gp_fit_loaded = open("gpfit_cube.jls", "r") do io
+    deserialize(io)
+end
+
+rl = returnlevel_cube(gp_fit_loaded; rlevels=[2, 10, 25, 50, 100])
+```
+
+Use this pattern when fitting the gridpoint-wise tail model is expensive and you want to reuse the fitted GP models later without repeating the estimation step. The same reuse workflow applies to `gevfit_cube`, but GP fits are the most complete example because the saved bundle also carries the per-grid threshold cube needed for return-level calculations.
+
 ## Where to Go Next
 
 - [Quick Start](quickstart.md) for the minimal onboarding path
