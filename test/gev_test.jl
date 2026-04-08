@@ -19,6 +19,8 @@
     gev_models = gevfit_cube(gev_cube)
     gev_array = Array(gev_models)
 
+    @test_throws ArgumentError gevfit_cube(gev_cube; minimalvalue=1.0)
+
     @test Tuple(name.(gev_models.axes)) == (:longitude, :latitude)
     @test gev_array[1, 1] isa Extremes.MaximumLikelihoodAbstractExtremeValueModel
     @test ismissing(gev_array[2, 2])

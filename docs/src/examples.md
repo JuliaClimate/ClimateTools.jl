@@ -126,7 +126,19 @@ end
 rl = returnlevel_cube(gp_fit_loaded; rlevels=[2, 10, 25, 50, 100])
 ```
 
-Use this pattern when fitting the gridpoint-wise tail model is expensive and you want to reuse the fitted GP models later without repeating the estimation step. The same reuse workflow applies to `gevfit_cube`, but GP fits are the most complete example because the saved bundle also carries the per-grid threshold cube needed for return-level calculations.
+Use this pattern when fitting the gridpoint-wise tail model is expensive and you want to reuse the fitted GP models later without repeating the estimation step. The same reuse workflow applies to `gevfit_cube` after you have already reduced the source data to block maxima such as annual or seasonal maxima; it should not be applied directly to daily values. GP fits are the most complete example here because the saved bundle also carries the per-grid threshold cube needed for return-level calculations.
+
+For a GEV workflow, reduce the source series to block maxima first and then fit across the resulting yearly maxima cube:
+
+```julia
+using ClimateTools, YAXArrays
+
+cube = Cube(open_dataset("tasmax_daily.nc"))
+annual_maxima = annualmax(cube)
+
+gev_fit = gevfit_cube(annual_maxima; dim=:time)
+gev_rl = returnlevel_cube(gev_fit; rlevels=[2, 10, 25, 50])
+```
 
 ## Where to Go Next
 

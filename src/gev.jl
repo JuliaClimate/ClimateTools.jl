@@ -163,7 +163,10 @@ function _fit_gev_model(xin; min_points::Int=3, fitkwargs...)
 
     try
         return Extremes.gevfit(values; fitkwargs...)
-    catch
+    catch err
+        if err isa MethodError || err isa UndefKeywordError
+            rethrow(err)
+        end
         return missing
     end
 end
@@ -180,7 +183,10 @@ function _fit_gp_model(xin; threshold=nothing, threshold_quantile::Real=0.95, mi
 
     try
         return Extremes.gpfit(exceedances; fitkwargs...), threshold_value
-    catch
+    catch err
+        if err isa MethodError || err isa UndefKeywordError
+            rethrow(err)
+        end
         return missing, threshold_value
     end
 end
@@ -222,8 +228,15 @@ the selected dimension, usually `:time`.
 The result is a `YAXArray` over the remaining spatial or ensemble dimensions,
 with each cell containing either a reusable `Extremes.MaximumLikelihoodAbstractExtremeValueModel`
 or `missing` when the local fit cannot be estimated.
+
+`gevfit_cube` operates directly on block maxima and therefore does not accept
+threshold-filtering keywords such as `minimalvalue`.
 """
 function gevfit_cube(ds::YAXArray; dim=:time, min_points::Int=3, fitkwargs...)
+    if haskey(fitkwargs, :minimalvalue)
+        throw(ArgumentError("gevfit_cube does not accept `minimalvalue`; pass block maxima directly and use gpfit_cube for threshold exceedance models."))
+    end
+
     return _fit_extreme_model_cube(ds; reduced_dims=dim) do xin
         _fit_gev_model(xin; min_points=min_points, fitkwargs...)
     end
