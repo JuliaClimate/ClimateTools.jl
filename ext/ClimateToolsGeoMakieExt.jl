@@ -391,6 +391,10 @@ function _render_map_axis!(slot, payload; title=nothing, source=DEFAULT_SOURCE_P
 end
 
 function _add_colorbar!(slot, plotobj; label=nothing, vertical=true, colorbar_kwargs=(;))
+    if isnothing(label)
+        return Makie.Colorbar(slot, plotobj; vertical=vertical, colorbar_kwargs...)
+    end
+
     return Makie.Colorbar(slot, plotobj; label=label, vertical=vertical, colorbar_kwargs...)
 end
 

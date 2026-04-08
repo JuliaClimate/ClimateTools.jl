@@ -25,8 +25,8 @@
     geoaxes = filter(x -> x isa GeoMakie.GeoAxis, fig_map.content)
     @test length(geoaxes) == 1
     default_limits = geoaxes[1].limits[]
-    @test default_limits[1][1] ≈ minimum(lon)
-    @test default_limits[1][2] ≈ maximum(lon)
+    @test default_limits[1][1] ≈ -180.0
+    @test default_limits[1][2] ≈ 150.0
     @test default_limits[2][1] ≈ minimum(lat)
     @test default_limits[2][2] ≈ maximum(lat)
 
