@@ -4,4 +4,4 @@ Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [compat]
-Documenter = "0.20, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27"
+Documenter = "1.17"
