@@ -515,7 +515,7 @@ end
 
 function _plot_series_collection!(ax, x_values, labels, matrix; alpha=0.45, linewidth=1.5, legend=true)
     for (group_index, label) in enumerate(labels)
-        Makie.lines!(ax, x_values, matrix[:, group_index]; label=String(label), alpha=alpha, linewidth=linewidth)
+        Makie.lines!(ax, x_values, matrix[:, group_index]; label=string(label), alpha=alpha, linewidth=linewidth)
     end
 
     legend && Makie.axislegend(ax)
@@ -762,7 +762,7 @@ function ClimateTools.timeseriesplot(series::NamedTuple; x=nothing, title="Time 
 
     for (label, values) in pairs(series)
         x_values = isnothing(x) ? collect(1:length(values)) : collect(x)
-        Makie.lines!(ax, x_values, _float_vector(values); label=String(label))
+        Makie.lines!(ax, x_values, _float_vector(values); label=string(label))
     end
 
     Makie.axislegend(ax)
@@ -856,7 +856,7 @@ function ClimateTools.statsplot(data::NamedTuple; kind::Symbol=:hist, bins=30, t
 
     if kind == :hist
         for (label, values) in pairs(data)
-            Makie.hist!(ax, _values_for_stats(values); bins=bins, label=String(label), alpha=0.5)
+            Makie.hist!(ax, _values_for_stats(values); bins=bins, label=string(label), alpha=0.5)
         end
         Makie.axislegend(ax)
     elseif kind == :boxplot
@@ -864,15 +864,15 @@ function ClimateTools.statsplot(data::NamedTuple; kind::Symbol=:hist, bins=30, t
             values = _values_for_stats(data[label])
             Makie.boxplot!(ax, fill(index, length(values)), values)
         end
-        ax.xticks = (collect(1:length(labels)), String.(labels))
+        ax.xticks = (collect(1:length(labels)), string.(labels))
     elseif kind == :scatter
         length(labels) == 2 || error("statsplot(kind=:scatter) requires exactly two named series.")
         first_values = _values_for_stats(data[labels[1]])
         second_values = _values_for_stats(data[labels[2]])
         count = min(length(first_values), length(second_values))
         Makie.scatter!(ax, first_values[1:count], second_values[1:count])
-        ax.xlabel = String(labels[1])
-        ax.ylabel = String(labels[2])
+        ax.xlabel = string(labels[1])
+        ax.ylabel = string(labels[2])
     else
         error("Unsupported statsplot kind $(kind). Supported kinds are :hist, :boxplot, and :scatter")
     end
