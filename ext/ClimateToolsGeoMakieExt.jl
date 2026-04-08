@@ -507,10 +507,32 @@ function _stats_indices(labels)
     return label_map["min"], label_map["mean"], label_map["max"]
 end
 
-function _timeseries_figure(; figure_size=(900, 400), title="Time series", xlabel="Time", ylabel="Value")
+function _timeseries_figure(; figure_size=(900, 400), title="Time series", xlabel="Time", ylabel="Value", xticks=nothing)
     fig = Makie.Figure(size=figure_size)
     ax = Makie.Axis(fig[1, 1]; title=title, xlabel=xlabel, ylabel=ylabel)
+    isnothing(xticks) || (ax.xticks = xticks)
     return fig, ax
+end
+
+function _plot_x_values(values)
+    x_values = collect(values)
+
+    if eltype(x_values) <: Date || eltype(x_values) <: DateTime
+        numeric = Float64.(Makie.date_to_number.(DateTime, x_values))
+        return numeric, _timeseries_xticks(x_values, numeric)
+    elseif eltype(x_values) <: Time
+        numeric = Float64.(Makie.date_to_number.(Time, x_values))
+        return numeric, _timeseries_xticks(x_values, numeric)
+    end
+
+    return x_values, nothing
+end
+
+function _timeseries_xticks(values, numeric_values; max_ticks=8)
+    isempty(values) && return nothing
+    tick_count = min(length(values), max_ticks)
+    tick_indices = unique(round.(Int, range(1, length(values); length=tick_count)))
+    return numeric_values[tick_indices], string.(values[tick_indices])
 end
 
 function _plot_series_collection!(ax, x_values, labels, matrix; alpha=0.45, linewidth=1.5, legend=true)
@@ -748,21 +770,24 @@ function _series_from_cube(cube::YAXArray; selectors=(;), reducer=nothing)
 end
 
 function ClimateTools.timeseriesplot(series::AbstractVector; x=nothing, label=nothing, title="Time series", xlabel="Time", ylabel="Value", figure_size=(900, 400), color=:steelblue)
-    x_values = isnothing(x) ? collect(1:length(series)) : collect(x)
+    x_values = isnothing(x) ? collect(1:length(series)) : x
+    plot_x_values, xticks = _plot_x_values(x_values)
     y_values = _float_vector(series)
 
-    fig, ax = _timeseries_figure(; figure_size=figure_size, title=title, xlabel=xlabel, ylabel=ylabel)
-    Makie.lines!(ax, x_values, y_values; label=label, color=color)
+    fig, ax = _timeseries_figure(; figure_size=figure_size, title=title, xlabel=xlabel, ylabel=ylabel, xticks=xticks)
+    Makie.lines!(ax, plot_x_values, y_values; label=label, color=color)
     label === nothing || Makie.axislegend(ax)
     return fig
 end
 
 function ClimateTools.timeseriesplot(series::NamedTuple; x=nothing, title="Time series", xlabel="Time", ylabel="Value", figure_size=(900, 400))
-    fig, ax = _timeseries_figure(; figure_size=figure_size, title=title, xlabel=xlabel, ylabel=ylabel)
+    x_values = isnothing(x) ? nothing : x
+    plot_x_values, xticks = isnothing(x_values) ? (nothing, nothing) : _plot_x_values(x_values)
+    fig, ax = _timeseries_figure(; figure_size=figure_size, title=title, xlabel=xlabel, ylabel=ylabel, xticks=xticks)
 
     for (label, values) in pairs(series)
-        x_values = isnothing(x) ? collect(1:length(values)) : collect(x)
-        Makie.lines!(ax, x_values, _float_vector(values); label=string(label))
+        current_x_values = isnothing(plot_x_values) ? collect(1:length(values)) : plot_x_values
+        Makie.lines!(ax, current_x_values, _float_vector(values); label=string(label))
     end
 
     Makie.axislegend(ax)
@@ -794,22 +819,23 @@ function ClimateTools.timeseriesplot(cube::YAXArray; selectors=(;), reducer=noth
 
     isnothing(resolved_groupdim) && error("Could not infer an ensemble or stats dimension. Pass `groupdim=...` or use selectors/reducer to obtain a single series.")
     x_values, labels, matrix, inferred_time_name = _grouped_series_from_cube(cube; selectors=selectors, groupdim=resolved_groupdim, reducer=reducer)
-    fig, ax = _timeseries_figure(; figure_size=figure_size, title=title, xlabel=String(inferred_time_name), ylabel=ylabel)
+    plot_x_values, xticks = _plot_x_values(x_values)
+    fig, ax = _timeseries_figure(; figure_size=figure_size, title=title, xlabel=String(inferred_time_name), ylabel=ylabel, xticks=xticks)
 
     if resolved_mode == :lines
-        _plot_series_collection!(ax, x_values, labels, matrix; alpha=alpha, linewidth=linewidth, legend=legend)
+        _plot_series_collection!(ax, plot_x_values, labels, matrix; alpha=alpha, linewidth=linewidth, legend=legend)
     elseif resolved_mode == :mean_ribbon
         lower, center, upper = _ribbon_bounds(matrix; spread=spread)
-        Makie.band!(ax, x_values, lower, upper; color=(color, alpha))
-        Makie.lines!(ax, x_values, center; color=color, linewidth=max(2.0, linewidth), label=label === nothing ? "mean" : label)
+        Makie.band!(ax, plot_x_values, lower, upper; color=(color, alpha))
+        Makie.lines!(ax, plot_x_values, center; color=color, linewidth=max(2.0, linewidth), label=label === nothing ? "mean" : label)
         legend && Makie.axislegend(ax)
     elseif resolved_mode == :stats
         min_idx, mean_idx, max_idx = _stats_indices(labels)
         lower = matrix[:, min_idx]
         center = matrix[:, mean_idx]
         upper = matrix[:, max_idx]
-        Makie.band!(ax, x_values, lower, upper; color=(color, alpha))
-        Makie.lines!(ax, x_values, center; color=color, linewidth=max(2.0, linewidth), label=label === nothing ? "mean" : label)
+        Makie.band!(ax, plot_x_values, lower, upper; color=(color, alpha))
+        Makie.lines!(ax, plot_x_values, center; color=color, linewidth=max(2.0, linewidth), label=label === nothing ? "mean" : label)
         legend && Makie.axislegend(ax)
     else
         error("Unsupported timeseriesplot mode $(resolved_mode). Supported modes are :single, :lines, :mean_ribbon, and :stats.")
