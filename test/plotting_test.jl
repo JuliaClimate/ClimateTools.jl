@@ -34,6 +34,9 @@
     override_axis = only(filter(x -> x isa GeoMakie.GeoAxis, fig_override.content))
     @test override_axis.limits[] == ((-70.0, -60.0), (45.0, 55.0))
 
+    fig_frameless = geomap(cube; dim=:time, index=1, frame=false)
+    @test fig_frameless isa GeoMakie.Makie.Figure
+
     render_path = tempname() * ".png"
     CairoMakie.save(render_path, fig_map)
     @test isfile(render_path)

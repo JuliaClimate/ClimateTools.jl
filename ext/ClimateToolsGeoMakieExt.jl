@@ -355,8 +355,8 @@ end
 
 function _apply_axis_visibility!(ax, frame::Bool)
     frame && return ax
-    Makie.hidedecorations!(ax)
-    Makie.hidespines!(ax)
+    applicable(Makie.hidedecorations!, ax) && Makie.hidedecorations!(ax)
+    applicable(Makie.hidespines!, ax) && Makie.hidespines!(ax)
     return ax
 end
 

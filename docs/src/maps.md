@@ -50,7 +50,7 @@ The most useful map keywords are:
 - `frame` to suppress axis decorations in cleaner publication layouts
 - `axis_kwargs`, `surface_kwargs`, `colorbar_kwargs` for lower-level Makie customization
 
-By default, `geomap` and `geomapfacet` now fit the visible map extent to the minimum and maximum longitude and latitude of the plotted data. This works for both ordinary lon-lat grids and rotated-pole inputs once they have been transformed back to geographic coordinates.
+By default, `geomap` and `geomapfacet` fit the visible map extent to the minimum and maximum longitude and latitude of the plotted data. This works for both ordinary lon-lat grids and rotated-pole inputs once they have been transformed back to geographic coordinates.
 
 If you want to override the default view window explicitly:
 
