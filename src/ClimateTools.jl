@@ -74,7 +74,7 @@ export ensemble_fct, ensemble_stats
 export autocorrelation
 export hurst
 export MSModel
-export rlevels_cube
+export rlevels_cube, gevfit_cube, gpfit_cube, returnlevel_cube
 export spatialsubset
 
 

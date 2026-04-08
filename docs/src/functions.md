@@ -60,7 +60,8 @@ These are often used after bias correction or in post-processing chains.
 
 - `ensemble_stats`, `ensemble_fct`: ensemble summary helpers
 - `quantiles`: grouped quantile summaries over a selected dimension
-- `rlevels_cube`: return-level estimation on cubes
+- `gevfit_cube`, `gpfit_cube`, `returnlevel_cube`: reusable extreme-value fitting and return-level reuse over a reduced cube dimension; `gevfit_cube` is for block-maximum inputs, while `gpfit_cube` is for threshold exceedances
+- `rlevels_cube`: legacy one-step return-level estimation on raw cubes
 
 ## Plotting
 
