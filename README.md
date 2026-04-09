@@ -59,6 +59,8 @@ ann = annualmax(qq)
 
 That small example already illustrates the main ClimateTools workflow: open data, bias-correct, then compute a climate summary.
 
+For quantile mapping, `qqmap` is the seasonally varying method: it removes leap days, groups samples by day of year using a moving `+/- window`, and applies an additive or multiplicative correction that changes through the annual cycle. Use `qqmap_bulk` only when one full-sample correction is acceptable and seasonal variation in the bias is not important.
+
 ## Main Capabilities
 
 - Dataset opening and subsetting with YAXArrays and DimensionalData selectors

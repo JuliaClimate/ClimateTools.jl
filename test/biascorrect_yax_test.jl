@@ -25,6 +25,13 @@
     @test length(lookup(qq_bulk, :time)) == 730
     @test all(x -> !ismissing(x) && isfinite(x), Array(qq_bulk))
 
+    qq_detrend = qqmap(obs, ref, fut; method="additive", detrend=true, order=1)
+    ref_noleap = permutedims(base .+ 2.0, (3, 1, 2))[map(dt -> Dates.monthday(dt) != (2, 29), dates), :, :]
+    @test maximum(abs.(Array(qq_detrend) .- ref_noleap)) < 1e-6
+
+    qq_bulk_detrend = qqmap_bulk(obs, ref, fut; method="additive", detrend=true, order=1)
+    @test maximum(abs.(Array(qq_bulk_detrend) .- ref_noleap)) < 1e-6
+
     short_dates = collect(DateTime(2001, 1, 1):Day(1):DateTime(2001, 12, 31))
     nan_obs_data = reshape(collect(1.0:(1 * 1 * length(short_dates))), 1, 1, length(short_dates))
     nan_ref_data = copy(nan_obs_data)
