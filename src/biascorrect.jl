@@ -514,7 +514,7 @@ field.
 
 - Roy, P., Rondeau-Genesse, G., Jalbert, J., and Fournier, E. (2023). Climate scenarios of extreme precipitation using a combination of parametric and non-parametric bias correction methods in the province of Québec. DOI: 10.1080/07011784.2023.2220682.
 """
-function biascorrect_extremes(obs::YAXArray, ref::YAXArray, fut::YAXArray; detrend::Bool=false, P::Real=0.95, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat(), gevparams::DataFrame=DataFrame(), frac=0.25, power=1.0, runlength::Int=2)
+function biascorrect_extremes(obs::YAXArray, ref::YAXArray, fut::YAXArray; detrend::Bool=false, P::Real=0.95, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat(), gevparams::DataFrame=DataFrame(), frac=0.60, power=3.0, runlength::Int=2)
     obs_tdim = _time_dim_symbol(obs)
     ref_tdim = _time_dim_symbol(ref)
     fut_tdim = _time_dim_symbol(fut)
