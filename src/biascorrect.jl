@@ -114,16 +114,9 @@ function qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul;
     sf_refP = similar(refvec, length(P))
     
     if detrend == true
-        # Obs
-        obs_polynomials = polyfit(obsvec, order=order)
-        obsvec = obsvec - obs_polynomials.(obsvec)
-        # Ref
-        ref_polynomials = polyfit(refvec, order=order)
-        refvec = refvec - ref_polynomials.(refvec)
-        # Fut
-        fut_polynomials = polyfit(futvec, order=order)
-        poly_values = fut_polynomials.(futvec)
-        futvec = futvec - poly_values
+        obsvec, _ = _detrend_series(obsvec, order=order)
+        refvec, _ = _detrend_series(refvec, order=order)
+        futvec, poly_values = _detrend_series(futvec, order=order)
     end
 
     # LOOP OVER ALL DAYS OF THE YEAR
@@ -238,16 +231,9 @@ function qqmap_bulk(dataout, obsvec, refvec, futvec; method::String="Additive", 
     sf_refP = similar(refvec, length(P))
 
     if detrend == true
-        # Obs
-        obs_polynomials = polyfit(obsvec, order=order)
-        obsvec .= obsvec .- obs_polynomials.(obsvec)
-        # Ref
-        ref_polynomials = polyfit(refvec, order=order)
-        refvec .= refvec .- ref_polynomials.(refvec)
-        # Fut
-        fut_polynomials = polyfit(futvec, order=order)
-        poly_values = fut_polynomials.(futvec)
-        futvec .= futvec .- poly_values
+        obsvec, _ = _detrend_series(obsvec, order=order)
+        refvec, _ = _detrend_series(refvec, order=order)
+        futvec, poly_values = _detrend_series(futvec, order=order)
     end
 
     obsvecnan = isnan.(obsvec)
@@ -758,6 +744,21 @@ function polyfit(vec; order=4)
     # polynomial[0] = 0.0 # pkoi 0.0?
     return polynomial
     
+end
+
+function _detrend_series(vec; order=4)
+    x = collect(1:length(vec))
+    finite_idx = findall(isfinite, vec)
+
+    if isempty(finite_idx)
+        return copy(vec), zeros(Float64, length(vec))
+    end
+
+    fit_order = min(order, length(finite_idx) - 1)
+    polynomial = Polynomials.fit(x[finite_idx], vec[finite_idx], fit_order)
+    trend = polynomial.(x)
+
+    return vec .- trend, trend
 end
 
 # """

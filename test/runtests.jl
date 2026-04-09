@@ -20,16 +20,16 @@ using Dates
    
 
     qq = qqmap(obs, ref, fut, detrend=true, method="multiplicative")
-    @test round(qq[45,3,3], digits=5) == -7.85231
-    @test round(mean(qq), digits=5) == 0.39328
-    @test round(std(qq), digits=5) == 6.3777
+    @test round(qq[45,3,3], digits=5) == -5.47638
+    @test round(mean(qq), digits=5) == 3.3991
+    @test round(std(qq), digits=5) == 5.81869
     
     
 
     qq = qqmap(obs, ref, fut, detrend=true, method="additive")
-    @test round(qq[45,3,3], digits=5) == -7.83775
-    @test round(mean(qq), digits=5) == 0.25184
-    @test round(std(qq), digits=5) == 5.54588
+    @test round(qq[45,3,3], digits=5) == -5.47726
+    @test round(mean(qq), digits=5) == 3.39496
+    @test round(std(qq), digits=5) == 5.50497
     
     # detrend false, multiplicative
     qq = qqmap(obs, ref, fut, detrend=false, method="multiplicative")      
