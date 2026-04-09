@@ -1,6 +1,10 @@
 @testset "GeoMakie plotting" begin
     using GeoMakie
     using CairoMakie
+    using CFTime
+
+    ext = Base.get_extension(ClimateTools, :ClimateToolsGeoMakieExt)
+    @test ext !== nothing
 
     CairoMakie.activate!()
 
@@ -82,6 +86,20 @@
     member_stats = ensemble_stats(member_cube; dim="member")
     fig_ts_stats = timeseriesplot(member_stats; selectors=(longitude=1, latitude=1), mode=:stats)
     @test fig_ts_stats isa GeoMakie.Makie.Figure
+
+    noleap_times = [DateTimeNoLeap(2001, 1, day) for day in 1:4]
+    noleap_cube = YAXArray((Dim{:time}(noleap_times),), Float64[1, 2, 3, 4])
+
+    leap_boundary_times = [DateTimeNoLeap(2000, 2, 27), DateTimeNoLeap(2000, 2, 28), DateTimeNoLeap(2000, 3, 1), DateTimeNoLeap(2000, 3, 2)]
+    leap_boundary_numeric, leap_boundary_ticks = ext._plot_x_values(leap_boundary_times)
+    @test diff(leap_boundary_numeric) == fill(86_400_000.0, 3)
+    @test leap_boundary_ticks[2] == string.(leap_boundary_times)
+
+    fig_ts_noleap = timeseriesplot(noleap_cube)
+    @test fig_ts_noleap isa GeoMakie.Makie.Figure
+
+    fig_ts_noleap_vector = timeseriesplot(Float64[1, 2, 3, 4]; x=noleap_times)
+    @test fig_ts_noleap_vector isa GeoMakie.Makie.Figure
 
     fig_stats = statsplot((obs=vec(data[:, :, 1]), corrected=vec(data[:, :, 2])); kind=:hist)
     @test fig_stats isa GeoMakie.Makie.Figure

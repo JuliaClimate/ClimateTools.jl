@@ -13,7 +13,7 @@ function _time_dim_symbol(ds)
 end
 
 """
-    qqmap(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+    qqmap(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, wet_threshold::Real=1.0, interp=Linear(), extrap=Interpolations.Flat())
 
 This function performs quantile mapping bias correction on data.
 
@@ -30,6 +30,7 @@ This function performs quantile mapping bias correction on data.
 - `qmax::Real`: The maximum quantile value. Default is 0.99.
 - `thresnan::Float64`: The threshold for bias correcting a grid based in presence of NaN values. Default is 0.1 (i.e. if there is more than 10% of NaN values, the grid point is not corrected).
 - `keep_original::Bool`: Whether to keep the original data in the output if there is more than the threshold of NaN values. Default is `false`.
+- `wet_threshold::Real`: Minimum precipitation amount used to build the multiplicative transfer for nonnegative series. Values below this threshold keep their original intensity. Default is `1.0`.
 - `interp`: The interpolation method to use between quantiles. Default is `Linear()`.
 - `extrap`: The extrapolation method to use over qmin and qmax. Default is `Interpolations.Flat()`.
 
@@ -43,7 +44,7 @@ This function performs quantile mapping bias correction on data.
 - Roy, P., Rondeau-Genesse, G., Jalbert, J., and Fournier, E. (2023). Climate scenarios of extreme precipitation using a combination of parametric and non-parametric bias correction methods in the province of Québec. DOI: 10.1080/07011784.2023.2220682.
 
 """
-function qqmap(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+function qqmap(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, wet_threshold::Real=1.0, interp=Linear(), extrap=Interpolations.Flat())
     timedim = _time_dim_symbol(obs)
     
     # Aligning calendars
@@ -76,12 +77,12 @@ function qqmap(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Addi
     indims = InDims(string(timedim))
     outdims = OutDims(Dim{:time}(lookup(fut, timedim)))
 
-    return mapCube(qqmap, (obs, ref, fut), indims=(indims, indims, indims), outdims=outdims, days, obs_jul, ref_jul, fut_jul, method=method, detrend=detrend, order=order, window=window, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap, nthreads=Threads.nthreads())
+    return mapCube(qqmap, (obs, ref, fut), indims=(indims, indims, indims), outdims=outdims, days, obs_jul, ref_jul, fut_jul, method=method, detrend=detrend, order=order, window=window, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, wet_threshold=wet_threshold, interp=interp, extrap=extrap, nthreads=Threads.nthreads())
     
 end
 
 """
-    qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int64=15, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+    qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int64=15, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, wet_threshold::Real=1.0, interp=Linear(), extrap=Interpolations.Flat())
 
 In-place kernel used by `qqmap` for a single grid-point time series.
 
@@ -108,12 +109,13 @@ estimated from the corresponding moving-window samples in `obsvec` and `refvec`.
 - `qmax::Real`: Maximum quantile value. Default is 0.99.
 - `thresnan::Float64`: Threshold for the percentage of NaN values allowed in the data. Default is 0.1.
 - `keep_original::Bool`: Whether to keep the original values in case of too many NaN values. Default is `false`.
+- `wet_threshold::Real`: Minimum precipitation amount used to build multiplicative transfer functions for nonnegative series. Default is `1.0`.
 - `interp`: Interpolation method used for building the correction function. Default is `Linear()`.
 - `extrap`: Extrapolation method used for building the correction function. Default is `Interpolations.Flat()`.
 
 The function modifies `dataout` in-place and returns nothing.
 """
-function qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int64=15, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+function qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int64=15, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, wet_threshold::Real=1.0, interp=Linear(), extrap=Interpolations.Flat())
     
 
     # range over which quantiles are estimated
@@ -179,16 +181,10 @@ function qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul;
                 futval .= itp(futval) .+ futval
 
             elseif lowercase(method) == "multiplicative" # used for precipitation
-                sf_refP .= obsP ./ refP
-                sf_refP[sf_refP .< 0] .= 0.0
-                sf_refP[isnan.(sf_refP)] .= 0.0
-                sf_refP[isinf.(sf_refP)] .= 0.0
-                
-                # Build interpolation
-                # generate_random_perturbations(refP, sf_refP)
-                itp = build_itp(refP, sf_refP, interp, extrap)
-                
-                futval .= itp(futval) .* futval                
+                _apply_multiplicative_qqmap!(futval, obsP, refP, sf_refP, interp, extrap;
+                    wet_threshold=wet_threshold,
+                    wet_day_guard=_should_use_wet_day_guard(obsval[.!obsvalnan], refval[.!refvalnan], futval[.!futvalnan]),
+                )
 
             else
                 error("Wrong method")
@@ -214,7 +210,7 @@ function qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul;
 end
 
 """
-    qqmap_bulk(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+    qqmap_bulk(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, wet_threshold::Real=1.0, interp=Linear(), extrap=Interpolations.Flat())
 
 This function performs bulk quantile mapping bias correction on data.
 
@@ -233,6 +229,7 @@ building day-of-year-specific mappings with a moving seasonal window.
 - `qmax::Real`: The maximum quantile value. Default is 0.99.
 - `thresnan::Float64`: The threshold for bias correcting a grid based in presence of NaN values. Default is 0.1.
 - `keep_original::Bool`: Whether to keep the original data in the output if there is more than the threshold of NaN values. Default is `false`.
+- `wet_threshold::Real`: Minimum precipitation amount used to build the multiplicative transfer for nonnegative series. Values below this threshold keep their original intensity. Default is `1.0`.
 - `interp`: The interpolation method to use between quantiles. Default is `Linear()`.
 - `extrap`: The extrapolation method to use over qmin and qmax. Default is `Interpolations.Flat()`.
 
@@ -245,7 +242,7 @@ building day-of-year-specific mappings with a moving seasonal window.
 - Piani, C., Haerter, J. O., and Coppola, E. (2010). Statistical bias correction for daily precipitation in regional climate models over Europe.
 - Roy, P., Rondeau-Genesse, G., Jalbert, J., and Fournier, E. (2023). Climate scenarios of extreme precipitation using a combination of parametric and non-parametric bias correction methods in the province of Québec. DOI: 10.1080/07011784.2023.2220682.
 """
-function qqmap_bulk(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+function qqmap_bulk(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, wet_threshold::Real=1.0, interp=Linear(), extrap=Interpolations.Flat())
     timedim = _time_dim_symbol(obs)
 
 
@@ -257,12 +254,12 @@ function qqmap_bulk(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String=
     indims = InDims(string(timedim))
     outdims = OutDims(Dim{:time}(lookup(fut, timedim)))
 
-    return mapCube(qqmap_bulk, (obs, ref, fut), indims=(indims, indims, indims), outdims=outdims, method=method, detrend=detrend, order=order, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap, nthreads=Threads.nthreads())
+    return mapCube(qqmap_bulk, (obs, ref, fut), indims=(indims, indims, indims), outdims=outdims, method=method, detrend=detrend, order=order, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, wet_threshold=wet_threshold, interp=interp, extrap=extrap, nthreads=Threads.nthreads())
     
 end
 
 
-function qqmap_bulk(dataout, obsvec, refvec, futvec; method::String="Additive", detrend::Bool=true, order::Int=4, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+function qqmap_bulk(dataout, obsvec, refvec, futvec; method::String="Additive", detrend::Bool=true, order::Int=4, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, wet_threshold::Real=1.0, interp=Linear(), extrap=Interpolations.Flat())
     
 
     # range over which quantiles are estimated
@@ -297,16 +294,10 @@ function qqmap_bulk(dataout, obsvec, refvec, futvec; method::String="Additive", 
             futvec .= itp(futvec) .+ futvec
 
         elseif lowercase(method) == "multiplicative" # used for precipitation
-            sf_refP .= obsP ./ refP
-            sf_refP[sf_refP .< 0] .= 0.0
-            sf_refP[isnan.(sf_refP)] .= 0.0
-            sf_refP[isinf.(sf_refP)] .= 0.0
-            
-            # Build interpolation
-            # generate_random_perturbations(refP, sf_refP)
-            itp = build_itp(refP, sf_refP, interp, extrap)
-            
-            futvec .= itp(futvec) .* futvec
+            _apply_multiplicative_qqmap!(futvec, obsP, refP, sf_refP, interp, extrap;
+                wet_threshold=wet_threshold,
+                wet_day_guard=_should_use_wet_day_guard(obsvec[.!obsvecnan], refvec[.!refvecnan], futvec[.!futvecnan]),
+            )
 
         else
             error("Wrong method")
@@ -328,6 +319,46 @@ function qqmap_bulk(dataout, obsvec, refvec, futvec; method::String="Additive", 
         dataout .= dataout .+ poly_values
     end
 
+end
+
+function _is_nonnegative_series(vec; atol::Real=1e-8)
+    finite = vec[isfinite.(vec)]
+    isempty(finite) && return false
+    return Base.minimum(finite) >= -atol
+end
+
+function _should_use_wet_day_guard(obsvec, refvec, futvec; wet_threshold::Real=1.0)
+    wet_threshold <= 0 && return false
+    return _is_nonnegative_series(obsvec) && _is_nonnegative_series(refvec) && _is_nonnegative_series(futvec)
+end
+
+function _apply_multiplicative_qqmap!(futvec, obsP, refP, sf_refP, interp, extrap; wet_threshold::Real=1.0, wet_day_guard::Bool=false)
+    sf_refP .= obsP ./ refP
+    sf_refP[sf_refP .< 0] .= 0.0
+    sf_refP[isnan.(sf_refP)] .= 0.0
+    sf_refP[isinf.(sf_refP)] .= 0.0
+
+    if wet_day_guard
+        wetmask = refP .>= wet_threshold
+
+        if count(wetmask) < 2
+            futvec .= max.(futvec, 0.0)
+            return futvec
+        end
+
+        ref_knots = copy(refP[wetmask])
+        scale_knots = copy(sf_refP[wetmask])
+        itp = build_itp(ref_knots, scale_knots, interp, extrap)
+
+        wetfut = futvec .>= wet_threshold
+        futvec[wetfut] .= itp(futvec[wetfut]) .* futvec[wetfut]
+        futvec[.!wetfut] .= max.(futvec[.!wetfut], 0.0)
+        return futvec
+    end
+
+    itp = build_itp(copy(refP), copy(sf_refP), interp, extrap)
+    futvec .= itp(futvec) .* futvec
+    return futvec
 end
 
 function _find_dim_in_axes(cube::YAXArray, candidates::Tuple)
@@ -514,12 +545,12 @@ field.
 
 - Roy, P., Rondeau-Genesse, G., Jalbert, J., and Fournier, E. (2023). Climate scenarios of extreme precipitation using a combination of parametric and non-parametric bias correction methods in the province of Québec. DOI: 10.1080/07011784.2023.2220682.
 """
-function biascorrect_extremes(obs::YAXArray, ref::YAXArray, fut::YAXArray; detrend::Bool=false, P::Real=0.95, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat(), gevparams::DataFrame=DataFrame(), frac=0.60, power=3.0, runlength::Int=2)
+function biascorrect_extremes(obs::YAXArray, ref::YAXArray, fut::YAXArray; detrend::Bool=false, P::Real=0.95, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, wet_threshold::Real=1.0, interp=Linear(), extrap=Interpolations.Flat(), gevparams::DataFrame=DataFrame(), frac=0.60, power=3.0, runlength::Int=2)
     obs_tdim = _time_dim_symbol(obs)
     ref_tdim = _time_dim_symbol(ref)
     fut_tdim = _time_dim_symbol(fut)
 
-    qqmap_base = qqmap(obs, ref, fut; method="multiplicative", detrend=detrend, window=window, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, interp=interp, extrap=extrap)
+    qqmap_base = qqmap(obs, ref, fut; method="multiplicative", detrend=detrend, window=window, rankn=rankn, qmin=qmin, qmax=qmax, thresnan=thresnan, keep_original=keep_original, wet_threshold=wet_threshold, interp=interp, extrap=extrap)
 
     obs_noleap = drop29thfeb(obs, dimt=obs_tdim)
     ref_noleap = drop29thfeb(ref, dimt=ref_tdim)

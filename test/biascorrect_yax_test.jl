@@ -63,3 +63,30 @@
     no_time = YAXArray((Dim{:longitude}(1:2), Dim{:latitude}(1:2), Dim{:level}(1:3)), rand(2, 2, 3))
     @test_throws ErrorException qqmap(no_time, no_time, no_time)
 end
+
+@testset "Bias Correction Multiplicative Wet-Day Guard" begin
+    using CFTime
+
+    obsfile = joinpath(dirname(@__FILE__), "data", "obs_extremes.nc")
+    reffile = joinpath(dirname(@__FILE__), "data", "ref_extremes.nc")
+    futfile = joinpath(dirname(@__FILE__), "data", "fut_extremes.nc")
+
+    @test all(isfile.((obsfile, reffile, futfile)))
+
+    obs = open_dataset(obsfile; driver=:netcdf)[:pr]
+    ref = open_dataset(reffile; driver=:netcdf)[:pr]
+    fut = open_dataset(futfile; driver=:netcdf)[:pr]
+
+    qq = qqmap(obs, ref, fut; method="multiplicative", detrend=false)
+    qq_arr = Float64.(Array(qq))
+
+    fut_noleap = ClimateTools.drop29thfeb(fut, dimt=ClimateTools._time_dim_symbol(fut))
+    fut_arr = Float64.(Array(fut_noleap))
+    spike_time = CFTime.DateTimeNoLeap(1980, 4, 14, 12)
+    spike_idx = findfirst(==(spike_time), lookup(qq, :time))
+
+    @test spike_idx !== nothing
+    @test qq_arr[spike_idx] ≈ fut_arr[spike_idx]
+    @test minimum(qq_arr) >= 0.0
+    @test maximum(qq_arr) < 1_000.0
+end
