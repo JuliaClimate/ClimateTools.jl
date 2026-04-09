@@ -6,8 +6,11 @@ This page collects the main literature and methodological references used in the
 
 - Themeßl, M. J., Gobiet, A., and Leuprecht, A. Empirical-statistical downscaling and error correction of regional climate models and its impact on the climate change signal. Theoretical and Applied Climatology, 2012.
 - Piani, C., Haerter, J. O., and Coppola, E. Statistical bias correction for daily precipitation in regional climate models over Europe. Theoretical and Applied Climatology, 2010.
+- Roy, P., Rondeau-Genesse, G., Jalbert, J., and Fournier, E. Climate scenarios of extreme precipitation using a combination of parametric and non-parametric bias correction methods in the province of Québec. Canadian Water Resources Journal, 2023. DOI: 10.1080/07011784.2023.2220682.
 
 These references motivate the quantile-mapping workflows exposed through `qqmap` and related functions.
+
+The Roy et al. (2023) paper is the methodological reference for `biascorrect_extremes`, including the QQM-GPD framing, external GEV parameter workflow, and transition between bulk and tail correction.
 
 ## Time Variability Correction
 

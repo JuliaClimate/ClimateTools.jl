@@ -1,3 +1,17 @@
+function _time_dim_symbol(ds)
+    try
+        lookup(ds, :time)
+        return :time
+    catch
+    end
+    try
+        lookup(ds, :Ti)
+        return :Ti
+    catch
+    end
+    error("Could not infer time dimension symbol. Expected :time.")
+end
+
 """
     qqmap(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
 
@@ -22,21 +36,13 @@ This function performs quantile mapping bias correction on data.
 ## Returns
 - A bias-corrected YAXArray.
 
-"""
-function _time_dim_symbol(ds)
-    try
-        lookup(ds, :time)
-        return :time
-    catch
-    end
-    try
-        lookup(ds, :Ti)
-        return :Ti
-    catch
-    end
-    error("Could not infer time dimension symbol. Expected :time.")
-end
+# References
 
+- Themeßl, M. J., Gobiet, A., and Leuprecht, A. (2012). Empirical-statistical downscaling and error correction of regional climate models and its impact on the climate change signal.
+- Piani, C., Haerter, J. O., and Coppola, E. (2010). Statistical bias correction for daily precipitation in regional climate models over Europe.
+- Roy, P., Rondeau-Genesse, G., Jalbert, J., and Fournier, E. (2023). Climate scenarios of extreme precipitation using a combination of parametric and non-parametric bias correction methods in the province of Québec. DOI: 10.1080/07011784.2023.2220682.
+
+"""
 function qqmap(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
     timedim = _time_dim_symbol(obs)
     
@@ -77,7 +83,10 @@ end
 """
     qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int64=15, rankn::Int64=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
 
-The `qqmap2` function performs quantile mapping bias correction on the `futvec` data using the `obsvec` and `refvec` data as references. It corrects the values in `futvec` for each day specified in `days` based on the quantiles estimated from the corresponding days in `obsvec` and `refvec`.
+In-place kernel used by `qqmap` for a single grid-point time series.
+
+It corrects the values in `futvec` for each day specified in `days` based on the quantiles
+estimated from the corresponding moving-window samples in `obsvec` and `refvec`.
 
 ## Arguments
 - `dataout`: Output array where the corrected values will be stored.
@@ -204,6 +213,38 @@ function qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul;
 
 end
 
+"""
+    qqmap_bulk(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
+
+This function performs bulk quantile mapping bias correction on data.
+
+Unlike `qqmap`, this method estimates a single transfer function over the full sample rather than
+building day-of-year-specific mappings with a moving seasonal window.
+
+## Arguments
+- `obs::YAXArray`: The observed data.
+- `ref::YAXArray`: The reference data.
+- `fut::YAXArray`: The future data.
+- `method::String`: The method to apply on raw data for bias correction. Default is "Additive".
+- `detrend::Bool`: Whether to detrend the data before bias correction. Default is `true`.
+- `order::Int`: The order of the polynomial used for detrending. Default is 4.
+- `rankn::Int`: The number of quantiles to use for mapping. Default is 50.
+- `qmin::Real`: The minimum quantile value. Default is 0.01.
+- `qmax::Real`: The maximum quantile value. Default is 0.99.
+- `thresnan::Float64`: The threshold for bias correcting a grid based in presence of NaN values. Default is 0.1.
+- `keep_original::Bool`: Whether to keep the original data in the output if there is more than the threshold of NaN values. Default is `false`.
+- `interp`: The interpolation method to use between quantiles. Default is `Linear()`.
+- `extrap`: The extrapolation method to use over qmin and qmax. Default is `Interpolations.Flat()`.
+
+## Returns
+- A bias-corrected YAXArray.
+
+# References
+
+- Themeßl, M. J., Gobiet, A., and Leuprecht, A. (2012). Empirical-statistical downscaling and error correction of regional climate models and its impact on the climate change signal.
+- Piani, C., Haerter, J. O., and Coppola, E. (2010). Statistical bias correction for daily precipitation in regional climate models over Europe.
+- Roy, P., Rondeau-Genesse, G., Jalbert, J., and Fournier, E. (2023). Climate scenarios of extreme precipitation using a combination of parametric and non-parametric bias correction methods in the province of Québec. DOI: 10.1080/07011784.2023.2220682.
+"""
 function qqmap_bulk(obs::YAXArray, ref::YAXArray, fut::YAXArray; method::String="Additive", detrend::Bool=true, order::Int=4, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat())
     timedim = _time_dim_symbol(obs)
 
@@ -454,6 +495,24 @@ Bias-correct future data with multiplicative QQ mapping and an extreme-tail GPD 
 The base correction is done by `qqmap(..., method="multiplicative")`, then identified
 cluster extremes in `fut` are remapped from the fitted future tail distribution to either
 an observed-tail GPD (estimated from `obs`) or an externally provided parameter table.
+
+This function implements the mixed QQM-GPD strategy described by Roy et al. (2023),
+"Climate scenarios of extreme precipitation using a combination of parametric and
+non-parametric bias correction methods in the province of Québec"
+(DOI: 10.1080/07011784.2023.2220682).
+
+In the paper's notation, the bulk term `H_X` corresponds to the multiplicative `qqmap`
+baseline used here, the tail term `G` corresponds to the GPD models produced by
+`_fit_gpd_distribution` or `estimate_gpd`, the lower threshold `ℓ` corresponds to the
+threshold computed by `_threshold_from_vectors` and controlled by `P`, the upper
+transition threshold `t` is represented operationally through `_extremes_weight` via
+`frac` and `power`, and the transition weight `w` is the blend returned by
+`_extremes_weight` when tail-corrected values are merged back into the `qqmap` base
+field.
+
+# References
+
+- Roy, P., Rondeau-Genesse, G., Jalbert, J., and Fournier, E. (2023). Climate scenarios of extreme precipitation using a combination of parametric and non-parametric bias correction methods in the province of Québec. DOI: 10.1080/07011784.2023.2220682.
 """
 function biascorrect_extremes(obs::YAXArray, ref::YAXArray, fut::YAXArray; detrend::Bool=false, P::Real=0.95, window::Int=15, rankn::Int=50, qmin::Real=0.01, qmax::Real=0.99, thresnan::Float64=0.1, keep_original::Bool=false, interp=Linear(), extrap=Interpolations.Flat(), gevparams::DataFrame=DataFrame(), frac=0.25, power=1.0, runlength::Int=2)
     obs_tdim = _time_dim_symbol(obs)
@@ -556,16 +615,16 @@ end
 
 
 """
-    generate_random_perturbations(vec::AbstractVector, knots)
+    generate_random_perturbations(knots::AbstractVector, vec)
 
 Generate random perturbations for a given vector based on the specified knots.
 
 # Arguments
-- `vec::AbstractVector`: The vector for which perturbations need to be generated.
-- `knots`: The knots associated with each values
+- `knots::AbstractVector`: The knot values used to group observations.
+- `vec`: The values to perturb within each knot group.
 
 # Returns
-- `newdata[!,observations]`: A vector containing the perturbed values.
+- A vector containing the perturbed values.
 
 """
 function generate_random_perturbations(knots::AbstractVector, vec)
@@ -625,17 +684,17 @@ end
 
 """
     build_itp(refP, sf_refP, interp, extrap)
-    
-    Build an interpolation function using the reference points and scaling factors.
-    
-    Arguments:
-    - `refP`: Array of reference points.
-    - `sf_refP`: Scaling factors for the reference points.
-    - `interp`: Interpolation method to use.
-    - `extrap`: Extrapolation method to use.
-    
-    Returns:
-    - `itp`: Interpolation function.
+
+Build an interpolation function using the reference quantiles and correction factors.
+
+# Arguments
+- `refP`: Array of reference quantiles.
+- `sf_refP`: Correction factors or shifts associated with `refP`.
+- `interp`: Interpolation method to use.
+- `extrap`: Extrapolation method to use.
+
+# Returns
+- `itp`: Interpolation function.
 """
 function build_itp(refP, sf_refP, interp, extrap)
     
@@ -650,15 +709,16 @@ function build_itp(refP, sf_refP, interp, extrap)
 end
 
 """
-    dropfeb29(ds::YAXArray)
+    drop29thfeb(ds; dimx=:lon, dimy=:lat, dimt=:time)
 
 Removes February 29th from the given YAXArray. This function is used for bias correction.
     
 # Arguments
-- `ds::YAXArray`: The input YAXArray from which February 29th needs to be removed.
+- `ds`: The input YAXArray from which February 29th needs to be removed.
+- `dimt`: The time dimension symbol.
 
 # Returns
-- `YAXArray`: The modified YAXArray with February 29th removed.
+- `YAXArray`: The modified YAXArray with February 29th removed and recast on a no-leap time axis.
 """
 function drop29thfeb(ds; dimx=:lon, dimy=:lat, dimt=:time)
     
@@ -682,6 +742,9 @@ end
 
 Find the indices of julnb that fall within a specified window around ijulian.
 
+The selection wraps around the year boundary so that early-January and late-December days
+can be grouped in the same moving window.
+
 # Arguments
 - `julnb::Array{Int,1}`: Array of julian day numbers.
 - `ijulian::Int`: Julian day number around which to find indices.
@@ -689,8 +752,6 @@ Find the indices of julnb that fall within a specified window around ijulian.
 
 # Returns
 - `idx::BitArray{1}`: Boolean array indicating the indices that fall within the window.
-
-# Examples
 """
 function find_julianday_idx(julnb, ijulian, window)
     if ijulian <= window
@@ -705,6 +766,21 @@ end
 
 """
     add_attribs(ds, ivar, METHODS, imethod)
+
+Legacy helper that rebuilds a `YAXArray` after bias correction and selects basic
+metadata handling based on the variable name.
+
+# Arguments
+- `ds`: The array to wrap as a `YAXArray`.
+- `ivar`: Variable identifier, typically `"tasmin"`, `"tasmax"`, or `"pr"`.
+- `METHODS`: Unused legacy argument kept for compatibility.
+- `imethod`: Unused legacy argument kept for compatibility.
+
+# Returns
+- A `YAXArray` rebuilt from `ds`.
+
+# Notes
+- This helper currently preserves the input axes and does not attach variable-specific metadata beyond rebuilding the array.
 """
 function add_attribs(ds, ivar, METHODS, imethod)
     
@@ -719,22 +795,21 @@ function add_attribs(ds, ivar, METHODS, imethod)
     else
         @error "Wrong variable?!?"
     end
-    
+
+    return ds
 end
 
 """
     polyfit(vec; order=4)
 
-Returns an array of the polynomial functions fitted for input vector `vec`.
+Fit a polynomial trend to `vec` using time indices `1:length(vec)`.
 
 # Arguments
-- `vec`: The input vector containing the data points to fit the polynomials.
+- `vec`: The input vector containing the data points to fit.
 - `order`: The order of the polynomial to fit (default is 4).
 
 # Returns
-An array of polynomial functions fitted to each grid point in `vec`.
-
-# Example
+- A polynomial object fitted to `vec`.
 """
 function polyfit(vec; order=4)
 
