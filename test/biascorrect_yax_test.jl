@@ -80,6 +80,9 @@ end
     qq = qqmap(obs, ref, fut; method="multiplicative", detrend=false)
     qq_arr = Float64.(Array(qq))
 
+    qq_default = qqmap(obs, ref, ref; method="multiplicative")
+    qq_default_arr = Float64.(Array(qq_default))
+
     fut_noleap = ClimateTools.drop29thfeb(fut, dimt=ClimateTools._time_dim_symbol(fut))
     fut_arr = Float64.(Array(fut_noleap))
     spike_time = CFTime.DateTimeNoLeap(1980, 4, 14, 12)
@@ -89,4 +92,6 @@ end
     @test qq_arr[spike_idx] ≈ fut_arr[spike_idx]
     @test minimum(qq_arr) >= 0.0
     @test maximum(qq_arr) < 1_000.0
+    @test minimum(qq_default_arr) >= 0.0
+    @test maximum(qq_default_arr) < 1_000.0
 end

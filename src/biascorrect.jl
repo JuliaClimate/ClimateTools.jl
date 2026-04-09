@@ -123,8 +123,10 @@ function qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul;
     obsP = similar(obsvec, length(P))
     refP = similar(refvec, length(P))
     sf_refP = similar(refvec, length(P))
+
+    multiplicative_wet_series = lowercase(method) == "multiplicative" && _should_use_wet_day_guard(obsvec, refvec, futvec; wet_threshold=wet_threshold)
     
-    if detrend == true
+    if detrend == true && !multiplicative_wet_series
         obsvec, _ = _detrend_series(obsvec, order=order)
         refvec, _ = _detrend_series(refvec, order=order)
         futvec, poly_values = _detrend_series(futvec, order=order)
@@ -183,7 +185,7 @@ function qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul;
             elseif lowercase(method) == "multiplicative" # used for precipitation
                 _apply_multiplicative_qqmap!(futval, obsP, refP, sf_refP, interp, extrap;
                     wet_threshold=wet_threshold,
-                    wet_day_guard=_should_use_wet_day_guard(obsval[.!obsvalnan], refval[.!refvalnan], futval[.!futvalnan]),
+                    wet_day_guard=multiplicative_wet_series,
                 )
 
             else
@@ -203,7 +205,7 @@ function qqmap(dataout, obsvec, refvec, futvec, days, obs_jul, ref_jul, fut_jul;
         end
     end
     
-    if detrend == true
+    if detrend == true && !multiplicative_wet_series
         dataout .= dataout .+ poly_values
     end
 
@@ -268,7 +270,9 @@ function qqmap_bulk(dataout, obsvec, refvec, futvec; method::String="Additive", 
     refP = similar(refvec, length(P))
     sf_refP = similar(refvec, length(P))
 
-    if detrend == true
+    multiplicative_wet_series = lowercase(method) == "multiplicative" && _should_use_wet_day_guard(obsvec, refvec, futvec; wet_threshold=wet_threshold)
+
+    if detrend == true && !multiplicative_wet_series
         obsvec, _ = _detrend_series(obsvec, order=order)
         refvec, _ = _detrend_series(refvec, order=order)
         futvec, poly_values = _detrend_series(futvec, order=order)
@@ -296,7 +300,7 @@ function qqmap_bulk(dataout, obsvec, refvec, futvec; method::String="Additive", 
         elseif lowercase(method) == "multiplicative" # used for precipitation
             _apply_multiplicative_qqmap!(futvec, obsP, refP, sf_refP, interp, extrap;
                 wet_threshold=wet_threshold,
-                wet_day_guard=_should_use_wet_day_guard(obsvec[.!obsvecnan], refvec[.!refvecnan], futvec[.!futvecnan]),
+                wet_day_guard=multiplicative_wet_series,
             )
 
         else
@@ -315,13 +319,13 @@ function qqmap_bulk(dataout, obsvec, refvec, futvec; method::String="Additive", 
         end
     end
 
-    if detrend == true
+    if detrend == true && !multiplicative_wet_series
         dataout .= dataout .+ poly_values
     end
 
 end
 
-function _is_nonnegative_series(vec; atol::Real=1e-8)
+function _is_nonnegative_series(vec; atol::Real=1e-4)
     finite = vec[isfinite.(vec)]
     isempty(finite) && return false
     return Base.minimum(finite) >= -atol
