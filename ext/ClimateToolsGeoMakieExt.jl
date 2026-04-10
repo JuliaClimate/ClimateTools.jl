@@ -514,11 +514,30 @@ function _timeseries_figure(; figure_size=(900, 400), title="Time series", xlabe
     return fig, ax
 end
 
+_datetime_value(value::DateTime) = value
+
+function _datetime_value(value::Date)
+    return DateTime(year(value), month(value), day(value))
+end
+
+function _datetime_value(value::Dates.TimeType)
+    millisecond_value = applicable(Dates.millisecond, value) ? Dates.millisecond(value) : 0
+    return DateTime(year(value), month(value), day(value), hour(value), minute(value), second(value), millisecond_value)
+end
+
+function _calendar_time_offsets(values::AbstractVector)
+    origin = first(values)
+    return Float64.(Dates.value.(values .- origin))
+end
+
 function _plot_x_values(values)
     x_values = collect(values)
 
-    if eltype(x_values) <: Date || eltype(x_values) <: DateTime
-        numeric = Float64.(Makie.date_to_number.(DateTime, x_values))
+    if !isempty(x_values) && all(value -> value isa Union{Date, DateTime}, x_values)
+        numeric = Float64.(Makie.date_to_number.(DateTime, _datetime_value.(x_values)))
+        return numeric, _timeseries_xticks(x_values, numeric)
+    elseif !isempty(x_values) && all(value -> value isa Dates.TimeType && !(value isa Time), x_values)
+        numeric = _calendar_time_offsets(x_values)
         return numeric, _timeseries_xticks(x_values, numeric)
     elseif eltype(x_values) <: Time
         numeric = Float64.(Makie.date_to_number.(Time, x_values))
