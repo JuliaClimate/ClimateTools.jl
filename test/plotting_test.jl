@@ -1,3 +1,10 @@
+using ClimateTools
+using Test
+using YAXArrays
+using DimensionalData
+using Statistics
+using Dates
+
 @testset "GeoMakie plotting" begin
     using GeoMakie
     using CairoMakie
@@ -92,7 +99,7 @@
 
     leap_boundary_times = [DateTimeNoLeap(2000, 2, 27), DateTimeNoLeap(2000, 2, 28), DateTimeNoLeap(2000, 3, 1), DateTimeNoLeap(2000, 3, 2)]
     leap_boundary_numeric, leap_boundary_ticks = ext._plot_x_values(leap_boundary_times)
-    @test diff(leap_boundary_numeric) == fill(86_400_000.0, 3)
+    @test Base.diff(leap_boundary_numeric) == fill(86_400_000.0, 3)
     @test leap_boundary_ticks[2] == string.(leap_boundary_times)
 
     fig_ts_noleap = timeseriesplot(noleap_cube)
