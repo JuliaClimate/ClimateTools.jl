@@ -4,6 +4,7 @@ using CircularArrays
 using CFTime
 using Dates
 using DimensionalData
+using Distributions
 using Extremes
 using LinearAlgebra
 using LombScargle
@@ -64,6 +65,7 @@ export hot_spell_frequency, hot_spell_max_length, hot_spell_total_length, heat_w
 export tx_tn_days_above, heat_wave_frequency, heat_wave_max_length, heat_wave_total_length, high_precip_low_temp
 export tg90p, tg10p, tn90p, tn10p, tx90p, tx10p
 export cold_spell_duration_index, warm_spell_duration_index
+export spi, spei
 export quantiles
 export Regridder, regrid, regrid_cube, save_regridder, load_regridder
 export regrid_curvilinear_to_regular, regrid_rotated_curvilinear_to_regular

@@ -195,6 +195,76 @@
         return has_valid ? total : NaN
     end
 
+    standardized_index_limit = 8.21
+    standardized_normal = ClimateTools.Normal()
+    standardized_index_min_prob = ClimateTools.cdf(standardized_normal, -standardized_index_limit)
+    standardized_index_max_prob = ClimateTools.cdf(standardized_normal, standardized_index_limit)
+
+    function fit_gamma_group_expected(values; zero_inflated)
+        isempty(values) && return nothing
+
+        if zero_inflated
+            any(value < 0 for value in values) && return nothing
+            positive_values = Float64[value for value in values if value > 0]
+            zero_fraction = count(==(0.0), values) / length(values)
+        else
+            any(value <= 0 for value in values) && return nothing
+            positive_values = Float64.(values)
+            zero_fraction = 0.0
+        end
+
+        length(positive_values) >= 2 || return nothing
+        return ClimateTools.fit_mle(ClimateTools.Gamma, positive_values), zero_fraction
+    end
+
+    function standardized_gamma_series(values, dates; window=1, cal_start=nothing, cal_end=nothing, zero_inflated)
+        series_values = Float64.(values)
+        series_dates = collect(dates)
+
+        if window > 1
+            rolled_values = rolling_sum(series_values, window)
+            series_values = rolled_values[window:end]
+            series_dates = series_dates[window:end]
+        end
+
+        calibration_mask = [
+            (isnothing(cal_start) || date >= cal_start) &&
+            (isnothing(cal_end) || date <= cal_end)
+            for date in series_dates
+        ]
+        months = month.(series_dates)
+        output = fill(NaN, length(series_values))
+
+        for month_index in 1:12
+            month_positions = findall(==(month_index), months)
+            calibration_values = [
+                series_values[index]
+                for index in month_positions
+                if calibration_mask[index] && !isnan(series_values[index])
+            ]
+            fit_result = fit_gamma_group_expected(calibration_values; zero_inflated=zero_inflated)
+            isnothing(fit_result) && continue
+
+            distribution, zero_fraction = fit_result
+            for index in month_positions
+                value = series_values[index]
+                isnan(value) && continue
+
+                probability = if zero_inflated
+                    value < 0 ? NaN : (value == 0 ? zero_fraction : zero_fraction + (1 - zero_fraction) * ClimateTools.cdf(distribution, value))
+                else
+                    value <= 0 ? NaN : ClimateTools.cdf(distribution, value)
+                end
+
+                isnan(probability) && continue
+                probability = clamp(probability, standardized_index_min_prob, standardized_index_max_prob)
+                output[index] = clamp(ClimateTools.quantile(standardized_normal, probability), -standardized_index_limit, standardized_index_limit)
+            end
+        end
+
+        return output, series_dates
+    end
+
     dates = collect(DateTime(2000, 1, 1):Day(1):DateTime(2001, 12, 31))
     tasmax_pattern_2000 = [10.0, 12.0, 14.0, 16.0, 18.0]
     tasmax_pattern_2001 = [20.0, 22.0, 24.0, 26.0, 28.0]
@@ -538,4 +608,54 @@
     @test scalar_timeseries(cold_spell_duration_index(percentile_tn, tn10_threshold; window=3)) == expected_csdi
     @test scalar_timeseries(warm_spell_duration_index(percentile_tx, tx90_threshold; window=3)) == expected_wsdi
     @test_throws ErrorException tx90p(short_cube, percentile_tx)
+
+    standardized_dates = [DateTime(2000 + div(index - 1, 12), mod(index - 1, 12) + 1, 15) for index in 1:48]
+
+    spi_values = Float64[]
+    spei_values = Float64[]
+    for date in standardized_dates
+        year_offset = year(date) - 2000
+        month_value = month(date)
+        push!(spi_values, month_value + 0.75 * year_offset)
+        push!(spei_values, month_value + 10.0 + 0.5 * year_offset)
+    end
+    spi_values[1] = 0.0
+    spi_values[13] = 0.0
+
+    spi_cube = make_cube(spi_values, standardized_dates)
+    expected_spi, expected_spi_dates = standardized_gamma_series(spi_values, standardized_dates; zero_inflated=true)
+    spi_result = spi(spi_cube)
+
+    @test collect(lookup(spi_result, :time)) == expected_spi_dates
+    @test scalar_timeseries(spi_result) ≈ expected_spi
+
+    spi_windowed = spi(spi_cube; window=3)
+    expected_spi_windowed, expected_spi_windowed_dates = standardized_gamma_series(spi_values, standardized_dates; window=3, zero_inflated=true)
+
+    @test collect(lookup(spi_windowed, :time)) == expected_spi_windowed_dates
+    @test scalar_timeseries(spi_windowed) ≈ expected_spi_windowed
+
+    clipped_spi_values = [month(date) + 0.75 * (year(date) - 2000) for date in standardized_dates]
+    clipped_spi_values[1] = 0.0
+    clipped_spi_values[37] = 1.0e12
+    clipped_spi_cube = make_cube(clipped_spi_values, standardized_dates)
+    clipped_spi = spi(clipped_spi_cube; cal_start=DateTime(2000, 1, 1), cal_end=DateTime(2002, 12, 31))
+    expected_clipped_spi, _ = standardized_gamma_series(
+        clipped_spi_values,
+        standardized_dates;
+        cal_start=DateTime(2000, 1, 1),
+        cal_end=DateTime(2002, 12, 31),
+        zero_inflated=true,
+    )
+
+    @test scalar_timeseries(clipped_spi) ≈ expected_clipped_spi
+    @test 8.0 < scalar_timeseries(clipped_spi)[37] <= standardized_index_limit
+
+    spei_cube = make_cube(spei_values, standardized_dates)
+    expected_spei, expected_spei_dates = standardized_gamma_series(spei_values, standardized_dates; zero_inflated=false)
+    spei_result = spei(spei_cube)
+
+    @test collect(lookup(spei_result, :time)) == expected_spei_dates
+    @test scalar_timeseries(spei_result) ≈ expected_spei
+    @test_throws ErrorException spi(spi_cube; freq="YS")
 end

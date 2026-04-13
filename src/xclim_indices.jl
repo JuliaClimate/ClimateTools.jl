@@ -79,6 +79,161 @@ function _rolling_sum(cube::YAXArray; window::Int)
     )
 end
 
+const _STANDARDIZED_INDEX_LIMIT = 8.21
+const _STANDARD_NORMAL = Normal()
+const _STANDARDIZED_INDEX_MIN_PROB = cdf(_STANDARD_NORMAL, -_STANDARDIZED_INDEX_LIMIT)
+const _STANDARDIZED_INDEX_MAX_PROB = cdf(_STANDARD_NORMAL, _STANDARDIZED_INDEX_LIMIT)
+
+function _trim_leading_time(cube::YAXArray; count::Int)
+    count >= 0 || error("count must be >= 0")
+    if count == 0
+        return cube
+    end
+
+    time_values = collect(lookup(cube, :time))
+    count < length(time_values) || error("window must be <= number of monthly periods.")
+    first_valid_time = time_values[count + 1]
+    return cube[time=Where(x -> x >= first_valid_time)]
+end
+
+function _monthly_standardized_input(cube::YAXArray; window::Int)
+    window >= 1 || error("window must be >= 1")
+
+    monthly = _period_reduce(cube; freq="MS", reducer=data -> _reduce_valid(data, sum))
+    if window == 1
+        return monthly
+    end
+
+    length(lookup(monthly, :time)) >= window || error("window must be <= number of monthly periods.")
+    accumulated = _rolling_sum(monthly; window=window)
+    return _trim_leading_time(accumulated; count=window - 1)
+end
+
+function _calibration_mask(time_values; cal_start=nothing, cal_end=nothing)
+    return [
+        (isnothing(cal_start) || time_value >= cal_start) &&
+        (isnothing(cal_end) || time_value <= cal_end)
+        for time_value in time_values
+    ]
+end
+
+function _month_index_groups(time_values)
+    month_values = month.(time_values)
+    return [findall(==(month_index), month_values) for month_index in 1:12]
+end
+
+function _calibration_index_groups(time_values; cal_start=nothing, cal_end=nothing)
+    calibration_mask = _calibration_mask(time_values; cal_start=cal_start, cal_end=cal_end)
+    any(calibration_mask) || error("Calibration period does not overlap the available time axis.")
+
+    month_values = month.(time_values)
+    groups = [Int[] for _ in 1:12]
+    for index in eachindex(time_values)
+        if calibration_mask[index]
+            push!(groups[month_values[index]], index)
+        end
+    end
+
+    return groups
+end
+
+function _fit_gamma_group(values; zero_inflated::Bool, min_positive_samples::Int)
+    isempty(values) && return nothing
+
+    if zero_inflated
+        any(value < 0 for value in values) && return nothing
+        positive_values = Float64[value for value in values if value > 0]
+        zero_fraction = count(==(0), values) / length(values)
+    else
+        any(value <= 0 for value in values) && return nothing
+        positive_values = Float64.(values)
+        zero_fraction = 0.0
+    end
+
+    length(positive_values) >= min_positive_samples || return nothing
+
+    try
+        return fit_mle(Gamma, positive_values), zero_fraction
+    catch
+        return nothing
+    end
+end
+
+function _standardized_probability(value, distribution::Gamma, zero_fraction::Float64; zero_inflated::Bool)
+    probability = if zero_inflated
+        value < 0 && return NaN
+        value == 0 ? zero_fraction : zero_fraction + (1 - zero_fraction) * cdf(distribution, value)
+    else
+        value <= 0 && return NaN
+        cdf(distribution, value)
+    end
+
+    return clamp(probability, _STANDARDIZED_INDEX_MIN_PROB, _STANDARDIZED_INDEX_MAX_PROB)
+end
+
+function _standardized_gamma_value(value, distribution::Gamma, zero_fraction::Float64; zero_inflated::Bool)
+    probability = _standardized_probability(value, distribution, zero_fraction; zero_inflated=zero_inflated)
+    isnan(probability) && return NaN
+
+    standardized_value = quantile(_STANDARD_NORMAL, probability)
+    return clamp(standardized_value, -_STANDARDIZED_INDEX_LIMIT, _STANDARDIZED_INDEX_LIMIT)
+end
+
+function _standardized_gamma_index_kernel(xout, xin; month_index_groups, calibration_index_groups, zero_inflated::Bool, min_positive_samples::Int)
+    xout .= NaN
+
+    fitted_distributions = Any[nothing for _ in 1:12]
+    zero_fractions = fill(NaN, 12)
+
+    for month_index in 1:12
+        calibration_values = _valid_values(view(xin, calibration_index_groups[month_index]))
+        fit_result = _fit_gamma_group(calibration_values; zero_inflated=zero_inflated, min_positive_samples=min_positive_samples)
+        if !isnothing(fit_result)
+            fitted_distributions[month_index], zero_fractions[month_index] = fit_result
+        end
+    end
+
+    for month_index in 1:12
+        distribution = fitted_distributions[month_index]
+        isnothing(distribution) && continue
+
+        for index in month_index_groups[month_index]
+            value = xin[index]
+            if ismissing(value) || (value isa Number && isnan(value))
+                continue
+            end
+
+            standardized_value = _standardized_gamma_value(value, distribution, zero_fractions[month_index]; zero_inflated=zero_inflated)
+            if !(standardized_value isa Number && isnan(standardized_value))
+                xout[index] = standardized_value
+            end
+        end
+    end
+end
+
+function _standardized_gamma_index(cube::YAXArray; window::Int=1, freq="MS", cal_start=nothing, cal_end=nothing, zero_inflated::Bool, min_positive_samples::Int=2)
+    _normalize_resample_frequency(freq) == :monthly || error("Only monthly frequency (`freq=\"MS\"`) is supported for standardized indices.")
+
+    prepared = _monthly_standardized_input(cube; window=window)
+    time_values = collect(lookup(prepared, :time))
+    month_index_groups = _month_index_groups(time_values)
+    calibration_index_groups = _calibration_index_groups(time_values; cal_start=cal_start, cal_end=cal_end)
+
+    return _xmap_call(
+        _standardized_gamma_index_kernel,
+        prepared;
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(lookup(prepared, :time)),),
+        function_kwargs=(
+            month_index_groups=month_index_groups,
+            calibration_index_groups=calibration_index_groups,
+            zero_inflated=zero_inflated,
+            min_positive_samples=min_positive_samples,
+        ),
+        outtype=Float64,
+    )
+end
+
 function _resolve_reducer(op::Function)
     return op
 end
@@ -1028,4 +1183,43 @@ consecutive days above an aligned percentile threshold series.
 """
 function warm_spell_duration_index(tasmax::YAXArray, tasmax_per::YAXArray; window::Int=6, freq="YS", op=">")
     return _windowed_threshold_run_count_against(tasmax, tasmax_per; window=window, freq=freq, op=op)
+end
+
+"""
+    spi(pr::YAXArray; window=1, freq="MS", cal_start=nothing, cal_end=nothing)
+
+Gamma-based standardized precipitation index computed from monthly precipitation totals.
+The input is aggregated to monthly sums, optionally accumulated over `window` months,
+fit month-wise over the calibration period, and transformed to a standard-normal scale
+with zero inflation enabled.
+"""
+function spi(pr::YAXArray; window::Int=1, freq="MS", cal_start=nothing, cal_end=nothing)
+    return _standardized_gamma_index(
+        pr;
+        window=window,
+        freq=freq,
+        cal_start=cal_start,
+        cal_end=cal_end,
+        zero_inflated=true,
+    )
+end
+
+"""
+    spei(water_budget::YAXArray; window=1, freq="MS", cal_start=nothing, cal_end=nothing)
+
+Gamma-first standardized precipitation evapotranspiration index for positive water-budget
+inputs. The input is aggregated to monthly sums, optionally accumulated over `window`
+months, fit month-wise over the calibration period, and transformed to a standard-normal
+scale without zero inflation. Nonpositive calibration values are currently unsupported
+by this gamma-first implementation.
+"""
+function spei(water_budget::YAXArray; window::Int=1, freq="MS", cal_start=nothing, cal_end=nothing)
+    return _standardized_gamma_index(
+        water_budget;
+        window=window,
+        freq=freq,
+        cal_start=cal_start,
+        cal_end=cal_end,
+        zero_inflated=false,
+    )
 end

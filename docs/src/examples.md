@@ -140,6 +140,26 @@ gev_fit = gevfit_cube(annual_maxima; dim=:time)
 gev_rl = returnlevel_cube(gev_fit; rlevels=[2, 10, 25, 50])
 ```
 
+## Example 11: Monthly SPI and Water-Budget-First SPEI
+
+```julia
+using ClimateTools, Dates
+
+spi3 = spi(pr;
+    window=3,
+    cal_start=DateTime(1981, 1, 1),
+    cal_end=DateTime(2010, 12, 31))
+
+water_budget = pr .- pet
+
+spei6 = spei(water_budget;
+    window=6,
+    cal_start=DateTime(1981, 1, 1),
+    cal_end=DateTime(2010, 12, 31))
+```
+
+This first pass uses a gamma-based monthly core. `spi` applies zero inflation for zero-precipitation months, while `spei` assumes the supplied water-budget series is already prepared and positive for the period being fit.
+
 ## Where to Go Next
 
 - [Quick Start](quickstart.md) for the minimal onboarding path
