@@ -299,10 +299,16 @@ end
 function findmindist(p1::Tuple{Float64, Float64}, p2::Tuple{Array{Float64,1},Array{Float64,1}}; R=6372.8)
 
     dist = Array{Float64}(undef, length(p2[1]), 1)
+    lon1 = deg2rad(p1[1])
+    lat1 = deg2rad(p1[2])
 
     for idx = 1:length(p2[1])
-        p3 = ( p2[1][idx], p2[2][idx] )
-        dist[idx] = haversine(p1, p3, R)
+        lon2 = deg2rad(p2[1][idx])
+        lat2 = deg2rad(p2[2][idx])
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat / 2)^2 + cos(lat1) * cos(lat2) * sin(dlon / 2)^2
+        dist[idx] = 2 * R * asin(min(1.0, sqrt(a)))
     end
 
     return findmin(dist)

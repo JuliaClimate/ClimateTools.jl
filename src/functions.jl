@@ -81,17 +81,12 @@ end
 
 function ndgrid(vs::AbstractVector{T}...) where T
     n = length(vs)
-    sz = map(length, vs)
-    out = ntuple(i->Array{T}(sz), n)
-    s = 1
-    for i=1:n
-        a = out[i]::Array
-        v = vs[i]
-        snext = s*size(a,i)
-        ndgrid_fill(a, v, s, snext)
-        s = snext
+    sz = length.(vs)
+    return ntuple(n) do i
+        shape = ntuple(j -> j == i ? sz[j] : 1, n)
+        reps = ntuple(j -> j == i ? 1 : sz[j], n)
+        repeat(reshape(vs[i], shape...), reps...)
     end
-    out
 end
 
 meshgrid(v::AbstractVector) = meshgrid(v, v)
@@ -763,7 +758,7 @@ finitemean(x,y) = mapslices(finitemean,x,dims=y)
 #     # Build output AxisArray
 #     FD = buildarray_climato(C, dataout)
 
-#     # Return climGrid type containing the indice
+#     # Return legacy index container
 #     return legacy grid struct(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
 # end
 
@@ -789,7 +784,7 @@ finitemean(x,y) = mapslices(finitemean,x,dims=y)
 #     # Build output AxisArray
 #     FD = buildarray_verticalmean(C, dataout)
 
-#     # Return climGrid type containing the indice
+#     # Return legacy index container
 #     return legacy grid struct(FD, longrid=C.longrid, latgrid=C.latgrid, msk=C.msk, grid_mapping=C.grid_mapping, dimension_dict=C.dimension_dict, timeattrib=C.timeattrib, model=C.model, frequency=C.frequency, experiment=C.experiment, run=C.run, project=C.project, institute=C.institute, filename=C.filename, dataunits=C.dataunits, latunits=C.latunits, lonunits=C.lonunits, variable="periodmean", typeofvar=C.typeofvar, typeofcal="climatology", varattribs=C.varattribs, globalattribs=C.globalattribs)
 # end
 

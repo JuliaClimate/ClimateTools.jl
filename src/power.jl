@@ -12,11 +12,14 @@ Compute the Lomb-Scargle periodogram for a given data cube.
 
 """
 function LombScargle.lombscargle(cube::YAXArray, kwargs...)
-    indims = InDims("time")
-    lombax = CategoricalAxis("LombScargle", ["Number of Frequencies", "Period with maximal power", "Maximal Power"])
-    timeax = YAXArrays.getAxis("time", cube)
-    od = OutDims(lombax)
-    mapCube(clombscargle, (cube, timeax), indims=(indims, indims), outdims=od)
+    return _xmap_call(
+        clombscargle,
+        cube;
+        reduced_dims=:time,
+        output_axes=(Dim{:LombScargle}(["Number of Frequencies", "Period with maximal power", "Maximal Power"]),),
+        function_args=(collect(lookup(cube, :time)),),
+        outtype=Union{Missing, Float64},
+    )
 end
 
 """
@@ -38,7 +41,6 @@ function clombscargle(xout, xin, times)
     ts = collect(nonmissingtype(eltype(xin)), xin[ind])
     x = times[ind]
     if length(ts) < 10
-       @show length(ts)
        xout .= missing
        return
     end
@@ -48,7 +50,7 @@ function clombscargle(xout, xin, times)
     pgram = LombScargle.lombscargle(pl)
     lsperiod= findmaxperiod(pgram)
     lspower = findmaxpower(pgram)
-    lsnum = LombScargle.M(pgram)
-    perval = isempty(lsperiod) ? missing : lsperiod[1]    
-    xout .= [lsnum, perval, lspower]
+    lsnum = Float64(LombScargle.M(pgram))
+    perval = isempty(lsperiod) ? missing : Float64(lsperiod[1])
+    xout .= [lsnum, perval, Float64(lspower)]
 end
