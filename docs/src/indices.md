@@ -124,7 +124,28 @@ tx90 = tx90p(tasmax, tx90_threshold; freq="YS")
 wsdi = warm_spell_duration_index(tasmax, tx90_threshold; window=6)
 ```
 
-## 7. Thermodynamic Helpers
+## 7. Standardized Drought Indices
+
+These functions provide a first gamma-based standardized-index workflow for monthly drought diagnostics.
+
+- `spi`: gamma-based standardized precipitation index with zero inflation
+- `spei`: gamma-first standardized precipitation evapotranspiration index for positive precomputed water-budget input
+
+Current scope notes:
+
+- only `freq="MS"` is supported
+- input is aggregated to monthly sums before fitting
+- `window` controls the rolling accumulation period in months
+- `spei` currently expects a positive water-budget series; PET computation and signed-input log-logistic fitting are not part of this first pass
+
+Example:
+
+```julia
+spi3 = spi(pr; window=3, cal_start=DateTime(1981, 1, 1), cal_end=DateTime(2010, 12, 31))
+spei6 = spei(water_budget; window=6, cal_start=DateTime(1981, 1, 1), cal_end=DateTime(2010, 12, 31))
+```
+
+## 8. Thermodynamic Helpers
 
 These are not indices in the narrow ETCCDI sense, but they are often part of scenario post-processing.
 
