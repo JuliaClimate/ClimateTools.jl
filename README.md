@@ -20,7 +20,7 @@ The package focuses on the typical climate-services workflow:
 4. Bias-correct simulations with quantile mapping, extreme-value correction, or time-variability correction.
 5. Compute indicators, aggregations, and diagnostics.
 
-ClimateTools switched to YAXArrays `xmap` and `mapCube` pattern for whole-dimension transforms and reductions instead of the custom `ClimGrid`.
+ClimateTools uses YAXArrays `xmap` and `mapCube` patterns for whole-dimension transforms and reductions.
 
 ## Status
 

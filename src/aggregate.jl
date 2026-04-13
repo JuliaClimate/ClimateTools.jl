@@ -42,9 +42,9 @@ function daily_max_mean_min(xout, xin; index_list)
             data = view(xin, index_list[i])
             values = _valid_values(data)
             if !isempty(values)
-                xout[i,1] = maximum(values)
+                xout[i,1] = Base.maximum(values)
                 xout[i,2] = mean(values)
-                xout[i,3] = minimum(values)
+                xout[i,3] = Base.minimum(values)
             end
         end        
     end    
@@ -76,7 +76,7 @@ function daily_max_mean_min(cube::YAXArray, kwargs...)
         daily_max_mean_min,
         cube;
         reduced_dims=:time,
-        output_axes=(Dim{:time}(dates_builder_yearmonthday(new_dates)), CategoricalAxis("stats", ["max", "mean", "min"])),
+        output_axes=(Dim{:time}(dates_builder_yearmonthday(new_dates)), Dim{:stats}(["max", "mean", "min"])),
         function_kwargs=(index_list=index_in_cube,),
     )
 end
@@ -95,12 +95,14 @@ Compute the percentiles of a YAXArray cube along the "number" dimension (represe
 A new YAXArray cube with the computed percentiles along the "time", "longitude", and "latitude" dimensions.
 
 """
-function percentiles(cube::YAXArray, quantiles=[0.1, 0.5, 0.9];lonname="longitude", latname="latitude")    
-    
-    indims = InDims("number")    
-    outdims = OutDims("time", lonname, latname)
-    
-    mapCube(percentiles, cube, indims=indims, outdims=outdims, quantiles=quantiles, nthreads=Threads.nthreads())
+function percentiles(cube::YAXArray, quantile_levels=[0.1, 0.5, 0.9];lonname="longitude", latname="latitude")
+    return _xmap_call(
+        quantiles,
+        cube;
+        reduced_dims=:number,
+        output_axes=(Dim{:Quantiles}(quantile_levels),),
+        function_kwargs=(q=quantile_levels,),
+    )
 end
 
 """
@@ -281,6 +283,14 @@ function yearly_resample(cube::YAXArray; fct::Function=mean, kwargs...)
     )
 end
 
+function yearly_clim(xout, xin; fct::Function=mean, index_list = time_to_index)
+    yearly_resample(xout, xin; fct=fct, index_list=index_list)
+end
+
+function yearly_clim(cube::YAXArray; fct::Function=mean, kwargs...)
+    return yearly_resample(cube; fct=fct, kwargs...)
+end
+
 function monthly_resample(xout, xin; fct::Function=mean, index_list = time_to_index)
     
     xout .= NaN
@@ -340,7 +350,7 @@ function daily_max(xout, xin; index_list = time_to_index)
             data = view(xin, index_list[i])
             values = _valid_values(data)
             if !isempty(values)
-                xout[i] = maximum(values)
+                xout[i] = Base.maximum(values)
             end
         end
         
