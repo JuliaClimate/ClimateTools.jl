@@ -7,6 +7,11 @@
         return YAXArray((Dim{:longitude}(1:1), Dim{:latitude}(1:1), Dim{:time}(dates)), reshape(values, 1, 1, :))
     end
 
+    function make_series_cube(values; start=DateTime(2000, 1, 1))
+        dates = collect(start:Day(1):(start + Day(length(values) - 1)))
+        return make_cube(Float64.(values), dates)
+    end
+
     function grouped(values, dates, freq)
         if freq == "YS"
             keys = year.(dates)
@@ -658,4 +663,176 @@
     @test collect(lookup(spei_result, :time)) == expected_spei_dates
     @test scalar_timeseries(spei_result) ≈ expected_spei
     @test_throws ErrorException spi(spi_cube; freq="YS")
+
+    @testset "upstream xclim parity" begin
+        @testset "simple reductions and precipitation" begin
+            tx_max_cube = make_series_cube([20.0, 25.0, -15.0, 19.0])
+            @test scalar_timeseries(tx_max(tx_max_cube)) == [25.0]
+
+            rx1day_single = make_series_cube([3.0, 4.0, 20.0, 0.0, 0.0]; start=DateTime(2000, 7, 1))
+            rx1day_multi = make_series_cube([20.0, 4.0, 20.0, 20.0, 0.0]; start=DateTime(2000, 7, 1))
+            rx1day_uniform = make_series_cube(fill(20.0, 5); start=DateTime(2000, 7, 1))
+
+            @test scalar_timeseries(max_1day_precipitation_amount(rx1day_single)) == [20.0]
+            @test scalar_timeseries(max_1day_precipitation_amount(rx1day_multi)) == [20.0]
+            @test scalar_timeseries(max_1day_precipitation_amount(rx1day_uniform)) == [20.0]
+
+            sdii_values = zeros(365)
+            sdii_values[4:8] .= [0.5, 1.0, 2.0, 3.0, 4.0]
+            sdii_cube = make_series_cube(sdii_values; start=DateTime(2001, 1, 1))
+            @test scalar_timeseries(daily_pr_intensity(sdii_cube; thresh=1.0)) == [2.5]
+        end
+
+        @testset "threshold counts and degree days" begin
+            hot_day_values = zeros(365)
+            hot_day_values[1:6] .= [27.0, 28.0, 29.0, 30.0, 31.0, 32.0]
+            hot_day_cube = make_series_cube(hot_day_values; start=DateTime(2001, 1, 1))
+
+            @test scalar_timeseries(hot_days(hot_day_cube; thresh=30.0)) == [2.0]
+            @test scalar_timeseries(tx_days_above(hot_day_cube; thresh=30.0)) == [2.0]
+
+            warm_day_values = zeros(35)
+            warm_day_values[26:end] .= 31.0
+            warm_day_cube = make_series_cube(warm_day_values; start=DateTime(2001, 1, 1))
+
+            @test scalar_timeseries(warm_day_frequency(warm_day_cube; freq="MS")) == [6.0, 4.0]
+            @test scalar_timeseries(warm_day_frequency(warm_day_cube)) == [10.0]
+            @test scalar_timeseries(warm_day_frequency(warm_day_cube; thresh=-1.0)) == [35.0]
+            @test scalar_timeseries(warm_day_frequency(warm_day_cube; thresh=50.0)) == [0.0]
+
+            warm_night_values = zeros(35)
+            warm_night_values[26:end] .= 23.0
+            warm_night_cube = make_series_cube(warm_night_values; start=DateTime(2001, 1, 1))
+
+            @test scalar_timeseries(warm_night_frequency(warm_night_cube; freq="MS")) == [6.0, 4.0]
+            @test scalar_timeseries(warm_night_frequency(warm_night_cube)) == [10.0]
+            @test scalar_timeseries(warm_night_frequency(warm_night_cube; thresh=-1.0)) == [35.0]
+            @test scalar_timeseries(warm_night_frequency(warm_night_cube; thresh=50.0)) == [0.0]
+
+            gdd_values = zeros(365)
+            gdd_values[1] = 5.0
+            gdd_cube = make_series_cube(gdd_values; start=DateTime(2001, 1, 1))
+            @test scalar_timeseries(growing_degree_days(gdd_cube)) == [1.0]
+
+            hdd_values = fill(17.0, 365)
+            hdd_values[1:7] .+= [-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0]
+            hdd_cube = make_series_cube(hdd_values; start=DateTime(2001, 1, 1))
+            @test scalar_timeseries(heating_degree_days(hdd_cube)) == [6.0]
+
+            cdd_zero_cube = make_series_cube([10.0, 15.0, -5.0, 18.0])
+            cdd_cube = make_series_cube([20.0, 25.0, -15.0, 19.0])
+
+            @test scalar_timeseries(cooling_degree_days(cdd_zero_cube)) == [0.0]
+            @test scalar_timeseries(cooling_degree_days(cdd_cube)) == [10.0]
+        end
+
+        @testset "consecutive threshold runs" begin
+            freeze_cube = make_series_cube([3.0, 4.0, 5.0, -1.0, 3.0])
+            no_freeze_cube = make_series_cube([3.0, 4.0, 5.0, 1.0, 3.0])
+            threshold_freeze_free_cube = make_series_cube([3.0, 4.0, 5.0, -0.8, -2.0, 3.0])
+            all_freeze_cube = make_series_cube(fill(-10.0, 365); start=DateTime(2001, 1, 1))
+
+            @test scalar_timeseries(maximum_consecutive_frost_days(freeze_cube)) == [1.0]
+            @test scalar_timeseries(maximum_consecutive_frost_days(no_freeze_cube)) == [0.0]
+            @test scalar_timeseries(maximum_consecutive_frost_days(all_freeze_cube)) == [365.0]
+
+            @test scalar_timeseries(maximum_consecutive_frost_free_days(freeze_cube)) == [3.0]
+            @test scalar_timeseries(maximum_consecutive_frost_free_days(threshold_freeze_free_cube; thresh=-1.0)) == [4.0]
+            @test scalar_timeseries(maximum_consecutive_frost_free_days(no_freeze_cube)) == [5.0]
+
+            dry_spell_values = fill(10.0, 365)
+            dry_spell_values[6:15] .= 0.0
+            dry_spell_cube = make_series_cube(dry_spell_values; start=DateTime(2001, 1, 1))
+            dry_spell_monthly = scalar_timeseries(maximum_consecutive_dry_days(dry_spell_cube; freq="MS"))
+            @test dry_spell_monthly[1] == 10.0
+            @test all(dry_spell_monthly[2:end] .== 0.0)
+
+            dry_at_start_values = fill(10.0, 365)
+            dry_at_start_values[1:10] .= 0.0
+            dry_at_start_cube = make_series_cube(dry_at_start_values; start=DateTime(2001, 1, 1))
+            dry_at_start_monthly = scalar_timeseries(maximum_consecutive_dry_days(dry_at_start_cube; freq="MS"))
+            @test dry_at_start_monthly[1] == 10.0
+            @test all(dry_at_start_monthly[2:end] .== 0.0)
+
+            tx_run_values = zeros(365)
+            tx_run_values[6:15] .= 30.0
+            tx_run_cube = make_series_cube(tx_run_values; start=DateTime(2010, 1, 1))
+            tx_run_monthly = scalar_timeseries(maximum_consecutive_tx_days(tx_run_cube; thresh=25.0, freq="MS"))
+            @test tx_run_monthly[1] == 10.0
+            @test all(tx_run_monthly[2:end] .== 0.0)
+        end
+
+        @testset "spell indices" begin
+            cold_spell_days_values = zeros(365)
+            cold_spell_days_values[11:20] .= -15.0
+            cold_spell_days_values[41:43] .= -50.0
+            cold_spell_days_values[81:100] .= -30.0
+            cold_spell_days_cube = make_series_cube(cold_spell_days_values; start=DateTime(2000, 7, 1))
+            cold_spell_days_monthly = vcat([10.0, 0.0, 12.0, 8.0], zeros(8))
+
+            @test scalar_timeseries(cold_spell_days(cold_spell_days_cube; thresh=-10.0, freq="MS")) == cold_spell_days_monthly
+
+            cold_spell_values = zeros(365)
+            cold_spell_values[11:20] .= -15.0
+            cold_spell_values[41:43] .= -50.0
+            cold_spell_values[81:86] .= -30.0
+            cold_spell_values[96:101] .= -30.0
+            cold_spell_cube = make_series_cube(cold_spell_values; start=DateTime(1971, 1, 1))
+            cold_spell_frequency_monthly = vcat([1.0, 0.0, 1.0, 1.0], zeros(8))
+            cold_spell_length_monthly = vcat([10.0, 3.0, 6.0, 6.0], zeros(8))
+
+            @test scalar_timeseries(cold_spell_frequency(cold_spell_cube; thresh=-10.0, freq="MS")) == cold_spell_frequency_monthly
+            @test scalar_timeseries(cold_spell_frequency(cold_spell_cube; thresh=-10.0)) == [3.0]
+            @test scalar_timeseries(cold_spell_max_length(cold_spell_cube; thresh=-10.0, freq="MS")) == cold_spell_length_monthly
+            @test scalar_timeseries(cold_spell_max_length(cold_spell_cube; thresh=-10.0)) == [10.0]
+            @test scalar_timeseries(cold_spell_total_length(cold_spell_cube; thresh=-10.0, freq="MS")) == cold_spell_length_monthly
+            @test scalar_timeseries(cold_spell_total_length(cold_spell_cube; thresh=-10.0)) == [25.0]
+
+            hot_spell_frequency_cube = make_series_cube([29.0, 31.0, 31.0, 31.0, 29.0, 31.0, 31.0, 31.0, 31.0, 31.0])
+            hot_spell_length_cube = make_series_cube([28.0, 31.0, 31.0, 31.0, 29.0, 31.0, 31.0, 31.0, 31.0, 31.0])
+
+            for (thresh, window, op, expected) in ((30.0, 3, ">", 2.0), (30.0, 4, ">", 1.0), (29.0, 3, ">", 2.0), (29.0, 3, ">=", 1.0), (10.0, 3, ">", 1.0), (40.0, 5, ">", 0.0))
+                @test scalar_timeseries(hot_spell_frequency(hot_spell_frequency_cube; thresh=thresh, window=window, op=op)) == [expected]
+            end
+
+            for (thresh, window, op, expected) in ((30.0, 3, ">", 5.0), (10.0, 3, ">", 10.0), (29.0, 3, ">", 5.0), (29.0, 3, ">=", 9.0), (40.0, 3, ">", 0.0), (30.0, 5, ">", 5.0))
+                @test scalar_timeseries(hot_spell_max_length(hot_spell_length_cube; thresh=thresh, window=window, op=op)) == [expected]
+            end
+
+            for (thresh, window, op, expected) in ((30.0, 3, ">", 8.0), (10.0, 3, ">", 10.0), (29.0, 3, ">", 8.0), (29.0, 3, ">=", 9.0), (40.0, 3, ">", 0.0), (30.0, 5, ">", 5.0))
+                @test scalar_timeseries(hot_spell_total_length(hot_spell_length_cube; thresh=thresh, window=window, op=op)) == [expected]
+            end
+
+            heat_wave_tn_cube = make_series_cube([20.0, 23.0, 23.0, 23.0, 23.0, 22.0, 23.0, 23.0, 23.0, 23.0])
+            heat_wave_tx_cube = make_series_cube([29.0, 31.0, 31.0, 31.0, 29.0, 31.0, 31.0, 31.0, 31.0, 31.0])
+
+            for (thresh_tasmin, thresh_tasmax, window, expected) in ((22.0, 30.0, 3, 2.0), (22.0, 30.0, 4, 1.0), (10.0, 10.0, 3, 1.0), (40.0, 40.0, 3, 0.0))
+                @test scalar_timeseries(heat_wave_frequency(heat_wave_tn_cube, heat_wave_tx_cube; thresh_tasmin=thresh_tasmin, thresh_tasmax=thresh_tasmax, window=window)) == [expected]
+            end
+
+            for (thresh_tasmin, thresh_tasmax, window, expected) in ((22.0, 30.0, 3, 4.0), (10.0, 10.0, 3, 10.0), (40.0, 40.0, 3, 0.0), (22.0, 30.0, 5, 0.0))
+                @test scalar_timeseries(heat_wave_max_length(heat_wave_tn_cube, heat_wave_tx_cube; thresh_tasmin=thresh_tasmin, thresh_tasmax=thresh_tasmax, window=window)) == [expected]
+            end
+
+            for (thresh_tasmin, thresh_tasmax, window, expected) in ((22.0, 30.0, 3, 7.0), (10.0, 10.0, 3, 10.0), (40.0, 40.0, 3, 0.0), (22.0, 30.0, 5, 0.0))
+                @test scalar_timeseries(heat_wave_total_length(heat_wave_tn_cube, heat_wave_tx_cube; thresh_tasmin=thresh_tasmin, thresh_tasmax=thresh_tasmax, window=window)) == [expected]
+            end
+
+            heat_wave_index_values = zeros(366)
+            heat_wave_index_values[1:10] .= [29.0, 31.0, 31.0, 31.0, 29.0, 31.0, 31.0, 31.0, 31.0, 31.0]
+            heat_wave_index_cube = make_series_cube(heat_wave_index_values; start=DateTime(2000, 1, 1))
+            @test scalar_timeseries(heat_wave_index(heat_wave_index_cube)) == [10.0]
+        end
+
+        @testset "paired thresholds" begin
+            tx_tn_days_tn_cube = make_series_cube([20.0, 23.0, 23.0, 23.0, 23.0, 22.0, 23.0, 23.0, 23.0, 23.0])
+            tx_tn_days_tx_cube = make_series_cube([29.0, 31.0, 31.0, 31.0, 29.0, 31.0, 30.0, 31.0, 31.0, 31.0])
+
+            @test scalar_timeseries(tx_tn_days_above(tx_tn_days_tn_cube, tx_tn_days_tx_cube)) == [6.0]
+            @test scalar_timeseries(tx_tn_days_above(tx_tn_days_tn_cube, tx_tn_days_tx_cube; thresh_tasmax=50.0)) == [0.0]
+            @test scalar_timeseries(tx_tn_days_above(tx_tn_days_tn_cube, tx_tn_days_tx_cube; thresh_tasmax=0.0, thresh_tasmin=0.0)) == [10.0]
+            @test scalar_timeseries(tx_tn_days_above(tx_tn_days_tn_cube, tx_tn_days_tx_cube; op=">=")) == [8.0]
+            @test_throws ArgumentError tx_tn_days_above(tx_tn_days_tn_cube, tx_tn_days_tx_cube; op="<")
+        end
+    end
 end
