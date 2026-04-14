@@ -268,6 +268,12 @@ function _comparison_operator(op)
     error("Unsupported comparison operator $(op).")
 end
 
+function _validate_above_operator(op, name)
+    normalized = lowercase(string(op))
+    normalized in (">", "gt", ">=", "ge") || throw(ArgumentError("$(name) only supports `>` and `>=` comparison operators."))
+    return op
+end
+
 function _threshold_count(cube::YAXArray; thresh, freq="YS", op=">=")
     comparator = _comparison_operator(op)
     reducer = data -> begin
@@ -1072,6 +1078,7 @@ end
 Number of days where daily minimum and maximum temperatures both exceed their thresholds.
 """
 function tx_tn_days_above(tasmin::YAXArray, tasmax::YAXArray; thresh_tasmin=22.0, thresh_tasmax=30.0, freq="YS", op=">")
+    _validate_above_operator(op, "tx_tn_days_above")
     return _threshold_count_pair(tasmin, tasmax; first_thresh=thresh_tasmin, second_thresh=thresh_tasmax, freq=freq, first_op=op, second_op=op)
 end
 
