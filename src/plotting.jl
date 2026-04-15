@@ -42,3 +42,8 @@ function statsplot(args...; kwargs...)
 	_plotting_extension_error(:statsplot)
 end
 
+function robustnessmap(args...; kwargs...)
+	_ensure_plotting_extension_loaded() && return Base.invokelatest(robustnessmap, args...; kwargs...)
+	_plotting_extension_error(:robustnessmap)
+end
+

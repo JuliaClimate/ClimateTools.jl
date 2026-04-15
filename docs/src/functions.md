@@ -74,8 +74,9 @@ These are often used after bias correction or in post-processing chains.
 
 - `geomap`: single-panel geographic plotting for regular and rotated-grid data
 - `geomapfacet`: faceted geographic plotting over time or ensemble-like dimensions
-- `timeseriesplot`: line, multi-member, ribbon, and `ensemble_stats`-aware time-series plots
-- `statsplot`: histogram, boxplot, scatter, and grouped ensemble-distribution plots
+- `timeseriesplot`: line, multi-member, ribbon, `ensemble_stats`-aware, and dataset-variable time-series plots
+- `statsplot`: histogram, boxplot, scatter, grouped ensemble-distribution, and dataset-variable plots
+- `robustnessmap`: categorical geographic plotting for robustness fractions or robustness-category outputs
 
 ## Time-Series and Regime Diagnostics
 

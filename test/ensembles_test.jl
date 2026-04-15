@@ -4,6 +4,13 @@
 # The ClimateTools.jl version modifies those cases for Julia and YAXArrays.
 # See LICENSES/xclim-APACHE-2.0.txt and LICENSE.md for details.
 
+using ClimateTools
+using Test
+using YAXArrays
+using DimensionalData
+using Dates
+using Statistics
+
 @testset "xclim-style ensembles" begin
     function scalar_value(cube)
         return Array(cube)[]
@@ -27,12 +34,16 @@
 
     stats = ensemble_mean_std_max_min(stats_cube)
     @test vector_values(stats.mean) ≈ [2.5, 14 / 3, 7.5]
-    @test vector_values(stats.stdev) ≈ [sqrt(1.25), sqrt(56 / 9 / 3), sqrt(11.25)] atol=1e-10
+    @test vector_values(stats.stdev) ≈ [sqrt(1.25), sqrt(56 / 9), sqrt(11.25)] atol=1e-10
     @test vector_values(stats.max) == [4.0, 8.0, 12.0]
     @test vector_values(stats.min) == [1.0, 2.0, 3.0]
 
     weighted_stats = ensemble_mean_std_max_min(stats_cube; weights=[1.0, 0.1, 3.5, 5.0])
-    @test vector_values(weighted_stats.mean) ≈ [3.1979166666666665, 7.171171171171171, 9.197916666666666] atol=1e-12
+    @test vector_values(weighted_stats.mean) ≈ [
+        (1.0 * 1.0 + 2.0 * 0.1 + 3.0 * 3.5 + 4.0 * 5.0) / (1.0 + 0.1 + 3.5 + 5.0),
+        (2.0 * 1.0 + 4.0 * 0.1 + 8.0 * 5.0) / (1.0 + 0.1 + 5.0),
+        (3.0 * 1.0 + 6.0 * 0.1 + 9.0 * 3.5 + 12.0 * 5.0) / (1.0 + 0.1 + 3.5 + 5.0),
+    ] atol=1e-12
     @test vector_values(weighted_stats.max) == [4.0, 8.0, 12.0]
     @test vector_values(weighted_stats.min) == [1.0, 2.0, 3.0]
 

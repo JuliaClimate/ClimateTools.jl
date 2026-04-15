@@ -169,14 +169,14 @@ function _weighted_quantiles_1d(values::AbstractVector{<:Real}, weights::Abstrac
     filtered_values = filtered_values[sorter]
     filtered_weights = filtered_weights[sorter] ./ weight_sum
 
-    weights_cumulative = vcat(0.0, cumsum(filtered_weights))
+    weights_cumulative = vcat(0.0, Base.cumsum(filtered_weights))
     interpolation_points = _weighted_h(effective_n, q, method)
     output = similar(Float64.(q))
 
     for (index, h) in pairs(interpolation_points)
         u = max.((h - 1) / effective_n, min.(h / effective_n, weights_cumulative))
         v = u .* effective_n .- h .+ 1
-        output[index] = sum(filtered_values .* diff(v))
+        output[index] = sum(filtered_values .* Base.diff(v))
     end
 
     return output
@@ -237,7 +237,8 @@ function _ensemble_mean_std_max_min_kernel(xout, xin; weights=nothing, min_membe
 end
 
 function _ensemble_mean_std_max_min_cube(cube::YAXArray; realization_dim="realization", weights=nothing, min_members=1)
-    total_members = length(lookup(cube, realization_dim))
+    realization_symbol = _normalize_xmap_dim(realization_dim)
+    total_members = length(lookup(cube, realization_symbol))
     resolved_weights = _resolve_realization_weights(weights, total_members, realization_dim)
     required_members = _required_member_count(min_members, total_members)
 
@@ -310,7 +311,8 @@ function _ensemble_percentiles_kernel(xout, xin; values, weights=nothing, min_me
 end
 
 function _ensemble_percentiles_cube(cube::YAXArray; values=[10, 50, 90], realization_dim="realization", weights=nothing, min_members=1, method="linear")
-    total_members = length(lookup(cube, realization_dim))
+    realization_symbol = _normalize_xmap_dim(realization_dim)
+    total_members = length(lookup(cube, realization_symbol))
     resolved_weights = _resolve_realization_weights(weights, total_members, realization_dim)
     required_members = _required_member_count(min_members, total_members)
     normalized_method = _normalize_quantile_method(method)
@@ -423,6 +425,7 @@ function make_criteria(ds::Dataset; realization_dim="realization")
     matrix_blocks = Matrix{Float64}[]
     labels = String[]
     realization_lookup = nothing
+    realization_symbol = _normalize_xmap_dim(realization_dim)
 
     for variable_name in keys(ds.cubes)
         cube = ds[variable_name]
@@ -432,8 +435,8 @@ function make_criteria(ds::Dataset; realization_dim="realization")
         isempty(block_labels) && continue
 
         if isnothing(realization_lookup)
-            realization_lookup = lookup(cube, realization_dim)
-        elseif collect(realization_lookup) != collect(lookup(cube, realization_dim))
+            realization_lookup = lookup(cube, realization_symbol)
+        elseif collect(realization_lookup) != collect(lookup(cube, realization_symbol))
             error("All variables passed to make_criteria must share the same realization axis.")
         end
 
@@ -443,7 +446,6 @@ function make_criteria(ds::Dataset; realization_dim="realization")
 
     isempty(matrix_blocks) && error("Dataset does not contain any variables with a $(realization_dim) axis.")
     matrix = hcat(matrix_blocks...)
-    realization_symbol = _normalize_xmap_dim(realization_dim)
     return YAXArray((Dim{realization_symbol}(realization_lookup), Dim{:criteria}(labels)), matrix)
 end
 
@@ -474,7 +476,7 @@ function _distance_between(x::AbstractVector, y::AbstractVector, dist_method::Ab
     elseif normalized == "cityblock"
         return sum(abs, delta)
     elseif normalized == "chebyshev"
-        return maximum(abs, delta)
+        return Base.maximum(abs, delta)
     elseif normalized == "cosine"
         denominator = norm(dx) * norm(dy)
         return iszero(denominator) ? 0.0 : 1 - dot(dx, dy) / denominator
@@ -553,7 +555,7 @@ function kkz_reduce_ensemble(data::YAXArray, num_select::Integer; realization_di
             candidate_vector = view(processed, candidate, :)
             push!(
                 separation,
-                minimum(_distance_between(view(processed, chosen, :), candidate_vector, normalized_metric; metric_kwargs...) for chosen in selected),
+                Base.minimum(_distance_between(view(processed, chosen, :), candidate_vector, normalized_metric; metric_kwargs...) for chosen in selected),
             )
         end
 
@@ -1054,19 +1056,12 @@ function _cdf_squared_area(x1::AbstractVector{<:Real}, x2::AbstractVector{<:Real
     values2 = sort(Float64.(x2[.!isnan.(x2)]))
     (isempty(values1) || isempty(values2)) && return NaN
 
-    grid = sort(unique(vcat(values1, values2)))
+    grid = sort(vcat(values1, values2))
     length(grid) <= 1 && return 0.0
-    area = 0.0
 
-    for index in 1:(length(grid) - 1)
-        left = grid[index]
-        right = grid[index + 1]
-        cdf1 = searchsortedlast(values1, left) / length(values1)
-        cdf2 = searchsortedlast(values2, left) / length(values2)
-        area += (cdf1 - cdf2)^2 * (right - left)
-    end
-
-    return area
+    cdf1 = Float64[searchsortedlast(values1, value) / length(values1) for value in grid]
+    cdf2 = Float64[searchsortedlast(values2, value) / length(values2) for value in grid]
+    return sum(Base.diff(grid) .* (cdf1[1:(end - 1)] .- cdf2[1:(end - 1)]).^2)
 end
 
 function _robustness_coefficient_arrays(reference_series::AbstractVector{<:Real}, future_matrix::AbstractMatrix{<:Real})
@@ -1077,8 +1072,12 @@ function _robustness_coefficient_arrays(reference_series::AbstractVector{<:Real}
     size(valid_future, 2) == 0 && return NaN
 
     pooled_future = Float64[valid_future[index] for index in eachindex(valid_future) if !isnan(valid_future[index])]
-    model_mean_projection = vec(mean(valid_future; dims=1))
-    model_mean_projection = model_mean_projection[.!isnan.(model_mean_projection)]
+    model_mean_projection = Float64[]
+    for member in axes(valid_future, 1)
+        member_values = vec(valid_future[member, :])
+        valid_member_values = member_values[.!isnan.(member_values)]
+        isempty(valid_member_values) || push!(model_mean_projection, Statistics.mean(valid_member_values))
+    end
     isempty(pooled_future) && return NaN
     isempty(model_mean_projection) && return NaN
 

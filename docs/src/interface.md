@@ -89,9 +89,36 @@ stats = ensemble_stats(cube; dim="member")
 fig2 = timeseriesplot(stats;
     selectors=(longitude=10, latitude=12),
     mode=:stats)
+
+xclim_stats = ensemble_mean_std_max_min(cube; realization_dim="member")
+fig3 = timeseriesplot(xclim_stats, :mean;
+    selectors=(longitude=10, latitude=12))
+
+xclim_percentiles = ensemble_percentiles(cube;
+    realization_dim="member",
+    values=[10, 50, 90],
+    split=false)
+fig4 = timeseriesplot(xclim_percentiles;
+    selectors=(longitude=10, latitude=12))
 ```
 
+`timeseriesplot(dataset, :varname)` and `statsplot(dataset, :varname)` now work directly on dataset outputs such as `ensemble_mean_std_max_min`.
+
+When `ensemble_percentiles(...; split=false)` is used, `timeseriesplot` automatically recognizes the `percentiles` dimension and draws one line per requested percentile.
+
 For geographic comparison of members, use `geomapfacet(cube; facetdim=:member, selectors=(time=1,))`.
+
+For robustness diagnostics, the plotting layer also includes a categorical map helper:
+
+```julia
+fractions = robustness_fractions(fut, ref; test="threshold", rel_thresh=0.02)
+fig5 = robustnessmap(fractions)
+
+classes = robustness_categories(fractions)
+fig6 = robustnessmap(classes)
+```
+
+`robustnessmap` accepts either the output of `robustness_fractions` or a precomputed categorical result from `robustness_categories`, and renders a discrete category map with labels derived from the robustness metadata.
 
 ## Where This Fits in the Workflow
 

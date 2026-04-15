@@ -104,6 +104,14 @@ _geomakie_test_ready() = _HAS_GEOMAKIE_TEST_DEPS && ClimateTools._ensure_plottin
         fig_ts_stats = timeseriesplot(member_stats; selectors=(longitude=1, latitude=1), mode=:stats)
         @test fig_ts_stats isa GeoMakie.Makie.Figure
 
+        xclim_stats = ensemble_mean_std_max_min(member_cube; realization_dim="member")
+        fig_ts_stats_dataset = timeseriesplot(xclim_stats, :mean; selectors=(longitude=1, latitude=1))
+        @test fig_ts_stats_dataset isa GeoMakie.Makie.Figure
+
+        percentile_cube = ensemble_percentiles(member_cube; realization_dim="member", values=[10, 50, 90], split=false)
+        fig_ts_percentiles = timeseriesplot(percentile_cube; selectors=(longitude=1, latitude=1))
+        @test fig_ts_percentiles isa GeoMakie.Makie.Figure
+
         noleap_times = [DateTimeNoLeap(2001, 1, day) for day in 1:4]
         noleap_cube = YAXArray((Dim{:time}(noleap_times),), Float64[1, 2, 3, 4])
 
@@ -126,6 +134,33 @@ _geomakie_test_ready() = _HAS_GEOMAKIE_TEST_DEPS && ClimateTools._ensure_plottin
 
         fig_grouped_stats = statsplot(member_cube; groupdim=:member, kind=:boxplot)
         @test fig_grouped_stats isa GeoMakie.Makie.Figure
+
+        fig_dataset_stats = statsplot(xclim_stats, :mean; kind=:hist)
+        @test fig_dataset_stats isa GeoMakie.Makie.Figure
+
+        fig_dataset_named_stats = statsplot(xclim_stats, (:mean, :max); kind=:boxplot)
+        @test fig_dataset_named_stats isa GeoMakie.Makie.Figure
+
+        changed = YAXArray(
+            (Dim{:longitude}(lon[1:2]), Dim{:latitude}(lat[1:2])),
+            [1.0 0.5; 0.8 1.0],
+        )
+        agree = YAXArray(
+            (Dim{:longitude}(lon[1:2]), Dim{:latitude}(lat[1:2])),
+            [1.0 1.0; 0.5 0.5],
+        )
+        valid = YAXArray(
+            (Dim{:longitude}(lon[1:2]), Dim{:latitude}(lat[1:2])),
+            ones(2, 2),
+        )
+        fractions = Dataset(changed=changed, agree=agree, valid=valid)
+        categories = robustness_categories(fractions)
+
+        fig_robustness_categories = robustnessmap(categories)
+        @test fig_robustness_categories isa GeoMakie.Makie.Figure
+
+        fig_robustness_fractions = robustnessmap(fractions)
+        @test fig_robustness_fractions isa GeoMakie.Makie.Figure
     end
 end
 
