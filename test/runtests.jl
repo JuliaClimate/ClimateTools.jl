@@ -58,6 +58,7 @@ using Dates
     include("functions_new_test.jl")
     include("functions_helpers_test.jl")
     include("climatology_test.jl")
+    include("ensembles_test.jl")
     include("markov_test.jl")
     include("power_test.jl")
     include("gev_test.jl")

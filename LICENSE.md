@@ -14,7 +14,9 @@ THE SOFTWARE IS PROVIDED “AS IS” AND THE AUTHOR DISCLAIMS ALL WARRANTIES WIT
 
 The following files contain material adapted from [xclim](https://github.com/Ouranosinc/xclim).
 
+- `src/ensembles.jl`
 - `src/xclim_indices.jl`
+- `test/ensembles_test.jl`
 - `test/xclim_indices_test.jl`
 
 Copyright 2018-2023 Ouranos Inc. and contributors.

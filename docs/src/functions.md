@@ -61,6 +61,11 @@ These are often used after bias correction or in post-processing chains.
 ## Ensembles and Statistics
 
 - `ensemble_stats`, `ensemble_fct`: ensemble summary helpers
+- `ensemble_mean_std_max_min`: xclim-style ensemble mean, standard deviation, maximum, and minimum over `realization`
+- `ensemble_percentiles`: percentile summaries over `realization`, with split or stacked outputs and optional weights
+- `make_criteria`: flatten multi-variable ensemble diagnostics to a 2D `realization x criteria` cube for reduction workflows
+- `kkz_reduce_ensemble`: deterministic KKZ ensemble-member subset selection
+- `robustness_fractions`, `robustness_categories`, `robustness_coefficient`: sign-agreement and robustness diagnostics for projected change
 - `quantiles`: grouped quantile summaries over a selected dimension
 - `gevfit_cube`, `gpfit_cube`, `returnlevel_cube`: reusable extreme-value fitting and return-level reuse over a reduced cube dimension; `gevfit_cube` is for block-maximum inputs, while `gpfit_cube` is for threshold exceedances
 - `rlevels_cube`: legacy one-step return-level estimation on raw cubes
