@@ -8,7 +8,6 @@
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/JuliaClimate/ClimateTools.jl)](https://github.com/JuliaClimate/ClimateTools.jl/releases)
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 [![DOI](https://zenodo.org/badge/76293821.svg)](https://zenodo.org/badge/latestdoi/76293821)
-[![chat](https://img.shields.io/badge/chat-on%20gitter-bc0067.svg)](https://gitter.im/ClimateTools-jl)
 
 ClimateTools.jl is a climate-analysis toolkit built on top of YAXArrays.jl for gridded observations, reanalyses, and climate-model simulations.
 
