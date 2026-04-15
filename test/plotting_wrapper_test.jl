@@ -33,6 +33,7 @@ end
         _assert_geomakie_fallback(() -> geomapfacet(map_cube; facetdim=:time, ncols=2))
         _assert_geomakie_fallback(() -> timeseriesplot(ts_cube))
         _assert_geomakie_fallback(() -> statsplot(Float64[1, 2, 3]))
+        _assert_geomakie_fallback(() -> robustnessmap(YAXArray((Dim{:longitude}(lon), Dim{:latitude}(lat)), reshape([1.0, 2.0, 3.0, 1.0], 2, 2), Dict("flag_values" => [1, 2, 3], "flag_descriptions" => ["Robust signal", "No change or no signal", "Conflicting signal"]))))
     else
         err = try
             ClimateTools._plotting_extension_error(:geomap)

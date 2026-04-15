@@ -58,6 +58,9 @@ export tg_max, tg_mean, tg_min
 export frost_days, tg_days_above, tg_days_below, tn_days_above, tn_days_below, tx_days_above, tx_days_below
 export hot_days, warm_day_frequency, warm_night_frequency, ice_days
 export growing_degree_days, heating_degree_days, cooling_degree_days
+export first_day_temperature_above, first_day_temperature_below, first_snowfall, last_snowfall, last_spring_frost
+export growing_season_start, growing_season_end, growing_season_length
+export frost_free_season_start, frost_free_season_end, frost_free_season_length, frost_season_length
 export dry_days, wetdays, wetdays_prop, maximum_consecutive_dry_days, maximum_consecutive_wet_days
 export maximum_consecutive_frost_days, maximum_consecutive_frost_free_days, maximum_consecutive_tx_days
 export cold_spell_days, cold_spell_frequency, cold_spell_max_length, cold_spell_total_length
@@ -71,8 +74,10 @@ export Regridder, regrid, regrid_cube, save_regridder, load_regridder
 export regrid_curvilinear_to_regular, regrid_rotated_curvilinear_to_regular
 export qqmap, qqmap_bulk, biascorrect_extremes
 export TVCModel, fit_tvc, apply_tvc, tvc
-export geomap, geomapfacet, timeseriesplot, statsplot
-export ensemble_fct, ensemble_stats
+export geomap, geomapfacet, timeseriesplot, statsplot, robustnessmap
+export ensemble_fct, ensemble_stats, ensemble_mean_std_max_min, ensemble_percentiles
+export make_criteria, kkz_reduce_ensemble
+export robustness_fractions, robustness_categories, robustness_coefficient
 export autocorrelation
 export hurst
 export MSModel

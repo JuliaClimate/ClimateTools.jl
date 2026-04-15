@@ -9,7 +9,12 @@ using Statistics
 
 const Makie = GeoMakie.Makie
 const DEFAULT_SOURCE_PROJ = "+proj=longlat +datum=WGS84"
-const ENSEMBLE_DIM_CANDIDATES = (:member, :members, :ensemble, :scenario, :realization, :realisation, :run)
+const ENSEMBLE_DIM_CANDIDATES = (:member, :members, :ensemble, :scenario, :realization, :realisation, :run, :percentiles)
+const DEFAULT_ROBUSTNESS_COLORS = [
+    :forestgreen,
+    :gray75,
+    :goldenrod,
+]
 
 function _is_missing_or_nan(value)
     return ismissing(value) || (value isa Number && isnan(value))
@@ -605,6 +610,38 @@ function _grouped_values_from_cube(cube::YAXArray; selectors=(;), groupdim)
     return labels, grouped
 end
 
+function _dataset_var(ds::Dataset, varname::Symbol)
+    haskey(ds.cubes, varname) || error("Dataset does not contain variable $(varname). Available variables: $(collect(keys(ds.cubes))).")
+    return ds[varname]
+end
+
+function _namedtuple_from_dataset(ds::Dataset, varnames)
+    names = Tuple(Symbol.(varnames))
+    values = Tuple(_values_for_stats(_dataset_var(ds, name)) for name in names)
+    return NamedTuple{names}(values)
+end
+
+function _robustness_tick_data(categories, flag_values, flag_descriptions)
+    values = collect(flag_values)
+    descriptions = string.(flag_descriptions)
+    return values, descriptions
+end
+
+function _robustness_category_metadata(cube::YAXArray)
+    properties = getproperty(cube, :properties)
+    flag_values = get(properties, "flag_values", nothing)
+    flag_descriptions = get(properties, "flag_descriptions", nothing)
+    isnothing(flag_values) && error("robustnessmap expects categorical robustness data with a `flag_values` property.")
+    isnothing(flag_descriptions) && error("robustnessmap expects categorical robustness data with a `flag_descriptions` property.")
+    return collect(flag_values), string.(flag_descriptions)
+end
+
+function _categorical_colormap(colors, category_count::Int)
+    palette = isnothing(colors) ? DEFAULT_ROBUSTNESS_COLORS : collect(colors)
+    length(palette) >= category_count || error("robustnessmap needs at least $(category_count) colors, got $(length(palette)).")
+    return palette[1:category_count]
+end
+
 function ClimateTools.geomap(cube::YAXArray; selectors=(;), dim=nothing, index=1, title=nothing, source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, colormap=:viridis, colorrange=nothing, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, colorbar::Bool=false, colorbar_label=nothing, colorbar_position::Symbol=:right, frame::Bool=true, limits=nothing, fit_limits::Bool=true, limit_padding::Tuple{<:Real,<:Real}=(0.0, 0.0), figure_size=(900, 500), axis_kwargs=(;), surface_kwargs=(;), colorbar_kwargs=(;))
     payload = _map_payload(cube; selectors=selectors, dim=dim, index=index)
     fig = Makie.Figure(size=figure_size)
@@ -863,6 +900,10 @@ function ClimateTools.timeseriesplot(cube::YAXArray; selectors=(;), reducer=noth
     return fig
 end
 
+function ClimateTools.timeseriesplot(ds::Dataset, varname::Symbol; kwargs...)
+    return ClimateTools.timeseriesplot(_dataset_var(ds, varname); kwargs...)
+end
+
 function _values_for_stats(data::AbstractVector)
     return _finite_values(data)
 end
@@ -923,6 +964,53 @@ function ClimateTools.statsplot(data::NamedTuple; kind::Symbol=:hist, bins=30, t
     end
 
     return fig
+end
+
+function ClimateTools.statsplot(ds::Dataset, varname::Symbol; kwargs...)
+    return ClimateTools.statsplot(_dataset_var(ds, varname); kwargs...)
+end
+
+function ClimateTools.statsplot(ds::Dataset, varnames::Union{AbstractVector{<:Symbol}, Tuple{Vararg{Symbol}}}; kind::Symbol=:hist, bins=30, title="Statistical plot", xlabel="Value", ylabel="Count", figure_size=(900, 400))
+    return ClimateTools.statsplot(_namedtuple_from_dataset(ds, varnames); kind=kind, bins=bins, title=title, xlabel=xlabel, ylabel=ylabel, figure_size=figure_size)
+end
+
+function ClimateTools.robustnessmap(categories::YAXArray; selectors=(;), dim=nothing, index=1, title="Robustness categories", source=DEFAULT_SOURCE_PROJ, dest=nothing, lon_0::Real=0.0, category_colors=nothing, coastlines::Bool=true, coastline_color=:black, coastline_width=1.0, colorbar::Bool=true, colorbar_position::Symbol=:right, frame::Bool=true, limits=nothing, fit_limits::Bool=true, limit_padding::Tuple{<:Real,<:Real}=(0.0, 0.0), figure_size=(900, 500), axis_kwargs=(;), surface_kwargs=(;), colorbar_kwargs=(;))
+    flag_values, flag_descriptions = _robustness_category_metadata(categories)
+    payload = _map_payload(categories; selectors=selectors, dim=dim, index=index)
+    categorical_colors = _categorical_colormap(category_colors, length(flag_values))
+    colorrange = (minimum(flag_values) - 0.5, maximum(flag_values) + 0.5)
+
+    fig = Makie.Figure(size=figure_size)
+    layout = _single_map_layout(fig, colorbar, colorbar_position)
+    _, plotobj = _render_map_axis!(layout.axis_slot, payload;
+        title=title,
+        source=source,
+        dest=dest,
+        lon_0=lon_0,
+        colormap=categorical_colors,
+        colorrange=colorrange,
+        coastlines=coastlines,
+        coastline_color=coastline_color,
+        coastline_width=coastline_width,
+        frame=frame,
+        limits=limits,
+        fit_limits=fit_limits,
+        padding_fraction=limit_padding,
+        axis_kwargs=axis_kwargs,
+        surface_kwargs=surface_kwargs,
+    )
+
+    if colorbar
+        ticks = _robustness_tick_data(categories, flag_values, flag_descriptions)
+        Makie.Colorbar(layout.colorbar_slot, plotobj; vertical=layout.vertical, ticks=ticks, colorbar_kwargs...)
+    end
+
+    return fig
+end
+
+function ClimateTools.robustnessmap(fractions::Dataset; selectors=(;), dim=nothing, index=1, title="Robustness categories", kwargs...)
+    categories = ClimateTools.robustness_categories(fractions)
+    return ClimateTools.robustnessmap(categories; selectors=selectors, dim=dim, index=index, title=title, kwargs...)
 end
 
 end
