@@ -1,6 +1,6 @@
 # Arithmetic and Ensembles
 
-ClimateTools is designed to feel like ordinary Julia array work on top of labeled gridded data.
+ClimateTools is designed to feel like ordinary Julia array work on top of labeled gridded data using YAXArrays back-end.
 
 ## Arithmetic on Compatible Cubes
 
