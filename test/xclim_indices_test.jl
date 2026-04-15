@@ -1,3 +1,9 @@
+# This test file includes parity fixtures and expected values adapted from
+# xclim (https://github.com/Ouranosinc/xclim), Copyright 2018-2023 Ouranos Inc.
+# and contributors, and is distributed under the Apache License, Version 2.0.
+# The ClimateTools.jl version modifies those cases for Julia and YAXArrays.
+# See LICENSES/xclim-APACHE-2.0.txt and LICENSE.md for details.
+
 @testset "xclim-style indices" begin
     function scalar_timeseries(cube)
         return vec(Array(cube))
@@ -15,6 +21,8 @@
     function grouped(values, dates, freq)
         if freq == "YS"
             keys = year.(dates)
+        elseif freq == "YS-JUL"
+            keys = [month(date) >= 7 ? year(date) : year(date) - 1 for date in dates]
         else
             keys = yearmonth.(dates)
         end
@@ -613,6 +621,83 @@
     @test scalar_timeseries(cold_spell_duration_index(percentile_tn, tn10_threshold; window=3)) == expected_csdi
     @test scalar_timeseries(warm_spell_duration_index(percentile_tx, tx90_threshold; window=3)) == expected_wsdi
     @test_throws ErrorException tx90p(short_cube, percentile_tx)
+
+    @testset "occurrence and season indices" begin
+        first_above_values = fill(307.0, 365)
+        first_above_values[181:270] .= 270.0
+        first_above_cube = make_series_cube(first_above_values; start=DateTime(2001, 1, 1))
+
+        @test scalar_timeseries(first_day_temperature_above(first_above_cube; thresh=300.0)) == [1.0]
+        @test scalar_timeseries(first_day_temperature_above(first_above_cube; thresh=300.0, after_date="07-01")) == [271.0]
+        @test_throws ArgumentError first_day_temperature_above(first_above_cube; thresh=300.0, op="<")
+
+        first_below_values = fill(10.0, 365)
+        first_below_values[181:270] .= 20.0
+        first_below_cube = make_series_cube(first_below_values; start=DateTime(2001, 1, 1))
+        always_warm_cube = make_series_cube(fill(20.0, 365); start=DateTime(2001, 1, 1))
+
+        @test scalar_timeseries(first_day_temperature_below(first_below_cube; thresh=15.0, after_date="07-01")) == [271.0]
+        @test isnan(scalar_timeseries(first_day_temperature_below(always_warm_cube; thresh=15.0))[1])
+        @test_throws ArgumentError first_day_temperature_below(first_below_cube; thresh=15.0, op=">=")
+
+        last_frost_values = fill(0.0, 365)
+        last_frost_values[181:270] .= 10.0
+        last_frost_cube = make_series_cube(last_frost_values; start=DateTime(2001, 1, 1))
+
+        @test scalar_timeseries(last_spring_frost(last_frost_cube; thresh=5.0, before_date="07-01")) == [180.0]
+        @test_throws ArgumentError last_spring_frost(last_frost_cube; thresh=5.0, op=">=")
+
+        snowfall_dates = collect(DateTime(2000, 7, 1):Day(1):DateTime(2002, 6, 30))
+        snowfall_values = zeros(length(snowfall_dates))
+        snowfall_values[findfirst(==(DateTime(2000, 9, 15)), snowfall_dates)] = 5.0
+        snowfall_values[findfirst(==(DateTime(2001, 3, 20)), snowfall_dates)] = 3.0
+        snowfall_values[findfirst(==(DateTime(2001, 10, 5)), snowfall_dates)] = 4.0
+        snowfall_values[findfirst(==(DateTime(2002, 4, 10)), snowfall_dates)] = 2.0
+        snowfall_cube = make_cube(snowfall_values, snowfall_dates)
+
+        first_snow = first_snowfall(snowfall_cube)
+        last_snow = last_snowfall(snowfall_cube)
+
+        @test collect(lookup(first_snow, :time)) == [DateTime(2000, 7, 1), DateTime(2001, 7, 1)]
+        @test scalar_timeseries(first_snow) == [259.0, 278.0]
+        @test scalar_timeseries(last_snow) == [79.0, 100.0]
+
+        season_values = zeros(366)
+        season_values[167:197] .= 10.0
+        season_cube = make_series_cube(season_values; start=DateTime(2000, 1, 1))
+        no_season_cube = make_series_cube(zeros(366); start=DateTime(2000, 1, 1))
+        all_year_season_cube = make_series_cube(fill(10.0, 366); start=DateTime(2000, 1, 1))
+
+        @test scalar_timeseries(growing_season_start(season_cube; thresh=5.0, window=1)) == [167.0]
+        @test scalar_timeseries(growing_season_end(season_cube; thresh=5.0, window=1)) == [198.0]
+        @test scalar_timeseries(growing_season_length(season_cube; thresh=5.0, window=1)) == [31.0]
+        @test scalar_timeseries(growing_season_end(season_cube; thresh=5.0, window=1, mid_date="10-01")) == [275.0]
+        @test isnan(scalar_timeseries(growing_season_start(no_season_cube; thresh=5.0, window=1))[1])
+        @test scalar_timeseries(growing_season_length(no_season_cube; thresh=5.0, window=1)) == [0.0]
+        @test scalar_timeseries(growing_season_end(all_year_season_cube; thresh=5.0, window=1)) == [366.0]
+
+        frost_free_values = fill(-5.0, 366)
+        frost_free_values[167:197] .= 5.0
+        frost_free_cube = make_series_cube(frost_free_values; start=DateTime(2000, 1, 1))
+
+        @test scalar_timeseries(frost_free_season_start(frost_free_cube; thresh=0.0, window=1)) == [167.0]
+        @test scalar_timeseries(frost_free_season_end(frost_free_cube; thresh=0.0, window=1)) == [198.0]
+        @test scalar_timeseries(frost_free_season_length(frost_free_cube; thresh=0.0, window=1)) == [31.0]
+
+        frost_season_dates = collect(DateTime(2000, 7, 1):Day(1):DateTime(2002, 6, 30))
+        frost_season_values = fill(10.0, length(frost_season_dates))
+        for (start_date, end_date) in ((DateTime(2000, 11, 1), DateTime(2001, 3, 1)), (DateTime(2001, 11, 1), DateTime(2002, 3, 1)))
+            first_index = findfirst(==(start_date), frost_season_dates)
+            last_index = findfirst(==(end_date), frost_season_dates)
+            frost_season_values[first_index:last_index] .= -5.0
+        end
+        frost_season_cube = make_cube(frost_season_values, frost_season_dates)
+        frost_season = frost_season_length(frost_season_cube; thresh=0.0, window=1, mid_date="01-01", freq="YS-JUL")
+
+        @test collect(lookup(frost_season, :time)) == [DateTime(2000, 7, 1), DateTime(2001, 7, 1)]
+        @test scalar_timeseries(frost_season) == [121.0, 121.0]
+        @test_throws ArgumentError frost_season_length(frost_season_cube; op=">=")
+    end
 
     standardized_dates = [DateTime(2000 + div(index - 1, 12), mod(index - 1, 12) + 1, 15) for index in 1:48]
 

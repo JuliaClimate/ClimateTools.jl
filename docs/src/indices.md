@@ -4,6 +4,8 @@ ClimateTools provides both classic annual summaries and a broader xclim-style ca
 
 Unless otherwise noted, the functions documented here operate directly on `YAXArray` inputs. Many xclim-style period reductions support `freq="YS"` for yearly output and `freq="MS"` for monthly output.
 
+The grouped interface and several index definitions are informed by the xclim climate-indicator library; see [References](references.md) for the upstream citation used in this documentation.
+
 ## 1. Core Aggregations
 
 Use these functions when you need a first-level summary before computing more specialized indices.
@@ -86,6 +88,24 @@ Degree-day style accumulations:
 - `growing_degree_days`
 - `heating_degree_days`
 - `cooling_degree_days`
+
+First and last occurrence indices:
+
+- `first_day_temperature_above`
+- `first_day_temperature_below`
+- `first_snowfall`
+- `last_snowfall`
+- `last_spring_frost`
+
+Season-boundary and season-length indices:
+
+- `growing_season_start`, `growing_season_end`, `growing_season_length`
+- `frost_free_season_start`, `frost_free_season_end`, `frost_free_season_length`
+- `frost_season_length`
+
+These functions add xclim-style occurrence and season semantics on top of the existing threshold-count API.
+They also accept anchored annual groupings such as `freq="YS-JUL"`, which is useful for snow and frost
+diagnostics defined over hydrological years.
 
 ## 5. Spell and Run-Length Indices
 

@@ -22,6 +22,10 @@ This is the methodological reference for `tvc`, `fit_tvc`, and `apply_tvc`.
 
 The grouped index interface in ClimateTools overlaps conceptually with ETCCDI and xclim-style climate-indicator workflows, especially for threshold counts, spell-duration indices, and percentile-based indices.
 
+- Bourgault, P., Huard, D., Smith, T. J., Logan, T., Aoun, A., Lavoie, J., et al. xclim: xarray-based climate data analytics. Journal of Open Source Software, 2023. DOI: 10.21105/joss.05415.
+
+This is the primary upstream reference for the xclim-style indicator framework that informs ClimateTools' grouped climate-index documentation and parity-oriented test coverage.
+
 ## Regridding and Scenario Construction
 
 The ClimateTools documentation uses workflow-oriented documentation patterns inspired by the broader climate-services ecosystem, including xclim’s separation of tutorials, workflow guides, and API reference.

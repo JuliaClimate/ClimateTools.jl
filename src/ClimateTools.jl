@@ -58,6 +58,9 @@ export tg_max, tg_mean, tg_min
 export frost_days, tg_days_above, tg_days_below, tn_days_above, tn_days_below, tx_days_above, tx_days_below
 export hot_days, warm_day_frequency, warm_night_frequency, ice_days
 export growing_degree_days, heating_degree_days, cooling_degree_days
+export first_day_temperature_above, first_day_temperature_below, first_snowfall, last_snowfall, last_spring_frost
+export growing_season_start, growing_season_end, growing_season_length
+export frost_free_season_start, frost_free_season_end, frost_free_season_length, frost_season_length
 export dry_days, wetdays, wetdays_prop, maximum_consecutive_dry_days, maximum_consecutive_wet_days
 export maximum_consecutive_frost_days, maximum_consecutive_frost_free_days, maximum_consecutive_tx_days
 export cold_spell_days, cold_spell_frequency, cold_spell_max_length, cold_spell_total_length

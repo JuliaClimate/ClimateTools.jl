@@ -1,21 +1,57 @@
+# Portions of this file are adapted from xclim (https://github.com/Ouranosinc/xclim),
+# Copyright 2018-2023 Ouranos Inc. and contributors, and are distributed under
+# the Apache License, Version 2.0. This ClimateTools.jl version rewrites and
+# modifies that material for YAXArrays-based Julia workflows. See
+# LICENSES/xclim-APACHE-2.0.txt and LICENSE.md for details.
+
+const _MONTH_TOKEN_TO_INDEX = Dict(
+    "jan" => 1,
+    "feb" => 2,
+    "mar" => 3,
+    "apr" => 4,
+    "may" => 5,
+    "jun" => 6,
+    "jul" => 7,
+    "aug" => 8,
+    "sep" => 9,
+    "oct" => 10,
+    "nov" => 11,
+    "dec" => 12,
+)
+
+function _parse_frequency_month(token)
+    normalized = lowercase(strip(string(token)))
+    month_index = if all(isdigit, normalized)
+        parse(Int, normalized)
+    else
+        get(_MONTH_TOKEN_TO_INDEX, normalized, nothing)
+    end
+
+    month_index isa Int && 1 <= month_index <= 12 || error("Unsupported annual anchor month $(token).")
+    return month_index
+end
+
 function _normalize_resample_frequency(freq)
     normalized = lowercase(string(freq))
     if normalized in ("ys", "as", "year", "yearly")
-        return :yearly
+        return (kind=:yearly, start_month=1, label_month=7)
+    elseif startswith(normalized, "ys-") || startswith(normalized, "as-")
+        month_index = _parse_frequency_month(split(normalized, "-"; limit=2)[2])
+        return (kind=:yearly, start_month=month_index, label_month=month_index)
     elseif normalized in ("ms", "month", "monthly")
-        return :monthly
+        return (kind=:monthly, start_month=nothing, label_month=nothing)
     end
 
-    error("Unsupported freq=$(freq). Supported values are \"YS\" and \"MS\".")
+    error("Unsupported freq=$(freq). Supported values are \"YS\", anchored yearly aliases such as \"YS-JUL\", and \"MS\".")
 end
 
 function _period_groups(time_values, freq)
     frequency = _normalize_resample_frequency(freq)
 
-    if frequency == :yearly
-        keys = year.(time_values)
+    if frequency.kind == :yearly
+        keys = [month(time_value) >= frequency.start_month ? year(time_value) : year(time_value) - 1 for time_value in time_values]
         unique_keys = unique(keys)
-        dates = dates_builder_yearmonthday_hardcode(unique_keys, imois=7, iday=1)
+        dates = dates_builder_yearmonthday_hardcode(unique_keys, imois=frequency.label_month, iday=1)
     else
         keys = yearmonth.(time_values)
         unique_keys = unique(keys)
@@ -212,7 +248,7 @@ function _standardized_gamma_index_kernel(xout, xin; month_index_groups, calibra
 end
 
 function _standardized_gamma_index(cube::YAXArray; window::Int=1, freq="MS", cal_start=nothing, cal_end=nothing, zero_inflated::Bool, min_positive_samples::Int=2)
-    _normalize_resample_frequency(freq) == :monthly || error("Only monthly frequency (`freq=\"MS\"`) is supported for standardized indices.")
+    _normalize_resample_frequency(freq).kind == :monthly || error("Only monthly frequency (`freq=\"MS\"`) is supported for standardized indices.")
 
     prepared = _monthly_standardized_input(cube; window=window)
     time_values = collect(lookup(prepared, :time))
@@ -272,6 +308,272 @@ function _validate_above_operator(op, name)
     normalized = lowercase(string(op))
     normalized in (">", "gt", ">=", "ge") || throw(ArgumentError("$(name) only supports `>` and `>=` comparison operators."))
     return op
+end
+
+function _validate_below_operator(op, name)
+    normalized = lowercase(string(op))
+    normalized in ("<", "lt", "<=", "le") || throw(ArgumentError("$(name) only supports `<` and `<=` comparison operators."))
+    return op
+end
+
+function _parse_month_day(date::Nothing)
+    return nothing
+end
+
+function _parse_month_day(date)
+    parts = split(string(date), "-"; limit=2)
+    length(parts) == 2 || throw(ArgumentError("Expected an MM-DD date string, got $(date)."))
+
+    month_value = parse(Int, parts[1])
+    day_value = parse(Int, parts[2])
+    1 <= month_value <= 12 || throw(ArgumentError("Month must be between 1 and 12 in $(date)."))
+    1 <= day_value <= 31 || throw(ArgumentError("Day must be between 1 and 31 in $(date)."))
+    return (month_value, day_value)
+end
+
+_month_day_tuple(time_value) = (month(time_value), day(time_value))
+
+function _seasonal_month_day_key(month_day, pivot)
+    return month_day >= pivot ? (0, month_day[1], month_day[2]) : (1, month_day[1], month_day[2])
+end
+
+function _is_on_or_after_month_day(time_value, month_day, pivot)
+    isnothing(month_day) && return true
+    return _seasonal_month_day_key(_month_day_tuple(time_value), pivot) >= _seasonal_month_day_key(month_day, pivot)
+end
+
+function _is_before_month_day(time_value, month_day, pivot)
+    isnothing(month_day) && return true
+    return _seasonal_month_day_key(_month_day_tuple(time_value), pivot) < _seasonal_month_day_key(month_day, pivot)
+end
+
+function _first_index_on_or_after(dates, month_day)
+    isnothing(month_day) && return 1
+    pivot = _month_day_tuple(first(dates))
+    for index in eachindex(dates)
+        if _is_on_or_after_month_day(dates[index], month_day, pivot)
+            return index
+        end
+    end
+    return nothing
+end
+
+function _window_matches(data, first_index::Int, window::Int, predicate::Function)
+    last_index = first_index + window - 1
+    last_index <= length(data) || return false
+
+    for index in first_index:last_index
+        value = data[index]
+        if ismissing(value) || (value isa Number && isnan(value))
+            return false
+        end
+        predicate(value) || return false
+    end
+
+    return true
+end
+
+function _first_run_start_after_date(data, dates, predicate::Function, window::Int; after_date=nothing)
+    window >= 1 || error("window must be >= 1")
+    search_start = _first_index_on_or_after(dates, _parse_month_day(after_date))
+    isnothing(search_start) && return nothing
+
+    max_start = length(data) - window + 1
+    search_start <= max_start || return nothing
+
+    for index in search_start:max_start
+        if _window_matches(data, index, window, predicate)
+            return index
+        end
+    end
+
+    return nothing
+end
+
+function _last_run_end_before_date(data, dates, predicate::Function, window::Int; before_date=nothing)
+    window >= 1 || error("window must be >= 1")
+    before_month_day = _parse_month_day(before_date)
+    pivot = _month_day_tuple(first(dates))
+
+    search_end = nothing
+    for index in eachindex(dates)
+        if _is_before_month_day(dates[index], before_month_day, pivot)
+            search_end = index
+        end
+    end
+
+    isnothing(search_end) && return nothing
+
+    for end_index in search_end:-1:window
+        start_index = end_index - window + 1
+        if _window_matches(data, start_index, window, predicate)
+            return end_index
+        end
+    end
+
+    return nothing
+end
+
+function _first_run_start_before_date(data, dates, predicate::Function, window::Int; before_date=nothing)
+    window >= 1 || error("window must be >= 1")
+    before_month_day = _parse_month_day(before_date)
+    pivot = _month_day_tuple(first(dates))
+
+    max_start = length(data) - window + 1
+    for index in 1:max_start
+        if !_is_before_month_day(dates[index], before_month_day, pivot)
+            continue
+        end
+        if _window_matches(data, index, window, predicate)
+            return index
+        end
+    end
+
+    return nothing
+end
+
+function _first_run_start_from_index(data, predicate::Function, window::Int, start_index::Int)
+    window >= 1 || error("window must be >= 1")
+    max_start = length(data) - window + 1
+    start_index <= max_start || return nothing
+
+    for index in start_index:max_start
+        if _window_matches(data, index, window, predicate)
+            return index
+        end
+    end
+
+    return nothing
+end
+
+function _has_valid_values(data)
+    for value in data
+        if !(ismissing(value) || (value isa Number && isnan(value)))
+            return true
+        end
+    end
+    return false
+end
+
+function _occurrence_dayofyear(data, dates, comparator::Function, thresh, window::Int; mode::Symbol, after_date=nothing, before_date=nothing)
+    _has_valid_values(data) || return NaN
+    index = if mode == :first
+        _first_run_start_after_date(data, dates, value -> comparator(value, thresh), window; after_date=after_date)
+    elseif mode == :last
+        _last_run_end_before_date(data, dates, value -> comparator(value, thresh), window; before_date=before_date)
+    else
+        error("Unsupported occurrence mode $(mode).")
+    end
+
+    isnothing(index) && return NaN
+    return dayofyear(dates[index])
+end
+
+function _season_stat(data, dates, comparator::Function, thresh, window::Int; stat::Symbol, mid_date=nothing)
+    _has_valid_values(data) || return NaN
+
+    condition = value -> comparator(value, thresh)
+    start_index = _first_run_start_before_date(data, dates, condition, window; before_date=mid_date)
+    if isnothing(start_index)
+        return stat == :length ? 0.0 : NaN
+    end
+
+    search_start = start_index
+    if !isnothing(mid_date)
+        mid_index = _first_index_on_or_after(dates, _parse_month_day(mid_date))
+        if !isnothing(mid_index)
+            search_start = max(search_start, mid_index)
+        end
+    end
+
+    end_index = _first_run_start_from_index(data, value -> !condition(value), window, search_start)
+    if stat == :start
+        return dayofyear(dates[start_index])
+    elseif stat == :end
+        reference_index = isnothing(end_index) ? length(dates) : end_index
+        return dayofyear(dates[reference_index])
+    elseif stat == :length
+        if isnothing(end_index)
+            return length(dates) - start_index + 1
+        end
+        return end_index - start_index
+    end
+
+    error("Unsupported season statistic $(stat).")
+end
+
+function _occurrence_index_kernel(xout, xin; index_list, time_values, comparator::Function, threshold, window::Int, mode::Symbol, after_date, before_date)
+    xout .= NaN
+
+    for index in eachindex(index_list)
+        xout[index] = _occurrence_dayofyear(
+            view(xin, index_list[index]),
+            view(time_values, index_list[index]),
+            comparator,
+            threshold,
+            window;
+            mode=mode,
+            after_date=after_date,
+            before_date=before_date,
+        )
+    end
+end
+
+function _season_index_kernel(xout, xin; index_list, time_values, comparator::Function, threshold, window::Int, stat::Symbol, mid_date)
+    xout .= NaN
+
+    for index in eachindex(index_list)
+        xout[index] = _season_stat(
+            view(xin, index_list[index]),
+            view(time_values, index_list[index]),
+            comparator,
+            threshold,
+            window;
+            stat=stat,
+            mid_date=mid_date,
+        )
+    end
+end
+
+function _occurrence_index(cube::YAXArray; thresh, freq="YS", op, window::Int=1, mode::Symbol, after_date=nothing, before_date=nothing)
+    index_list, dates = _period_groups(cube.time, freq)
+    time_values = collect(lookup(cube, :time))
+    return _xmap_call(
+        _occurrence_index_kernel,
+        cube;
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(dates),),
+        function_kwargs=(
+            index_list=index_list,
+            time_values=time_values,
+            comparator=_comparison_operator(op),
+            threshold=thresh,
+            window=window,
+            mode=mode,
+            after_date=after_date,
+            before_date=before_date,
+        ),
+    )
+end
+
+function _season_index(cube::YAXArray; thresh, freq="YS", op, window::Int, stat::Symbol, mid_date=nothing)
+    index_list, dates = _period_groups(cube.time, freq)
+    time_values = collect(lookup(cube, :time))
+    return _xmap_call(
+        _season_index_kernel,
+        cube;
+        reduced_dims=:time,
+        output_axes=(Dim{:time}(dates),),
+        function_kwargs=(
+            index_list=index_list,
+            time_values=time_values,
+            comparator=_comparison_operator(op),
+            threshold=thresh,
+            window=window,
+            stat=stat,
+            mid_date=mid_date,
+        ),
+    )
 end
 
 function _threshold_count(cube::YAXArray; thresh, freq="YS", op=">=")
@@ -926,6 +1228,131 @@ Sum of positive daily mean temperature exceedances above a cooling threshold.
 """
 function cooling_degree_days(tas::YAXArray; thresh=18.0, freq="YS")
     return _thresholded_sum(tas; thresh=thresh, freq=freq, op=">")
+end
+
+"""
+    first_day_temperature_above(tas::YAXArray; thresh=0.0, op=">", after_date="01-01", window=1, freq="YS")
+
+Day of year of the first run of at least `window` days with temperature above a threshold,
+searched from `after_date` onward within each output period.
+"""
+function first_day_temperature_above(tas::YAXArray; thresh=0.0, op=">", after_date="01-01", window::Int=1, freq="YS")
+    _validate_above_operator(op, "first_day_temperature_above")
+    return _occurrence_index(tas; thresh=thresh, freq=freq, op=op, window=window, mode=:first, after_date=after_date)
+end
+
+"""
+    first_day_temperature_below(tas::YAXArray; thresh=0.0, op="<", after_date="07-01", window=1, freq="YS")
+
+Day of year of the first run of at least `window` days with temperature below a threshold,
+searched from `after_date` onward within each output period.
+"""
+function first_day_temperature_below(tas::YAXArray; thresh=0.0, op="<", after_date="07-01", window::Int=1, freq="YS")
+    _validate_below_operator(op, "first_day_temperature_below")
+    return _occurrence_index(tas; thresh=thresh, freq=freq, op=op, window=window, mode=:first, after_date=after_date)
+end
+
+"""
+    first_snowfall(prsn::YAXArray; thresh=1.0, freq="YS-JUL")
+
+Day of year of the first snowfall event, defined here as the first day with snowfall strictly
+greater than `thresh` within each output period.
+"""
+function first_snowfall(prsn::YAXArray; thresh=1.0, freq="YS-JUL")
+    return _occurrence_index(prsn; thresh=thresh, freq=freq, op=">", window=1, mode=:first)
+end
+
+"""
+    last_snowfall(prsn::YAXArray; thresh=1.0, freq="YS-JUL")
+
+Day of year of the last snowfall event, defined here as the last day with snowfall strictly
+greater than `thresh` within each output period.
+"""
+function last_snowfall(prsn::YAXArray; thresh=1.0, freq="YS-JUL")
+    return _occurrence_index(prsn; thresh=thresh, freq=freq, op=">", window=1, mode=:last)
+end
+
+"""
+    last_spring_frost(tasmin::YAXArray; thresh=0.0, op="<", before_date="07-01", window=1, freq="YS")
+
+Day of year of the last run of at least `window` days with temperature below a threshold,
+ending before `before_date` within each output period.
+"""
+function last_spring_frost(tasmin::YAXArray; thresh=0.0, op="<", before_date="07-01", window::Int=1, freq="YS")
+    _validate_below_operator(op, "last_spring_frost")
+    return _occurrence_index(tasmin; thresh=thresh, freq=freq, op=op, window=window, mode=:last, before_date=before_date)
+end
+
+"""
+    growing_season_start(tas::YAXArray; thresh=5.0, mid_date="07-01", window=5, freq="YS", op=">=")
+
+Day of year of the start of the growing season, defined as the first run of at least `window`
+days with temperature above `thresh`, starting before `mid_date`.
+"""
+function growing_season_start(tas::YAXArray; thresh=5.0, mid_date="07-01", window::Int=5, freq="YS", op=">=")
+    _validate_above_operator(op, "growing_season_start")
+    return _season_index(tas; thresh=thresh, freq=freq, op=op, window=window, stat=:start, mid_date=mid_date)
+end
+
+"""
+    growing_season_end(tas::YAXArray; thresh=5.0, mid_date="07-01", window=5, freq="YS", op=">=")
+
+Day of year of the end of the growing season, defined as the first run of at least `window`
+days below the threshold after a valid season start and no earlier than `mid_date`.
+"""
+function growing_season_end(tas::YAXArray; thresh=5.0, mid_date="07-01", window::Int=5, freq="YS", op=">=")
+    _validate_above_operator(op, "growing_season_end")
+    return _season_index(tas; thresh=thresh, freq=freq, op=op, window=window, stat=:end, mid_date=mid_date)
+end
+
+"""
+    growing_season_length(tas::YAXArray; thresh=5.0, window=6, mid_date="07-01", freq="YS", op=">=")
+
+Number of days between the start and end of the growing season.
+"""
+function growing_season_length(tas::YAXArray; thresh=5.0, window::Int=6, mid_date="07-01", freq="YS", op=">=")
+    _validate_above_operator(op, "growing_season_length")
+    return _season_index(tas; thresh=thresh, freq=freq, op=op, window=window, stat=:length, mid_date=mid_date)
+end
+
+"""
+    frost_free_season_start(tasmin::YAXArray; thresh=0.0, window=5, mid_date="07-01", op=">=", freq="YS")
+
+Day of year of the start of the frost-free season.
+"""
+function frost_free_season_start(tasmin::YAXArray; thresh=0.0, window::Int=5, mid_date="07-01", op=">=", freq="YS")
+    _validate_above_operator(op, "frost_free_season_start")
+    return _season_index(tasmin; thresh=thresh, freq=freq, op=op, window=window, stat=:start, mid_date=mid_date)
+end
+
+"""
+    frost_free_season_end(tasmin::YAXArray; thresh=0.0, window=5, mid_date="07-01", op=">=", freq="YS")
+
+Day of year of the end of the frost-free season.
+"""
+function frost_free_season_end(tasmin::YAXArray; thresh=0.0, window::Int=5, mid_date="07-01", op=">=", freq="YS")
+    _validate_above_operator(op, "frost_free_season_end")
+    return _season_index(tasmin; thresh=thresh, freq=freq, op=op, window=window, stat=:end, mid_date=mid_date)
+end
+
+"""
+    frost_free_season_length(tasmin::YAXArray; thresh=0.0, window=5, mid_date="07-01", op=">=", freq="YS")
+
+Number of days between the start and end of the frost-free season.
+"""
+function frost_free_season_length(tasmin::YAXArray; thresh=0.0, window::Int=5, mid_date="07-01", op=">=", freq="YS")
+    _validate_above_operator(op, "frost_free_season_length")
+    return _season_index(tasmin; thresh=thresh, freq=freq, op=op, window=window, stat=:length, mid_date=mid_date)
+end
+
+"""
+    frost_season_length(tasmin::YAXArray; window=5, mid_date="01-01", thresh=0.0, freq="YS-JUL", op="<")
+
+Number of days between the start and end of the frost season.
+"""
+function frost_season_length(tasmin::YAXArray; window::Int=5, mid_date="01-01", thresh=0.0, freq="YS-JUL", op="<")
+    _validate_below_operator(op, "frost_season_length")
+    return _season_index(tasmin; thresh=thresh, freq=freq, op=op, window=window, stat=:length, mid_date=mid_date)
 end
 
 """
