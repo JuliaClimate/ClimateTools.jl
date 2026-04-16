@@ -9,6 +9,7 @@ using Test
 using YAXArrays
 using DimensionalData
 using Dates
+using NetCDF
 using Statistics
 
 @testset "xclim-style ensembles" begin
@@ -23,6 +24,131 @@ using Statistics
     function make_member_time_cube(data)
         times = collect(DateTime(2000, 1, 1):Year(1):(DateTime(2000, 1, 1) + Year(size(data, 2) - 1)))
         return YAXArray((Dim{:realization}(1:size(data, 1)), Dim{:time}(times)), Float64.(data))
+    end
+
+    function write_member_dataset(path, tas_values, pr_values)
+        lon = [10.0, 20.0]
+        time = [1, 2, 3]
+        nccreate(path, "tas", "lon", lon, "time", time, atts=Dict("units" => "K"))
+        ncwrite(Float64.(tas_values), path, "tas")
+        nccreate(path, "pr", "lon", lon, "time", time, atts=Dict("units" => "mm"))
+        ncwrite(Float64.(pr_values), path, "pr")
+    end
+
+    function write_member_zarr_dataset(path, tas_values, pr_values)
+        dims = (Dim{:lon}([10.0, 20.0]), Dim{:time}([1, 2, 3]))
+        ds = Dataset(
+            tas=YAXArray(dims, Float64.(tas_values)),
+            pr=YAXArray(dims, Float64.(pr_values)),
+        )
+        savedataset(ds, path=path, driver=:zarr, overwrite=true)
+    end
+
+    function write_member_dataset_with_order(path, tas_values, pr_values, order)
+        dimcoords = Dict(:lon => [10.0, 20.0], :time => [1, 2, 3])
+        dimargs = Any[]
+        for dim in order
+            push!(dimargs, String(dim))
+            push!(dimargs, dimcoords[dim])
+        end
+
+        nccreate(path, "tas", dimargs..., atts=Dict("units" => "K"))
+        ncwrite(Float64.(tas_values), path, "tas")
+        nccreate(path, "pr", dimargs..., atts=Dict("units" => "mm"))
+        ncwrite(Float64.(pr_values), path, "pr")
+    end
+
+    @testset "open_ensemble_dataset" begin
+        mktempdir() do tmpdir
+            member1_file = joinpath(tmpdir, "member1.nc")
+            member2_file = joinpath(tmpdir, "member2.nc")
+
+            member1_tas = reshape(Float64[1, 2, 3, 4, 5, 6], 2, 3)
+            member2_tas = reshape(Float64[11, 12, 13, 14, 15, 16], 2, 3)
+            member1_pr = reshape(Float64[0.1, 0.2, 0.3, 0.4, 0.5, 0.6], 2, 3)
+            member2_pr = reshape(Float64[1.1, 1.2, 1.3, 1.4, 1.5, 1.6], 2, 3)
+
+            write_member_dataset(member1_file, member1_tas, member1_pr)
+            write_member_dataset(member2_file, member2_tas, member2_pr)
+
+            ds = open_ensemble_dataset([member1_file, member2_file]; driver=:netcdf)
+            @test Set(keys(ds.cubes)) == Set([:tas, :pr])
+            @test collect(lookup(ds.tas, :realization)) == [1, 2]
+
+            axis_symbols = Symbol[name(axis) for axis in ds.tas.axes]
+            realization_position = findfirst(==(:realization), axis_symbols)
+            @test !isnothing(realization_position)
+
+            member1_selectors = ntuple(i -> i == realization_position ? 1 : Colon(), ndims(ds.tas))
+            member2_selectors = ntuple(i -> i == realization_position ? 2 : Colon(), ndims(ds.pr))
+            @test Array(ds.tas[member1_selectors...]) == member1_tas
+            @test Array(ds.pr[member2_selectors...]) == member2_pr
+
+            named_ds = open_ensemble_dataset(
+                [member1_file, member2_file];
+                realization_dim="member",
+                realization_values=["r1", "r2"],
+                driver=:netcdf,
+            )
+            @test collect(lookup(named_ds.tas, :member)) == ["r1", "r2"]
+
+            @test_throws ErrorException open_ensemble_dataset(String[])
+            @test_throws ErrorException open_ensemble_dataset([member1_file, member2_file]; realization_values=[1])
+        end
+
+        mktempdir() do tmpdir
+            member1_store = joinpath(tmpdir, "member1.zarr")
+            member2_store = joinpath(tmpdir, "member2.zarr")
+
+            member1_tas = reshape(Float64[2, 4, 6, 8, 10, 12], 2, 3)
+            member2_tas = reshape(Float64[3, 6, 9, 12, 15, 18], 2, 3)
+            member1_pr = reshape(Float64[0.2, 0.4, 0.6, 0.8, 1.0, 1.2], 2, 3)
+            member2_pr = reshape(Float64[0.3, 0.6, 0.9, 1.2, 1.5, 1.8], 2, 3)
+
+            write_member_zarr_dataset(member1_store, member1_tas, member1_pr)
+            write_member_zarr_dataset(member2_store, member2_tas, member2_pr)
+
+            zarr_ds = open_ensemble_dataset(
+                [member1_store, member2_store];
+                realization_values=["r1", "r2"],
+                driver=:zarr,
+            )
+            @test collect(lookup(zarr_ds.tas, :realization)) == ["r1", "r2"]
+
+            axis_symbols = Symbol[name(axis) for axis in zarr_ds.pr.axes]
+            realization_position = findfirst(==(:realization), axis_symbols)
+            @test !isnothing(realization_position)
+
+            member1_selectors = ntuple(i -> i == realization_position ? 1 : Colon(), ndims(zarr_ds.tas))
+            member2_selectors = ntuple(i -> i == realization_position ? 2 : Colon(), ndims(zarr_ds.pr))
+            @test Array(zarr_ds.tas[member1_selectors...]) == member1_tas
+            @test Array(zarr_ds.pr[member2_selectors...]) == member2_pr
+        end
+
+        mktempdir() do tmpdir
+            member1_file = joinpath(tmpdir, "member1.nc")
+            member2_file = joinpath(tmpdir, "member2.nc")
+
+            canonical_tas_1 = reshape(Float64[1, 2, 3, 4, 5, 6], 2, 3)
+            canonical_tas_2 = reshape(Float64[11, 12, 13, 14, 15, 16], 2, 3)
+            canonical_pr_1 = reshape(Float64[0.1, 0.2, 0.3, 0.4, 0.5, 0.6], 2, 3)
+            canonical_pr_2 = reshape(Float64[1.1, 1.2, 1.3, 1.4, 1.5, 1.6], 2, 3)
+
+            write_member_dataset_with_order(member1_file, canonical_tas_1, canonical_pr_1, (:lon, :time))
+            write_member_dataset_with_order(member2_file, permutedims(canonical_tas_2, (2, 1)), permutedims(canonical_pr_2, (2, 1)), (:time, :lon))
+
+            reordered_ds = open_ensemble_dataset([member1_file, member2_file]; driver=:netcdf)
+            axis_symbols = Symbol[name(axis) for axis in reordered_ds.tas.axes]
+            realization_position = findfirst(==(:realization), axis_symbols)
+            @test !isnothing(realization_position)
+
+            member1_selectors = ntuple(i -> i == realization_position ? 1 : Colon(), ndims(reordered_ds.tas))
+            member2_selectors = ntuple(i -> i == realization_position ? 2 : Colon(), ndims(reordered_ds.pr))
+            @test Array(reordered_ds.tas[member1_selectors...]) == canonical_tas_1
+            @test Array(reordered_ds.tas[member2_selectors...]) == canonical_tas_2
+            @test Array(reordered_ds.pr[member1_selectors...]) == canonical_pr_1
+            @test Array(reordered_ds.pr[member2_selectors...]) == canonical_pr_2
+        end
     end
 
     stats_cube = make_member_time_cube([
@@ -139,4 +265,163 @@ using Statistics
     )
     @test scalar_value(robustness_coefficient(fut, ref)) ≈ 0.91972477 atol=1e-6
     @test scalar_value(robustness_coefficient(Dataset(tas=fut), Dataset(tas=ref)).tas) ≈ 0.91972477 atol=1e-6
+
+    @testset "dataset ensemble summaries and validations" begin
+        static_cube = YAXArray((stats_cube.axes[2],), Float64[10, 20, 30])
+        weights_cube = YAXArray((Dim{:realization}(1:4),), Float64[1.0, 0.1, 3.5, 5.0])
+        ds = Dataset(
+            tas=stats_cube,
+            pr=YAXArray(stats_cube.axes, 2 .* Array(stats_cube)),
+            static=static_cube,
+        )
+
+        dataset_stats = ensemble_mean_std_max_min(ds; weights=weights_cube)
+        @test Set(keys(dataset_stats.cubes)) == Set([
+            :tas_mean,
+            :tas_stdev,
+            :tas_max,
+            :tas_min,
+            :pr_mean,
+            :pr_stdev,
+            :pr_max,
+            :pr_min,
+        ])
+        @test vector_values(dataset_stats.tas_mean) ≈ vector_values(weighted_stats.mean) atol=1e-12
+        @test vector_values(dataset_stats.pr_mean) ≈ 2 .* vector_values(weighted_stats.mean) atol=1e-12
+
+        percentile_dataset = ensemble_percentiles(ds; values=[12.5, 50], weights=weights_cube, split=false)
+        @test Set(keys(percentile_dataset.cubes)) == Set([:tas, :pr])
+        @test collect(lookup(percentile_dataset.tas, :percentiles)) == [12.5, 50.0]
+
+        custom_percentiles = ensemble_percentiles(stats_cube; values=[12.5])
+        custom_dataset_percentiles = ensemble_percentiles(Dataset(tas=stats_cube); values=[12.5])
+        @test Set(keys(custom_percentiles.cubes)) == Set([:p12_5])
+        @test Set(keys(custom_dataset_percentiles.cubes)) == Set([:tas_p12_5])
+
+        weighted_cube_percentiles = ensemble_percentiles(stats_cube; values=[20, 50], weights=weights_cube, split=false)
+        weighted_vector_percentiles = ensemble_percentiles(stats_cube; values=[20, 50], weights=[1.0, 0.1, 3.5, 5.0], split=false)
+        @test Array(weighted_cube_percentiles) ≈ Array(weighted_vector_percentiles) atol=1e-12
+
+        @test_throws ErrorException ensemble_mean_std_max_min(stats_cube; min_members=0)
+        @test_throws ErrorException ensemble_mean_std_max_min(Dataset(static=static_cube))
+        @test_throws ErrorException ensemble_percentiles(stats_cube; method="not-a-method")
+        @test_throws ErrorException ensemble_percentiles(Dataset(static=static_cube))
+        @test_throws ErrorException ensemble_percentiles(stats_cube; weights=[1.0, 2.0], split=false)
+        @test_throws ErrorException Array(ensemble_percentiles(stats_cube; values=[50], weights=weights_cube, method="hazen", split=false))
+    end
+
+    @testset "criteria and kkz branches" begin
+        criteria_input = YAXArray((Dim{:realization}(1:3),), Float64[1.0, NaN, 3.0])
+        one_dimensional_criteria = make_criteria(criteria_input)
+        @test size(one_dimensional_criteria) == (3, 1)
+        @test collect(lookup(one_dimensional_criteria, :criteria)) == ["value"]
+
+        cube_a = YAXArray((Dim{:realization}(1:2), Dim{:time}(1:2)), Float64[1 2; 3 4])
+        cube_b = YAXArray((Dim{:realization}(2:3), Dim{:time}(1:2)), Float64[5 6; 7 8])
+        static_cube = YAXArray((Dim{:time}(1:2),), Float64[1, 2])
+        @test_throws ErrorException make_criteria(Dataset(a=cube_a, b=cube_b))
+        @test_throws ErrorException make_criteria(Dataset(static=static_cube))
+
+        criteria_cube = YAXArray(
+            (Dim{:realization}(1:4), Dim{:criteria}(["a", "b"])),
+            Float64[
+                0 0;
+                1 0;
+                0 1;
+                3 3;
+            ],
+        )
+        for method in ["cityblock", "chebyshev", "cosine", "seuclidean", "mahalanobis"]
+            selected = kkz_reduce_ensemble(criteria_cube, 2; dist_method=method, standardize=false)
+            @test length(selected) == 2
+            @test length(unique(selected)) == 2
+            @test all((1 .<= selected) .& (selected .<= 4))
+        end
+
+        kkz_dataset = Dataset(tas=YAXArray((Dim{:realization}(1:4), Dim{:time}(1:1)), reshape(Float64[0, 2, 5, 10], 4, 1)))
+        @test kkz_reduce_ensemble(kkz_dataset, 3; standardize=false) == kkz_reduce_ensemble(make_criteria(kkz_dataset), 3; standardize=false)
+
+        nan_criteria_cube = YAXArray((Dim{:realization}(1:2), Dim{:criteria}(["a"])), reshape(Float64[1.0, NaN], 2, 1))
+        @test_throws ErrorException kkz_reduce_ensemble(nan_criteria_cube, 1)
+        @test_throws ErrorException kkz_reduce_ensemble(criteria_cube, 5)
+    end
+
+    @testset "robustness branches" begin
+        lats = [10.0, 20.0]
+        times = 1:5
+
+        ref_data = zeros(Float64, 2, 2, 5)
+        ref_data[1, 1, :] = [1.0, 2.0, 1.0, 2.0, 1.0]
+        ref_data[1, 2, :] = [1.5, 2.5, 1.5, 2.5, 1.5]
+        ref_data[2, 1, :] = [1.0, 1.5, 1.0, 1.5, 1.0]
+        ref_data[2, 2, :] = [0.5, 1.0, 0.5, 1.0, 0.5]
+
+        fut_data = zeros(Float64, 2, 2, 5)
+        fut_data[1, 1, :] = [3.0, 4.0, 3.0, 4.0, 3.0]
+        fut_data[1, 2, :] = [2.5, 3.5, 2.5, 3.5, 2.5]
+        fut_data[2, 1, :] = [1.2, 1.6, 1.1, 1.5, 1.0]
+        fut_data[2, 2, :] = [0.8, 1.2, 0.7, 1.1, 0.6]
+
+        future_cube = YAXArray((Dim{:lat}(lats), Dim{:realization}(1:2), Dim{:time}(times)), fut_data)
+        reference_cube = YAXArray((Dim{:lat}(lats), Dim{:realization}(1:2), Dim{:time}(times)), ref_data)
+
+        for test_name in ["ttest", "welch-ttest", "mannwhitney-utest", "brownforsythe-test"]
+            fractions = robustness_fractions(future_cube, reference_cube; test=test_name)
+            @test haskey(fractions.cubes, :pvals)
+            @test size(Array(fractions.pvals)) == (2, 2)
+            @test all(isfinite, vec(Array(fractions.pvals)))
+            @test all((0 .<= vec(Array(fractions.changed))) .& (vec(Array(fractions.changed)) .<= 1))
+        end
+
+        invalid_future_data = copy(fut_data)
+        invalid_future_data[2, 2, 4:5] .= NaN
+        invalid_future_cube = YAXArray((Dim{:lat}(lats), Dim{:realization}(1:2), Dim{:time}(times)), invalid_future_data)
+        invalid_fractions = robustness_fractions(invalid_future_cube, reference_cube; test="welch-ttest", invalid=(n=4,))
+        @test vec(Array(invalid_fractions.valid)) == [1.0, 0.5]
+
+        delta_cube = YAXArray(
+            (Dim{:lat}(lats), Dim{:realization}(1:4)),
+            Float64[
+                1.0 2.0 3.0 4.0;
+                -1.0 0.5 0.0 2.0;
+            ],
+        )
+        rel_threshold_fractions = robustness_fractions(delta_cube; test="threshold", rel_thresh=1.5)
+        @test vec(Array(rel_threshold_fractions.changed)) == [0.75, 0.25]
+        @test vec(Array(rel_threshold_fractions.agree)) == [1.0, 0.5]
+
+        ipcc_fractions = robustness_fractions(
+            future_cube,
+            reference_cube;
+            test="ipcc-ar6-c",
+            ref_pi=Float64.(repeat([0.0, 1.0], 20)),
+        )
+        @test !haskey(ipcc_fractions.cubes, :pvals)
+        @test all(vec(Array(ipcc_fractions.valid)) .== 1.0)
+
+        category_source = Dataset(
+            changed=YAXArray((Dim{:lat}(lats),), Float64[0.2, 0.5]),
+            agree=YAXArray((Dim{:lat}(lats),), Float64[0.4, 0.7]),
+            valid=YAXArray((Dim{:lat}(lats),), Float64[1.0, 0.0]),
+        )
+        custom_categories = robustness_categories(
+            category_source;
+            categories=["Exact half", "At most half"],
+            ops=[("==", nothing), ("<=", "<=")],
+            thresholds=[(0.5, nothing), (0.5, 0.5)],
+        )
+        @test vec(Array(custom_categories)) == [2, 99]
+        @test custom_categories.properties["flag_values"] == [1, 2]
+        @test custom_categories.properties["flag_meanings"] == "exact_half at_most_half"
+
+        coefficient = robustness_coefficient(future_cube, reference_cube)
+        dataset_coefficient = robustness_coefficient(
+            Dataset(tas=future_cube, pr=YAXArray(future_cube.axes, 2 .* Array(future_cube))),
+            Dataset(tas=reference_cube, pr=YAXArray(reference_cube.axes, 2 .* Array(reference_cube))),
+        )
+        @test size(Array(coefficient)) == (2,)
+        @test all(isfinite, vec(Array(coefficient)))
+        @test Array(dataset_coefficient.tas) ≈ Array(coefficient)
+        @test_throws ErrorException robustness_coefficient(Dataset(foo=future_cube), Dataset(bar=reference_cube))
+    end
 end

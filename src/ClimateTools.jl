@@ -75,7 +75,7 @@ export regrid_curvilinear_to_regular, regrid_rotated_curvilinear_to_regular
 export qqmap, qqmap_bulk, biascorrect_extremes
 export TVCModel, fit_tvc, apply_tvc, tvc
 export geomap, geomapfacet, timeseriesplot, statsplot, robustnessmap
-export ensemble_fct, ensemble_stats, ensemble_mean_std_max_min, ensemble_percentiles
+export open_ensemble_dataset, ensemble_fct, ensemble_stats, ensemble_mean_std_max_min, ensemble_percentiles
 export make_criteria, kkz_reduce_ensemble
 export robustness_fractions, robustness_categories, robustness_coefficient
 export autocorrelation

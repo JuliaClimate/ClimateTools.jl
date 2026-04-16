@@ -58,7 +58,20 @@ ann = annualmax(qq)
 
 That small example already illustrates the main ClimateTools workflow: open data, bias-correct, then compute a climate summary.
 
-For quantile mapping, `qqmap` is the seasonally varying method: it removes leap days, groups samples by day of year using a moving `+/- window`, and applies an additive or multiplicative correction that changes through the annual cycle. Use `qqmap_bulk` only when one full-sample correction is acceptable and seasonal variation in the bias is not important.
+For multi-member workflows, you can open a list of NetCDF or Zarr members directly as an ensemble `Dataset` using `open_ensemble_dataset`, which lazily opens each file, normalizes member axis order when needed, and stacks the files along a new realization axis.
+
+```julia
+using ClimateTools
+
+members = open_ensemble_dataset(
+    ["member1.nc", "member2.nc", "member3.nc"];
+    realization_values=["r1", "r2", "r3"],
+)
+
+stats = ensemble_mean_std_max_min(members)
+```
+
+For quantile mapping, `qqmap` is a seasonally varying method: it removes leap days, groups samples by day of year using a moving `+/- window`, and applies an additive or multiplicative correction that changes through the annual cycle. Use `qqmap_bulk` only when one full-sample correction is acceptable and seasonal variation in the bias is not important.
 
 ## Main Capabilities
 
