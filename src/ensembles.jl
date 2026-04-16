@@ -76,6 +76,28 @@ function _dataset_from_pairs(variable_pairs)
     return Dataset(; variable_pairs...)
 end
 
+"""
+    open_ensemble_dataset(files; realization_dim="realization", realization_values=nothing, kwargs...)
+
+Open a list of NetCDF or Zarr datasets as one lazy ensemble `Dataset` stacked along a new realization dimension.
+
+This is a thin wrapper around `YAXArrays.open_mfdataset`. By default, the realization axis values are
+`1:length(files)`, but custom values can be provided with `realization_values`.
+
+Additional keyword arguments are forwarded to `open_mfdataset`, so options such as `driver=:netcdf`,
+`driver=:zarr`, `path=...`, `skip_keys=...`, and `force_datetime=true` remain available.
+"""
+function open_ensemble_dataset(files::AbstractVector; realization_dim="realization", realization_values=nothing, kwargs...)
+    paths = collect(files)
+    isempty(paths) && error("files must not be empty.")
+
+    values = isnothing(realization_values) ? collect(1:length(paths)) : collect(realization_values)
+    length(values) == length(paths) || error("realization_values length must match the number of files.")
+
+    realization_symbol = _normalize_xmap_dim(realization_dim)
+    return YAXArrays.open_mfdataset(DimArray(paths, Dim{realization_symbol}(values)); kwargs...)
+end
+
 function _reshape_output(values::AbstractVector, output_shape::Tuple)
     if isempty(output_shape)
         return reshape(copy(values), ())

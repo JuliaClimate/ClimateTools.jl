@@ -9,6 +9,7 @@ using Test
 using YAXArrays
 using DimensionalData
 using Dates
+using NetCDF
 using Statistics
 
 @testset "xclim-style ensembles" begin
@@ -23,6 +24,92 @@ using Statistics
     function make_member_time_cube(data)
         times = collect(DateTime(2000, 1, 1):Year(1):(DateTime(2000, 1, 1) + Year(size(data, 2) - 1)))
         return YAXArray((Dim{:realization}(1:size(data, 1)), Dim{:time}(times)), Float64.(data))
+    end
+
+    function write_member_dataset(path, tas_values, pr_values)
+        lon = [10.0, 20.0]
+        time = [1, 2, 3]
+        nccreate(path, "tas", "lon", lon, "time", time, atts=Dict("units" => "K"))
+        ncwrite(Float64.(tas_values), path, "tas")
+        nccreate(path, "pr", "lon", lon, "time", time, atts=Dict("units" => "mm"))
+        ncwrite(Float64.(pr_values), path, "pr")
+    end
+
+    function write_member_zarr_dataset(path, tas_values, pr_values)
+        dims = (Dim{:lon}([10.0, 20.0]), Dim{:time}([1, 2, 3]))
+        ds = Dataset(
+            tas=YAXArray(dims, Float64.(tas_values)),
+            pr=YAXArray(dims, Float64.(pr_values)),
+        )
+        savedataset(ds, path=path, driver=:zarr, overwrite=true)
+    end
+
+    @testset "open_ensemble_dataset" begin
+        mktempdir() do tmpdir
+            member1_file = joinpath(tmpdir, "member1.nc")
+            member2_file = joinpath(tmpdir, "member2.nc")
+
+            member1_tas = reshape(Float64[1, 2, 3, 4, 5, 6], 2, 3)
+            member2_tas = reshape(Float64[11, 12, 13, 14, 15, 16], 2, 3)
+            member1_pr = reshape(Float64[0.1, 0.2, 0.3, 0.4, 0.5, 0.6], 2, 3)
+            member2_pr = reshape(Float64[1.1, 1.2, 1.3, 1.4, 1.5, 1.6], 2, 3)
+
+            write_member_dataset(member1_file, member1_tas, member1_pr)
+            write_member_dataset(member2_file, member2_tas, member2_pr)
+
+            ds = open_ensemble_dataset([member1_file, member2_file]; driver=:netcdf)
+            @test Set(keys(ds.cubes)) == Set([:tas, :pr])
+            @test collect(lookup(ds.tas, :realization)) == [1, 2]
+
+            axis_symbols = Symbol[name(axis) for axis in ds.tas.axes]
+            realization_position = findfirst(==(:realization), axis_symbols)
+            @test !isnothing(realization_position)
+
+            member1_selectors = ntuple(i -> i == realization_position ? 1 : Colon(), ndims(ds.tas))
+            member2_selectors = ntuple(i -> i == realization_position ? 2 : Colon(), ndims(ds.pr))
+            @test Array(ds.tas[member1_selectors...]) == member1_tas
+            @test Array(ds.pr[member2_selectors...]) == member2_pr
+
+            named_ds = open_ensemble_dataset(
+                [member1_file, member2_file];
+                realization_dim="member",
+                realization_values=["r1", "r2"],
+                driver=:netcdf,
+            )
+            @test collect(lookup(named_ds.tas, :member)) == ["r1", "r2"]
+
+            @test_throws ErrorException open_ensemble_dataset(String[])
+            @test_throws ErrorException open_ensemble_dataset([member1_file, member2_file]; realization_values=[1])
+        end
+
+        mktempdir() do tmpdir
+            member1_store = joinpath(tmpdir, "member1.zarr")
+            member2_store = joinpath(tmpdir, "member2.zarr")
+
+            member1_tas = reshape(Float64[2, 4, 6, 8, 10, 12], 2, 3)
+            member2_tas = reshape(Float64[3, 6, 9, 12, 15, 18], 2, 3)
+            member1_pr = reshape(Float64[0.2, 0.4, 0.6, 0.8, 1.0, 1.2], 2, 3)
+            member2_pr = reshape(Float64[0.3, 0.6, 0.9, 1.2, 1.5, 1.8], 2, 3)
+
+            write_member_zarr_dataset(member1_store, member1_tas, member1_pr)
+            write_member_zarr_dataset(member2_store, member2_tas, member2_pr)
+
+            zarr_ds = open_ensemble_dataset(
+                [member1_store, member2_store];
+                realization_values=["r1", "r2"],
+                driver=:zarr,
+            )
+            @test collect(lookup(zarr_ds.tas, :realization)) == ["r1", "r2"]
+
+            axis_symbols = Symbol[name(axis) for axis in zarr_ds.pr.axes]
+            realization_position = findfirst(==(:realization), axis_symbols)
+            @test !isnothing(realization_position)
+
+            member1_selectors = ntuple(i -> i == realization_position ? 1 : Colon(), ndims(zarr_ds.tas))
+            member2_selectors = ntuple(i -> i == realization_position ? 2 : Colon(), ndims(zarr_ds.pr))
+            @test Array(zarr_ds.tas[member1_selectors...]) == member1_tas
+            @test Array(zarr_ds.pr[member2_selectors...]) == member2_pr
+        end
     end
 
     stats_cube = make_member_time_cube([
