@@ -76,15 +76,72 @@ function _dataset_from_pairs(variable_pairs)
     return Dataset(; variable_pairs...)
 end
 
+function _lookup_values(cube::YAXArray, dim)
+    return collect(lookup(cube, _normalize_xmap_dim(dim)))
+end
+
+function _reorder_cube_axes(cube::YAXArray, target_axis_names::Tuple)
+    current_axis_names = Tuple(_axis_names(cube))
+    current_axis_names == target_axis_names && return cube
+
+    length(current_axis_names) == length(target_axis_names) || error("All ensemble members must have the same number of dimensions.")
+    Set(current_axis_names) == Set(target_axis_names) || error("All ensemble members must expose the same dimensions for each variable.")
+
+    permutation = Tuple(_require_axis_position(cube, dim) for dim in target_axis_names)
+    reordered_axes = Tuple(cube.axes[index] for index in permutation)
+    permuted_data = PermutedDimsArray(parent(cube), permutation)
+    return YAXArray(reordered_axes, permuted_data, cube.properties)
+end
+
+function _validate_member_cube(member_cube::YAXArray, template_cube::YAXArray, variable_name)
+    template_axis_names = Tuple(_axis_names(template_cube))
+    reordered_member = _reorder_cube_axes(member_cube, template_axis_names)
+
+    for axis_name in template_axis_names
+        template_lookup = _lookup_values(template_cube, axis_name)
+        member_lookup = _lookup_values(reordered_member, axis_name)
+        template_lookup == member_lookup || error("All ensemble members must share identical $(axis_name) coordinates for variable $(variable_name).")
+    end
+
+    return reordered_member
+end
+
+function _common_dataset_variables(datasets)
+    reference_variables = collect(keys(first(datasets).cubes))
+
+    for dataset in Iterators.drop(datasets, 1)
+        current_variables = collect(keys(dataset.cubes))
+        Set(current_variables) == Set(reference_variables) || error("All ensemble files must expose the same dataset variables.")
+    end
+
+    return reference_variables
+end
+
+function _stack_dataset_variable(datasets, variable_name, realization_axis)
+    template_cube = first(datasets)[variable_name]
+    realization_name = _normalize_xmap_dim(name(realization_axis))
+    _has_axis(template_cube, realization_name) && error("Variable $(variable_name) already contains a $(realization_name) axis.")
+
+    member_cubes = YAXArray[]
+    for dataset in datasets
+        member_cube = dataset[variable_name]
+        push!(member_cubes, _validate_member_cube(member_cube, template_cube, variable_name))
+    end
+
+    stacked_data = cat((parent(cube) for cube in member_cubes)...; dims=ndims(template_cube) + 1)
+    return YAXArray((template_cube.axes..., realization_axis), stacked_data, template_cube.properties)
+end
+
 """
     open_ensemble_dataset(files; realization_dim="realization", realization_values=nothing, kwargs...)
 
 Open a list of NetCDF or Zarr datasets as one lazy ensemble `Dataset` stacked along a new realization dimension.
 
-This is a thin wrapper around `YAXArrays.open_mfdataset`. By default, the realization axis values are
+This helper opens each member lazily with `YAXArrays.open_dataset`, normalizes variable axis order when needed,
+and stacks the shared variables along a new realization dimension. By default, the realization axis values are
 `1:length(files)`, but custom values can be provided with `realization_values`.
 
-Additional keyword arguments are forwarded to `open_mfdataset`, so options such as `driver=:netcdf`,
+Additional keyword arguments are forwarded to `open_dataset`, so options such as `driver=:netcdf`,
 `driver=:zarr`, `path=...`, `skip_keys=...`, and `force_datetime=true` remain available.
 """
 function open_ensemble_dataset(files::AbstractVector; realization_dim="realization", realization_values=nothing, kwargs...)
@@ -95,7 +152,14 @@ function open_ensemble_dataset(files::AbstractVector; realization_dim="realizati
     length(values) == length(paths) || error("realization_values length must match the number of files.")
 
     realization_symbol = _normalize_xmap_dim(realization_dim)
-    return YAXArrays.open_mfdataset(DimArray(paths, Dim{realization_symbol}(values)); kwargs...)
+    realization_axis = Dim{realization_symbol}(values)
+    datasets = [YAXArrays.open_dataset(path; kwargs...) for path in paths]
+    variable_names = _common_dataset_variables(datasets)
+
+    return _dataset_from_pairs([
+        variable_name => _stack_dataset_variable(datasets, variable_name, realization_axis)
+        for variable_name in variable_names
+    ])
 end
 
 function _reshape_output(values::AbstractVector, output_shape::Tuple)

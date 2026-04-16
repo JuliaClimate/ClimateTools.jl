@@ -58,14 +58,14 @@ ann = annualmax(qq)
 
 That small example already illustrates the main ClimateTools workflow: open data, bias-correct, then compute a climate summary.
 
-For multi-member workflows, you can open a list of NetCDF or Zarr members directly as an ensemble `Dataset` using `open_ensemble_dataset`, which stacks the files along a new realization axis via `YAXArrays.open_mfdataset`.
+For multi-member workflows, you can open a list of NetCDF or Zarr members directly as an ensemble `Dataset` using `open_ensemble_dataset`, which lazily opens each file, normalizes member axis order when needed, and stacks the files along a new realization axis.
 
 ```julia
 using ClimateTools
 
 members = open_ensemble_dataset(
-	["member1.nc", "member2.nc", "member3.nc"];
-	realization_values=["r1", "r2", "r3"],
+    ["member1.nc", "member2.nc", "member3.nc"];
+    realization_values=["r1", "r2", "r3"],
 )
 
 stats = ensemble_mean_std_max_min(members)

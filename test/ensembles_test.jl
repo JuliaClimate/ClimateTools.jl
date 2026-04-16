@@ -44,6 +44,20 @@ using Statistics
         savedataset(ds, path=path, driver=:zarr, overwrite=true)
     end
 
+    function write_member_dataset_with_order(path, tas_values, pr_values, order)
+        dimcoords = Dict(:lon => [10.0, 20.0], :time => [1, 2, 3])
+        dimargs = Any[]
+        for dim in order
+            push!(dimargs, String(dim))
+            push!(dimargs, dimcoords[dim])
+        end
+
+        nccreate(path, "tas", dimargs..., atts=Dict("units" => "K"))
+        ncwrite(Float64.(tas_values), path, "tas")
+        nccreate(path, "pr", dimargs..., atts=Dict("units" => "mm"))
+        ncwrite(Float64.(pr_values), path, "pr")
+    end
+
     @testset "open_ensemble_dataset" begin
         mktempdir() do tmpdir
             member1_file = joinpath(tmpdir, "member1.nc")
@@ -109,6 +123,31 @@ using Statistics
             member2_selectors = ntuple(i -> i == realization_position ? 2 : Colon(), ndims(zarr_ds.pr))
             @test Array(zarr_ds.tas[member1_selectors...]) == member1_tas
             @test Array(zarr_ds.pr[member2_selectors...]) == member2_pr
+        end
+
+        mktempdir() do tmpdir
+            member1_file = joinpath(tmpdir, "member1.nc")
+            member2_file = joinpath(tmpdir, "member2.nc")
+
+            canonical_tas_1 = reshape(Float64[1, 2, 3, 4, 5, 6], 2, 3)
+            canonical_tas_2 = reshape(Float64[11, 12, 13, 14, 15, 16], 2, 3)
+            canonical_pr_1 = reshape(Float64[0.1, 0.2, 0.3, 0.4, 0.5, 0.6], 2, 3)
+            canonical_pr_2 = reshape(Float64[1.1, 1.2, 1.3, 1.4, 1.5, 1.6], 2, 3)
+
+            write_member_dataset_with_order(member1_file, canonical_tas_1, canonical_pr_1, (:lon, :time))
+            write_member_dataset_with_order(member2_file, permutedims(canonical_tas_2, (2, 1)), permutedims(canonical_pr_2, (2, 1)), (:time, :lon))
+
+            reordered_ds = open_ensemble_dataset([member1_file, member2_file]; driver=:netcdf)
+            axis_symbols = Symbol[name(axis) for axis in reordered_ds.tas.axes]
+            realization_position = findfirst(==(:realization), axis_symbols)
+            @test !isnothing(realization_position)
+
+            member1_selectors = ntuple(i -> i == realization_position ? 1 : Colon(), ndims(reordered_ds.tas))
+            member2_selectors = ntuple(i -> i == realization_position ? 2 : Colon(), ndims(reordered_ds.pr))
+            @test Array(reordered_ds.tas[member1_selectors...]) == canonical_tas_1
+            @test Array(reordered_ds.tas[member2_selectors...]) == canonical_tas_2
+            @test Array(reordered_ds.pr[member1_selectors...]) == canonical_pr_1
+            @test Array(reordered_ds.pr[member2_selectors...]) == canonical_pr_2
         end
     end
 
