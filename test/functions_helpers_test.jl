@@ -71,4 +71,10 @@ using Dates
     expected4_22 = [13.0 NaN; 7.0 32.0]
     @test isequal(masked4[:, :, 1, 1], expected4_11)
     @test isequal(masked4[:, :, 2, 2], expected4_22)
+
+    all_missing_1d = Union{Missing, Float64}[missing, missing]
+    @test isequal(ClimateTools.applymask(all_missing_1d, [1.0, NaN]), [missing, missing])
+
+    all_missing_2d = Union{Missing, Float64}[missing missing; missing missing]
+    @test isequal(ClimateTools.applymask(all_missing_2d, mask2), fill(missing, 2, 2))
 end

@@ -58,9 +58,11 @@ end
 end
 
 @testset "dates_builder_yearmonthday_hardcode" begin
-    years = [(2020,), (2021,)]
-    result = dates_builder_yearmonthday_hardcode(years; imois=6, iday=15)
-    @test result == [DateTime(2020, 6), DateTime(2021, 6)]
+    tuple_years = [(2020,), (2021,)]
+    int_years = [2020, 2021]
+    expected = [DateTime(2020, 6, 15), DateTime(2021, 6, 15)]
+    @test dates_builder_yearmonthday_hardcode(tuple_years; imois=6, iday=15) == expected
+    @test dates_builder_yearmonthday_hardcode(int_years; imois=6, iday=15) == expected
 end
 
 
