@@ -55,6 +55,7 @@ using Dates
     include("spatial_test.jl")
     include("spatialsubset_test.jl")
     include("regrid_test.jl")
+    include("xmap_utils_test.jl")
     include("functions_new_test.jl")
     include("functions_helpers_test.jl")
     include("climatology_test.jl")
