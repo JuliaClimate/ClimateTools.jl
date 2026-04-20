@@ -3,7 +3,10 @@ using ClimateTools
 using YAXArrays
 using DimensionalData
 using Dates
+using Extremes
 using Statistics
+
+_scaled_sum(values; scale=1.0) = sum(values) * scale
 
 # ---------------------------------------------------------------------------
 # Helper: build a simple (lon × lat × time) cube with daily data
@@ -58,9 +61,11 @@ end
 end
 
 @testset "dates_builder_yearmonthday_hardcode" begin
-    years = [(2020,), (2021,)]
-    result = dates_builder_yearmonthday_hardcode(years; imois=6, iday=15)
-    @test result == [DateTime(2020, 6), DateTime(2021, 6)]
+    tuple_years = [(2020,), (2021,)]
+    int_years = [2020, 2021]
+    expected = [DateTime(2020, 6, 15), DateTime(2021, 6, 15)]
+    @test dates_builder_yearmonthday_hardcode(tuple_years; imois=6, iday=15) == expected
+    @test dates_builder_yearmonthday_hardcode(int_years; imois=6, iday=15) == expected
 end
 
 
@@ -146,6 +151,9 @@ end
 
     # Sum should be larger than mean for positive data
     @test Array(result_sum)[1, 1, 1] > Array(result)[1, 1, 1]
+
+    scaled = daily_fct(hourly; fct=_scaled_sum, scale=2.0)
+    @test Array(scaled)[1, 1, 1] ≈ 2.0 * Array(result_sum)[1, 1, 1]
 end
 
 
@@ -160,6 +168,10 @@ end
     result_min = yearly_resample(cube; fct=minimum)
     @test all(Array(result_max) .>= Array(result))
     @test all(Array(result_min) .<= Array(result))
+
+    scaled = yearly_resample(cube; fct=_scaled_sum, scale=0.5)
+    plain_sum = yearly_resample(cube; fct=sum)
+    @test Array(scaled) ≈ 0.5 .* Array(plain_sum)
 end
 
 
@@ -173,6 +185,9 @@ end
     result_sum = monthly_resample(cube; fct=sum)
     # Sum of daily values > mean for months with more than 1 day
     @test Array(result_sum)[1, 1, 1] > Array(result)[1, 1, 1]
+
+    scaled = monthly_resample(cube; fct=_scaled_sum, scale=3.0)
+    @test Array(scaled) ≈ 3.0 .* Array(result_sum)
 end
 
 
@@ -318,6 +333,23 @@ end
     # Return levels should increase with return period
     @test all(isfinite, arr)
     @test arr[1] <= arr[2] <= arr[3]
+
+    threshold = 4.0
+    mixed_data = Union{Missing, Float64}[value for value in data]
+    mixed_data[10] = missing
+    mixed_data[20] = missing
+    mixed_cube = YAXArray((Dim{:time}(times),), mixed_data)
+
+    explicit_result = rlevels_cube(mixed_cube; rlevels=rlevels, threshold=threshold)
+    explicit_arr = Array(explicit_result)
+
+    valid_values = Float64[entry for entry in mixed_data if !ismissing(entry)]
+    exceedances = valid_values[valid_values .> threshold] .- threshold
+    direct_model = Extremes.gpfit(exceedances)
+    direct_rlevels = [Extremes.returnlevel(direct_model, threshold, length(mixed_data), 365, period).value[1] for period in rlevels]
+
+    @test all(isfinite, explicit_arr)
+    @test explicit_arr ≈ direct_rlevels
 end
 
 @testset "rlevels_cube all missing" begin

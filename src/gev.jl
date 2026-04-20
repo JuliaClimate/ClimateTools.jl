@@ -1,30 +1,33 @@
 function rlevels_cube(xout, xin; threshold=nothing, rlevels = [1, 2, 5, 10, 25, 50, 100, 1000], minimalvalue=1.0)
-
-    if all(ismissing, xin)
+    values = _finite_real_values(xin)
+    if isempty(values)
         xout .= missing
-        return    
+        return
     end
 
-    if isnothing(threshold)
-        dataforquantile = xin[xin .> minimalvalue]
-        if  !isempty(dataforquantile)
-            threshold = quantile(dataforquantile, 0.92)
-            exceedances = xin[xin .> threshold] .- threshold
-            model = Extremes.gpfit(exceedances)
+    threshold_value = _gp_threshold(values; threshold=threshold, threshold_quantile=0.92, minimalvalue=minimalvalue)
+    if ismissing(threshold_value)
+        xout .= missing
+        return
+    end
 
-            nobs = size(xin,1)        
+    exceedances = values[values .> threshold_value] .- threshold_value
+    if isempty(exceedances)
+        xout .= missing
+        return
+    end
 
-            nobsperblock = 365
-
-            r_h = returnlevel.(model, threshold, nobs, nobsperblock, rlevels)
-
-            xout .= [x.value[1] for x in r_h]
-
-        else       
-            xout .= missing
-            return
+    try
+        model = Extremes.gpfit(exceedances)
+        nobs = size(xin, 1)
+        nobsperblock = 365
+        r_h = returnlevel.(model, threshold_value, nobs, nobsperblock, rlevels)
+        xout .= [x.value[1] for x in r_h]
+    catch err
+        if err isa MethodError || err isa UndefKeywordError
+            rethrow(err)
         end
-        
+        xout .= missing
     end
 
 end

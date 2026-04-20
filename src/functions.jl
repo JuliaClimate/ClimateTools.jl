@@ -172,63 +172,6 @@ end
 
 
 
-"""
-    applymask(A::AbstractArray{N, n}, mask::AbstractArray{N, n})
-
-Applies a mask on the array A. Return an AbstractArray{N, n}.
-
-"""
-function applymask(A::AbstractArray{N,4} where N, mask::AbstractArray{N, 2} where N)
-
-    T = typeof(A[.!ismissing.(A)][1])
-    modA = Array{T}(undef, size(A))
-
-    for t = 1:size(A, 4) # time axis
-        for lev = 1:size(A, 3) #level axis
-            tmp = A[:, :, lev, t]
-            tmp .*= mask # TODO use multiple dispatch of applymask
-            modA[:, :, lev, t] = tmp
-        end
-    end
-
-    return modA
-end
-
-function applymask(A::AbstractArray{N,3} where N, mask::AbstractArray{N, 2} where N)
-
-    T = typeof(A[.!ismissing.(A)][1])
-    modA = Array{T}(undef, size(A))
-
-    for t = 1:size(A, 3) # time axis
-        tmp = A[:, :, t]
-        tmp .*= mask # TODO use multiple dispatch of applymask
-        modA[:, :, t] = tmp
-    end
-
-    return modA
-end
-
-function applymask(A::AbstractArray{N,2} where N, mask::AbstractArray{N, 2} where N)
-
-    T = typeof(A[.!ismissing.(A)][1])
-    modA = Array{T}(undef, size(A))
-
-    @assert ndims(A) == ndims(mask)
-    modA = A .* mask
-
-    return modA
-end
-
-function applymask(A::AbstractArray{N,1} where N, mask::AbstractArray{N, 1} where N)
-
-    T = typeof(A[.!ismissing.(A)][1])
-    modA = Array{T}(undef, size(A))
-
-    modA = A .* mask
-
-    return modA
-end
-
 macro isdefined(var)
     quote
         try

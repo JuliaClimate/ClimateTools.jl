@@ -185,7 +185,7 @@ Apply a function `fct` to aggregate data from `xin` into `xout` on a daily basis
 - `index_list`: (optional) Function to convert time to index.
 
 """
-function daily_fct(xout, xin; fct::Function, index_list = time_to_index)
+function daily_fct(xout, xin; fct::Function, index_list = time_to_index, fct_kwargs=(;))
     
     xout .= NaN
     if !isempty(_valid_values(xin))
@@ -193,7 +193,7 @@ function daily_fct(xout, xin; fct::Function, index_list = time_to_index)
             data = view(xin, index_list[i])
             values = _valid_values(data)
             if !isempty(values)
-                xout[i] = fct(values)
+                xout[i] = fct(values; fct_kwargs...)
             end
         end
         return
@@ -236,11 +236,11 @@ function daily_fct(cube::YAXArray; fct::Function=mean, shifthour=0, kwargs...)
         cube;
         reduced_dims=:time,
         output_axes=(Dim{:time}(dates_builder_yearmonthday(new_dates)),),
-        function_kwargs=(fct=fct, index_list=index_in_cube),
+        function_kwargs=(fct=fct, index_list=index_in_cube, fct_kwargs=NamedTuple(kwargs)),
     )
 end
 
-function yearly_resample(xout, xin; fct::Function=mean, index_list = time_to_index)
+    function yearly_resample(xout, xin; fct::Function=mean, index_list = time_to_index, fct_kwargs=(;))
     
     xout .= NaN
     if !isempty(_valid_values(xin))
@@ -248,7 +248,7 @@ function yearly_resample(xout, xin; fct::Function=mean, index_list = time_to_ind
             data = view(xin, index_list[i])
             values = _valid_values(data)
             if !isempty(values)
-                xout[i] = fct(values)
+                xout[i] = fct(values; fct_kwargs...)
             end
         end
         
@@ -279,7 +279,7 @@ function yearly_resample(cube::YAXArray; fct::Function=mean, kwargs...)
         cube;
         reduced_dims=:time,
         output_axes=(Dim{:time}(dates_builder_yearmonthday_hardcode(new_dates, imois=7, iday=1)),),
-        function_kwargs=(fct=fct, index_list=index_in_cube),
+        function_kwargs=(fct=fct, index_list=index_in_cube, fct_kwargs=NamedTuple(kwargs)),
     )
 end
 
@@ -291,7 +291,7 @@ function yearly_clim(cube::YAXArray; fct::Function=mean, kwargs...)
     return yearly_resample(cube; fct=fct, kwargs...)
 end
 
-function monthly_resample(xout, xin; fct::Function=mean, index_list = time_to_index)
+function monthly_resample(xout, xin; fct::Function=mean, index_list = time_to_index, fct_kwargs=(;))
     
     xout .= NaN
     if !isempty(_valid_values(xin))
@@ -299,7 +299,7 @@ function monthly_resample(xout, xin; fct::Function=mean, index_list = time_to_in
             data = view(xin, index_list[i])
             values = _valid_values(data)
             if !isempty(values)
-                xout[i] = fct(values)
+                xout[i] = fct(values; fct_kwargs...)
             end
         end
         
@@ -331,7 +331,7 @@ function monthly_resample(cube::YAXArray; fct::Function=mean, kwargs...)
         cube;
         reduced_dims=:time,
         output_axes=(Dim{:time}(dates_builder_monthly_resample(new_dates)),),
-        function_kwargs=(fct=fct, index_list=index_in_cube),
+        function_kwargs=(fct=fct, index_list=index_in_cube, fct_kwargs=NamedTuple(kwargs)),
     )
 end
 
