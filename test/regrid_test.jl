@@ -3,6 +3,7 @@ using ClimateTools
 using YAXArrays
 using DimensionalData
 using Dates
+using Serialization
 
 @testset "Regridder rectilinear workflow" begin
     src_lon = collect(0.0:1.0:4.0)
@@ -312,4 +313,99 @@ end
     dest_multi = Dataset(aux=aux, tas=dest)
     out_multi = regrid_cube(ds, :pr, dest_multi; method="bilinear")
     @test Base.maximum(abs.(Array(out_multi) .- expected)) < 1e-6
+end
+
+@testset "Regrid helper coverage" begin
+    @test ClimateTools._normalize_regrid_method("linear") == :bilinear
+    @test ClimateTools._normalize_regrid_method("nearest") == :nearest_s2d
+    @test ClimateTools._normalize_regrid_method("idw") == :idw
+    @test_throws ErrorException ClimateTools._normalize_regrid_method("cubic")
+
+    ascending, asc_flip = ClimateTools._prepare_source_coordinate([1.0, 2.0, 3.0], :longitude)
+    descending, desc_flip = ClimateTools._prepare_source_coordinate([3.0, 2.0, 1.0], :latitude)
+    @test ascending == [1.0, 2.0, 3.0]
+    @test asc_flip == false
+    @test descending == [1.0, 2.0, 3.0]
+    @test desc_flip == true
+    @test_throws ErrorException ClimateTools._prepare_source_coordinate([1.0, 1.0, 2.0], :longitude)
+    @test_throws ErrorException ClimateTools._prepare_source_coordinate([1.0, 3.0, 2.0], :longitude)
+
+    @test ClimateTools._weighted_value((1.0, 2.0, 3.0, 4.0), (0.25, 0.25, 0.25, 0.25)) ≈ 2.5
+    @test isnan(ClimateTools._weighted_value((1.0, missing, 3.0, 4.0), (0.25, 0.25, 0.25, 0.25)))
+    @test ClimateTools._weighted_value((1.0, missing, 3.0, 5.0), (0.25, 0.25, 0.25, 0.25); skipna=true, na_thres=0.3) ≈ 3.0
+    @test isnan(ClimateTools._weighted_value((1.0, missing, 3.0, 5.0), (0.25, 0.25, 0.25, 0.25); skipna=true, na_thres=0.2))
+
+    lon2d, lat2d = ClimateTools._destination_grid([0.0, 1.0], [10.0, 11.0])
+    @test size(lon2d) == (2, 2)
+    @test size(lat2d) == (2, 2)
+    @test_throws ErrorException ClimateTools._destination_grid(reshape([0.0, 1.0], 2, 1), [10.0, 11.0])
+    @test_throws ErrorException ClimateTools._destination_grid(ones(2, 2), ones(3, 1))
+
+    pts = [0.0 10.0; 1.0 11.0]
+    lon_grid = [0.0 1.0; 0.0 1.0]
+    lat_grid = [10.0 10.0; 11.0 11.0]
+    @test all(isnan, ClimateTools.idw_griddata(pts, [NaN, NaN], lon_grid, lat_grid))
+
+    src_lon = [0.0, 1.0]
+    src_lat = [10.0, 11.0]
+    src = YAXArray((Dim{:longitude}(src_lon), Dim{:latitude}(src_lat)), [1.0 2.0; 3.0 4.0])
+    dest = YAXArray((Dim{:longitude}([0.5]), Dim{:latitude}([10.5])), zeros(1, 1))
+    regridder = Regridder(src, dest; method="bilinear")
+    @test_throws ErrorException regrid(src, regridder; na_thres=1.5)
+
+    payload = ClimateTools._regridder_payload(regridder)
+    restored = ClimateTools._regridder_from_payload(payload)
+    @test restored.method == regridder.method
+    @test restored.dest_lon == regridder.dest_lon
+
+    mktempdir() do tmpdir
+        missing_version_path = joinpath(tmpdir, "missing-version.bin")
+        open(missing_version_path, "w") do io
+            Serialization.serialize(io, (method=:bilinear,))
+        end
+        @test_throws ErrorException load_regridder(missing_version_path)
+
+        bad_version_path = joinpath(tmpdir, "bad-version.bin")
+        open(bad_version_path, "w") do io
+            Serialization.serialize(io, (version=999, method=:bilinear))
+        end
+        @test_throws ErrorException load_regridder(bad_version_path)
+    end
+end
+
+@testset "Regrid rotated dataset helper fallback" begin
+    north_pole_lon = 0.0
+    north_pole_lat = 42.5
+
+    rlon_vals = collect(0.0:1.0:3.0)
+    rlat_vals = collect(-1.0:1.0:2.0)
+    rlon2d, rlat2d = ClimateTools.ndgrid(rlon_vals, rlat_vals)
+    data = Float64.(rlon2d .+ 2 .* rlat2d)
+
+    pr_cube = YAXArray(
+        (Dim{:rlon}(rlon_vals), Dim{:rlat}(rlat_vals)),
+        data,
+        Dict{String, Any}("grid_mapping" => "rotated_pole"),
+    )
+    rp_cube = YAXArray(
+        (Dim{:maxStrlen64}(1:1),),
+        [' '],
+        Dict{String, Any}(
+            "grid_north_pole_longitude" => north_pole_lon,
+            "grid_north_pole_latitude" => north_pole_lat,
+        ),
+    )
+    ds = Dataset(pr=pr_cube, rotated_pole=rp_cube)
+
+    lon_geo, lat_geo = ClimateTools._extract_geographic_coords(ds, pr_cube, "rotated_pole")
+    @test size(lon_geo) == size(data)
+    @test size(lat_geo) == size(data)
+    @test all(isfinite, lon_geo)
+    @test all(isfinite, lat_geo)
+
+    dest = YAXArray((Dim{:longitude}(collect(range(minimum(lon_geo), maximum(lon_geo), length=3))), Dim{:latitude}(collect(range(minimum(lat_geo), maximum(lat_geo), length=3)))), zeros(3, 3))
+    regridder = Regridder(ds, :pr, dest; method="idw")
+    out = regrid(ds[:pr], regridder)
+    @test size(out) == (3, 3)
+    @test all(isfinite, Array(out))
 end

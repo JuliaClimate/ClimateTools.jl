@@ -96,3 +96,34 @@
     @test ClimateTools.pr_timefactor("3h") == 10800.0
     @test size(ensemble_fct(cube)) == (3, 2, 2)
 end
+
+@testset "Legacy compatibility helpers" begin
+    @test ClimateTools._infer_temperature_unit([1.0, 10.0, 25.0]) == :Celsius
+    @test ClimateTools._infer_temperature_unit([280.0, 281.0, 282.0]) == :K
+    @test ClimateTools._infer_temperature_unit([missing, missing]) == :K
+    @test ClimateTools._infer_temperature_unit([1.0, 2.0]; temperature_unit=:Kelvin) == :Kelvin
+
+    @test ClimateTools._as_kelvin([0.0, 10.0]; temperature_unit=:degC) == [273.15, 283.15]
+    @test ClimateTools._as_kelvin([300.0, 301.0]; temperature_unit=:K) == [300.0, 301.0]
+    @test ClimateTools._as_celsius([273.15, 283.15]; temperature_unit=:Kelvin) == [0.0, 10.0]
+    @test ClimateTools._as_celsius([0.0, 10.0]; temperature_unit=:Celsius) == [0.0, 10.0]
+
+    hourly_times = collect(0.0:(1 / 24):1.0)
+    monthly_times = [0.0, 31.0, 60.0]
+    yearly_times = [0.0, 365.0, 730.0]
+    @test ClimateTools.timeresolution(Float64[]) == "N/A"
+    @test ClimateTools.timeresolution(hourly_times) == "1h"
+    @test ClimateTools.timeresolution(monthly_times) == "Monthly"
+    @test ClimateTools.timeresolution(yearly_times) == "Yearly"
+
+    @test ClimateTools.pr_timefactor("unknown") == 1.0
+    @test ClimateTools.daymean_factor("unknown") == 1
+
+    missing_times = collect(DateTime(2004, 1, 1):Day(1):DateTime(2005, 12, 31))
+    missing_cube = YAXArray(
+        (Dim{:longitude}(1:1), Dim{:latitude}(1:1), Dim{:time}(missing_times)),
+        fill(NaN, 1, 1, length(missing_times)),
+    )
+    yearly_missing = ClimateTools.prcp1(missing_cube)
+    @test all(isnan, Array(yearly_missing))
+end
