@@ -34,6 +34,7 @@ See [Interpolation and Regridding](interpolation.md).
 ## Spatial Subsetting
 
 - `spatialsubset`: polygon-based crop and mask
+- Regular lon/lat cubes can be subset directly; rotated or curvilinear grids should be passed as a parent `Dataset`
 
 See [Data and Subsetting](datasets.md).
 
