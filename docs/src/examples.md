@@ -67,6 +67,14 @@ regional_txx = tx_max(regional)
 
 This pattern is useful for impact studies over watersheds, administrative regions, or user-defined polygons.
 
+For rotated-pole or curvilinear outputs, use the parent dataset instead:
+
+```julia
+poly = ClimateTools.extractpoly("region.shp", n=1)
+regional_ds = spatialsubset(ds, poly)
+regional_txx = tx_max(regional_ds[:tasmax])
+```
+
 ## Example 7: Faceted Geographic Comparison
 
 ```julia

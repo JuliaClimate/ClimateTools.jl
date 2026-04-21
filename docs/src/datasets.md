@@ -103,9 +103,22 @@ poly = ClimateTools.extractpoly("region.shp", n=1)
 sub = spatialsubset(cube, poly)
 ```
 
+For rotated-pole or curvilinear datasets, pass the parent dataset so ClimateTools
+can build the mask from the 2D geographic lon/lat coordinates instead of the
+raw `rlon`/`rlat` axes:
+
+```julia
+ds = open_dataset("rotated_model.nc")
+poly = ClimateTools.extractpoly("region.shp", n=1)
+sub = spatialsubset(ds, poly)
+
+tas = sub[:tas]
+```
+
 Notes:
 
 - `spatialsubset` returns a lazily-evaluated `YAXArray` with a bounding-box crop and polygon mask applied.
+- `spatialsubset(ds, poly)` returns a `Dataset`; cubes on the same spatial grid are cropped and masked, while non-spatial variables are kept unchanged.
 - The input cube is not fully loaded into memory during the subsetting step.
 - If the polygon does not overlap the grid, the function raises an error.
 
@@ -121,7 +134,7 @@ Large masked areas can affect regridding and bias-correction robustness.
 
 ## Rotated and Curvilinear Grids
 
-If your simulation uses `rlon` and `rlat` dimensions or has a `grid_mapping` attribute, prefer dataset-aware regridding workflows rather than manual slicing of a plain variable cube. See [Interpolation and Regridding](interpolation.md).
+If your simulation uses `rlon` and `rlat` dimensions or has a `grid_mapping` attribute, prefer dataset-aware workflows. `spatialsubset(ds, poly)` now handles polygon masking on these grids by using the dataset's 2D geographic coordinates; the plain-cube path still assumes a regular lon/lat grid. See [Interpolation and Regridding](interpolation.md).
 
 ## Role in Scenario Workflows
 

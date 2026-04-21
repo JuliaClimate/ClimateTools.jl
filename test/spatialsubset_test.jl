@@ -65,4 +65,65 @@
     sub_disk = spatialsubset(cube_disk, shp_poly)
     @test !(sub_disk.data isa Array)
     @test occursin("BroadcastDiskArray", string(typeof(sub_disk.data)))
+
+    north_pole_lon = 0.0
+    north_pole_lat = 42.5
+
+    rlon_vals = collect(0.0:1.0:5.0)
+    rlat_vals = collect(-2.0:1.0:3.0)
+    rlon2d, rlat2d = ClimateTools.ndgrid(rlon_vals, rlat_vals)
+    lon2d, lat2d = ClimateTools.rotated_to_geographic(rlon2d, rlat2d, north_pole_lon, north_pole_lat)
+
+    rotated_data = reshape(Float32.(1:length(rlon_vals) * length(rlat_vals)), length(rlon_vals), length(rlat_vals))
+    rotated_cube = YAXArray(
+        (Dim{:rlon}(rlon_vals), Dim{:rlat}(rlat_vals)),
+        rotated_data,
+        Dict{String, Any}("grid_mapping" => "rotated_pole"),
+    )
+    lon_cube = YAXArray((Dim{:rlon}(rlon_vals), Dim{:rlat}(rlat_vals)), Float64.(lon2d))
+    lat_cube = YAXArray((Dim{:rlon}(rlon_vals), Dim{:rlat}(rlat_vals)), Float64.(lat2d))
+    rp_cube = YAXArray(
+        (Dim{:maxStrlen64}(1:1),),
+        [' '],
+        Dict{String, Any}(
+            "grid_north_pole_longitude" => north_pole_lon,
+            "grid_north_pole_latitude" => north_pole_lat,
+        ),
+    )
+    rotated_ds = Dataset(pr=rotated_cube, lon=lon_cube, lat=lat_cube, rotated_pole=rp_cube)
+
+    rotated_poly = [NaN 1.0 4.0 4.0 1.0 1.0; NaN -1.0 -1.0 2.0 2.0 -1.0]
+    geo_poly = copy(rotated_poly)
+    valid_vertices = .!isnan.(rotated_poly[1, :])
+    vertex_pairs = [
+        begin
+            lon_vertex, lat_vertex = ClimateTools.rotated_to_geographic(
+                reshape([rotated_poly[1, index]], 1, 1),
+                reshape([rotated_poly[2, index]], 1, 1),
+                north_pole_lon,
+                north_pole_lat,
+            )
+            (lon_vertex[1, 1], lat_vertex[1, 1])
+        end for index in findall(valid_vertices)
+    ]
+    geo_poly[1, valid_vertices] = first.(vertex_pairs)
+    geo_poly[2, valid_vertices] = last.(vertex_pairs)
+
+    rotated_sub = spatialsubset(rotated_ds, geo_poly)
+
+    expected_mask = ClimateTools.inpolygrid(Float64.(lon2d), Float64.(lat2d), geo_poly)
+    expected_points = findall(!isnan, expected_mask)
+    expected_lon_range = minimum(getindex.(expected_points, 1)):maximum(getindex.(expected_points, 1))
+    expected_lat_range = minimum(getindex.(expected_points, 2)):maximum(getindex.(expected_points, 2))
+    expected_mask_sub = expected_mask[expected_lon_range, expected_lat_range]
+    expected_arr = Array(view(rotated_cube, expected_lon_range, expected_lat_range)) .* Float32.(expected_mask_sub)
+
+    @test Set(keys(rotated_sub.cubes)) == Set([:pr, :lon, :lat, :rotated_pole])
+    @test size(rotated_sub.pr) == size(expected_arr)
+
+    actual_arr = Array(rotated_sub.pr)
+    @test all((isnan.(expected_arr) .& isnan.(actual_arr)) .| (expected_arr .== actual_arr))
+    @test size(rotated_sub.lon) == size(rotated_sub.pr)
+    @test size(rotated_sub.lat) == size(rotated_sub.pr)
+    @test rotated_sub.rotated_pole.properties == rp_cube.properties
 end

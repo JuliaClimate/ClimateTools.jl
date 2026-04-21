@@ -26,14 +26,20 @@ end
 
 
 """
-    spatialsubset(cube::YAXArray, poly)
+    spatialsubset(cube::YAXArray, poly; dataset=nothing)
+    spatialsubset(ds::Dataset, poly)
 
-Return a polygon-masked spatial subset of a YAXArray.
+Return a polygon-masked spatial subset of a cube or Dataset.
 
-The polygon is expected to be in lon/lat coordinates on a -180 to 180
+For regular lon/lat grids, `spatialsubset(cube, poly)` crops and masks the
+cube directly from its one-dimensional longitude and latitude axes. The
+polygon is expected in geographic lon/lat coordinates on a -180 to 180
 longitude convention. `poly` can be provided as a 2xN matrix or an Nx2
 matrix.
 
+For rotated-pole or curvilinear grids, pass the parent `Dataset` so
+`spatialsubset` can recover the 2D geographic lon/lat coordinates from
+dataset metadata and companion variables.
 """
 function _normalize_polygon(poly)
     ndims(poly) == 2 || error("Polygon must be a 2D array with lon/lat coordinates.")
@@ -57,7 +63,7 @@ function _find_spatial_dim(cube::YAXArray, candidates::Tuple)
     return nothing
 end
 
-function _align_longitude_reference(lon::AbstractVector, poly::AbstractMatrix)
+function _align_longitude_reference(lon::AbstractArray, poly::AbstractMatrix)
     lon_aligned = Float64.(lon)
     poly_aligned = copy(poly)
 
@@ -75,7 +81,21 @@ function _align_longitude_reference(lon::AbstractVector, poly::AbstractMatrix)
     return lon_aligned, poly_aligned
 end
 
-function spatialsubset(cube::YAXArray, poly)
+function _dataset_geographic_grids(cube::YAXArray, dataset::Dataset)
+    grid_mapping = _detect_grid_mapping(cube)
+
+    if !isnothing(grid_mapping)
+        return _extract_geographic_coords(dataset, cube, grid_mapping)
+    end
+
+    try
+        return _extract_geographic_coords(dataset, cube, "dataset")
+    catch
+        return nothing
+    end
+end
+
+function _spatialsubset_spec(cube::YAXArray, poly; dataset::Union{Nothing, Dataset}=nothing)
     poly2 = _normalize_polygon(poly)
 
     lonsymbol = _find_spatial_dim(cube, (:longitude, :lon, :x, :rlon))
@@ -84,13 +104,19 @@ function spatialsubset(cube::YAXArray, poly)
     lonsymbol === nothing && error("Could not find longitude dimension in cube.")
     latsymbol === nothing && error("Could not find latitude dimension in cube.")
 
-    lon = collect(lookup(cube, lonsymbol))
-    lat = collect(lookup(cube, latsymbol))
+    lon_lookup = Float64.(collect(lookup(cube, lonsymbol)))
+    lat_lookup = Float64.(collect(lookup(cube, latsymbol)))
 
-    lon_mask, poly_mask = _align_longitude_reference(lon, poly2)
+    geographic_grids = isnothing(dataset) ? nothing : _dataset_geographic_grids(cube, dataset)
+    lon_grid, lat_grid = if isnothing(geographic_grids)
+        lon_mask, _ = _align_longitude_reference(lon_lookup, poly2)
+        ndgrid(lon_mask, lat_lookup)
+    else
+        geographic_grids
+    end
 
-    longrid, latgrid = ndgrid(lon_mask, Float64.(lat))
-    msk = inpolygrid(longrid, latgrid, poly_mask)
+    lon_mask, poly_mask = _align_longitude_reference(lon_grid, poly2)
+    msk = inpolygrid(lon_mask, Float64.(lat_grid), poly_mask)
 
     I = findall(!isnan, msk)
     isempty(I) && error("Polygon does not overlap cube grid.")
@@ -107,17 +133,68 @@ function spatialsubset(cube::YAXArray, poly)
     lonpos = findfirst(==(lonsymbol), names)
     latpos = findfirst(==(latsymbol), names)
 
+    return (
+        lonsymbol=lonsymbol,
+        latsymbol=latsymbol,
+        lonpos=lonpos,
+        latpos=latpos,
+        minXgrid=minXgrid,
+        maxXgrid=maxXgrid,
+        minYgrid=minYgrid,
+        maxYgrid=maxYgrid,
+        msk=msk,
+        lon_lookup=lon_lookup,
+        lat_lookup=lat_lookup,
+    )
+end
+
+function _apply_spatialsubset(cube::YAXArray, spec)
+    names = collect(name.(cube.axes))
+    lonpos = findfirst(==(spec.lonsymbol), names)
+    latpos = findfirst(==(spec.latsymbol), names)
+
+    lonpos === nothing && return cube
+    latpos === nothing && return cube
+
+    Float64.(collect(lookup(cube, spec.lonsymbol))) == spec.lon_lookup || return cube
+    Float64.(collect(lookup(cube, spec.latsymbol))) == spec.lat_lookup || return cube
+
     indices = Any[Colon() for _ in 1:ndims(cube)]
-    indices[lonpos] = minXgrid:maxXgrid
-    indices[latpos] = minYgrid:maxYgrid
+    indices[lonpos] = spec.minXgrid:spec.maxXgrid
+    indices[latpos] = spec.minYgrid:spec.maxYgrid
 
     cubesub = view(cube, indices...)
-    msksub = msk[minXgrid:maxXgrid, minYgrid:maxYgrid]
+    msksub = spec.msk[spec.minXgrid:spec.maxXgrid, spec.minYgrid:spec.maxYgrid]
 
     maskshape = ntuple(i -> i == lonpos ? size(msksub, 1) : (i == latpos ? size(msksub, 2) : 1), ndims(cubesub))
     masked_data = cubesub.data .* reshape(Float32.(msksub), maskshape)
 
-    return YAXArray(cubesub.axes, masked_data)
+    return YAXArray(cubesub.axes, masked_data, cube.properties)
+end
+
+function spatialsubset(cube::YAXArray, poly; dataset::Union{Nothing, Dataset}=nothing)
+    spec = _spatialsubset_spec(cube, poly; dataset=dataset)
+    return _apply_spatialsubset(cube, spec)
+end
+
+function spatialsubset(ds::Dataset, poly)
+    isempty(keys(ds.cubes)) && error("Input dataset is empty.")
+
+    reference_name = nothing
+    for variable_name in keys(ds.cubes)
+        cube = ds[variable_name]
+        if !isnothing(_find_spatial_dim(cube, (:longitude, :lon, :x, :rlon))) &&
+           !isnothing(_find_spatial_dim(cube, (:latitude, :lat, :y, :rlat)))
+            reference_name = variable_name
+            break
+        end
+    end
+
+    reference_name === nothing && error("Dataset does not contain a cube with recognizable spatial dimensions.")
+
+    spec = _spatialsubset_spec(ds[reference_name], poly; dataset=ds)
+    variable_pairs = [variable_name => _apply_spatialsubset(ds[variable_name], spec) for variable_name in keys(ds.cubes)]
+    return Dataset(; variable_pairs...)
 end
 
 function spatialsubset(C::AbstractVector, poly)
