@@ -68,7 +68,7 @@ These are often used after bias correction or in post-processing chains.
 - `kkz_reduce_ensemble`: deterministic KKZ ensemble-member subset selection
 - `robustness_fractions`, `robustness_categories`, `robustness_coefficient`: sign-agreement and robustness diagnostics for projected change
 - `quantiles`: grouped quantile summaries over a selected dimension
-- `gevfit_cube`, `gpfit_cube`, `returnlevel_cube`: reusable extreme-value fitting and return-level reuse over a reduced cube dimension; `gevfit_cube` is for block-maximum inputs, while `gpfit_cube` is for threshold exceedances
+- `gevfit_cube`, `gpfit_cube`, `returnlevel_cube`: reusable extreme-value fitting and return-level reuse over a reduced cube dimension; `gevfit_cube` supports stationary and covariate-driven non-stationary block-maxima models with effective return levels, while `gpfit_cube` currently fits stationary threshold exceedances
 - `rlevels_cube`: legacy one-step return-level estimation on raw cubes
 
 ## Plotting
