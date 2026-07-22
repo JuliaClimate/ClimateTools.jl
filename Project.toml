@@ -2,7 +2,7 @@ name = "ClimateTools"
 uuid = "4f4ee721-4970-5af2-8560-6c1d960e3231"
 authors = ["Philippe Roy <borghor@yahoo.ca>"]
 repo = "https://github.com/JuliaClimate/ClimateTools.jl.git"
-version = "0.26.2"
+version = "0.26.3"
 
 [deps]
 CFTime = "179af706-886a-5703-950a-314cd64e0468"
@@ -51,7 +51,7 @@ Shapefile = "0.10, 0.11, 0.12, 0.13"
 StableRNGs = "1"
 Statistics = "1.11"
 YAXArrays = "0.7"
-Zarr = "0.9"
+Zarr = "0.9, 0.10"
 julia = "1.10, 1.11, 1.12"
 
 [extras]
