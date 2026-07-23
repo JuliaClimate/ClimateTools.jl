@@ -136,17 +136,56 @@ rl = returnlevel_cube(gp_fit_loaded; rlevels=[2, 10, 25, 50, 100])
 
 Use this pattern when fitting the gridpoint-wise tail model is expensive and you want to reuse the fitted GP models later without repeating the estimation step. The same reuse workflow applies to `gevfit_cube` after you have already reduced the source data to block maxima such as annual or seasonal maxima; it should not be applied directly to daily values. GP fits are the most complete example here because the saved bundle also carries the per-grid threshold cube needed for return-level calculations.
 
-For a GEV workflow, reduce the source series to block maxima first and then fit across the resulting yearly maxima cube:
+For a stationary precipitation GEV workflow, reduce daily precipitation amounts to annual maximum one-day precipitation before fitting across the block axis:
 
 ```julia
 using ClimateTools, YAXArrays
 
-cube = Cube(open_dataset("tasmax_daily.nc"))
-annual_maxima = annualmax(cube)
+pr = Cube(open_dataset("pr_daily.nc"))
+annual_max_precipitation = annualmax(pr)
 
-gev_fit = gevfit_cube(annual_maxima; dim=:time)
+gev_fit = gevfit_cube(annual_max_precipitation; dim=:time)
 gev_rl = returnlevel_cube(gev_fit; rlevels=[2, 10, 25, 50])
 ```
+
+For a non-stationary GEV model, a greenhouse-gas concentration can be supplied along the block axis. This example uses the [NOAA Global Monitoring Laboratory global annual mean atmospheric CO2 record](https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_annmean_gl.csv), expressed in ppm. A snapshot covering 1979–2025 is bundled with the package test data. The concentration records are matched by year rather than by row position, and centering the covariate improves numerical conditioning:
+
+```julia
+using ClimateTools, YAXArrays, Dates, Statistics, DelimitedFiles
+
+pr = Cube(open_dataset("pr_daily.nc"))
+annual_max_precipitation = annualmax(pr)
+
+co2_file = joinpath(pkgdir(ClimateTools), "test", "data", "co2_annmean_gl.csv")
+co2_data, _ = readdlm(co2_file, ',', Float64;
+    header=true,
+    comments=true,
+    comment_char='#')
+
+co2_by_year = Dict(Int(row[1]) => row[2] for row in eachrow(co2_data))
+block_years = year.(lookup(annual_max_precipitation, :time))
+co2_ppm = [get(co2_by_year, block_year, missing) for block_year in block_years]
+co2_reference = mean(skipmissing(co2_ppm))
+centered_co2_ppm = [
+    ismissing(value) ? missing : value - co2_reference
+    for value in co2_ppm
+]
+
+gev_fit = gevfit_cube(annual_max_precipitation;
+    dim=:time,
+    covariates=(co2_ppm=centered_co2_ppm,),
+    locationcovid=[:co2_ppm])
+
+model = first(skipmissing(Array(gev_fit.models)))
+coefficients = model.θ̂
+effective_rl = returnlevel_cube(gev_fit; rlevels=[10, 25, 50, 100])
+```
+
+Here `coefficients` contains the location intercept and the change in location per ppm of atmospheric CO2, followed by the stationary log-scale and shape coefficients. `Extremes.params(model)` can be used when the location, scale, and shape values evaluated at every retained covariate row are needed instead. The effective return-level cube restores the fitted `time` axis, so its dimensions are the remaining input dimensions followed by `time` and `rlevels`. Years outside the NOAA record, along with rows containing `missing`, `NaN`, or infinite precipitation or covariate values, remain `missing` in that output. Each grid cell must have at least `min_points` complete rows and at least as many complete rows as fitted regression coefficients.
+
+Atmospheric CO2 is one greenhouse-gas covariate, not a combined concentration of all greenhouse gases. For future climate simulations, replace the observational NOAA series with concentrations from the same emissions scenario as the precipitation simulation. The precipitation cube should contain daily amounts or totals in consistent units; convert rates or fluxes before extracting annual maxima.
+
+Covariates may also be YAXArrays. A covariate cube must include the fitted dimension and may include any subset of the remaining dimensions for spatially or ensemble-varying regressions. Coordinates on every shared axis must match the block-maxima cube exactly. The `locationcovid`, `logscalecovid`, and `shapecovid` keywords follow the corresponding Extremes.jl non-stationary GEV interface.
 
 ## Example 11: Monthly SPI and Water-Budget-First SPEI
 

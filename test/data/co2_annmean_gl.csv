@@ -1,0 +1,85 @@
+# --------------------------------------------------------------------
+# USE OF NOAA GML DATA
+#
+# These data are made freely available to the public and the scientific
+# community in the belief that their wide dissemination will lead to
+# greater understanding and new scientific insights. To ensure that GML
+# receives fair credit for their work please include relevant citation
+# text in publications. We encourage users to contact the data providers,
+# who can provide detailed information about the measurements and
+# scientific insight.  In cases where the data are central to a
+# publication, coauthorship for data providers may be appropriate.
+#
+#
+#
+# Contact:  Xin Lan (xin.lan@noaa.gov)
+#
+# File Creation: Sun Jul  5 03:55:19 2026
+#
+#
+# --------------------------------------------------------------------
+#
+#
+# See gml.noaa.gov/ccgg/trends/ for additional details.
+#
+# The uncertainty in the global annual mean is estimated using a monte carlo
+# technique that computes 200 global annual averages, each time using a
+# slightly different set of measurement records from the NOAA GML cooperative
+# air sampling network.  The reported uncertainty is the mean of the standard
+# deviations for each annual average using this technique. Please see
+# Conway et al., 1994, JGR, vol. 99, no. D11. for a complete discussion.
+#
+# CO2 expressed as a mole fraction in dry air, micromol/mol, abbreviated as ppm
+#
+# NOTE: In general, the data presented for the last year are subject to change,
+# depending on recalibration of the reference gas mixtures used, and other quality
+# control procedures. Occasionally, earlier years may also be changed for the same
+# reasons.  Usually these changes are minor.
+year,mean,unc
+1979,336.85,0.10
+1980,338.91,0.07
+1981,340.11,0.08
+1982,340.85,0.03
+1983,342.53,0.05
+1984,344.07,0.07
+1985,345.54,0.07
+1986,346.97,0.07
+1987,348.68,0.09
+1988,351.16,0.06
+1989,352.79,0.07
+1990,354.06,0.07
+1991,355.40,0.06
+1992,356.09,0.07
+1993,356.84,0.07
+1994,358.33,0.09
+1995,360.18,0.05
+1996,361.93,0.04
+1997,363.04,0.05
+1998,365.70,0.05
+1999,367.80,0.06
+2000,368.96,0.07
+2001,370.57,0.06
+2002,372.58,0.05
+2003,375.14,0.04
+2004,376.95,0.06
+2005,378.98,0.05
+2006,381.15,0.05
+2007,382.90,0.05
+2008,385.02,0.04
+2009,386.50,0.04
+2010,388.75,0.07
+2011,390.62,0.07
+2012,392.65,0.07
+2013,395.40,0.06
+2014,397.34,0.05
+2015,399.65,0.05
+2016,403.07,0.07
+2017,405.22,0.08
+2018,407.61,0.08
+2019,410.07,0.09
+2020,412.44,0.07
+2021,414.70,0.07
+2022,417.08,0.08
+2023,419.35,0.10
+2024,422.79,0.10
+2025,425.64,0.09
